@@ -1,0 +1,62 @@
+@import "../../../../variables.scss";
+
+.pronostiqueHeader {
+  top: 128px;
+  z-index: 50;
+}
+
+.filter {
+  background: $darkSecondary;
+}
+
+.playedFilter {
+  background: $secondaryColor;
+}
+
+.btnFilter {
+  padding: 0.45rem 1rem;
+  background: $inputBorder;
+  color: darken($inputBorder, 40%);
+  border-radius: 20px;
+  font-size: 0.85rem;
+
+  .material-symbols-outlined {
+    font-size: 0.85rem;
+    color: darken($inputBorder, 40%);
+    opacity: 0;
+  }
+
+  &.active {
+    pointer-events: none;
+    background: $yellow;
+    color: darken($yellow, 25%);
+
+    .material-symbols-outlined {
+      color: darken($yellow, 25%);
+      opacity: 1;
+    }
+  }
+}
+
+.pronostiquesMain {
+  padding-top: 178px;
+}
+
+// @media screen and (min-width: 576px){
+//   .filter {
+//     // margin-top: -1rem;
+//     // margin-left: -1.5rem;
+//     // width: calc(100% + 3rem) !important;
+//   }
+
+//   .playedFilter {
+//     // margin-left: -1.5rem;
+//     // width: calc(100% + 3rem) !important;
+//   }
+// }
+
+@media screen and (min-width: 991px){
+  .lg\:col-4 {
+    width: 32.8% !important;
+  }
+}

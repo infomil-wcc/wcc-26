@@ -1,0 +1,15 @@
+<div class="overlay flex align-items-center justify-content-center" *ngIf="showModal">
+
+  <div class="modal shadow-2 relative overflow-hidden" [ngClass]="{'modalSm' : modalSize === 'sm', 'modalMd' : modalSize === 'md', 'modalLg' : modalSize === 'lg'}">
+      <button class="closeModal p-2 flex align-items-center justify-content-center" (click)="closeModal()">
+        <span class="material-symbols-outlined text-base mr-0">
+          close
+          </span>
+      </button>
+
+    <div class="modalContent">
+      <ng-content></ng-content>
+    </div>
+  </div>
+
+</div>

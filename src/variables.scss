@@ -1,0 +1,20 @@
+$gray :#dbe8f1;
+$red:	#e4010b;
+$blue:	#004ea0;
+$green:	#00a85d;
+$yellow:#ffd600;
+$darkpurple:#2b2c36;
+$inputBorder: #d4d4d4;
+
+$primaryColor: #222;
+$secondaryColor: #00a85d;
+$lightPrimary: lighten($primaryColor, 10%);
+$lightSecondary: lighten($secondaryColor, 10%);
+$darkPrimary: darken($primaryColor, 20%);
+$darkSecondary: darken($secondaryColor, 20%);
+$goldColor: $yellow;
+$aqua: $blue;
+$mint: #9DF7E5;
+
+$subHeader : 3rem;
+$headerNav: 6rem;

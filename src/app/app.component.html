@@ -1,0 +1,59 @@
+<layout [ngSwitch]="page">
+  <ng-container slot="header">
+    <cmp-header></cmp-header>
+  </ng-container>
+
+  <ng-container slot="hero" *ngSwitchCase="0">
+    <hero [background]="'url(assets/hero-bg.jpg)'">
+      <app-hpnews></app-hpnews>
+    </hero>
+  </ng-container>
+
+  <ng-container slot="main" >
+    <app-homepage *ngSwitchCase="0" />
+    <app-error *ngSwitchCase="11" />
+    <app-games *ngSwitchCase="1" />
+    <app-teams *ngSwitchCase="2" />
+    <app-stadiums *ngSwitchCase="3" />
+    <app-statistics *ngSwitchCase="4" />
+    <app-best-scorer *ngSwitchCase="5" />
+    <app-pronostiques *ngSwitchCase="6" />
+    <app-bracket *ngSwitchCase="7" />
+    <app-quiz *ngSwitchCase="8" />
+    <app-ranking *ngSwitchCase="9" />
+    <app-faq *ngSwitchCase="10" />
+    <router-outlet></router-outlet>
+  </ng-container>
+
+  <ng-container slot="footer">
+    <cmp-footer></cmp-footer>
+  </ng-container>
+</layout>
+
+<app-dialog [(showDialog)]="showDialog" [dialogTitle]="'Bienvenue !'" [withOverlay]="true" [allowClose]="false">
+  Selon vous, combien de buts seront inscrits au total durant la Coupe du Monde de la FIFA 2026? <br /><br />
+  <i>Indice: nombre total de but inscrits lors des précédentes éditions:</i>
+  <ul class="textList">
+    <li>Allemagne 2006: 147 buts</li>
+    <li>Afrique du Sud 2010: 143 buts</li>
+    <li>Brésil 2014: 171 buts</li>
+    <li>Russie 2018: 169 buts</li>
+    <li>Qatar 2022: 172 buts</li>
+  </ul>
+
+  <form class="flex flex-column gap-2" [formGroup]="goalsForm">
+    <div class="input mb-2">
+      <input type="number" formControlName="totalGoalsPrediction" name="totalGoalsPrediction" required min="0" class="w-full" />
+    </div>
+
+    <button type="button" label="Valider ma prédiction" class="btn btn-primary"(click)="submitGoals()">Soumettre ma proposition</button>
+  </form>
+
+
+</app-dialog>
+
+<loader [(showLoader)]="showLoader" />
+
+<modal>
+  <p>Test modal content</p>
+</modal>

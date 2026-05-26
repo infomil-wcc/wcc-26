@@ -1,0 +1,34 @@
+<div class="filter w-full pt-4 pb-4 pl-2 pr-2">
+  <div class="container">
+    <h1 class="text-white flex">
+      <span class="material-symbols-outlined">calendar_month</span>
+      Calendrier des matchs
+    </h1>
+  </div>
+</div>
+
+<div class="container pt-4">
+  
+  <ng-container *ngIf="$today | async as today">
+    <div *ngIf="$groupedMatches | async as groupedMatches; else loader">
+
+      <ng-container *ngFor="let date of getDates(groupedMatches)">
+        <h3 class="capitalize">{{ date | date: 'fullDate' }}</h3>
+        
+        <div class="flex flex-wrap gap-2 mb-8">
+          <ng-container *ngFor="let match of groupedMatches[date]">
+            <div class="col-12 p-0 lg:col-4">
+              <app-match [match]="match" [dateTime]="today.dateTime" />
+            </div>
+          </ng-container>
+        </div>
+      </ng-container>
+
+    </div>
+  </ng-container>
+
+</div>
+
+<ng-template #loader>
+  <loader [showLoader]="true" />
+</ng-template>

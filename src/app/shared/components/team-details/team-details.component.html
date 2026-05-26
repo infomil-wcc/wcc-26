@@ -1,0 +1,124 @@
+<div class="teamDetails h-full min-h-full bg-white border-round-2xl overflow-hidden">
+  <div class="teamBanner p-4 h-6rem flex align-items-center md:h-10rem">
+    <img [src]="team.badge_url" alt="" class="md:w-6rem md:h-auto" width="60" height="60" />
+    <h2 class="text-xl ml-4 pt-1 text-white md:text-6xl">{{ team.name | uppercase }}</h2>
+  </div>
+
+  <app-tabcontent>
+    <ng-template tabContent title="A propos">
+      <!-- Poster Equipe -->
+      <div class="">
+        <img src="assets/teams/poster/{{team.name | lowercase }}.jpg" width="100%" height="auto" alt="{{team.name}}" />
+      </div>
+      <!-- A propos de l'equipe -->
+      <div [innerHTML]="team.information" class="p-4"></div>
+    </ng-template>
+    <ng-template tabContent title="Joueurs">
+      <!-- Joueurs -->
+      <ng-container *ngIf="this.$teamPlayers | async as players; else loader">
+        <div class="playersView" class="p-4">
+            <div class="">
+            <h4>Attaquants</h4>
+            <div class="grid gutter-2">
+              <ng-container *ngFor="let player of players">
+                <ng-container *ngIf="player.position === 'Forward'">
+                  <div class="col-fixed w-full sm:w-12rem">
+                    <div class="playerProfile">
+                      <div class="playerAvatar">
+
+                      </div>
+                      <div class="playerName">
+                        {{ player.name }}
+                      </div>
+                    </div>
+                  </div>
+                </ng-container>
+              </ng-container>
+            </div>
+          </div>
+
+          <div class="">
+            <h4>Millieu</h4>
+            <div class="grid">
+              <ng-container *ngFor="let player of players">
+                <ng-container *ngIf="player.position === 'Midfielder'">
+                  <div class="col-fixed w-full sm:w-12rem">
+                    <div class="playerProfile">
+                      <div class="playerAvatar">
+
+                      </div>
+                      <div class="playerName">
+                        {{ player.name }}
+                      </div>
+                    </div>
+                  </div>
+                </ng-container>
+              </ng-container>
+            </div>
+          </div>
+
+          <div class="">
+            <h4>Défenseurs</h4>
+            <div class="grid">
+              <ng-container *ngFor="let player of players">
+                <ng-container *ngIf="player.position === 'Defender'">
+                  <div class="col-fixed w-full sm:w-12rem">
+                    <div class="playerProfile">
+                      <div class="playerAvatar">
+
+                      </div>
+                      <div class="playerName">
+                        {{ player.name }}
+                      </div>
+                    </div>
+                  </div>
+                </ng-container>
+              </ng-container>
+            </div>
+          </div>
+
+          <div>
+            <h4>Gardiens de buts</h4>
+            <div class="grid">
+              <ng-container *ngFor="let player of players">
+                <ng-container *ngIf="player.position === 'Goalkeeper'">
+                  <div class="col-fixed w-full sm:w-12rem">
+                    <div class="playerProfile">
+                      <div class="playerAvatar">
+
+                      </div>
+                      <div class="playerName">
+                        {{ player.name }}
+                      </div>
+                    </div>
+                  </div>
+                </ng-container>
+              </ng-container>
+            </div>
+          </div>
+
+        </div>
+      </ng-container>
+
+    </ng-template>
+    <ng-template tabContent title="Matchs">
+      <div class="p-4 matchDetails mt-3">
+        <ng-container *ngIf="this.$teamMatches | async as matches; else loader">
+
+          <div class="flex flex-wrap gap-2 mb-8">
+            <ng-container *ngFor="let match of matches">
+              <div class="col-12 p-0 sm:col-4">
+                <app-match [match]="match" />
+              </div>
+            </ng-container>
+          </div>
+
+        </ng-container>
+      </div>
+    </ng-template>
+  </app-tabcontent>
+</div>
+
+<ng-template #loader>
+  <loader [showLoader]="true" />
+</ng-template>

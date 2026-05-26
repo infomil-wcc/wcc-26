@@ -1,0 +1,76 @@
+[
+  {
+    "label": "Accueil",
+    "route": "accueil",
+    "active": true
+  },
+  {
+    "label": "Les matchs",
+    "route": "matchs",
+    "active": false
+  },
+  {
+    "label": "Euro 2024",
+    "route": "infos",
+    "active": false,
+    "sub": [
+      { 
+        "label": "Les équipes",
+        "route": "equipes-euro",
+        "active": false
+      },
+      {
+        "label": "Les joueurs",
+        "route": "joueurs-euro",
+        "active": false
+      },
+      {
+        "label": "Les stades",
+        "route": "stades",
+        "active": false
+      },
+      {
+        "label": "Statistiques",
+        "route": "statistiques",
+        "active": false
+      }
+    ]
+  },
+  {
+    "label": "Les Jeux",
+    "route": "jeux",
+    "active": false,
+    "sub": [
+      { 
+        "label": "Meilleur Buteur",
+        "route": "meilleur-buteur",
+        "active": false
+      },
+      {
+        "label": "Le bon score",
+        "route": "meilleur-buteur",
+        "active": false
+      },
+      {
+        "label": "Jeu du bracket",
+        "route": "bracket",
+        "active": false
+      },
+      {
+        "label": "Quiz",
+        "route": "quiz",
+        "active": false
+      },
+      {
+        "label": "Classement des jeux",
+        "route": "classement",
+        "active": false
+      }
+    ]
+  },
+  {
+    "label": "Classements Jeux",
+    "route": "/classements-jeux",
+    "active": false
+  }
+]

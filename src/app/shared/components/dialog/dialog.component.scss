@@ -1,0 +1,27 @@
+@import "./../../../../variables.scss";
+.dialog {
+  top: 25%;
+  z-index: 1500;
+}
+
+.dialogTitle {
+  display: flex;
+  align-items: center;
+}
+
+.dialog {
+  top: 30%;
+}
+
+.dialogHeader{
+  background: $green url(../../../../assets/corner-bg.png) bottom right no-repeat;
+  background-size: 40%;
+  color: white;
+  text-transform: uppercase;
+  font-size: 0.85rem
+}
+
+.closeDialog {
+  background: $darkpurple;
+  color: white;
+}

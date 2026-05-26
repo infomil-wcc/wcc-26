@@ -1,0 +1,85 @@
+<div class="filter w-full pt-4 pb-4 pl-2 pr-2">
+  <div class="container">
+    <h1 class="text-white flex">
+      <span class="material-symbols-outlined">trophy</span>
+      Classement IML
+    </h1>
+  </div>
+</div>
+
+<div class="container pt-4">
+
+
+
+  <ng-container *ngIf="$ranks | async as ranks;">
+
+    <ng-container *ngIf="latestRank">
+      <h2 class="flex flex-column justify-content-between mb-4 md:flex-row">Classement du jeu de "Pronostic" <span class="update mt-4 md:mt-0"><span class="material-symbols-outlined">
+        history_toggle_off
+        </span> Mise a jour le <span class="dateUpdate">{{ latestRank.modified_on | date: 'medium' }}</span></span></h2>
+        <div class="classementContainer">
+          <table class="tableRanking" [cellPadding]="0" [cellSpacing]="0">
+            <thead>
+              <tr>
+                <th>Rang</th>
+                <th>Trigramme</th>
+                <th>Points</th>
+              </tr>
+            </thead>
+            <tbody>
+              <ng-container *ngFor="let rank of latestRank.ranking_json">
+                <tr>
+                  <td>{{ rank.rank }}</td>
+                  <td>{{ rank.key | uppercase }}</td>
+                  <td>{{ rank.point }}</td>
+                </tr>
+              </ng-container>
+            </tbody>
+          </table>
+        </div>
+    </ng-container>
+  </ng-container>
+
+  <ng-container *ngIf="$bracketRanks | async as bracketranks;">
+    <h2 class="flex flex-column justify-content-between mb-4 mt-8 md:flex-row">Classement du jeu "Bracket"</h2>
+    <div class="classementContainer">
+      <table class="tableRanking" [cellPadding]="0" [cellSpacing]="0">
+        <thead>
+          <tr>
+            <th>Rang</th>
+            <th>Trigramme</th>
+            <th>Points</th>
+          </tr>
+        </thead>
+        <tbody>
+        <ng-container *ngFor="let rank of bracketranks[0].ranking_json">
+          <tr>
+            <td>{{ rank.rank }}</td>
+            <td>{{ rank.user | uppercase }}</td>
+            <td>{{ rank.point }}</td>
+          </tr>
+        </ng-container>
+        </tbody>
+      </table>
+    </div>
+  </ng-container>
+
+  <h2 class="flex flex-column justify-content-between mb-4 mt-8 md:flex-row">Gagnant du jeu "Meilleurs Joueurs"</h2>
+  <table class="tableRanking" [cellPadding]="0" [cellSpacing]="0">
+    <thead>
+      <tr>
+        <th>Rang</th>
+        <th>Trigramme</th>
+      </tr>
+    </thead>
+    <tbody>
+
+      <tr>
+        <td>1</td>
+        <td>IML-SOT</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<loader [showLoader]="showLoader" />

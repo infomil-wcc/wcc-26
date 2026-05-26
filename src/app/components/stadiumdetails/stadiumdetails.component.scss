@@ -1,0 +1,36 @@
+.stadiumDetails {
+  .stadiumCover {
+    height: 100%;
+    width: 100%;
+    aspect-ratio: 1280/480;
+    overflow: hidden;
+    position: relative;
+
+    img {
+      width: 100%;
+      height: auto;
+      object-fit: cover;
+      margin-top: -15%;
+    }
+  }
+}
+
+::ng-deep {
+  .stadiumDetails {
+
+    p {
+      line-height: 1.5;
+    }
+
+    ol {
+      margin-left: 0;
+      padding-lefT: 0;
+
+      li {
+        font-size: 1.15rem;
+        margin-bottom: 0.75rem;
+      }
+    }
+
+  }
+}

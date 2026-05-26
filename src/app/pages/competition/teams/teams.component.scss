@@ -1,0 +1,22 @@
+.teams {
+  padding: 0 0.5rem;
+}
+
+.teamBadge {
+  border-radius: 100%;
+  transition: all 0.3s;
+  box-shadow: none;
+
+  img {
+    object-fit: contain;
+  }
+}
+
+.btnTeams {
+
+  &:hover .teamBadge {
+    transform: scale(1.1);
+    transition: all 0.3s;
+    box-shadow: 0 0 8px 0 #004ea033;
+  }
+}

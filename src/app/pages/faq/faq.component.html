@@ -1,0 +1,18 @@
+<div class="container">
+  <h1>FAQ</h1>
+
+  <h3>Régles et Conditions des jeux</h3>
+  <div class="rules">
+    <ng-container *ngIf="$rules | async as rules; else loader">
+      <div class="rule pl-4 pr-4 pt-2 pb-4 bg-white mb-3" *ngFor="let item of rules">
+        <h4>{{ item.name }}</h4>
+        <div class="description" [innerHTML]="item.description"></div>
+      </div>
+    </ng-container>
+  </div>
+</div>
+
+<ng-template #loader>
+  <loader [showLoader]="true" />
+</ng-template>
+

@@ -1,0 +1,23 @@
+.marking {
+  font-size: 0.65rem;
+  color: white;
+  width: 1.25rem;
+  height: 1.25rem;
+  border-radius: 100%;
+  background: #eee;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  &.win {
+    background-color: #00be4f;
+  }
+
+  &.draw {
+    background-color: #89919e;
+  }
+
+  &.loose {
+    background-color: #da3c4a;
+  }
+}

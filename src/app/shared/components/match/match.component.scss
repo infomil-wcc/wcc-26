@@ -1,0 +1,78 @@
+@import "../../../../variables.scss";
+
+.match {
+  background: white;
+  border: 1px solid #efefef;
+  padding: 1rem 1.5rem;
+  border-radius: 0.5rem;
+  min-height: 200px;
+
+  &.pronostiqueMode {
+    min-height: 300px;
+  }
+
+  &.donePronostique {
+    background: $primaryColor;
+    color: white !important;
+  }
+
+  &.closed {
+    opacity: 0.7;
+    pointer-events: none;
+  }
+
+  .flagContainer {
+    width: 40px;
+    height: 28px;
+    background-size: cover;
+    background-position: center;
+    flex-shrink: 0;
+    overflow: hidden;
+    border-radius: 4px;
+    box-shadow: 0 0 4px rgba(5, 132, 56, 0.5);
+  }
+
+  .teamDetails {
+    min-height: 80px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+
+  .teamName {
+    font-size: 1rem;
+    font-weight: bold;
+  }
+
+  .flag {
+    width: auto;
+    height: 24px;
+  }
+
+  .label,
+  .phase,
+  .time,
+  .time span {
+    color: #acacac;
+    font-size: 0.85rem;
+  }
+
+  .time span {
+    margin-top: 2px;
+  }
+
+  .pronostiques {
+
+    .flag {
+      width: 50px;
+      height: 50px;
+    }
+  }
+
+  .matchResult {
+    background: $green;
+    border-radius: 8px;
+    padding: 10px 0 40px;
+    color: white;
+  }
+}

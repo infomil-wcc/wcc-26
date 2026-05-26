@@ -1,0 +1,28 @@
+header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 80;
+}
+
+.main {
+  width: 100%;
+  background: #f2f3f4;
+  min-height: calc(100vh - 28rem);
+  padding-bottom: 2rem;
+}
+
+::ng-deep {
+  .heroContainer + .main {
+    min-height: calc(40vh - 28rem);
+  }
+}
+
+footer {
+  width: 100%;
+  padding-top: 12rem;
+  height: 19rem;
+  overflow: hidden;
+  background: url(../../../../assets/footer.png) center top no-repeat;
+}

@@ -1,0 +1,188 @@
+{
+	"info": {
+		"_postman_id": "4fdc11ed-4081-4b55-b48e-95094257c491",
+		"name": "Euro App",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "18080574"
+	},
+	"item": [
+		{
+			"name": "Getting News From Directus - Filtered to get only title and image id",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://euro.omediainteractive.net/imleuro/items/news",
+					"protocol": "https",
+					"host": [
+						"euro",
+						"omediainteractive",
+						"net"
+					],
+					"path": [
+						"imleuro",
+						"items",
+						"news"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Getting Files using id in url",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://euro.omediainteractive.net/imleuro/files/1?fields=private_hash",
+					"protocol": "https",
+					"host": [
+						"euro",
+						"omediainteractive",
+						"net"
+					],
+					"path": [
+						"imleuro",
+						"files",
+						"1"
+					],
+					"query": [
+						{
+							"key": "fields",
+							"value": "private_hash"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Player filtered by team name",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://euro.omediainteractive.net/imleuro/items/players?filter[team]=austria",
+					"protocol": "https",
+					"host": [
+						"euro",
+						"omediainteractive",
+						"net"
+					],
+					"path": [
+						"imleuro",
+						"items",
+						"players"
+					],
+					"query": [
+						{
+							"key": "filter[team]",
+							"value": "austria"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get News filtered by news ID",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://euro.omediainteractive.net/imleuro/items/news?filter[id]=1",
+					"protocol": "https",
+					"host": [
+						"euro",
+						"omediainteractive",
+						"net"
+					],
+					"path": [
+						"imleuro",
+						"items",
+						"news"
+					],
+					"query": [
+						{
+							"key": "filter[id]",
+							"value": "1"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Getting Teams for competition",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://euro.omediainteractive.net/imleuro/items/teams",
+					"protocol": "https",
+					"host": [
+						"euro",
+						"omediainteractive",
+						"net"
+					],
+					"path": [
+						"imleuro",
+						"items",
+						"teams"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Getting Teams by Group ID",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://euro.omediainteractive.net/imleuro/items/teams?filter[group]=a",
+					"protocol": "https",
+					"host": [
+						"euro",
+						"omediainteractive",
+						"net"
+					],
+					"path": [
+						"imleuro",
+						"items",
+						"teams"
+					],
+					"query": [
+						{
+							"key": "filter[group]",
+							"value": "a"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Getting Matches info",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://euro.omediainteractive.net/imleuro/items/matches",
+					"protocol": "https",
+					"host": [
+						"euro",
+						"omediainteractive",
+						"net"
+					],
+					"path": [
+						"imleuro",
+						"items",
+						"matches"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

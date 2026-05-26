@@ -1,0 +1,25 @@
+<div class="container pt-4">
+
+  <h1 class="text-4xl mb-1 md:mb-3 mt-2">Euro 2024</h1>
+
+  <app-breadcrump [bcdata]="breadCrumpData" (routeEvent)="resetStadiumSelection($event)" />
+
+  <div class="stadiums grid relative gap-2 md:mt-4" *ngIf="$stadiumData | async as stadiums; else loader" [ngClass]="{'hidden': choosenStadium}">
+  <div class="stadium bg-white p-3 flex col-12 align-items-center justify-content-center md:col-3 lg:col-3" *ngFor="let stadium of stadiums">
+    <button class="btnStadiums flex flex-column align-items-center" (click)="showStadium(stadium)">
+      <!-- {{ stadium.id }} -->
+      <div class="imgPlaceholder">
+        <img src="assets/stadium/{{ stadium.id }}.jpg" alt="" width="100%" height="auto" />
+      </div>
+      <h2 class="mt-2">{{ stadium.title }}</h2>
+    </button>
+  </div>
+  </div>
+
+  <!-- <team-details *ngIf="choosenTeam" [team]="choosenTeam"></team-details> -->
+  <stadiumdetails *ngIf="choosenStadium" [stadium]="choosenStadium"></stadiumdetails>
+</div>
+
+<ng-template #loader>
+  <loader [showLoader]="true" />
+</ng-template>

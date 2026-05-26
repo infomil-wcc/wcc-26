@@ -1,0 +1,112 @@
+@import "../../../variables.scss";
+
+:host {
+  width: 100%;
+  height: 100%;
+}
+
+.newsPane {
+  background: rgba(255, 255, 255, 0.07);
+  border-radius: 12px;
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(0.2px);
+  border: 1px solid rgba(255, 255, 255, 0.23);
+  height: 45%;
+
+  &.newsRotator {
+    height: 60%;
+  }
+
+  h2 {
+    border-bottom: 1px solid white;
+  }
+}
+
+.newsPaneBlur {
+  backdrop-filter: blur(4px);
+  // cursor: pointer;
+
+  img {
+    transition: transform 0.5s;
+  }
+
+  &:hover img {
+    transition: transform 0.5s;
+    transform: scale(1.05)
+  }
+
+  .picture {
+    height: 80%;
+    width: 100%;
+    background: white;
+
+    img {
+      object-fit: cover;
+      object-position: top;
+    }
+  }
+}
+
+.newsRotatorContainer,
+.newsInfoContainer {
+  height: 90%;
+}
+
+.newsRow {
+  height: 100%;
+}
+
+.newsInfo {
+  background: rgba(0,0,0,0.4);
+  cursor: pointer;
+  transition: all 0.5s;
+  height: 30%;
+
+  &:hover {
+    h4 {
+      color: $yellow !important;
+      transition: all 0.5s;
+    }
+
+    img {
+      transition: transform 0.5s;
+      transform: scale(1.1)
+    }
+  }
+
+  .newsInfoPic {
+    width: 8rem;
+    height: 100%;
+    flex-shrink: 0;
+  }
+
+  img {
+    object-fit: cover;
+    object-position: center;
+    transition: transform 0.5s;
+  }
+}
+
+@media screen and (min-width: 990px){
+
+  .container {
+    gap: 0 !important;
+  }
+
+  .newsPane,
+  .newsPane.newsRotator {
+    height: 80%;
+
+    .picture {
+      height: 85%;
+    }
+  }
+
+  .newsMain {
+    width: 66%;
+  }
+
+  .newsRotator {
+    width: 33%;
+  }
+}

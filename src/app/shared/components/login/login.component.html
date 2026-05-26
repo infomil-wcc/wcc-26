@@ -1,0 +1,123 @@
+<div class="login flex flex-column sm:flex-row">
+
+  <div class="left desktop">
+    <img src="assets/vertical-banner-login-campaign.png" alt="" />
+  </div>
+
+  <div class="right w-full pl-4 pr-4 pt-3 pb-2 relative">
+    <div class="loginLoader flex align-items-center justify-content-center absolute" *ngIf="loginLoader">
+      <div class="loader">
+        <div class="lds-ripple"><div></div><div></div></div>
+      </div>
+    </div>
+    <div class="loginFlow" *ngIf="login">
+      <form [formGroup]="loginForm">
+        <h3 class="flex align-items-center"> <span class="material-symbols-outlined icone">
+          account_circle
+          </span>
+          Authentification</h3>
+        <p>Veuillez saisir vos identifiants pour participer aux différents jeux proposés</p>
+
+        <div class="input mt-4">
+          <input tabindex="1" type="text" #email value="" autocomplete="off" placeholder="Veuillez renseigner votre email" formControlName="email" />
+          <label>EMAIL</label>
+          <span *ngIf="loginForm.get('email')?.invalid && loginForm.get('email')?.touched" class="error mt-2 mb-2">
+            <ng-container *ngIf="loginForm.get('email')?.errors?.['required']">Ce champ est obligatoire</ng-container>
+            <ng-container *ngIf="loginForm.get('email')?.errors?.['pattern']">Le format de l'email est incorrecte</ng-container>
+          </span>
+        </div>
+
+        <div class="input">
+          <input tabindex="2" type="{{ passType }}" #pass value="" placeholder="Mot de passe"  autocomplete="off" formControlName="pass" (keydown.enter)="verifyLogin(email.value, pass.value)" />
+          <label>MOT DE PASSE</label>
+          <span class="material-symbols-outlined togglePass" (click)="toggleType()">{{ visibility }}</span>
+          <span *ngIf="loginForm.get('pass')?.invalid && loginForm.get('pass')?.touched" class="error mt-2 mb-2">
+            <ng-container *ngIf="loginForm.get('pass')?.errors?.['required']">Ce champ est obligatoire</ng-container>
+            <ng-container *ngIf="loginForm.get('pass')?.errors?.['minlength']">Mot de passe trop court</ng-container>
+          </span>
+        </div>
+
+        <span *ngIf="otherError" class="error mt-4 mb-2">
+          Email / Mot de passe incorrecte, veuillez re-essayer. Si vous n'arrivez toujours pas a vous identifiez, veuillez vous rapproché de l'équipe organisateur.
+        </span>
+
+        <div class="flex flex-column align-items-end justify-content-between pt-2 pb-2 md:flex-row md:align-items-center md:mt-3">
+          <div class="registerText mb-3 sm:mb-0">
+            <span>Pas de compte? <button tabindex="4" class="link ml-2" (click)="toggleRegister()">M'en créer un</button></span>
+          </div>
+          <button tabindex="3" class="btn btn-primary" (click)="verifyLogin(email.value, pass.value)" [disabled]="!loginForm.valid">Connexion</button>
+        </div>
+      </form>
+    </div>
+
+    <div class="registerFlow w-full" *ngIf="register" [ngClass]="{'hidden': confirmation}">
+      <form [formGroup]="registerForm">
+        <h3 class="flex align-items-center"> <span class="material-symbols-outlined icone">
+          person_add
+          </span>
+          Créer mon compte</h3>
+        <p>Veuillez insérer les informations ci-dessous</p>
+
+        <div class="input mt-4">
+          <input tabindex="1" type="email" #emailReg value="" placeholder="Adresse mail"  autocomplete="off" />
+          <label>*Email</label>
+          <!-- <span class="error">Mot de passe incorrecte</span> -->
+        </div>
+
+        <div class="input ">
+          <input tabindex="2" type="text" #trigrammeReg value="" autocomplete="off" placeholder="iml-xxx" />
+          <label>*Votre trigramme (iml-xxx)</label>
+        </div>
+
+        <div class="input">
+          <input tabindex="3" type="{{ passType }}" #passReg value="" placeholder="Mot de passe"  autocomplete="off" formControlName="pass" (keydown.enter)="registerAccount(emailReg.value, trigrammeReg.value, passReg.value)"/>
+          <label>*Un mot de passe</label>
+          <span class="material-symbols-outlined togglePass" (click)="toggleType()">{{ visibility }}</span>
+        </div>
+
+        <div class="flex flex-column align-items-end justify-content-between pt-2 pb-2 md:flex-row md:align-items-center md:mt-3">
+          <div class="registerText mb-3 sm:mb-0">
+            <span>Déja inscrit ? <button tabindex="5" class="link ml-2 mr-2" (click)="toggleRegister()">Se connecter</button></span>
+          </div>
+          <button tabindex="4" class="btn btn-primary" (click)="registerAccount(emailReg.value, trigrammeReg.value, passReg.value)">Créer mon compte</button>
+        </div>
+      </form>
+    </div>
+
+    <div class="registerFlow w-full" *ngIf="confirmation">
+      <form [formGroup]="confirmationForm">
+        <h3 class="flex align-items-center"> <span class="material-symbols-outlined icone">
+          email
+          </span>
+          Confirmation de votre compte</h3>
+        <p>Veuillez insérer le code de confirmation envoyé à votre adresse email</p>
+
+        <div class="input mt-4">
+          <input tabindex="1" type="text" #inputConfcode value="" placeholder="Code de confirmation"  autocomplete="off" (input)="inputConfcode.value !== confirmationCode.toString() ? disableConfirm = true : disableConfirm = false" />
+          <label>*Code de confirmation</label>
+        </div>
+
+
+
+        <div class="flex flex-column align-items-end justify-content-between pt-2 pb-2 md:flex-row md:align-items-center md:mt-3">
+          <button tabindex="2" class="btn btn-primary" [disabled]="disableConfirm" (click)="confirmRegistration(userData[0].email, userData[0].trigramme, userData[0].pass)">Confirmer mon compte</button>
+        </div>
+      </form>
+    </div>
+
+    <div class="issueHandling pt-4" *ngIf="issueHandling">
+      <h3 class="flex align-items-center"><span class="material-symbols-outlined icone mr-2">
+        sentiment_dissatisfied
+        </span> Oops..</h3>
+      <div class="issueMessage mb-3">
+        <p>{{ issueMsg }}</p>
+      </div>
+      <div class="registerText mb-3">
+        <span>Pour réessayer de créer un compte : <button class="link ml-2" (click)="register = true; issueHandling = false">Cliquer ici</button></span>
+      </div>
+      <div class="registerText mb-3">
+        <span>Se connecter avec un autre compte: <button class="link ml-2 mr-2" (click)="login = true; issueHandling = false">Cliquer ici</button></span>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,56 @@
+@import "./../../../../variables.scss";
+
+.subHeader {
+  width: 100%;
+  height: $subHeader;
+  background: $primaryColor;
+  color: white;
+}
+
+.headerNav {
+  width: 100%;
+  height: 5rem;
+  background: #fff url(./../../../../assets/line-pattern.png) top center no-repeat;
+  background-size: 300%;
+
+  .container {
+    height: 100%;
+  }
+}
+
+.headerLogo button {
+  height: 100%;
+  width: auto;
+
+  img {
+    height: 100%;
+    width: auto;
+  }
+}
+
+.logOut {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+
+  span {
+    font-size: 0.75rem;
+  }
+
+  &:hover,
+  &:hover span {
+    color: $yellow;
+  }
+}
+
+@media screen and (min-width: 990px) {
+  .headerNav {
+    background-size: 120%;
+    height: $headerNav;
+
+    .container {
+      height: 3.5rem;
+    }
+  }
+}

@@ -1,0 +1,138 @@
+<div class="filter w-full pt-4 pb-4 pl-2 pr-2">
+  <div class="container">
+    <h1 class="text-white flex">
+      <span class="material-symbols-outlined">sports_esports</span>
+      Les meilleurs joueurs du tournoi
+    </h1>
+  </div>
+</div>
+
+<div class="container pt-4">
+  <h3 style="line-height: 1.5; text-align: center" class="mb-6">Prédisez le meilleur buteur du tournoi (Golden Boot) et le nombre de buts qu’il marquera, ainsi que le joueur du tournoi (Player of the Tournament).</h3>
+
+
+  <div class="grid justify-content-center">
+    <div class="col-12 goldenBoot md:col-6 lg:col-4">
+      <div class="pronostique goldenBoot w-full h-full">
+        <div class="imagePlaceholder">
+          <img src="assets/meilleur-buteur.png" alt="" width="100%" height="auto" />
+        </div>
+        <div class="prediction flex flex-column align-items-center justify-content-center" *ngIf="!alreadyPlayed && !jeuFermer">
+          Veuillez selectionner le joueur:
+
+          <div class="grid justify-content-center mb-2 w-full">
+            <div class="col-6">
+              <div class="teamA flex flex-column align-items-center input">
+                <select name="team" id="teamSelection" (change)="nationalitySelected($event, 'goldenBoot')" [disabled]="disabled">
+                  <ng-container>
+                    <option value="-" selected>Nationalité</option>
+                    <ng-container *ngIf="$teams | async as teams">
+                      <ng-container *ngFor="let team of teams">
+                        <option [value]="team.name">{{ team.name }}</option>
+                      </ng-container>
+                    </ng-container>
+                  </ng-container>
+                </select>
+              </div>
+            </div>
+            <div class="col-6">
+              <div class="teamB flex flex-column align-items-center input">
+                <select name="player" id="playerSelection" [(ngModel)]="goldenScorer" [disabled]="disabled">
+                  <ng-container>
+                    <option value="-" selected>-</option>
+                    <ng-container *ngIf="$goldenBootPlayers | async as players">
+                      <ng-container *ngFor="let item of players">
+                        <option [value]="item.name">{{ item.name }} - ({{ item.position }})</option>
+                      </ng-container>
+                    </ng-container>
+                  </ng-container>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          Veuillez saisir le nombre de but:
+
+          <div class="flex align-items-center justify-content-center">
+            <div class="col-6 flex-shrink-0 sm:col-6 md:col-8 lg:col-8">
+              <app-number-input [(num)]="goals" [disabled]="disabled" />
+            </div>
+          </div>
+        </div>
+
+        <div class="alreadyPlayed p-3" *ngIf="alreadyPlayed">
+          <h3>Votre pronostique</h3>
+          <ng-container *ngIf="userPronostique">
+            <p><strong>Meilleur Buteur:</strong> {{ userPronostique.meilleur_buteur }}</p>
+            <p><strong>Nombre de but:</strong> {{ userPronostique.nombre_but }}</p>
+          </ng-container>
+        </div>
+
+        <div class="jeuFermer p-3" *ngIf="jeuFermer && !alreadyPlayed">
+          <h3>Le jeu est clos</h3>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-12 tournamentPlayer md:col-6 lg:col-4">
+      <div class="pronostique tournamentPlayer w-full h-full">
+        <div class="imagePlaceholder">
+          <img src="assets/meilleur-joueur.png" alt="" width="100%" height="auto" />
+        </div>
+        <div class="prediction flex flex-column align-items-center justify-content-center" *ngIf="!alreadyPlayed && !jeuFermer">
+          Veuillez selectionner le joueur:
+
+          <div class="grid justify-content-center mb-2 w-full">
+            <div class="col-6">
+              <div class="teamA flex flex-column align-items-center input">
+                <select name="team" id="teamSelection" (change)="nationalitySelected($event, 'tournament')" [disabled]="disabled">
+                  <ng-container>
+                    <option value="-" selected>Nationalité</option>
+                    <ng-container *ngIf="$teams | async as teams">
+                      <ng-container *ngFor="let team of teams">
+                        <option [value]="team.name">{{ team.name }}</option>
+                      </ng-container>
+                    </ng-container>
+                  </ng-container>
+                </select>
+              </div>
+            </div>
+            <div class="col-6">
+              <div class="teamB flex flex-column align-items-center input">
+                <select name="player" id="playerSelection" [(ngModel)]="tournamentPlayer" [disabled]="disabled">
+                  <ng-container>
+                    <option value="-" selected>-</option>
+                    <ng-container *ngIf="$tournamentPlayers | async as players">
+                      <ng-container *ngFor="let item of players">
+                        <option [value]="item.name">{{ item.name }} - ({{ item.position }})</option>
+                      </ng-container>
+                    </ng-container>
+                  </ng-container>
+                </select>
+              </div>
+            </div>
+          </div>
+
+        </div>
+        <div class="alreadyPlayed p-3" *ngIf="alreadyPlayed">
+          <h3>Votre pronostique</h3>
+          <ng-container *ngIf="userPronostique">
+            <p><strong>Meilleur Joueur:</strong> {{ userPronostique.meilleur_joueur }}</p>
+          </ng-container>
+        </div>
+
+        <div class="jeuFermer p-3" *ngIf="jeuFermer && !alreadyPlayed">
+          <h3>Le jeu est clos</h3>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="flex justify-content-center mt-3 validateWrapper" *ngIf="!alreadyPlayed && !jeuFermer">
+    <button class="btn ml-auto mr-auto" title="Valider Mes choix" [disabled]="disabled || (goals === 0 || !tournamentPlayer || !goldenScorer)" (click)="validerChoix()">Valider mes choix de joueurs</button>
+  </div>
+</div>
+
+<ng-template #loader>
+  <loader [showLoader]="false" />
+</ng-template>

@@ -1,0 +1,19 @@
+<div class="numberInput">
+  <div class="flex align-items-center">
+    <button class="btnMinus btnNumber" (click)="decrement()" [disabled]="num < 1 || disabled">
+      <span class="material-symbols-outlined">
+        remove
+        </span>
+    </button>
+
+    <div class="input inputNumber mr-2 ml-2">
+      <input type="number" maxlength="2" [(ngModel)]="num" [disabled]="disabled" class="px-1" (change)="onchange(num)"/>
+    </div>
+
+    <button class="btnAdd btnNumber" (click)="increment()" [disabled]="num > 98 || disabled">
+      <span class="material-symbols-outlined">
+        add
+        </span>
+    </button>
+  </div>
+</div>
