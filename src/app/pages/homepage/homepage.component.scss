@@ -6,6 +6,16 @@
   place-items: center;
 }
 
+.registerLink {
+  font-size: 1.5rem;
+  color: #007bff;
+  text-decoration: none;
+  text-align: center;
+  &:hover {
+    color:#004692;
+  }
+}
+
 .group {
   width: 100%;
   max-width: 370px;

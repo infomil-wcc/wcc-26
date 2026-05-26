@@ -19,11 +19,11 @@
         <p>Veuillez saisir vos identifiants pour participer aux différents jeux proposés</p>
 
         <div class="input mt-4">
-          <input tabindex="1" type="text" #email value="" autocomplete="off" placeholder="Veuillez renseigner votre email" formControlName="email" />
-          <label>EMAIL</label>
+          <input tabindex="1" type="email" #email value="" autocomplete="off" placeholder="Veuillez renseigner votre email @infomil.mu" formControlName="email" />
+          <label>EMAIL (&#64;infomil.mu)</label>
           <span *ngIf="loginForm.get('email')?.invalid && loginForm.get('email')?.touched" class="error mt-2 mb-2">
             <ng-container *ngIf="loginForm.get('email')?.errors?.['required']">Ce champ est obligatoire</ng-container>
-            <ng-container *ngIf="loginForm.get('email')?.errors?.['pattern']">Le format de l'email est incorrecte</ng-container>
+            <ng-container *ngIf="loginForm.get('email')?.errors?.['pattern']">L'email doit se terminer par &#64;infomil.mu</ng-container>
           </span>
         </div>
 
@@ -59,27 +59,38 @@
         <p>Veuillez insérer les informations ci-dessous</p>
 
         <div class="input mt-4">
-          <input tabindex="1" type="email" #emailReg value="" placeholder="Adresse mail"  autocomplete="off" />
-          <label>*Email</label>
-          <!-- <span class="error">Mot de passe incorrecte</span> -->
+          <input tabindex="1" type="email" #emailReg placeholder="Adresse mail &#64;infomil.mu" autocomplete="off" formControlName="email" />
+          <label>*Email (&#64;infomil.mu)</label>
+          <span *ngIf="registerForm.get('email')?.invalid && registerForm.get('email')?.touched" class="error mt-2 mb-2">
+            <ng-container *ngIf="registerForm.get('email')?.errors?.['required']">Ce champ est obligatoire</ng-container>
+            <ng-container *ngIf="registerForm.get('email')?.errors?.['pattern']">L'email doit se terminer par &#64;infomil.mu</ng-container>
+          </span>
         </div>
 
         <div class="input ">
-          <input tabindex="2" type="text" #trigrammeReg value="" autocomplete="off" placeholder="iml-xxx" />
+          <input tabindex="2" type="text" #trigrammeReg autocomplete="off" placeholder="iml-xxx" formControlName="trigramme" />
           <label>*Votre trigramme (iml-xxx)</label>
+          <span *ngIf="registerForm.get('trigramme')?.invalid && registerForm.get('trigramme')?.touched" class="error mt-2 mb-2">
+            <ng-container *ngIf="registerForm.get('trigramme')?.errors?.['required']">Ce champ est obligatoire</ng-container>
+            <ng-container *ngIf="registerForm.get('trigramme')?.errors?.['pattern']">Le trigramme doit être au format iml-xx, iml-xxx ou XXX</ng-container>
+          </span>
         </div>
 
         <div class="input">
-          <input tabindex="3" type="{{ passType }}" #passReg value="" placeholder="Mot de passe"  autocomplete="off" formControlName="pass" (keydown.enter)="registerAccount(emailReg.value, trigrammeReg.value, passReg.value)"/>
+          <input tabindex="3" type="{{ passType }}" #passReg placeholder="Mot de passe" autocomplete="off" formControlName="pass" (keydown.enter)="registerAccount(emailReg.value, trigrammeReg.value, passReg.value)" />
           <label>*Un mot de passe</label>
           <span class="material-symbols-outlined togglePass" (click)="toggleType()">{{ visibility }}</span>
+          <span *ngIf="registerForm.get('pass')?.invalid && registerForm.get('pass')?.touched" class="error mt-2 mb-2">
+            <ng-container *ngIf="registerForm.get('pass')?.errors?.['required']">Ce champ est obligatoire</ng-container>
+            <ng-container *ngIf="registerForm.get('pass')?.errors?.['minlength']">Mot de passe trop court</ng-container>
+          </span>
         </div>
 
         <div class="flex flex-column align-items-end justify-content-between pt-2 pb-2 md:flex-row md:align-items-center md:mt-3">
           <div class="registerText mb-3 sm:mb-0">
             <span>Déja inscrit ? <button tabindex="5" class="link ml-2 mr-2" (click)="toggleRegister()">Se connecter</button></span>
           </div>
-          <button tabindex="4" class="btn btn-primary" (click)="registerAccount(emailReg.value, trigrammeReg.value, passReg.value)">Créer mon compte</button>
+          <button tabindex="4" class="btn btn-primary" (click)="registerAccount(emailReg.value, trigrammeReg.value, passReg.value)" [disabled]="!registerForm.valid">Créer mon compte</button>
         </div>
       </form>
     </div>

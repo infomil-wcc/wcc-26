@@ -19,7 +19,7 @@ export class HeaderComponent implements OnInit{
     this.$userState = this.state.userState;
   }
 
-  protected showLoginModal(): void {
+  public showLoginModal(): void {
     this.showLogin = true;
   }
 

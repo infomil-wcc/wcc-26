@@ -1,6 +1,8 @@
 <div class="container pt-3 flex flex-column align-items-center">
-  <h2 class="text-center">Êtes-vous prêts à relever le défi des pronostiques des matchs de la Coupe du Monde 2026 ? <br />Inscrivez-vous dès aujourd'hui pour avoir une chance de gagner de super prix à la fin de la compétition.
-  <br />Que le meilleur gagne !</h2>
+  <h2 class="text-center">Entre dans le jeu ! </h2>
+ <h3 class="mt-0 text-center">Fais tes pronostics pour la Coupe du Monde 2026 et vise des récompenses incroyables.</h3>
+ <a href="#" class="registerLink" (click)="showLogin = !showLogin">Clique et inscris-toi dès maintenant pour tenter ta chance !</a>
+ <h3>À toi de jouer !</h3>
 
   <!-- <div class="grid justify-content-center gap-4 mt-4">
     <div class="col-12 md:col-2">
@@ -73,3 +75,7 @@
 <ng-template #loader>
   <loader [showLoader]="true" />
 </ng-template>
+
+<modal [(showModal)]="showLogin" [modalSize]="'md'">
+  <app-login></app-login>
+</modal>

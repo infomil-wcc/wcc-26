@@ -38,13 +38,13 @@ export class LoginComponent {
 
   ngOnInit(): void {
     this.loginForm = this.formBuilder.group({
-      email: ['', [Validators.required, Validators.pattern(/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/)]],
+      email: ['', [Validators.required, Validators.pattern(/^[a-zA-Z0-9._%+-]+@infomil\.mu$/)]],
       pass: ['', [Validators.required, Validators.minLength(4)]]
     });
 
 
     this.registerForm = this.formBuilder.group({
-      email: ['', Validators.required, Validators.pattern(/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/)],
+      email: ['', [Validators.required, Validators.pattern(/^[a-zA-Z0-9._%+-]+@infomil\.mu$/)]],
       trigramme: ['', [Validators.required, Validators.pattern(/^(iml-[a-zA-Z]{3}|iml-[a-zA-Z]{2}|[a-zA-Z]{3})$/)]],
       pass: ['', [Validators.required, Validators.minLength(4)]]
     });
