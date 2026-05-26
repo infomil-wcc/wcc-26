@@ -9,7 +9,7 @@
     "test": "ng test",
     "serve-local": "ng serve --host 0.0.0.0",
     "build-cloud": "ng build --base-href /browser/",
-    "build-prod": "ng build --base-href /euro/ && npm run copy-docs",
+    "build-prod": "ng build --base-href /wcc-26/ && npm run copy-docs",
     "copy-docs": "xcopy .\\dist\\euro\\browser .\\docs\\ /S /Y"
   },
   "private": true,
