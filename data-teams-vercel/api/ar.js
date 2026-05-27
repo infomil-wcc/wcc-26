@@ -1,0 +1,93 @@
+const argentinaData = {
+  name: 'Argentina',
+  iso: 'ar',
+  group: 'J',
+  coach: 'Lionel Scaloni',
+  colors: ['#75AADB', '#FFFFFF'],
+  worldCupAppearances: 19,
+  bestResult: { pt: 'Campeões (1978, 1986, 2022)', en: 'Champions (1978, 1986, 2022)' },
+  worldCupGoals: 152,
+  internationalTitles: [
+    'FIFA World Cup 1978',
+    'FIFA World Cup 1986',
+    'FIFA World Cup 2022',
+    'Copa America 1921, 1925, 1927, 1929, 1937, 1941, 1945, 1946, 1947, 1955, 1957, 1959, 1991, 1993, 2021, 2024',
+    'FIFA Confederations Cup 1992',
+    'CONMEBOL-UEFA Cup of Champions 1993, 2022',
+  ],
+  qualification2026: {
+    topScorer: { pt: 'Lionel Messi (8 golos)', en: 'Lionel Messi (8 goals)' },
+    topAssists: { pt: 'Lionel Messi (11 assistências)', en: 'Lionel Messi (11 assists)' },
+    mostUsed: 'Rodrigo De Paul',
+    chancesCreated: 'Lionel Messi',
+    note: { pt: 'Terminou em 1.º nas eliminatórias da CONMEBOL com 38 pontos (12V-2E-4D), 9 pontos à frente do 2.º classificado Equador.', en: 'Finished 1st in CONMEBOL qualifying with 38 pts (W12 D2 L4), 9 points clear of 2nd-placed Ecuador.' },
+  },
+  probableSquad: {
+    goalkeepers: [
+      { name: 'Emiliano Martinez', club: 'Aston Villa', caps: 57 },
+      { name: 'Geronimo Rulli', club: 'Olympique Marseille', caps: 18 },
+      { name: 'Juan Musso', club: 'Atletico Madrid', caps: 8 },
+    ],
+    defenders: [
+      { name: 'Cristian Romero', club: 'Tottenham Hotspur', caps: 48 },
+      { name: 'Lisandro Martinez', club: 'Manchester United', caps: 28 },
+      { name: 'Nicolas Otamendi', club: 'Benfica', caps: 109 },
+      { name: 'Nahuel Molina', club: 'Atletico Madrid', caps: 34 },
+      { name: 'Nicolas Tagliafico', club: 'Olympique Lyon', caps: 53 },
+      { name: 'Marcos Acuna', club: 'River Plate', caps: 55 },
+      { name: 'Gonzalo Montiel', club: 'River Plate', caps: 28 },
+    ],
+    midfielders: [
+      { name: 'Rodrigo De Paul', club: 'Inter Miami', caps: 83 },
+      { name: 'Enzo Fernandez', club: 'Chelsea', caps: 38 },
+      { name: 'Alexis Mac Allister', club: 'Liverpool', caps: 44 },
+      { name: 'Leandro Paredes', club: 'Boca Juniors', caps: 76 },
+      { name: 'Exequiel Palacios', club: 'Bayer Leverkusen', caps: 37 },
+      { name: 'Giovani Lo Celso', club: 'Real Betis', caps: 52 },
+    ],
+    forwards: [
+      { name: 'Lionel Messi', club: 'Inter Miami', caps: 198 },
+      { name: 'Julian Alvarez', club: 'Atletico Madrid', caps: 47 },
+      { name: 'Lautaro Martinez', club: 'Inter Milan', caps: 68 },
+      { name: 'Nicolas Gonzalez', club: 'Atletico Madrid', caps: 48 },
+      { name: 'Giuliano Simeone', club: 'Atletico Madrid', caps: 6 },
+      { name: 'Thiago Almada', club: 'Atletico Madrid', caps: 12 },
+      { name: 'Nico Paz', club: 'Como', caps: 5 },
+    ],
+  },
+  funFacts: [
+    { emoji: '🐐', text: { pt: 'Lionel Messi pode tornar-se o primeiro jogador masculino a participar em 6 Mundiais diferentes (2006–2026).', en: 'Lionel Messi could become the first male player to appear in 6 different World Cups (2006-2026).' } },
+    { emoji: '🏆', text: { pt: 'A Argentina venceu três troféus consecutivos: Copa América 2021, Mundial 2022 e Copa América 2024.', en: 'Argentina won three consecutive major trophies: Copa America 2021, World Cup 2022, and Copa America 2024.' } },
+    { emoji: '✋', text: { pt: 'O golo da "Mão de Deus" de Diego Maradona contra a Inglaterra em 1986 continua a ser o golo mais infame da história dos Mundiais.', en: 'Diego Maradona\'s "Hand of God" goal against England in 1986 remains the most infamous goal in World Cup history.' } },
+    { emoji: '⚡', text: { pt: 'A final do Mundial 2022 (Argentina 3-3 França, 4-2 nos penáltis) é amplamente considerada a melhor final de sempre.', en: 'The 2022 World Cup final (Argentina 3-3 France, 4-2 on penalties) is widely considered the greatest final ever played.' } },
+    { emoji: '🎯', text: { pt: 'Messi detém o recorde de mais golos em Mundiais por um argentino, com 13, superando os 10 de Gabriel Batistuta.', en: 'Messi holds the record for most World Cup goals by an Argentine player with 13, surpassing Gabriel Batistuta\'s 10.' } },
+    { emoji: '🧤', text: { pt: 'O guarda-redes Emiliano Martinez defendeu 3 penáltis no Mundial 2022, incluindo um na decisão por penáltis da final contra a França.', en: 'Goalkeeper Emiliano Martinez saved 3 penalties across the 2022 World Cup, including one in the final shootout vs France.' } },
+  ],
+  timeline: [
+    { year: 1930, text: { pt: 'Vice-campeões no primeiro Mundial de sempre, no Uruguai, perdendo 4-2 na final contra os anfitriões.', en: 'Runners-up in the inaugural FIFA World Cup in Uruguay, losing 4-2 to the hosts in the final.' } },
+    { year: 1978, text: { pt: 'Primeiro título mundial em casa — vitória 3-1 na final contra a Holanda, com Mario Kempes em destaque.', en: 'First World Cup title on home soil — beat the Netherlands 3-1 in the final with Mario Kempes starring.' } },
+    { year: 1986, text: { pt: 'Segundo título mundial no México — o torneio de Diego Maradona, incluindo o "Golo do Século" contra a Inglaterra.', en: 'Second World Cup title in Mexico — Diego Maradona\'s tournament, including the "Goal of the Century" vs England.' } },
+    { year: 1990, text: { pt: 'Vice-campeões em Itália — derrota 1-0 contra a Alemanha Ocidental numa final controversa.', en: 'Runners-up in Italy — lost 1-0 to West Germany in a controversial final.' } },
+    { year: 2014, text: { pt: 'Vice-campeões no Brasil — derrota 1-0 contra a Alemanha no prolongamento, com golo de Mario Götze.', en: 'Runners-up in Brazil — lost 1-0 to Germany in extra time through a Mario Gotze goal.' } },
+    { year: 2021, text: { pt: 'Messi levanta o primeiro grande troféu internacional como capitão — vitória na Copa América no Maracanã.', en: 'Messi lifts first major international trophy as captain — Copa America victory at the Maracana.' } },
+    { year: 2022, text: { pt: 'Terceiro título mundial no Qatar — Messi coroado como o melhor de sempre com uma atuação lendária na final contra a França.', en: 'Third World Cup title in Qatar — Messi crowned the GOAT with a legendary final performance vs France.' } },
+    { year: 2024, text: { pt: 'Bicampeões consecutivos da Copa América — vitória 1-0 na final contra a Colômbia, em Miami.', en: 'Back-to-back Copa America champions — beat Colombia 1-0 in the final in Miami.' } },
+  ],
+  sources: [
+    { name: 'FIFA', url: 'https://www.fifa.com/en/tournaments/mens/worldcup/canadamexicousa2026/teams/argentina' },
+    { name: 'Wikipedia', url: 'https://en.wikipedia.org/wiki/Argentina_at_the_FIFA_World_Cup' },
+    { name: 'Transfermarkt', url: 'https://www.transfermarkt.us/argentina/kader/verein/3437' },
+    { name: 'FourFourTwo', url: 'https://www.fourfourtwo.com/team/argentina-world-cup-2026-squad' },
+    { name: 'ESPN', url: 'https://www.espn.com/soccer/team/squad/_/id/202/league/FIFA.WORLD' },
+  ],
+};
+
+export default function handler(request, response) {
+  // Gestion requêtes OPTIONS (Preflight de CORS)
+  if (request.method === 'OPTIONS') {
+    return response.status(200).end();
+  }
+
+  // Renvoie les données au format JSON
+  return response.status(200).json(argentinaData);
+}
