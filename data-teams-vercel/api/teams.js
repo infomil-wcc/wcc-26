@@ -2185,42 +2185,42 @@ const allTeamsData =
   ];
 
 export default function handler(request, response) {
-  // Gestion du Preflight CORS
   if (request.method === 'OPTIONS') {
     return response.status(200).end();
   }
 
-  // Récupère tous les paramètres de requête sous forme d'objet (ex: { name: 'Argentina', group: 'J' })
-  const filters = request.query;
+  // Extract 'select' parameter separately if it exists
+  const { select, ...filters } = request.query;
   const filterKeys = Object.keys(filters);
 
-  // Si aucun paramètre n'est fourni, on renvoie tout le tableau
-  if (filterKeys.length === 0) {
-    return response.status(200).json(allTeamsData);
+  // If no filters are provided, return everything
+  let result = allTeamsData;
+
+  if (filterKeys.length > 0) {
+    result = allTeamsData.filter(team => {
+      return filterKeys.every(key => {
+        if (team[key] === undefined) return false;
+        if (typeof team[key] === 'string') {
+          return team[key].toLowerCase() === filters[key].toLowerCase();
+        }
+        return team[key] == filters[key];
+      });
+    });
   }
 
-  // Filtre les données dynamiquement
-  const filteredTeams = allTeamsData.filter(team => {
-    // L'équipe doit correspondre à CHAQUE paramètre fourni dans l'URL
-    return filterKeys.every(key => {
-      // Si la propriété n'existe pas du tout sur l'objet team, on élimine l'équipe
-      if (team[key] === undefined) return false;
-
-      // Comparaison insensible à la casse si c'est une chaîne de caractères
-      if (typeof team[key] === 'string') {
-        return team[key].toLowerCase() === filters[key].toLowerCase();
-      }
-
-      // Pour les autres types (nombres, tableaux, objets), comparaison stricte ou traitement personnalisé
-      return team[key] == filters[key];
-    });
-  });
-
-  // Si aucune équipe ne correspond aux filtres appliqués
-  if (filteredTeams.length === 0) {
+  if (result.length === 0) {
     return response.status(404).json({ error: 'No teams match the provided filters.' });
   }
 
-  // Renvoie le(s) résultat(s) filtré(s)
-  return response.status(200).json(filteredTeams);
+  // 💡 NEW: If a 'select' query is passed, extract only that property
+  if (select) {
+    // If we filtered down to one team, just return that specific property directly
+    if (result.length === 1) {
+      return response.status(200).json(result[0][select] || { error: `Property '${select}' not found.` });
+    }
+    // If multiple teams match, map through them to return an array of those properties
+    return response.status(200).json(result.map(team => ({ name: team.name, [select]: team[select] })));
+  }
+
+  return response.status(200).json(result);
 }
