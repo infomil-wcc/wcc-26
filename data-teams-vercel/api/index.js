@@ -4,6 +4,7 @@ const argentinaData = {
   group: 'J',
   coach: 'Lionel Scaloni',
   colors: ['#75AADB', '#FFFFFF'],
+  data:[ {
   worldCupAppearances: 19,
   bestResult: { pt: 'Campeões (1978, 1986, 2022)', en: 'Champions (1978, 1986, 2022)' },
   worldCupGoals: 152,
@@ -79,7 +80,9 @@ const argentinaData = {
     { name: 'Transfermarkt', url: 'https://www.transfermarkt.us/argentina/kader/verein/3437' },
     { name: 'FourFourTwo', url: 'https://www.fourfourtwo.com/team/argentina-world-cup-2026-squad' },
     { name: 'ESPN', url: 'https://www.espn.com/soccer/team/squad/_/id/202/league/FIFA.WORLD' },
-  ],
+  ]
+}]
+  
 };
 
 export default function handler(request, response) {
