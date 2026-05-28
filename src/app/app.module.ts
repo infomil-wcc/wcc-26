@@ -47,6 +47,7 @@ import { WindrawComponent } from './shared/components/windraw/windraw.component'
 import { StadiumdetailsComponent } from './components/stadiumdetails/stadiumdetails.component';
 import { TeamperformanceComponent } from './shared/components/teamperformance/teamperformance.component';
 import { GrouplistComponent } from './shared/components/grouplist/grouplist.component';
+import { HyphernatePipe } from './shared/pipe/hyphernate.pipe';
 
 @NgModule({ declarations: [
         AppComponent,
@@ -83,7 +84,8 @@ import { GrouplistComponent } from './shared/components/grouplist/grouplist.comp
         WindrawComponent,
         StadiumdetailsComponent,
         TeamperformanceComponent,
-        GrouplistComponent
+        GrouplistComponent,
+        HyphernatePipe
     ],
     bootstrap: [AppComponent], imports: [BrowserModule,
         ReactiveFormsModule,

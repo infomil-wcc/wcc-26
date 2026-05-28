@@ -59,7 +59,6 @@ export class AppComponent implements OnInit {
     this.stateService.userState.subscribe({
       next:(res) => {
         this.currentUser = res;
-        console.log('state')
       }
     });
 

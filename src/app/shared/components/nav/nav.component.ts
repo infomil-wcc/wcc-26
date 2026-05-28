@@ -32,50 +32,50 @@ export class NavComponent implements OnInit, OnDestroy {
         "route": "les-matchs",
         "active": false
       },
-      // {
-      //   "label": "World Cup 2026",
-      //   "route": "infos",
-      //   "active": false,
-      //   "sub": [
-      //     {
-      //       "label": "Les équipes",
-      //       "route": "les-equipes",
-      //       "active": false
-      //     },
-      //     {
-      //       "label": "Les stades",
-      //       "route": "les-stades",
-      //       "active": false
-      //     }
-      //   ]
-      // },
-      // {
-      //   "label": "Les Jeux",
-      //   "route": "jeux",
-      //   "active": false,
-      //   "sub": [
-      //     {
-      //       "label": "Meilleurs Joueurs",
-      //       "route": "meilleur-buteur",
-      //       "active": false
-      //     },
-      //     {
-      //       "label": "Pronostic",
-      //       "route": "pronostiques",
-      //       "active": false
-      //     },
-      //     {
-      //       "label": "Jeu du bracket",
-      //       "route": "bracket",
-      //       "active": false
-      //     },
-      //     {
-      //       "label": "Classement IML",
-      //       "route": "classement",
-      //       "active": false
-      //     }
-      //   ]
-      // },
+      {
+        "label": "World Cup 2026",
+        "route": "infos",
+        "active": false,
+        "sub": [
+          {
+            "label": "Les équipes",
+            "route": "les-equipes",
+            "active": false
+          },
+          {
+            "label": "Les stades",
+            "route": "les-stades",
+            "active": false
+          }
+        ]
+      },
+      {
+        "label": "Les Jeux",
+        "route": "jeux",
+        "active": false,
+        "sub": [
+          {
+            "label": "Meilleurs Joueurs",
+            "route": "meilleur-buteur",
+            "active": false
+          },
+          {
+            "label": "Pronostic",
+            "route": "pronostiques",
+            "active": false
+          },
+          {
+            "label": "Jeu du bracket",
+            "route": "bracket",
+            "active": false
+          },
+          {
+            "label": "Classement IML",
+            "route": "classement",
+            "active": false
+          }
+        ]
+      },
       {
         "label": "Faq",
         "route": "faq",

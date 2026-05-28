@@ -75,10 +75,6 @@ export class MatchComponent implements OnInit{
       this.closed = true;
     }
 
-    if(parseInt(this.match.id) === 1) {
-      this.calcWinDrawOutcome = true;
-    }
-
     this.getTeamFlag(this.match.team_a, (flag: string) => this.teamAFlag = flag);
     this.getTeamFlag(this.match.team_b, (flag: string) => this.teamBFlag = flag);
 
