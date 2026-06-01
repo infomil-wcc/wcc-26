@@ -1,0 +1,130 @@
+<div class="country-page" *ngIf="$country | async as country; else loader">
+
+  <!-- HERO -->
+  <section class="hero">
+
+    <div class="flag-wrapper">
+      <img
+        [src]="'https://flagcdn.com/w320/' + country[0].iso + '.png'"
+        [alt]="country[0].name">
+    </div>
+
+    <div class="hero-info">
+      <h1>{{ country[0].name }}</h1>
+      <div class="group-badge">
+        Group {{ country[0].group }}
+      </div>
+    </div>
+  </section>
+
+  <!-- QUICK STATS -->
+  <section class="stats-grid">
+
+    <div class="stat-card">
+      <span class="label">Coach</span>
+      <strong>{{ country[0].coach }}</strong>
+    </div>
+
+    <div class="stat-card">
+      <span class="label">World Cup Appearances</span>
+      <strong>{{ country[0].worldCupAppearances }}</strong>
+    </div>
+
+    <div class="stat-card">
+      <span class="label">World Cup Goals</span>
+      <strong>{{ country[0].worldCupGoals }}</strong>
+    </div>
+
+    <div class="stat-card">
+      <span class="label">Best Result</span>
+      <strong>{{ country[0].bestResult.en }}</strong>
+    </div>
+
+  </section>
+
+  <!-- QUALIFICATION -->
+  <section class="card">
+    <h2>Qualification 2026</h2>
+
+    <div class="qualification-grid">
+
+      <div>
+        <label>Top Scorer</label>
+        <p>{{ country[0].qualification2026.topScorer.en }}</p>
+      </div>
+
+      <div>
+        <label>Top Assists</label>
+        <p>{{ country[0].qualification2026.topAssists.en }}</p>
+      </div>
+
+      <div>
+        <label>Most Used Player</label>
+        <p>{{ country[0].qualification2026.mostUsed.en }}</p>
+      </div>
+
+      <div>
+        <label>Chances Created</label>
+        <p>{{ country[0].qualification2026.chancesCreated }}</p>
+      </div>
+
+    </div>
+
+    <div class="qualification-note">
+      {{ country[0].qualification2026.note.en }}
+    </div>
+  </section>
+
+  <!-- TITLES -->
+  <section class="card">
+    <h2>International Titles</h2>
+
+    <ul class="title-list">
+      <li *ngFor="let title of country[0].internationalTitles">
+        {{ title }}
+      </li>
+    </ul>
+  </section>
+
+  <!-- FUN FACTS -->
+  <section class="card">
+    <h2>Did You Know?</h2>
+
+    <div class="facts-grid">
+      <div
+        class="fact-card"
+        *ngFor="let fact of country[0].funFacts">
+
+        {{ fact.text.en }}
+      </div>
+    </div>
+  </section>
+
+  <!-- TIMELINE -->
+  <section class="card">
+    <h2>Historic Timeline</h2>
+
+    <div class="timeline">
+
+      <div
+        class="timeline-item"
+        *ngFor="let item of country[0].timeline">
+
+        <div class="year">
+          {{ item.year }}
+        </div>
+
+        <div class="content">
+          {{ item.text.en }}
+        </div>
+
+      </div>
+
+    </div>
+  </section>
+
+</div>
+
+<ng-template #loader>
+  <loader [showLoader]="true" />
+</ng-template>

@@ -15,6 +15,7 @@ export interface Teams {
   modified_by: number;
   modified_on: Date;
   name: string;
+  iso: string;
   group: string;
   group_points: number;
   won: number;

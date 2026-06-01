@@ -48,6 +48,7 @@ import { StadiumdetailsComponent } from './components/stadiumdetails/stadiumdeta
 import { TeamperformanceComponent } from './shared/components/teamperformance/teamperformance.component';
 import { GrouplistComponent } from './shared/components/grouplist/grouplist.component';
 import { HyphernatePipe } from './shared/pipe/hyphernate.pipe';
+import { CountryDetailsComponent } from './shared/components/country-details/country-details.component';
 
 @NgModule({ declarations: [
         AppComponent,
@@ -85,7 +86,8 @@ import { HyphernatePipe } from './shared/pipe/hyphernate.pipe';
         StadiumdetailsComponent,
         TeamperformanceComponent,
         GrouplistComponent,
-        HyphernatePipe
+        HyphernatePipe,
+        CountryDetailsComponent
     ],
     bootstrap: [AppComponent], imports: [BrowserModule,
         ReactiveFormsModule,

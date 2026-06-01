@@ -1,20 +1,22 @@
 <div class="teamDetails h-full min-h-full bg-white border-round-2xl overflow-hidden">
   <div class="teamBanner p-4 h-6rem flex align-items-center md:h-10rem">
-    <img [src]="team.badge_url" alt="" class="md:w-6rem md:h-auto" width="60" height="60" />
+    <img src="assets/wc/badge/{{ team.name | hyphernate }}.png" alt="" class="badge md:w-6rem md:h-auto" width="60" height="60" />
     <h2 class="text-xl ml-4 pt-1 text-white md:text-6xl">{{ team.name | uppercase }}</h2>
   </div>
 
   <app-tabcontent>
     <ng-template tabContent title="A propos">
       <!-- Poster Equipe -->
-      <div class="">
-        <img src="assets/teams/poster/{{team.name | lowercase }}.jpg" width="100%" height="auto" alt="{{team.name}}" />
+      <div class="mb-2rem">
+        <img src="assets/teams/poster/{{team.name | hyphernate }}.jpg" width="100%" height="auto" alt="{{team.name}}" />
       </div>
       <!-- A propos de l'equipe -->
-      <div [innerHTML]="team.information" class="p-4"></div>
+
+      <app-country-details [$country]="$teamDetails"></app-country-details>
+
     </ng-template>
-    <ng-template tabContent title="Joueurs">
-      <!-- Joueurs -->
+
+    <!-- <ng-template tabContent title="Joueurs">
       <ng-container *ngIf="this.$teamPlayers | async as players; else loader">
         <div class="playersView" class="p-4">
             <div class="">
@@ -99,8 +101,8 @@
 
         </div>
       </ng-container>
+    </ng-template> -->
 
-    </ng-template>
     <ng-template tabContent title="Matchs">
       <div class="p-4 matchDetails mt-3">
         <ng-container *ngIf="this.$teamMatches | async as matches; else loader">
@@ -108,7 +110,7 @@
           <div class="flex flex-wrap gap-2 mb-8">
             <ng-container *ngFor="let match of matches">
               <div class="col-12 p-0 sm:col-4">
-                <app-match [match]="match" />
+                <app-match [match]="match" [dateTime]="match.date" />
               </div>
             </ng-container>
           </div>

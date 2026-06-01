@@ -49,33 +49,33 @@ export class NavComponent implements OnInit, OnDestroy {
           }
         ]
       },
-      {
-        "label": "Les Jeux",
-        "route": "jeux",
-        "active": false,
-        "sub": [
-          {
-            "label": "Meilleurs Joueurs",
-            "route": "meilleur-buteur",
-            "active": false
-          },
-          {
-            "label": "Pronostic",
-            "route": "pronostiques",
-            "active": false
-          },
-          {
-            "label": "Jeu du bracket",
-            "route": "bracket",
-            "active": false
-          },
-          {
-            "label": "Classement IML",
-            "route": "classement",
-            "active": false
-          }
-        ]
-      },
+      // {
+      //   "label": "Les Jeux",
+      //   "route": "jeux",
+      //   "active": false,
+      //   "sub": [
+      //     {
+      //       "label": "Meilleurs Joueurs",
+      //       "route": "meilleur-buteur",
+      //       "active": false
+      //     },
+      //     {
+      //       "label": "Pronostic",
+      //       "route": "pronostiques",
+      //       "active": false
+      //     },
+      //     {
+      //       "label": "Jeu du bracket",
+      //       "route": "bracket",
+      //       "active": false
+      //     },
+      //     {
+      //       "label": "Classement IML",
+      //       "route": "classement",
+      //       "active": false
+      //     }
+      //   ]
+      // },
       {
         "label": "Faq",
         "route": "faq",

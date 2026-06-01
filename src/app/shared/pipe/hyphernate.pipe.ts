@@ -6,6 +6,10 @@ import { Pipe, PipeTransform } from '@angular/core';
 export class HyphernatePipe implements PipeTransform {
   transform(value: string): string {
     if (!value) return value;
-    return value.toLowerCase().replace(/\s+/g, '-');
+    return value
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/\s+/g, '-')
+      .toLowerCase();
   }
 }
