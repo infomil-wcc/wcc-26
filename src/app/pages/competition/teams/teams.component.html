@@ -1,13 +1,13 @@
 <div class="container pt-4">
   
-  <h1 class="text-4xl mb-1 md:mb-3 mt-2">Euro 2024</h1>
+  <h1 class="text-4xl mb-1 md:mb-3 mt-2">Fifa World Cup 2026</h1>
 
   <app-breadcrump [bcdata]="breadCrumpData" (routeEvent)="resetTeamSelection($event)" />
 
   <div class="teams grid relative md:mt-4" *ngIf="$teamsData | async as teams; else loader" [ngClass]="{'hidden': choosenTeam}">
   <div class="team flex col-4 align-items-center justify-content-center md:col-3 lg:col-2" *ngFor="let team of teams">
     <button class="btnTeams flex flex-column align-items-center" (click)="showTeam(team)">
-      <div class="teamBadge flex align-items-center justify-content-center overflow-hidden bg-white w-5rem h-5rem">
+      <div class="teamBadge flex align-items-center justify-content-center overflow-hidden bg-white w-5rem h-3rem">
         <img src="{{ team.flag_url }}" alt="{{ team.name }}" class="w-5rem h-5rem" />
       </div>
       <h4 class="mt-2">{{ team.name }}</h4>

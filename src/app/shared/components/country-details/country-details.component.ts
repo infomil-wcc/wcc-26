@@ -1,0 +1,53 @@
+import { Component, Input } from '@angular/core';
+import { Observable } from 'rxjs';
+
+export interface Country {
+  name: string;
+  iso: string;
+  group: string;
+  coach: string;
+  worldCupAppearances: number;
+  worldCupGoals: number;
+
+  bestResult: {
+    en: string;
+  };
+
+  internationalTitles: string[];
+
+  qualification2026: {
+    topScorer: { en: string };
+    topAssists: { en: string };
+    mostUsed: { en: string };
+    chancesCreated: string;
+    note: { en: string };
+  };
+
+  funFacts: {
+    text: { en: string };
+  }[];
+
+  timeline: {
+    year: number;
+    text: { en: string };
+  }[];
+}
+
+@Component({
+  selector: 'app-country-details',
+  templateUrl: './country-details.component.html',
+  styleUrl: './country-details.component.scss'
+})
+export class CountryDetailsComponent {
+
+  @Input() $country!: Observable<Country[]>;
+
+  ngOnInit(): void {
+    this.$country.subscribe({
+      next: (response: Country[]) => {
+        console.log(response);
+      }
+    });
+  }
+
+}

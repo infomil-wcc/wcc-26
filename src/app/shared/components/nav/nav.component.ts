@@ -32,23 +32,23 @@ export class NavComponent implements OnInit, OnDestroy {
         "route": "les-matchs",
         "active": false
       },
-      // {
-      //   "label": "World Cup 2026",
-      //   "route": "infos",
-      //   "active": false,
-      //   "sub": [
-      //     {
-      //       "label": "Les équipes",
-      //       "route": "les-equipes",
-      //       "active": false
-      //     },
-      //     {
-      //       "label": "Les stades",
-      //       "route": "les-stades",
-      //       "active": false
-      //     }
-      //   ]
-      // },
+      {
+        "label": "World Cup 2026",
+        "route": "infos",
+        "active": false,
+        "sub": [
+          {
+            "label": "Les équipes",
+            "route": "les-equipes",
+            "active": false
+          },
+          {
+            "label": "Les stades",
+            "route": "les-stades",
+            "active": false
+          }
+        ]
+      },
       // {
       //   "label": "Les Jeux",
       //   "route": "jeux",

@@ -10,7 +10,7 @@
     "serve-local": "ng serve --host 0.0.0.0",
     "build-cloud": "ng build --base-href /browser/",
     "build-prod": "ng build --base-href /wcc-26/ && npm run copy-docs",
-    "copy-docs": "xcopy .\\dist\\euro\\browser .\\docs\\ /S /Y"
+    "copy-docs": "shx cp -r ./dist/euro/browser/* ./docs/"
   },
   "private": true,
   "dependencies": {
@@ -42,6 +42,7 @@
     "karma-coverage": "~2.2.0",
     "karma-jasmine": "~5.1.0",
     "karma-jasmine-html-reporter": "~2.1.0",
+    "shx": "^0.4.0",
     "typescript": "~5.5.4"
   }
 }

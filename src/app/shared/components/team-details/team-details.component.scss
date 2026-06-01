@@ -3,6 +3,10 @@
 .teamDetails {
   width: calc(100% - 1rem);
 
+  .badge {
+    object-fit: contain;
+  }
+
   .teamBanner {
     background: linear-gradient(90deg, rgba(0,46,94,1) 12%, rgba(0,78,160,1) 100%);
     position: relative;

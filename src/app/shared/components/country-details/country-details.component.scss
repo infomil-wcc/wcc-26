@@ -1,0 +1,203 @@
+.country-page {
+  margin: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  background: #f5f6f8;
+}
+
+.hero {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  background: #fff;
+  border-radius: 0 0 18px 18px;
+  padding: 24px;
+  box-shadow: 0 8px 20px rgba(0,0,0,.06);
+}
+
+.flag-wrapper {
+  width: 120px;
+  flex-shrink: 0;
+
+  img {
+    width: 100%;
+    border-radius: 12px;
+    display: block;
+    box-shadow: 0 4px 10px rgba(0,0,0,.1);
+  }
+}
+
+.hero-info {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+
+  h1 {
+    margin: 0;
+    font-size: 2rem;
+    font-weight: 700;
+  }
+}
+
+.group-badge {
+  display: inline-flex;
+  width: fit-content;
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: #eceff3;
+  font-size: .9rem;
+  font-weight: 600;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+}
+
+.stat-card {
+  background: white;
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 6px 18px rgba(0,0,0,.05);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  .label {
+    font-size: .85rem;
+    color: #777;
+  }
+
+  strong {
+    font-size: 1.1rem;
+  }
+}
+
+.card {
+  background: white;
+  border-radius: 18px;
+  padding: 24px;
+  box-shadow: 0 8px 20px rgba(0,0,0,.05);
+
+  h2 {
+    margin-top: 0;
+    margin-bottom: 18px;
+    font-size: 1.4rem;
+  }
+}
+
+.qualification-grid {
+  display: grid;
+  grid-template-columns: repeat(2,1fr);
+  gap: 20px;
+
+  label {
+    display: block;
+    color: #777;
+    margin-bottom: 6px;
+    font-size: .85rem;
+  }
+
+  p {
+    margin: 0;
+    font-weight: 600;
+  }
+}
+
+.qualification-note {
+  margin-top: 24px;
+  padding: 16px;
+  border-radius: 12px;
+  background: #f3f4f6;
+  line-height: 1.5;
+}
+
+.title-list {
+  margin: 0;
+  padding-left: 18px;
+
+  li {
+    margin-bottom: 10px;
+    line-height: 1.4;
+  }
+}
+
+.facts-grid {
+  display: grid;
+  grid-template-columns: repeat(2,1fr);
+  gap: 16px;
+}
+
+.fact-card {
+  background: #f7f8fa;
+  border-radius: 14px;
+  padding: 18px;
+  line-height: 1.5;
+}
+
+.timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.timeline-item {
+  display: grid;
+  grid-template-columns: 90px 1fr;
+  gap: 18px;
+  align-items: center;
+}
+
+.year {
+  font-size: 1.2rem;
+  font-weight: 700;
+  text-align: center;
+}
+
+.content {
+  padding: 14px 18px;
+  background: #f7f8fa;
+  border-radius: 14px;
+  line-height: 1.5;
+}
+@media (max-width: 900px) {
+
+  .stats-grid {
+    grid-template-columns: repeat(2,1fr);
+  }
+
+  .facts-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+
+  .hero {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .flag-wrapper {
+    width: 100px;
+  }
+
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .qualification-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .timeline-item {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .year {
+    margin-bottom: 6px;
+  }
+}

@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Teams, Players, playersApiData, teamsApiData, Group, GroupApiData } from '../../contracts/teams.contract';
 import { Observable, map } from 'rxjs';
 
@@ -9,6 +9,12 @@ import { Observable, map } from 'rxjs';
 export class TeamsService {
 
   constructor(private http: HttpClient) { }
+
+  private httpOptions = {
+    headers: new HttpHeaders({
+      'Content-Type':  'application/json'
+    })
+  };
 
   getAllTeams(): Observable<Teams[]> {
     return this.http.get<teamsApiData>(`https://euro.omediainteractive.net/imleuro/items/teams`).pipe(
@@ -44,5 +50,12 @@ export class TeamsService {
     return this.http.get<any>(`https://euro.omediainteractive.net/imleuro/items/teams?fields=flag_url,name`).pipe(
       map(response => response.data)
     );
+  }
+
+  getTeamsInfo(teamisoname: string): any {
+    // if using proxy
+    // return this.http.get<any[]>(`/api/teams?iso=${teamisoname}`, this.httpOptions);
+    // if using direct API call
+    return this.http.get<any[]>(`https://wcc-26.vercel.app/api/teams?iso=${teamisoname}`, this.httpOptions);
   }
 }
