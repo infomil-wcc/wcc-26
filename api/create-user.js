@@ -35,6 +35,7 @@ try {
         password,
         first_name,
         last_name,
+        status: 'active',
         role: process.env.DIRECTUS_USER_ROLE_ID // Optionnel : ID du rôle "Membre/Client"      
       })
     });
