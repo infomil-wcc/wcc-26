@@ -137,7 +137,6 @@ export class AppComponent implements OnInit {
   checkTotalGoals(user: string): void {
     this.totalgoalsService.hasTotalGoals(user).subscribe({
       next:(res) => {
-        console.log(res.length, user);
 
         if(res.length < 1){
           this.showDialog = true;
