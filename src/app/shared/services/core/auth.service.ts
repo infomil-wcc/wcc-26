@@ -2,6 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable, map, switchMap, tap } from 'rxjs';
 import { CookieService } from 'ngx-cookie-service';
+import { environment } from '../../../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
@@ -16,8 +17,8 @@ export class AuthService {
   //   'password': '1nf0m1l2024'
   // }
 
-  private token: string = '';
-  private prodUrl: string = 'https://euro.omediainteractive.net/imleuro';
+  // private token: string = '';
+  // private prodUrl: string = 'https://euro.omediainteractive.net/imleuro';
 
   private httpOptions = {
     headers: new HttpHeaders({
@@ -30,7 +31,7 @@ export class AuthService {
 
   trylogin(login: string, pass: string): Observable<any> {
     let loginDetails = {'email': login, 'password': pass, "mode": "jwt"};
-    return this.httpClient.post<any>(`${this.prodUrl}/auth/authenticate`, loginDetails, this.httpOptions);
+    return this.httpClient.post<any>(`${environment.apiBaseUrl}/auth/authenticate`, loginDetails, this.httpOptions);
   }
 
   tryCreateUser(login: string, trigramme: string, pass: string): Observable<any> {
@@ -72,12 +73,12 @@ export class AuthService {
 
   tryRefreshToken(token: string){
     let refreshdetails = {'token': token}
-    return this.httpClient.post(`${this.prodUrl}/auth/refresh`, refreshdetails, this.httpOptions);
+    return this.httpClient.post(`${environment.apiBaseUrl}/auth/refresh`, refreshdetails, this.httpOptions);
   }
 
   refreshToken(token: string){
     let refreshdetails = {'token': token}
-    this.httpClient.post(`${this.prodUrl}/auth/refresh`, refreshdetails, this.httpOptions)
+    this.httpClient.post(`${environment.apiBaseUrl}/auth/refresh`, refreshdetails, this.httpOptions)
       .subscribe(res => {
         let results = res as any;
         this.setTokenCookie(results.data.token);
@@ -99,11 +100,11 @@ export class AuthService {
   }
 
   getUsers(token:  string){
-    return this.httpClient.get(`${this.prodUrl}/users?access_token=${token}`);
+    return this.httpClient.get(`${environment.apiBaseUrl}/users?access_token=${token}`);
   }
 
   getUserInfos(id: string, token: string){
-    return this.httpClient.get(`${this.prodUrl}/users/${id}?access_token=${token}`);
+    return this.httpClient.get(`${environment.apiBaseUrl}/users/${id}?access_token=${token}`);
   }
 
   deleteCookies(){
