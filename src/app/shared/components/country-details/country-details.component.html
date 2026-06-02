@@ -92,10 +92,10 @@
 
     <div class="facts-grid">
       <div
-        class="fact-card"
+        class="fact-card flex"
         *ngFor="let fact of country[0].funFacts">
-        
-        {{ fact.text.en }}
+        <span class="mr-4">{{ fact.emoji}}</span>
+        <span>{{ fact.text.en }}</span>
       </div>
     </div>
   </section>

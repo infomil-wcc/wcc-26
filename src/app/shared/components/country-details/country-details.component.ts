@@ -25,6 +25,7 @@ export interface Country {
 
   funFacts: {
     text: { en: string };
+    emoji: string;
   }[];
 
   timeline: {
