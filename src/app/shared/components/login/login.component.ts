@@ -38,7 +38,8 @@ export class LoginComponent {
 
   ngOnInit(): void {
     this.loginForm = this.formBuilder.group({
-      email: ['', [Validators.required, Validators.pattern(/^[a-zA-Z0-9._%+-]+@infomil\.mu$/)]],
+      // email: ['', [Validators.required, Validators.pattern(/^[a-zA-Z0-9._%+-]+@infomil\.mu$/)]],
+      email: ['', [Validators.required, Validators.pattern(/^[a-zA-Z0-9._%+-]+@yopmail\.com$/)]],
       pass: ['', [Validators.required, Validators.minLength(4)]]
     });
 
