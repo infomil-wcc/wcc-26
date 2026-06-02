@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Teams, Players, playersApiData, teamsApiData, Group, GroupApiData } from '../../contracts/teams.contract';
 import { Observable, map } from 'rxjs';
+import { environment } from '../../../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
@@ -17,37 +18,37 @@ export class TeamsService {
   };
 
   getAllTeams(): Observable<Teams[]> {
-    return this.http.get<teamsApiData>(`https://euro.omediainteractive.net/imleuro/items/teams`).pipe(
+    return this.http.get<teamsApiData>(`${environment.apiBaseUrl}/items/teams`).pipe(
       map(response => response.data)
     );
   }
 
   getTeamByGroup(groupId: string): Observable<Teams[]> {
-    return this.http.get<teamsApiData>(`https://euro.omediainteractive.net/imleuro/items/teams?filter[group]=${groupId}`).pipe(
+    return this.http.get<teamsApiData>(`${environment.apiBaseUrl}/items/teams?filter[group]=${groupId}`).pipe(
       map(response => response.data)
     );
   }
 
   getPlayersByTeamName(teamName: string): Observable<Players[]> {
-    return this.http.get<playersApiData>(`https://euro.omediainteractive.net/imleuro/items/players?filter[team]=${teamName}`).pipe(
+    return this.http.get<playersApiData>(`${environment.apiBaseUrl}/items/players?filter[team]=${teamName}`).pipe(
       map(response => response.data)
     );
   }
 
   getTeamByName(teamName: string): Observable<Teams[]> {
-    return this.http.get<any>(`https://euro.omediainteractive.net/imleuro/items/teams?filter[name]=${teamName}`).pipe(
+    return this.http.get<any>(`${environment.apiBaseUrl}/items/teams?filter[name]=${teamName}`).pipe(
       map(response => response.data)
     );
   }
 
   getGroups(): Observable<Group[]> {
-    return this.http.get<GroupApiData>(`https://euro.omediainteractive.net/imleuro/items/group`).pipe(
+    return this.http.get<GroupApiData>(`${environment.apiBaseUrl}/items/group`).pipe(
       map(response => response.data)
     )
   }
 
   getFlags(): Observable<any> {
-    return this.http.get<any>(`https://euro.omediainteractive.net/imleuro/items/teams?fields=flag_url,name`).pipe(
+    return this.http.get<any>(`${environment.apiBaseUrl}/items/teams?fields=flag_url,name`).pipe(
       map(response => response.data)
     );
   }

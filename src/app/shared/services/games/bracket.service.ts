@@ -2,6 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable, map, switchMap, tap, throwError } from 'rxjs';
 import { CookieService } from 'ngx-cookie-service';
+import { environment } from '../../../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
@@ -10,7 +11,7 @@ export class BracketService {
 
   private httpClient = inject(HttpClient);
   private cookieService = inject(CookieService);
-  private prodUrl: string = 'https://euro.omediainteractive.net/imleuro';
+  private prodUrl: string = environment.apiBaseUrl;
 
   getUserBracket(user: string | null): Observable<any> {
     let token = this.cookieService.get('currentToken');
