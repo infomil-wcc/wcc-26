@@ -1,6 +1,6 @@
 {
   "configVersion": 1,
-  "timestamp": 1780395189281,
+  "timestamp": 1780401539422,
   "index": "/wcc-26/index.html",
   "assetGroups": [
     {
@@ -13,7 +13,7 @@
       "urls": [
         "/wcc-26/favicon.ico",
         "/wcc-26/index.html",
-        "/wcc-26/main-L7ITAMPY.js",
+        "/wcc-26/main-EAWZJOCY.js",
         "/wcc-26/manifest.webmanifest",
         "/wcc-26/polyfills-FFHMD2TL.js",
         "/wcc-26/styles-PASNCKAL.css"
@@ -633,8 +633,8 @@
     "/wcc-26/assets/wc/flags/za.png": "1cf8a46cf2d86b025ad8d25d2c8137528628ad87",
     "/wcc-26/assets/world-cup-2026.jpg": "4e41e184eafa280fd1c34c5891a811c63e514277",
     "/wcc-26/favicon.ico": "1845ec8f60315e7a57e75cbb73289744c5d85365",
-    "/wcc-26/index.html": "6cec5d4fd961ef47534e42f2915883b262f9fb27",
-    "/wcc-26/main-L7ITAMPY.js": "0781bbab66dbd334b346bbf77a64e34546a80124",
+    "/wcc-26/index.html": "c38a76cfbc1434336444522c5d1868d0456a726d",
+    "/wcc-26/main-EAWZJOCY.js": "99eb3c36c44c57cb1653d3c72d7411b6a5079426",
     "/wcc-26/manifest.webmanifest": "d20db5675a6159dadc5c42996efd58a56a17b731",
     "/wcc-26/media/corner-bg-YOV6DW44.png": "5b4d0b967eff6ddac979b5375939f6394036e0a2",
     "/wcc-26/media/down-arrow-V4UHFK2W.png": "b8586e43900253f8c394ee1537614aecc9f369bb",
