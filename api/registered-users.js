@@ -18,7 +18,7 @@ export default async function handler(req, res) {
   const DIRECTUS_USER_ROLE_ID = process.env.DIRECTUS_USER_ROLE_ID;
 
   try {
-    const response = await fetch(`${DIRECTUS_URL}/users?filter[role][_eq]=${DIRECTUS_USER_ROLE_ID}`, {
+    const response = await fetch(`${DIRECTUS_URL}/users?filter[role]=${DIRECTUS_USER_ROLE_ID}`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
