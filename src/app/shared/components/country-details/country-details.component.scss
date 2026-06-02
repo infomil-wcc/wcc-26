@@ -141,6 +141,8 @@
   display: flex;
   flex-direction: column;
   gap: 18px;
+  border-left: 2px solid #005d8c;
+  position: relative;
 }
 
 .timeline-item {
@@ -154,6 +156,19 @@
   font-size: 1.2rem;
   font-weight: 700;
   text-align: center;
+}
+
+.year::before {
+  content: '';
+  display: block;
+  width: 12px;
+  height: 12px;
+  background: #005d8c;
+  border-radius: 50%;
+  margin: auto;
+  position:absolute;
+  left: -7px;
+  margin-top: 0.4rem;
 }
 
 .content {
@@ -190,11 +205,12 @@
 
   .qualification-grid {
     grid-template-columns: 1fr;
+
   }
 
   .timeline-item {
-    grid-template-columns: 1fr;
     gap: 8px;
+    grid-template-columns: 64px 1fr;
   }
 
   .year {

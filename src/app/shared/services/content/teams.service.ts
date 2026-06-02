@@ -54,8 +54,8 @@ export class TeamsService {
 
   getTeamsInfo(teamisoname: string): any {
     // if using proxy
-    // return this.http.get<any[]>(`/api/teams?iso=${teamisoname}`, this.httpOptions);
+    return this.http.get<any[]>(`/api/teams?iso=${teamisoname}`, this.httpOptions);
     // if using direct API call
-    return this.http.get<any[]>(`https://wcc-26-app.vercel.app/api/teams?iso=${teamisoname}`, this.httpOptions);
+    // return this.http.get<any[]>(`https://wcc-26-app.vercel.app/api/teams?iso=${teamisoname}`, this.httpOptions);
   }
 }

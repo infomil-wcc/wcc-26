@@ -44,11 +44,11 @@ export class CountryDetailsComponent {
   @Input() $country!: Observable<Country[]>;
 
   ngOnInit(): void {
-    this.$country.subscribe({
-      next: (response: Country[]) => {
-        console.log(response);
-      }
-    });
+    // this.$country.subscribe({
+    //   next: (response: Country[]) => {
+    //     console.log(response);
+    //   }
+    // });
   }
 
 }
