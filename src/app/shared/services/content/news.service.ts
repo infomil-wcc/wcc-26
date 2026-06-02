@@ -74,5 +74,17 @@ export class NewsService {
       );
   }
 
+  getRegisteredUsers(): Observable<any> {
+    return this.http.get<any>(`/api/registered-users`)
+      .pipe(
+        map(response => {
+          return response;
+        }),
+        catchError(error => {
+          console.error('Error fetching registered users:', error);
+          return of(0); // Return 0 to prevent further error
+        })
+      );
+  }
 
 }
