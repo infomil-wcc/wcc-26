@@ -11,10 +11,10 @@ export class AuthService {
   private httpClient = inject(HttpClient);
   private cookieService = inject(CookieService);
 
-  private sudo = {
-    'email': 'infomil.foot@gmail.com',
-    'password': '1nf0m1l2024'
-  }
+  // private sudo = {
+  //   'email': 'infomil.foot@gmail.com',
+  //   'password': '1nf0m1l2024'
+  // }
 
   private token: string = '';
   private prodUrl: string = 'https://euro.omediainteractive.net/imleuro';
@@ -34,30 +34,41 @@ export class AuthService {
   }
 
   tryCreateUser(login: string, trigramme: string, pass: string): Observable<any> {
-    return this.httpClient.post<any>(`${this.prodUrl}/auth/authenticate`, this.sudo, this.httpOptions).pipe(
-      switchMap((res) => {
-        const token = res.data.token;
+    const loginDetails = {
+      email: login,
+      password: pass,
+      first_name: trigramme,
+      last_name: trigramme,
+    };
 
-        const createHttpOptions = {
-          headers: new HttpHeaders({
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
-          })
-        };
-
-        const loginDetails = {
-          email: login,
-          last_name: trigramme,
-          first_name: trigramme,
-          password: pass,
-          status: 'active',
-          role: 3
-        };
-
-        return this.httpClient.post<any>(`${this.prodUrl}/users`, loginDetails, createHttpOptions);
-      })
-    );
+    return this.httpClient.post<any>(`/api/create-user`, loginDetails, this.httpOptions);
   }
+
+  // tryCreateUser(login: string, trigramme: string, pass: string): Observable<any> {
+  //   return this.httpClient.post<any>(`${this.prodUrl}/auth/authenticate`, this.sudo, this.httpOptions).pipe(
+  //     switchMap((res) => {
+  //       const token = res.data.token;
+
+  //       const createHttpOptions = {
+  //         headers: new HttpHeaders({
+  //           'Content-Type': 'application/json',
+  //           'Authorization': `Bearer ${token}`
+  //         })
+  //       };
+
+  //       const loginDetails = {
+  //         email: login,
+  //         last_name: trigramme,
+  //         first_name: trigramme,
+  //         password: pass,
+  //         status: 'active',
+  //         role: 3
+  //       };
+
+  //       return this.httpClient.post<any>(`${this.prodUrl}/users`, loginDetails, createHttpOptions);
+  //     })
+  //   );
+  // }
 
   tryRefreshToken(token: string){
     let refreshdetails = {'token': token}
