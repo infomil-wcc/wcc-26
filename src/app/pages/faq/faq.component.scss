@@ -32,5 +32,24 @@
       border-bottom: 0;
     }
   }
+
+  .rules {
+
+    h3 {
+      margin: 1rem 0 .85rem;
+
+      & + p {
+        margin-bottom: .25rem;
+      }
+    }
+
+    p, li {
+      line-height: 2;
+    }
+
+    li strong {
+      padding-left: .2rem;
+    }
+  }
 }
 
