@@ -117,7 +117,7 @@ export class LoginComponent {
 
     this.authService.tryCreateUser(email, trigramme, pass).subscribe({
       next: (response) => {
-        if(response.data.id) {
+        if(response.success) {
           this.verifyLogin(email, pass);
         }
       },
