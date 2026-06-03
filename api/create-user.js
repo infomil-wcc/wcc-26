@@ -36,7 +36,7 @@ try {
         first_name,
         last_name,
         status: 'active',
-        role: process.env.DIRECTUS_USER_ROLE_ID // Optionnel : ID du rôle "Membre/Client"      
+        role: process.env.DIRECTUS_USER_ROLE_ID      
       })
     });
 
@@ -44,6 +44,24 @@ try {
 
     if (!response.ok) {
       return res.status(response.status).json(data);
+    }
+
+    // Post to registration_ranking endpoint
+    const registrationRankingUrl = `${DIRECTUS_URL}/items/registration_ranking`;
+    try {
+      await fetch(registrationRankingUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${DIRECTUS_ADMIN_TOKEN}`
+        },
+        body: JSON.stringify({
+          trigramme: first_name,
+          status: 'published',
+        }),
+      });
+    } catch (rankingError) {
+      console.error('Error posting to registration_ranking:', rankingError);
     }
 
     return res.status(201).json({ success: true, user: data.data });

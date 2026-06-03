@@ -26,12 +26,16 @@ export class TeamDetailsComponent implements OnInit {
   ngOnInit(): void {
     this.$teamPlayers = this.teamsService.getPlayersByTeamName(this.team.name);
     this.$teamMatches = this.matchesService.getMatchesByTeam(this.team.name);
-    this.$teamDetails = this.teamsService.getTeamsInfo(this.team.iso);
-    // .subscribe({
-    //   next: (response: any) => {
-    //     console.log(response);
-    //   }
-    // });
+        this.$teamDetails = this.teamsService.getTeamsInfo(this.team.iso).pipe(
+      map((countries: Country[]) => {
+        return countries.map(country => {
+          if (country.timeline) {
+            country.timeline.sort((a, b) => b.year - a.year);
+          }
+          return country;
+        });
+      })
+    );
   }
 
 }
