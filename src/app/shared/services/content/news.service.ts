@@ -1,6 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable, catchError, forkJoin, map, mergeMap, of } from 'rxjs';
+import { environment } from '../../../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
@@ -10,7 +11,7 @@ export class NewsService {
   private http = inject(HttpClient);
 
   getHPnews(): Observable<any[]> {
-    return this.http.get<any>('https://euro.omediainteractive.net/imleuro/items/news?fields=title,image,route,content,id')
+    return this.http.get<any>(`${environment.apiBaseUrl}/items/news?fields=title,image,route,content,id`)
       .pipe(
         mergeMap(newsData => {
           const newsItems = newsData && newsData.data ? newsData.data : [];
@@ -18,7 +19,7 @@ export class NewsService {
           const requests = newsItems.map((newsItem: { image: any; }) => {
             const imageId = newsItem.image;
             // Make request to get image info from file api
-            return this.http.get(`https://euro.omediainteractive.net/imleuro/files/${imageId}`);
+            return this.http.get(`${environment.apiBaseUrl}/files/${imageId}`);
           });
 
           // Combine requests in observable
@@ -42,7 +43,7 @@ export class NewsService {
   }
 
   getNewsDetails(newsId: string): Observable<any[]> {
-    return this.http.get<any>('https://euro.omediainteractive.net/imleuro/items/news?filter[id]=${newsId}')
+    return this.http.get<any>(`${environment.apiBaseUrl}/items/news?filter[id]=${newsId}`)
       .pipe(
         mergeMap(newsData => {
           const newsItems = newsData && newsData.data ? newsData.data : [];
@@ -50,7 +51,7 @@ export class NewsService {
           const requests = newsItems.map((newsItem: { image: any; }) => {
             const imageId = newsItem.image;
             // Make request to get image info from file api
-            return this.http.get(`https://euro.omediainteractive.net/imleuro/files/${imageId}`);
+            return this.http.get(`${environment.apiBaseUrl}/files/${imageId}`);
           });
 
           // Combine requests in observable
@@ -73,5 +74,17 @@ export class NewsService {
       );
   }
 
+  getRegisteredUsers(): Observable<any> {
+    return this.http.get<any>(`/api/registered-users`)
+      .pipe(
+        map(response => {
+          return response;
+        }),
+        catchError(error => {
+          console.error('Error fetching registered users:', error);
+          return of(0); // Return 0 to prevent further error
+        })
+      );
+  }
 
 }

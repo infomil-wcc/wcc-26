@@ -39,12 +39,14 @@ export class LoginComponent {
   ngOnInit(): void {
     this.loginForm = this.formBuilder.group({
       email: ['', [Validators.required, Validators.pattern(/^[a-zA-Z0-9._%+-]+@infomil\.mu$/)]],
+      // email: ['', [Validators.required, Validators.pattern(/^[a-zA-Z0-9._%+-]+@yopmail\.com$/)]],
       pass: ['', [Validators.required, Validators.minLength(4)]]
     });
 
 
     this.registerForm = this.formBuilder.group({
       email: ['', [Validators.required, Validators.pattern(/^[a-zA-Z0-9._%+-]+@infomil\.mu$/)]],
+      // email: ['', [Validators.required, Validators.pattern(/^[a-zA-Z0-9._%+-]+@yopmail\.com$/)]],
       trigramme: ['', [Validators.required, Validators.pattern(/^(iml-[a-zA-Z]{3}|iml-[a-zA-Z]{2}|[a-zA-Z]{3})$/)]],
       pass: ['', [Validators.required, Validators.minLength(4)]]
     });
@@ -116,7 +118,7 @@ export class LoginComponent {
 
     this.authService.tryCreateUser(email, trigramme, pass).subscribe({
       next: (response) => {
-        if(response.data.id) {
+        if(response.success) {
           this.verifyLogin(email, pass);
         }
       },

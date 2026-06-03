@@ -11,10 +11,13 @@ export class HpnewsComponent {
 
   private newsService = inject(NewsService);
   protected $newsData!: Observable<any[]>;
+  protected $registeredUsers!: Observable<any>;
   protected currentPage: number = 0;
 
   ngOnInit():void {
     this.$newsData = this.newsService.getHPnews();
+    this.$registeredUsers = this.newsService.getRegisteredUsers();
+
   }
 
   newsChunks(news: any[], size: number) {
