@@ -1,5 +1,5 @@
 // Modules
-import { LOCALE_ID, NgModule, isDevMode } from '@angular/core';
+import { CUSTOM_ELEMENTS_SCHEMA, LOCALE_ID, NgModule, isDevMode } from '@angular/core';
 import { registerLocaleData } from '@angular/common';
 import localeFr from '@angular/common/locales/fr';
 registerLocaleData(localeFr);
@@ -102,5 +102,6 @@ import { CountryDetailsComponent } from './shared/components/country-details/cou
         { provide: HTTP_INTERCEPTORS, useClass: CacheInterceptor, multi: true },
         { provide: LOCALE_ID, useValue: 'fr-FR' },
         provideHttpClient(withInterceptorsFromDi())
-    ] })
+    ],
+    schemas: [CUSTOM_ELEMENTS_SCHEMA] })
 export class AppModule { }

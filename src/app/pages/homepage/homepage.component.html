@@ -1,7 +1,7 @@
 <div class="container pt-3 flex flex-column align-items-center">
   <h2 class="text-center">Entre dans le jeu ! </h2>
  <h3 class="mt-0 text-center">Fais tes pronostics pour la Coupe du Monde 2026 et vise des récompenses incroyables.</h3>
- <a href="#" class="registerLink" (click)="showLogin = !showLogin">Clique et inscris-toi dès maintenant pour tenter ta chance !</a>
+ <a href="#" class="registerLink" (click)="showLogin = !showLogin" *ngIf="!isLoggedIn">Clique et inscris-toi dès maintenant pour tenter ta chance !</a>
  <h3>À toi de jouer !</h3>
 
   <!-- <div class="grid justify-content-center gap-4 mt-4">
