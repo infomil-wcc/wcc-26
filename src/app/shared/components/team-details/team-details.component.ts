@@ -30,7 +30,7 @@ export class TeamDetailsComponent implements OnInit {
       map((countries: Country[]) => {
         return countries.map(country => {
           if (country.timeline) {
-            country.timeline.sort((a, b) => a.year - b.year);
+            country.timeline.sort((a, b) => b.year - a.year);
           }
           return country;
         });
