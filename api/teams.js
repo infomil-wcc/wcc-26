@@ -201,7 +201,7 @@ const allTeamsData =
         topScorer: { en: 'Kevin De Bruyne (6 goals)' },
         topAssists: { en: 'Alexis Saelemaekers (4 assists)' },
         mostUsed: 'Jeremy Doku (8 matches)',
-        chancesCreated: { en: 'Jeremy Doku (24 chances)' },
+        chancesCreated:  'Jeremy Doku (24 chances)',
         note: { en: 'Won UEFA Group J unbeaten (29 goals scored, 7 conceded). Survived dramatic 4-3 and 4-2 wins over Wales. Clinched qualification with a 7-0 rout of Liechtenstein.' },
       },
       funFacts: [
@@ -397,7 +397,7 @@ const allTeamsData =
         topScorer: { en: 'Breel Embolo (3 goals)' },
         topAssists: { en: 'Granit Xhaka (2 assists)' },
         mostUsed: 'Granit Xhaka, Manuel Akanji, Gregor Kobel (6 matches)',
-        chancesCreated: { en: 'Dan Ndoye (8 chances)' },
+        chancesCreated: 'Dan Ndoye (8 chances)',
         note: { en: 'Won UEFA Group B with W4 D2 L0 (14 points), qualifying directly. Sixth consecutive World Cup. Unbeaten campaign against Kosovo, Slovenia and Sweden.' },
       },
       funFacts: [
@@ -442,7 +442,7 @@ const allTeamsData =
         topScorer: { en: 'Sébastien Haller (4 goals)' },
         topAssists: { en: 'Simon Adingra (3 assists)' },
         mostUsed: 'Franck Kessié, Yahia Fofana, Emmanuel Agbadou (8 matches)',
-        chancesCreated: { en: 'Simon Adingra (11 chances)' },
+        chancesCreated: 'Simon Adingra (11 chances)',
         note: { en: 'Won CAF Group F, securing qualification by one point over Gabon. Rode the momentum from winning the 2024 AFCON at home.' },
       },
       funFacts: [
@@ -755,7 +755,7 @@ const allTeamsData =
         topScorer: { en: 'Enner Valencia (3 goals)' },
         topAssists: { en: 'Moisés Caicedo (3 assists)' },
         mostUsed: 'Piero Hincapié, Moisés Caicedo, Willian Pacho (16 games)',
-        chancesCreated: { en: 'Kendry Páez (12 chances)' },
+        chancesCreated: 'Kendry Páez (12 chances)',
         note: { en: 'Finished 2nd in CONMEBOL qualifying, ahead of Brazil. Best defence in South American qualification: only 5 goals conceded in 18 matches.' },
       },
       funFacts: [
@@ -804,7 +804,7 @@ const allTeamsData =
         topScorer: { en: 'Mohamed Salah (6 goals)' },
         topAssists: { en: 'Mohamed Salah (4 assists)' },
         mostUsed: 'Emmam Ashour, Mohamed Abdel-Moneim, Ahmed Fattouh (10 games)',
-        chancesCreated: { en: 'Mohamed Salah (16 chances)' },
+        chancesCreated: 'Mohamed Salah (16 chances)',
         note: { en: 'Won CAF Group A with authority: W8 D2 L0, 20 goals scored and just 2 conceded. Salah was decisive throughout the campaign.' },
       },
       funFacts: [
@@ -990,7 +990,7 @@ const allTeamsData =
         topScorer: { en: 'Scott McTominay (4 goals)' },
         topAssists: { en: 'Andy Robertson (3 assists)' },
         mostUsed: 'Andy Robertson, Scott McTominay, John McGinn (8 games)',
-        chancesCreated: { en: 'John McGinn (9 chances)' },
+        chancesCreated: 'John McGinn (9 chances)',
         note: { en: 'Direct qualification via UEFA Group A. Dramatic 4-2 win over Denmark with two stoppage-time goals (Tierney and McLean). First World Cup since 1998 — 28 years later.' },
       },
       funFacts: [
@@ -1391,7 +1391,7 @@ const allTeamsData =
         topScorer: { en: 'Ayoub El Kaabi (4 goals)' },
         topAssists: { en: 'Achraf Hakimi (3 assists)' },
         mostUsed: 'Nayef Aguerd, Youssef En-Nesyri, Bilal El Khannouss (7 games)',
-        chancesCreated: { en: 'Achraf Hakimi (11 chances)' },
+        chancesCreated: 'Achraf Hakimi (11 chances)',
         note: { en: 'Won CAF Group E with a 100% record (8W-0D-0L, 24 pts). First African team to secure a spot at the 2026 World Cup. Beat Niger 5-0 and Congo 6-0.' },
       },
       funFacts: [
@@ -1447,7 +1447,7 @@ const allTeamsData =
         topScorer: { en: 'N/A (co-host — automatic qualification)' },
         topAssists: { en: 'N/A' },
         mostUsed: 'N/A',
-        chancesCreated: { en: 'N/A' },
+        chancesCreated: 'N/A',
         note: { en: 'Automatic qualification as 2026 World Cup co-host (USA, Mexico, and Canada). Did not play CONCACAF qualifiers.' },
       },
       funFacts: [
@@ -1492,7 +1492,7 @@ const allTeamsData =
         topScorer: { en: 'Memphis Depay (9 goals)' },
         topAssists: { en: 'Memphis Depay (4 assists)' },
         mostUsed: 'Virgil van Dijk (8 games)',
-        chancesCreated: { en: 'Frenkie de Jong (18 chances, 3.1 per 90)' },
+        chancesCreated: 'Frenkie de Jong (18 chances, 3.1 per 90)',
         note: { en: 'Won UEFA Group G unbeaten (W6 D2 L0, 20 pts). Sealed qualification with a 4-0 win over Lithuania on Matchday 8.' },
       },
       funFacts: [
@@ -1536,7 +1536,7 @@ const allTeamsData =
         topScorer: { en: 'Erling Haaland (16 goals)' },
         topAssists: { en: 'Martin Odegaard (6 assists)' },
         mostUsed: 'Sander Berge',
-        chancesCreated: { en: 'Martin Odegaard (22 chances)' },
+        chancesCreated: 'Martin Odegaard (22 chances)',
         note: { en: 'Qualified as UEFA Group I winners — perfect record of 8 wins from 8 matches. First World Cup since 1998.' },
       },
       funFacts: [
@@ -1576,7 +1576,7 @@ const allTeamsData =
         topScorer: { en: 'Chris Wood (9 goals)' },
         topAssists: { en: 'Matt Garbett (4 assists)' },
         mostUsed: 'Joe Bell',
-        chancesCreated: { en: 'Sarpreet Singh (10 chances)' },
+        chancesCreated: 'Sarpreet Singh (10 chances)',
         note: { en: 'Qualified via OFC tournament — won all matches, beating New Caledonia 3-0 in the final. First World Cup since 2010.' },
       },
       funFacts: [
@@ -1616,7 +1616,7 @@ const allTeamsData =
         topScorer: { en: 'Jose Fajardo (3 goals)' },
         topAssists: { en: 'Amir Murillo (3 assists)' },
         mostUsed: 'Anibal Godoy',
-        chancesCreated: { en: 'Adalberto Carrasquilla (9 chances)' },
+        chancesCreated: 'Adalberto Carrasquilla (9 chances)',
         note: { en: 'Qualified via CONCACAF — topped their group in both the second and third qualifying rounds with a +14 goal difference.' },
       },
       funFacts: [
@@ -1657,7 +1657,7 @@ const allTeamsData =
         topScorer: { en: 'Cristiano Ronaldo (5 goals)' },
         topAssists: { en: 'Bruno Fernandes, Bernardo Silva' },
         mostUsed: 'Bruno Fernandes (6 games)',
-        chancesCreated: { en: 'Bruno Fernandes' },
+        chancesCreated: 'Bruno Fernandes',
         note: { en: 'Won UEFA Group F (4W-1D-1L). Thrashed Armenia 9-1 on the final matchday.' },
       },
       funFacts: [
@@ -1700,7 +1700,7 @@ const allTeamsData =
         topScorer: { en: 'Antonio Sanabria (4 goals)' },
         topAssists: { en: 'Miguel Almiron (3 assists)' },
         mostUsed: 'Gustavo Gomez',
-        chancesCreated: { en: 'Julio Enciso' },
+        chancesCreated: 'Julio Enciso',
         note: { en: 'Finished 6th in CONMEBOL qualifying with 29 pts, claiming the last automatic spot. Won just 1 of their first 3 matches but home wins over Argentina and Brazil paved the way. First World Cup since 2010.' },
       },
       funFacts: [
@@ -1744,7 +1744,7 @@ const allTeamsData =
         topScorer: { en: 'Akram Afif (5 goals)' },
         topAssists: { en: 'Akram Afif (3 assists)' },
         mostUsed: 'Akram Afif, Boualem Khoukhi, Tarek Salman (10 games)',
-        chancesCreated: { en: 'Akram Afif (14 chances)' },
+        chancesCreated: 'Akram Afif (14 chances)',
         note: { en: 'First qualification through the normal AFC process (participated as hosts in 2022). Secured the spot with a 2-1 win over the UAE in October 2025.' },
       },
       funFacts: [
@@ -1790,7 +1790,7 @@ const allTeamsData =
         topScorer: { en: 'Saleh Al-Shehri (4 goals)' },
         topAssists: { en: 'Salem Al-Dawsari (3 assists)' },
         mostUsed: 'Hassan Tambakti, Saud Abdulhamid, Salem Al-Dawsari (10 games)',
-        chancesCreated: { en: 'Salem Al-Dawsari (9 chances)' },
+        chancesCreated: 'Salem Al-Dawsari (9 chances)',
         note: { en: 'Qualified via AFC Round 4, finishing top of the group after a 3-2 win over Indonesia and a 0-0 draw with Iraq. 7th World Cup appearance.' },
       },
       funFacts: [
@@ -1878,7 +1878,7 @@ const allTeamsData =
         topScorer: { en: 'Sadio Mané (5 goals)' },
         topAssists: { en: 'Iliman Ndiaye (3 assists)' },
         mostUsed: 'Kalidou Koulibaly, Édouard Mendy, Sadio Mané (8 games)',
-        chancesCreated: { en: 'Iliman Ndiaye (9 chances)' },
+        chancesCreated: 'Iliman Ndiaye (9 chances)',
         note: { en: 'Won CAF Group B with 24 points (7W-3D-0L), unbeaten. Secured qualification with a 4-0 thrashing of Mauritania, with two goals from Mané.' },
       },
       funFacts: [
@@ -1964,7 +1964,7 @@ const allTeamsData =
         topScorer: { en: 'Kerem Aktürkoğlu (3 goals)' },
         topAssists: { en: 'Arda Güler (2 assists)' },
         mostUsed: 'Hakan Çalhanoğlu, Merih Demiral, Ferdi Kadıoğlu (8 games)',
-        chancesCreated: { en: 'Arda Güler (10 chances)' },
+        chancesCreated: 'Arda Güler (10 chances)',
         note: { en: 'Qualified via UEFA play-off after finishing 2nd in Group E. 1-0 win over Romania (Kadıoğlu goal, min. 53) and 1-0 over Kosovo (Aktürkoğlu goal, min. 53). First World Cup in 24 years.' },
       },
       funFacts: [
