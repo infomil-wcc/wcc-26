@@ -75,7 +75,7 @@ export class NewsService {
   }
 
   getRegisteredUsers(): Observable<any> {
-    return this.http.get<any>(`/api/registered-users`)
+    return this.http.get<any>(`/api/users`)
       .pipe(
         map(response => {
           return response;

@@ -31,7 +31,7 @@ export class AuthService {
       last_name: trigramme,
     };
 
-    return this.httpClient.post<any>(`/api/create-user`, loginDetails, this.httpOptions);
+    return this.httpClient.post<any>(`/api/users`, loginDetails, this.httpOptions);
   }
 
   tryRefreshToken(token: string){
