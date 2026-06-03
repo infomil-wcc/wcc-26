@@ -47,7 +47,7 @@ try {
     }
 
     // Post to registration_ranking endpoint
-    const registrationRankingUrl = `${DIRECTUS_URL}/registration_ranking`;
+    const registrationRankingUrl = `${DIRECTUS_URL}/items/registration_ranking`;
     try {
       await fetch(registrationRankingUrl, {
         method: 'POST',
