@@ -18,7 +18,7 @@ export interface Country {
   qualification2026: {
     topScorer: { en: string };
     topAssists: { en: string };
-    mostUsed: { en: string };
+    mostUsed:  string;
     chancesCreated: string;
     note: { en: string };
   };
