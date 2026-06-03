@@ -16,8 +16,8 @@ export interface Country {
   internationalTitles: string[];
 
   qualification2026: {
-    topScorer: { en: string };
-    topAssists: { en: string };
+    topScorer: string;
+    topAssists: string;
     mostUsed:  string;
     chancesCreated: string;
     note: { en: string };
