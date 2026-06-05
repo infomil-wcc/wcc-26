@@ -81,8 +81,21 @@ export class BestScorerComponent implements OnInit {
     let nation = event.target as HTMLSelectElement;
     if(game === 'goldenBoot'){
       this.$goldenBootPlayers = this.teamsService.getPlayersByTeamName(nation.value);
+
+      this.$goldenBootPlayers.subscribe({
+        next: (res)=>{
+          console.log(res);
+        }
+      })
+
     } else {
       this.$tournamentPlayers = this.teamsService.getPlayersByTeamName(nation.value);
+
+      this.$tournamentPlayers.subscribe({
+        next: (value)=> {
+          console.log(value);
+        }
+      })
     }
   }
 
