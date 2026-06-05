@@ -1,5 +1,5 @@
 import { Component, OnInit, inject } from '@angular/core';
-import { Players, Teams } from '../../../shared/contracts/teams.contract';
+import { teamsApiData, Teams, Player } from '../../../shared/contracts/teams.contract';
 import { TeamsService } from '../../../shared/services/content/teams.service';
 import { CorrectscorerService, BestPlayer } from '../../../shared/services/games/correctscorer.service';
 import { StateService } from '../../../shared/services/core/state.service';
@@ -16,12 +16,12 @@ export class BestScorerComponent implements OnInit {
   private correctScorerService = inject(CorrectscorerService);
   private state = inject(StateService);
 
-  private targetDate = new Date(2024, 5, 14, 22, 45, 0);
+  private targetDate = new Date(2026, 5, 11, 22, 55, 0);
   private currentDate = new Date();
 
-  protected $goldenBootPlayers!: Observable<Players[]>;
-  protected $tournamentPlayers!: Observable<Players[]>;
-  protected $players!: Observable<Players[]>;
+  protected $goldenBootPlayers!: Observable<Player[]>;
+  protected $tournamentPlayers!: Observable<Player[]>;
+  protected $players!: Observable<teamsApiData[]>;
   protected $teams!: Observable<Teams[]>;
   protected $bestScorer!: Observable<BestPlayer[]>;
   protected disabled: boolean = false;
@@ -36,7 +36,8 @@ export class BestScorerComponent implements OnInit {
 
   ngOnInit(): void {
 
-    // this.currentDate = new Date(2024, 5, 14, 23, 0, 0);
+    // this.currentDate = new Date(2026, 5, 11, 23, 0, 0);
+    // console.log(this.targetDate);
 
     this.state.userState.subscribe({
       next: (res)=>{

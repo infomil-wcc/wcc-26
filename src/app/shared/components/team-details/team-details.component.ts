@@ -1,5 +1,5 @@
 import { Component, Input, OnInit, inject } from '@angular/core';
-import { Teams, Players } from '../../contracts/teams.contract';
+import { Teams, TeamResponse, teamsApiData } from '../../contracts/teams.contract';
 import { Matches } from '../../contracts/matches.contract';
 import { TeamsService } from '../../services/content/teams.service';
 import { MatchesService } from '../../services/content/matches.service';
@@ -20,11 +20,11 @@ export class TeamDetailsComponent implements OnInit {
   private matchesService = inject(MatchesService);
 
   $teamMatches!: Observable<Matches[]>;
-  $teamPlayers!: Observable<Players[]>;
+  $teamPlayers!: Observable<teamsApiData[]>;
   $teamDetails!: Observable<Country[]>;
 
   ngOnInit(): void {
-    this.$teamPlayers = this.teamsService.getPlayersByTeamName(this.team.name);
+    // this.$teamPlayers = this.teamsService.getPlayersByTeamName(this.team.name);
     this.$teamMatches = this.matchesService.getMatchesByTeam(this.team.name);
         this.$teamDetails = this.teamsService.getTeamsInfo(this.team.iso).pipe(
       map((countries: Country[]) => {

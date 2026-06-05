@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Teams, Players, playersApiData, teamsApiData, Group, GroupApiData } from '../../contracts/teams.contract';
+import { Teams, TeamResponse, playersApiData, teamsApiData, Group, GroupApiData, Player } from '../../contracts/teams.contract';
 import { Observable, map } from 'rxjs';
 import { environment } from '../../../../environments/environment';
 
@@ -29,9 +29,9 @@ export class TeamsService {
     );
   }
 
-  getPlayersByTeamName(teamName: string): Observable<Players[]> {
-    return this.http.get<playersApiData>(`${environment.apiBaseUrl}/items/players?filter[team]=${teamName}`).pipe(
-      map(response => response.data)
+  getPlayersByTeamName(teamName: string): Observable<Player[]> {
+    return this.http.get<TeamResponse>(`/api/squads?country=${teamName}`).pipe(
+      map(response => response.players)
     );
   }
 
