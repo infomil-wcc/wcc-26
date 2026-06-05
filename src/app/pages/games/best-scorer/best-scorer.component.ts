@@ -1,5 +1,5 @@
 import { Component, OnInit, inject } from '@angular/core';
-import { teamsApiData, Teams, Player } from '../../../shared/contracts/teams.contract';
+import { teamsApiData, Teams, Player, TeamResponse } from '../../../shared/contracts/teams.contract';
 import { TeamsService } from '../../../shared/services/content/teams.service';
 import { CorrectscorerService, BestPlayer } from '../../../shared/services/games/correctscorer.service';
 import { StateService } from '../../../shared/services/core/state.service';
@@ -19,12 +19,14 @@ export class BestScorerComponent implements OnInit {
   private targetDate = new Date(2026, 5, 11, 22, 55, 0);
   private currentDate = new Date();
 
-  protected $goldenBootPlayers!: Observable<Player[]>;
-  protected $tournamentPlayers!: Observable<Player[]>;
+  protected $goldenBootPlayers!: Observable<TeamResponse>;
+  protected $tournamentPlayers!: Observable<TeamResponse>;
   protected $players!: Observable<teamsApiData[]>;
   protected $teams!: Observable<Teams[]>;
   protected $bestScorer!: Observable<BestPlayer[]>;
   protected disabled: boolean = false;
+  protected goldenSelection: boolean = false;
+  protected bestSelection: boolean = false;
   protected goldenScorer!: string;
   protected goals: number = 0;
   protected tournamentPlayer!: string;
@@ -81,21 +83,12 @@ export class BestScorerComponent implements OnInit {
     let nation = event.target as HTMLSelectElement;
     if(game === 'goldenBoot'){
       this.$goldenBootPlayers = this.teamsService.getPlayersByTeamName(nation.value);
-
-      this.$goldenBootPlayers.subscribe({
-        next: (res)=>{
-          console.log(res);
-        }
-      })
+      this.goldenSelection = true;
 
     } else {
       this.$tournamentPlayers = this.teamsService.getPlayersByTeamName(nation.value);
-
-      this.$tournamentPlayers.subscribe({
-        next: (value)=> {
-          console.log(value);
-        }
-      })
+      this.bestSelection = true;
+      
     }
   }
 

@@ -1,3 +1,8 @@
 node_modules
 dist
-.angular
+.angular/
+.DS_Store
+.idea
+.vscode
+*.log
+*.tmp

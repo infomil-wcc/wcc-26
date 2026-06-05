@@ -3,7 +3,7 @@
     <div class="flex justify-content-center">
       <span class="phase mt-0" *ngIf="match.group; else phase">{{ match.group }} - M{{ match.id }}</span>
       <ng-template #phase>
-        <span class="phase mt-0">{{ match.phase }}</span>
+        <span class="phase mt-0">{{ match.phase }} - M{{ match.id }}</span>
       </ng-template>
     </div>
     <div class="flex justify-content-center">

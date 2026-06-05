@@ -37,7 +37,7 @@
             </div>
             <div class="col-6">
               <div class="teamB flex flex-column align-items-center input">
-                <select name="player" [(ngModel)]="goldenScorer" [disabled]="disabled">
+                <select name="player" [(ngModel)]="goldenScorer" [disabled]="!goldenSelection">
                   <ng-container>
                     <option value="-" selected>-</option>
                     <ng-container *ngIf="$goldenBootPlayers | async as players">
@@ -99,7 +99,7 @@
             </div>
             <div class="col-6">
               <div class="teamB flex flex-column align-items-center input">
-                <select name="player" [(ngModel)]="tournamentPlayer" [disabled]="disabled">
+                <select name="player" [(ngModel)]="tournamentPlayer" [disabled]="!bestSelection">
                   <ng-container>
                     <option value="-" selected>-</option>
                     <ng-container *ngIf="$tournamentPlayers | async as players">
