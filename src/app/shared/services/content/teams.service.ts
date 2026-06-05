@@ -30,7 +30,9 @@ export class TeamsService {
   }
 
   getPlayersByTeamName(teamName: string): Observable<any> {
-    return this.http.get<any>(`/api/squads?country=${teamName}`);
+    return this.http.get<any>(`/api/squads?country=${teamName}`).pipe(
+      map(response => response[0])
+    );
   }
 
   getTeamByName(teamName: string): Observable<Teams[]> {

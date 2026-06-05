@@ -41,7 +41,7 @@
                   <ng-container>
                     <option value="-" selected>-</option>
                     <ng-container *ngIf="$goldenBootPlayers | async as players">
-                      <ng-container *ngFor="let item of players">
+                      <ng-container *ngFor="let item of players[0]">
                         <option [value]="item.player_name">{{ item.player_name }} - ({{ item.position }})</option>
                       </ng-container>
                     </ng-container>
