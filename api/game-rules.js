@@ -8,6 +8,7 @@ const gameData = {
         "nom": "Jeu de pronostics : à toi de jouer !",
         "description": "Prédire différents éléments liés à la compétition (résultats des matchs, performances individuelles et tableau final).",
         "date_debut": "2026-06-10",
+        "date_fin": "2026-07-19",
         "phases": {
           "phase_de_groupes": { "nom_affiche": "⚽ Phase de groupes", "regles": "Devine le résultat de chaque match : victoire ou match nul.", "points_info": "Bonne réponse = points gagnés. Bonus si tu trouves le score exact !" },
           "seiziemes_de_finale": { "nom_affiche": "🚪 16èmes de finale", "regles": "Les choses sérieuses commencent : Plus tu avances, plus les points augmentent !", "points_info": "Trouver le vainqueur ou le nul rapporte davantage. Score exact = encore plus de points." },
@@ -60,6 +61,7 @@ const gameData = {
         "nom": "Prédictions des stars du tournoi",
         "description": "Pronostiquer sur les meilleures performances individuelles de la compétition.",
         "date_debut": "2026-06-08",
+        "date_fin": "2026-06-11",
         "elements_a_predire": ["Le meilleur buteur du tournoi", "Le nombre de buts qu’il marquera", "Le meilleur joueur de la compétition"],
         "systeme_points_departage": {
           "introduction": "Si personne ne trouve la combinaison parfaite, on départage avec ce système (plus tu es proche, plus tu marques de points) :",
@@ -70,7 +72,8 @@ const gameData = {
         "id": "jeu_bracket",
         "nom": "Jeu bracket",
         "description": "Une fois la phase des groupes terminés, devine les vainqueurs de chaque match jusqu’à la finale.",
-        "date_debut": "2026-06-28",
+        "date_debut": "2026-06-28 09:00",
+        "date_fin": "2026-06-28 23:00",
         "bareme_points": { "16eme_de_finale": 5, "8eme_de_finale": 10, "quart_de_finale": 15, "demi_finale": 20, "finale": 25 },
         "interet": "Chaque bon vainqueur te fait grimper au classement !",
         "conditions_egalite": {
@@ -83,8 +86,9 @@ const gameData = {
         "id": "Conditions",
         "nom": "Conditions générales",
         "regles": [
-          "La participation au jeu implique l’acceptation complète du présent règlement.",
-          "L’organisation se réserve le droit de trancher toute situation non prévue."
+           "La participation au jeu implique l’acceptation complète du présent règlement.",
+          "Les organisateurs se réservent le droit de statuer sur toute situation non prévue par le présent règlement.",
+          "Ce jeu est exclusivement réservé aux employés d’Infomil (Mauritius) Ltd, et l’inscription doit être effectuée uniquement via votre adresse e-mail @infomil.mu."
         ]
       }
     ]
