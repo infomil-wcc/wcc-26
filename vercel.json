@@ -1,5 +1,10 @@
 {
   "version": 2,
+  "build": {
+    "env": {
+      "NG_CLI_ANALYTICS": "false"
+    }
+  },
   "routes": [
     {
       "src": "/api/(.*)",
@@ -12,6 +17,7 @@
   "headers": [
     {
       "source": "/api/(.*)",
+
       "headers": [
         {
           "key": "Access-Control-Allow-Credentials",
@@ -19,7 +25,7 @@
         },
         {
           "key": "Access-Control-Allow-Origin",
-          "value": "https://wcc-26-app.vercel.app"
+          "value": "https://wcc-26.vercel.app"
         },
         {
           "key": "Access-Control-Allow-Methods",

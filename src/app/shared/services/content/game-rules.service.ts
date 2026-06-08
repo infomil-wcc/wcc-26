@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { ApiResponse } from '../../contracts/game-rules.contract';
 import { Observable, map } from 'rxjs';
+import { environment } from '../../../../environments/environment';
 
 
 @Injectable({
@@ -18,6 +19,6 @@ constructor(private http: HttpClient) { }
   };
 
   getGameRules(): Observable<ApiResponse> {
-     return this.http.get<ApiResponse>(`/api/game-rules`, this.httpOptions);
+     return this.http.get<ApiResponse>(`${environment.apiUrl}/game-rules`, this.httpOptions);
   }
 }
