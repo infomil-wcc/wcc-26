@@ -23,7 +23,7 @@
           <div class="grid justify-content-center mb-2 w-full">
             <div class="col-6">
               <div class="teamA flex flex-column align-items-center input">
-                <select name="team" id="teamSelection" (change)="nationalitySelected($event, 'goldenBoot')" [disabled]="disabled">
+                <select name="team" (change)="nationalitySelected($event, 'goldenBoot')" [disabled]="disabled">
                   <ng-container>
                     <option value="-" selected>Nationalité</option>
                     <ng-container *ngIf="$teams | async as teams">
@@ -37,12 +37,12 @@
             </div>
             <div class="col-6">
               <div class="teamB flex flex-column align-items-center input">
-                <select name="player" id="playerSelection" [(ngModel)]="goldenScorer" [disabled]="disabled">
+                <select name="player" [(ngModel)]="goldenScorer" [disabled]="!goldenSelection">
                   <ng-container>
                     <option value="-" selected>-</option>
                     <ng-container *ngIf="$goldenBootPlayers | async as players">
-                      <ng-container *ngFor="let item of players">
-                        <option [value]="item.name">{{ item.name }} - ({{ item.position }})</option>
+                      <ng-container *ngFor="let item of players.players">
+                        <option [value]="item.player_name">{{ item.player_name }} - ({{ item.position }})</option>
                       </ng-container>
                     </ng-container>
                   </ng-container>
@@ -85,7 +85,7 @@
           <div class="grid justify-content-center mb-2 w-full">
             <div class="col-6">
               <div class="teamA flex flex-column align-items-center input">
-                <select name="team" id="teamSelection" (change)="nationalitySelected($event, 'tournament')" [disabled]="disabled">
+                <select name="team" (change)="nationalitySelected($event, 'tournament')" [disabled]="disabled">
                   <ng-container>
                     <option value="-" selected>Nationalité</option>
                     <ng-container *ngIf="$teams | async as teams">
@@ -99,12 +99,12 @@
             </div>
             <div class="col-6">
               <div class="teamB flex flex-column align-items-center input">
-                <select name="player" id="playerSelection" [(ngModel)]="tournamentPlayer" [disabled]="disabled">
+                <select name="player" [(ngModel)]="tournamentPlayer" [disabled]="!bestSelection">
                   <ng-container>
                     <option value="-" selected>-</option>
                     <ng-container *ngIf="$tournamentPlayers | async as players">
-                      <ng-container *ngFor="let item of players">
-                        <option [value]="item.name">{{ item.name }} - ({{ item.position }})</option>
+                      <ng-container *ngFor="let item of players.players">
+                        <option [value]="item.player_name">{{ item.player_name }} - ({{ item.position }})</option>
                       </ng-container>
                     </ng-container>
                   </ng-container>

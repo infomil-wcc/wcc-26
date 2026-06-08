@@ -3,7 +3,7 @@
     <div class="flex justify-content-center">
       <span class="phase mt-0" *ngIf="match.group; else phase">{{ match.group }} - M{{ match.id }}</span>
       <ng-template #phase>
-        <span class="phase mt-0">{{ match.phase }}</span>
+        <span class="phase mt-0">{{ match.phase }} - M{{ match.id }}</span>
       </ng-template>
     </div>
     <div class="flex justify-content-center">
@@ -150,7 +150,7 @@
                     <option value="-" selected>-</option>
                     <ng-container *ngIf="$players | async as players">
                       <ng-container *ngFor="let item of players">
-                        <option [value]="item.name">{{ item.name }} - ({{ item.position }})</option>
+                        <option [value]="item.player_name">{{ item.player_name }} - ({{ item.position }})</option>
                       </ng-container>
                     </ng-container>
                   </ng-container>
