@@ -8,3 +8,4 @@ dist
 *.tmp
 .angular/cache/*
 
+.angular/cache/18.2.21/euroapp/.tsbuildinfo
