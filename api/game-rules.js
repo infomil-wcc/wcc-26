@@ -86,9 +86,9 @@ const gameData = {
         "id": "Conditions",
         "nom": "Conditions générales",
         "regles": [
-          "La participation au jeu implique l’acceptation complète du présent règlement.",
-          "L’organisation se réserve le droit de trancher toute situation non prévue.",
-          "La participation au jeu est strictement réservée aux employés d'Infomil Mauritius Ltée"
+           "La participation au jeu implique l’acceptation complète du présent règlement.",
+          "Les organisateurs se réservent le droit de statuer sur toute situation non prévue par le présent règlement.",
+          "Ce jeu est exclusivement réservé aux employés d’Infomil (Mauritius) Ltd, et l’inscription doit être effectuée uniquement via votre adresse e-mail @infomil.mu."
         ]
       }
     ]
