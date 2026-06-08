@@ -11,6 +11,7 @@ export class ModalComponent {
 
   @Input() modalSize: 'sm' | 'md' | 'lg' = 'md';
   @Input() showModal: boolean = false;
+  @Input() showCloseButton: boolean = true;
   @Output() showModalChange = new EventEmitter<boolean>();
 
   closeModal() {

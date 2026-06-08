@@ -136,3 +136,7 @@
 <ng-template #loader>
   <loader [showLoader]="false" />
 </ng-template>
+
+<modal [(showModal)]="showLogin" [modalSize]="'md'" [showCloseButton]="false">
+  <app-login></app-login>
+</modal>
