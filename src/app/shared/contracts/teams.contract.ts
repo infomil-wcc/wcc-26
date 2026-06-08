@@ -3,7 +3,7 @@ export interface teamsApiData {
 }
 
 export interface playersApiData {
-  data: Players[];
+  player: Player[];
 }
 
 export interface Teams {
@@ -32,17 +32,31 @@ export interface Teams {
   forme5: string;
 }
 
-export interface Players {
-  id: number;
-  status: string;
-  owner: string | null;
-  created_on: string | null;
-  name: string;
-  position: string;
-  team: string;
-  player_number: number | null;
-  image_link: string | null;
+export interface Coach {
+  role: string;
+  coach_name: string;
+  last_names: string;
+  nationality: string;
 }
+
+export interface Player {
+  shirt_number: number;
+  position: 'GK' | 'DF' | 'MF' | 'FW' | string;
+  player_name: string;
+  last_names: string;
+  name_on_shirt: string;
+  date_of_birth: string; 
+  club: string;
+  height_cm: number;
+}
+
+export interface TeamResponse {
+  country: string;
+  country_code: string;
+  coach: Coach;
+  players: Player[];
+}
+
 
 export interface GroupApiData {
   data: Group[];

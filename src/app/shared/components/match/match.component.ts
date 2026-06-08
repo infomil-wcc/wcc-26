@@ -1,7 +1,7 @@
 import { Component, EventEmitter, Input, OnInit, Output, inject } from '@angular/core';
 import { Matches } from '../../contracts/matches.contract';
 import { Observable } from 'rxjs';
-import { Players } from '../../contracts/teams.contract';
+import { Player } from '../../contracts/teams.contract';
 import { TeamsService } from '../../services/content/teams.service';
 import { StateService } from '../../services/core/state.service';
 import { Pronostiques } from '../../contracts/pronostiques.contract';
@@ -44,7 +44,7 @@ export class MatchComponent implements OnInit{
   protected today!: Date;
   protected teamAFlag: string = '';
   protected teamBFlag: string = '';
-  protected $players!: Observable<Players[]>;
+  protected $players!: Observable<Player[]>;
   protected donePronostique!: any;
 
 
