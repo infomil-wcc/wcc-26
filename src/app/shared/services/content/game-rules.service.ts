@@ -18,6 +18,6 @@ constructor(private http: HttpClient) { }
   };
 
   getGameRules(): Observable<ApiResponse> {
-     return this.http.get<ApiResponse>(`/api/regles`, this.httpOptions);
+     return this.http.get<ApiResponse>(`/api/game-rules`, this.httpOptions);
   }
 }
