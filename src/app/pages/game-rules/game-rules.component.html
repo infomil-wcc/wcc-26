@@ -11,7 +11,7 @@
         'is-completed': activeStepIndex > idx
       }">
 
-      <div class="st-step-line" *ngIf="idx > 0"></div>
+      <!-- <div class="st-step-line" *ngIf="idx > 0"></div> -->
 
       <div class="st-step-trigger">
         <span class="st-step-indicator">
@@ -21,6 +21,7 @@
 
         <div class="st-step-label-group">
           <p class="st-step-title">{{ step.nom }}</p>
+          <div class="st-step-line"></div>
           <span *ngIf="step.date_debut" class="st-step-date">
             {{ step.date_debut | date:'dd MMM yyyy':'':'fr' }}
           </span>
@@ -176,7 +177,7 @@
       <footer class="st-footer-actions">
         <button (click)="prevStep()" [disabled]="activeStepIndex === 0" class="st-btn st-btn-secondary">Retour</button>
         <button *ngIf="activeStepIndex < sortedSteps.length - 1" (click)="nextStep()"
-          class="st-btn st-btn-primary">Suivant</button>
+          class="st-btn btn">Suivant</button>
         <button *ngIf="activeStepIndex === sortedSteps.length - 1" (click)="resetStepper()"
           class="st-btn st-btn-accent">Recommencer la lecture</button>
       </footer>

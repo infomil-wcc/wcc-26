@@ -146,6 +146,7 @@ export class GameRulesComponent implements OnInit {
       {
         "id": "Conditions",
         "nom": "Conditions générales",
+        "date_debut": "2026-12-10",
         "regles": [
           "La participation au jeu implique l’acceptation complète du présent règlement.",
           "L’organisation se réserve le droit de trancher toute situation non prévue."

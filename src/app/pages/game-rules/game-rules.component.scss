@@ -23,6 +23,11 @@ $emerald-bg: #ecfdf5;
   color: #334155;
   box-sizing: border-box;
 
+  @media only screen and (max-width: 768px) {
+    padding: 0;
+    margin-top: 0;
+  }
+
   * { box-sizing: border-box; }
 
   .st-header {
@@ -35,7 +40,7 @@ $emerald-bg: #ecfdf5;
   /* --- STEPPER HORIZONTAL (FIXE AU DÉFILEMENT) --- */
   .st-horizontal-stepper {
     display: flex;
-    justify-content: space-between;
+    justify-content: space-around;
     align-items: center;
     width: 100%;
     padding: 1.25rem 1rem;
@@ -43,7 +48,7 @@ $emerald-bg: #ecfdf5;
     // Propriétés clés pour le rendre collant (Sticky)
     position: sticky;
     top: 145px; // Se colle tout en haut de l'écran (ou du parent si contraint)
-    z-index: 100; // Passe au-dessus du reste du contenu en défilement
+    z-index: 1; // Passe au-dessus du reste du contenu en défilement
     
     // Design pour l'effet de flottaison
     background: rgba(255, 255, 255, 0.95); // Fond blanc semi-opaque
@@ -61,20 +66,22 @@ $emerald-bg: #ecfdf5;
       align-items: center;
       position: relative;
       flex: 1;
-      justify-content: center;
-      &:first-child { flex: 0 1 auto; justify-content: flex-start; }
-      &:last-child { flex: 1; justify-content: flex-end; .st-step-trigger { flex-grow: 0; } }
+      //justify-content: center;
+      padding-right: 4rem;
+      &:first-child { justify-content: flex-start; }
+      &:last-child { flex: 1; justify-content: flex-end; .st-step-trigger { flex-grow: 0; }; .st-step-date { opacity: 0 } }
     }
 
     .st-step-line {
-      position: absolute;
-      left: calc(-50% + 1.125rem);
-      right: calc(50% + 1.125rem);
-      top: 1.125rem;
+       position: absolute;
+       left: 0;
+      // right: calc(50% + 1.125rem);
+      // top: 1.125rem;
       height: 2px;
       background: #cbd5e1;
-      z-index: 1;
+      z-index: -1;
       transition: background 0.25s ease;
+      width: 100%;
     }
 
     .st-step-trigger { 
@@ -92,12 +99,12 @@ $emerald-bg: #ecfdf5;
     }
 
     .st-step-label-group {
-      .st-step-title { margin: 0; font-size: 0.9rem; font-weight: 600; color: #64748b; white-space: nowrap; }
-      .st-step-date { font-size: 0.75rem; color: #94a3b8; display: block; white-space: nowrap; }
+      .st-step-title { margin: 0 0 .25rem; font-size: 0.9rem; font-weight: 600; color: #64748b; white-space: nowrap; }
+      .st-step-date { font-size: 0.75rem; color: #94a3b8; display: block; white-space: nowrap; margin: .5rem 0 0 }
     }
 
     .is-active {
-      .st-step-indicator { background: #4f46e5; color: white; border-color: #4f46e5; box-shadow: 0 0 0 4px #e0e7ff; }
+      .st-step-indicator { background: #1e3a8a; color: white; border-color: #1e3a8a; box-shadow: 0 0 0 4px #e0e7ff; }
       .st-step-title { color: #1e1b4b; font-weight: 700; }
       .st-step-date { color: $accent-gold; font-weight: 600; }
     }
@@ -111,8 +118,11 @@ $emerald-bg: #ecfdf5;
     @media (max-width: 768px) {
       padding: 1rem 0.5rem;
       margin-bottom: 2rem;
+      top: 128px;
+      border: 1px solid #cbd5e1;
+      border-radius: 1rem;
       .st-step-label-group { display: none; }
-      .st-step-node { justify-content: center !important; }
+      .st-step-node { justify-content: center !important; padding-right: 0}
       .st-step-line { left: calc(-50% + 1.125rem); right: calc(50% + 1.125rem); }
     }
   }
@@ -180,7 +190,7 @@ $emerald-bg: #ecfdf5;
   }
 
   .st-badge-flex { display: flex; flex-wrap: wrap; gap: 0.5rem; }
-  .st-pill { background: #f8fafc; border: 1px solid $border-color; padding: 0.4rem 0.75rem; border-radius: 0.5rem; font-size: 0.85rem; strong { color: #4f46e5; } }
+  .st-pill { background: #f8fafc; border: 1px solid $border-color; padding: 0.4rem 0.75rem; border-radius: 0.5rem; font-size: 0.85rem; strong { color: #1e3a8a; } }
 
   /* --- ACCORDIONS --- */
   .st-accordion { 
@@ -202,11 +212,11 @@ $emerald-bg: #ecfdf5;
     // Visual enhancements when this particular panel is opened/expanded
     &.is-expanded {
       background: #ffffff; // Swaps to pure white when open
-      border-left: 4px solid #4f46e5; // Indigo accent bar on the left side
+      border-left: 4px solid #1e3a8a; // Indigo accent bar on the left side
       
       .st-accordion-trigger {
         background: #ffffff;
-        color: #4f46e5; // Text color switches to matches the indigo accent
+        color: #1e3a8a; // Text color switches to matches the indigo accent
       }
     }
   }
@@ -233,7 +243,7 @@ $emerald-bg: #ecfdf5;
     font-size: 0.75rem; 
     color: #94a3b8; 
     transition: transform 0.2s ease; 
-    &.is-flipped { transform: rotate(180deg); color: #4f46e5; } 
+    &.is-flipped { transform: rotate(180deg); color: #1e3a8a; } 
   }
 
   .st-accordion-content { 
@@ -298,7 +308,7 @@ $emerald-bg: #ecfdf5;
   }
 
   .st-dash { color: #cbd5e1; background: #f1f5f9; padding: 0.1rem 0.4rem; border-radius: 0.25rem; }
-  .st-highlight-cell { color: #4f46e5; font-weight: 700; }
+  .st-highlight-cell { color: #1e3a8a; font-weight: 700; }
 
   .st-total-banner {
     display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem;
@@ -372,9 +382,13 @@ $emerald-bg: #ecfdf5;
     .st-b-val { 
       font-size: 1.35rem; 
       font-weight: 900; 
-      color: #fef08a; // Matches the signature glowing yellow text from the image banner
+      color: #ffd600; // Matches the signature glowing yellow text from the image banner
       margin-top: 0.4rem; 
       text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+
+      @media (max-width: 768px) {
+        padding-right: .5rem;
+      }
     }
   }
 
@@ -401,7 +415,7 @@ $emerald-bg: #ecfdf5;
   /* --- BANNER DE FINALE / CONDITIONS --- */
   .st-gradient-banner {
     background: linear-gradient(135deg, #1e3a8a 0%, #0f172a 100%); color: white; padding: 2rem; border-radius: 0.75rem; width: 100%;
-    h4 { margin: 0 0 0.75rem 0; font-size: 1.2rem; color: #fef08a; font-weight: 700; }
+    h4 { margin: 0 0 0.75rem 0; font-size: 1.2rem; color: #ffd600; font-weight: 700; }
     .st-main-rule { font-size: 1.1rem; font-weight: 600; margin: 0 0 0.5rem 0; }
     .st-sub-rule { font-size: 0.9rem; color: #cbd5e1; margin: 0; }
   }
@@ -417,11 +431,11 @@ $emerald-bg: #ecfdf5;
   }
 
   .st-btn {
-    padding: 0.75rem 1.5rem; font-size: 0.9rem; font-weight: 600; border-radius: 0.5rem; cursor: pointer; transition: all 0.15s ease; border: 1px solid transparent;
+    padding: 0.75rem 1rem; font-size: 0.9rem; font-weight: 600; border-radius: 0.5rem; cursor: pointer; transition: all 0.15s ease; border: 1px solid transparent;
     &:disabled { opacity: 0.35; cursor: not-allowed; &:hover { background: transparent; color: inherit; border-color: inherit; } }
   }
   .st-btn-secondary { background: #ffffff; border-color: $border-color; color: #475569; &:hover { background: $bg-main; } }
-  .st-btn-primary { background: #4f46e5; color: #ffffff; &:hover { background: #4338ca; } }
+  .st-btn-primary { background: #1e3a8a; color: #ffffff; &:hover { background: #4338ca; } }
   .st-btn-accent { background: #d97706; color: #ffffff; &:hover { background: #b45309; } }
 }
 
