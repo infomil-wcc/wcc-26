@@ -2,7 +2,7 @@ import { Component, OnInit, inject } from '@angular/core';
 import { teamsApiData, Teams, Player, TeamResponse } from '../../../shared/contracts/teams.contract';
 import { TeamsService } from '../../../shared/services/content/teams.service';
 import { CorrectscorerService, BestPlayer } from '../../../shared/services/games/correctscorer.service';
-import { StateService } from '../../../shared/services/core/state.service';
+import { StateService, user } from '../../../shared/services/core/state.service';
 import { Observable } from 'rxjs';
 
 @Component({
@@ -36,6 +36,9 @@ export class BestScorerComponent implements OnInit {
   protected userPronostique!: BestPlayer | null;
   protected jeuFermer: boolean = false;
 
+  protected $userState!: Observable<user>;
+  protected showLogin: boolean = false;
+
   ngOnInit(): void {
 
     // this.currentDate = new Date(2026, 5, 11, 23, 0, 0);
@@ -48,8 +51,10 @@ export class BestScorerComponent implements OnInit {
           this.userId = res.id;
           this.userName = res.last_name;
           this.checkPlayed();
+          this.showLogin = false;
         } else {
           this.disabled = true;
+          this.showLogin = true;
         }
       }
     })
@@ -110,4 +115,6 @@ export class BestScorerComponent implements OnInit {
       }
     })
   }
+
+
 }
