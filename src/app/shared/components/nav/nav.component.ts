@@ -78,7 +78,7 @@ export class NavComponent implements OnInit, OnDestroy {
       },
       {
         "label": "Faq",
-        "route": "faq",
+        "route": "game-rules",
         "active": false
       }
     ];

@@ -49,6 +49,7 @@ import { TeamperformanceComponent } from './shared/components/teamperformance/te
 import { GrouplistComponent } from './shared/components/grouplist/grouplist.component';
 import { HyphernatePipe } from './shared/pipe/hyphernate.pipe';
 import { CountryDetailsComponent } from './shared/components/country-details/country-details.component';
+import { GameRulesComponent } from './pages/game-rules/game-rules.component';
 
 @NgModule({ declarations: [
         AppComponent,
@@ -87,7 +88,8 @@ import { CountryDetailsComponent } from './shared/components/country-details/cou
         TeamperformanceComponent,
         GrouplistComponent,
         HyphernatePipe,
-        CountryDetailsComponent
+        CountryDetailsComponent,
+        GameRulesComponent
     ],
     bootstrap: [AppComponent], imports: [BrowserModule,
         ReactiveFormsModule,

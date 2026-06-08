@@ -1,0 +1,381 @@
+// Synchronized Theme Color Tokens
+$bg-main: #f8fafc;
+$border-color: #cbd5e1;  
+$primary: #1e3a8a;
+$primary-hover: #172554;
+$accent-gold: #d97706;   
+
+// Box Palette matching your screenshot image perfectly
+$box-text-amber: #92400e;   // Exact dark amber text
+$box-bg-amber: #fffbeb;     // Soft light yellow background
+$box-border-amber: #fde68a; // Warm yellow border
+
+// Fallback link mapping so the rest of your file structures remain fully functional
+$accent-bg: $box-bg-amber;  // Sets standard accent cards to use your preferred background token
+$emerald-text: #065f46;
+$emerald-bg: #ecfdf5;
+
+#rules-app {
+  max-width: 1200px;
+  margin: 2rem auto;
+  padding: 0 1rem;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  color: #334155;
+  box-sizing: border-box;
+
+  * { box-sizing: border-box; }
+
+  .st-header {
+    text-align: center;
+    margin-bottom: 2.5rem; // Augmenté pour décoller du stepper
+    h1 { color: $primary; font-size: 2rem; font-weight: 800; margin-bottom: 0.75rem; }
+    p { color: #64748b; font-size: 1rem; max-width: 750px; margin: 0 auto; line-height: 1.6; }
+  }
+
+  /* --- STEPPER HORIZONTAL (FIXE AU DÉFILEMENT) --- */
+  .st-horizontal-stepper {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    padding: 1.25rem 1rem;
+    
+    // Propriétés clés pour le rendre collant (Sticky)
+    position: sticky;
+    top: 145px; // Se colle tout en haut de l'écran (ou du parent si contraint)
+    z-index: 100; // Passe au-dessus du reste du contenu en défilement
+    
+    // Design pour l'effet de flottaison
+    background: rgba(255, 255, 255, 0.95); // Fond blanc semi-opaque
+    backdrop-filter: blur(8px); // Effet de flou moderne en arrière-plan
+    border-bottom: 1px solid $border-color;
+    margin-bottom: 3rem;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); // Ombre pour détacher du contenu
+    
+    overflow-x: auto;
+    scrollbar-width: none;
+    &::-webkit-scrollbar { display: none; }
+
+    .st-step-node {
+      display: flex;
+      align-items: center;
+      position: relative;
+      flex: 1;
+      justify-content: center;
+      &:first-child { flex: 0 1 auto; justify-content: flex-start; }
+      &:last-child { flex: 1; justify-content: flex-end; .st-step-trigger { flex-grow: 0; } }
+    }
+
+    .st-step-line {
+      position: absolute;
+      left: calc(-50% + 1.125rem);
+      right: calc(50% + 1.125rem);
+      top: 1.125rem;
+      height: 2px;
+      background: #cbd5e1;
+      z-index: 1;
+      transition: background 0.25s ease;
+    }
+
+    .st-step-trigger { 
+      display: flex; 
+      align-items: center; 
+      gap: 0.75rem; 
+      cursor: pointer; 
+      z-index: 2; 
+      background: transparent; 
+    }
+
+    .st-step-indicator {
+      width: 2.25rem; height: 2.25rem; border-radius: 50%; background: #ffffff; color: #64748b; border: 2px solid #cbd5e1;
+      display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.9rem; flex-shrink: 0; transition: all 0.2s ease;
+    }
+
+    .st-step-label-group {
+      .st-step-title { margin: 0; font-size: 0.9rem; font-weight: 600; color: #64748b; white-space: nowrap; }
+      .st-step-date { font-size: 0.75rem; color: #94a3b8; display: block; white-space: nowrap; }
+    }
+
+    .is-active {
+      .st-step-indicator { background: #4f46e5; color: white; border-color: #4f46e5; box-shadow: 0 0 0 4px #e0e7ff; }
+      .st-step-title { color: #1e1b4b; font-weight: 700; }
+      .st-step-date { color: $accent-gold; font-weight: 600; }
+    }
+
+    .is-completed {
+      .st-step-line { background: #10b981; }
+      .st-step-indicator { background: #10b981; color: white; border-color: #10b981; }
+      .st-step-title { color: #334155; }
+    }
+
+    @media (max-width: 768px) {
+      padding: 1rem 0.5rem;
+      margin-bottom: 2rem;
+      .st-step-label-group { display: none; }
+      .st-step-node { justify-content: center !important; }
+      .st-step-line { left: calc(-50% + 1.125rem); right: calc(50% + 1.125rem); }
+    }
+  }
+
+  /* --- CONTENEUR DE CONTENU --- */
+  .st-layout-container {
+    background: #ffffff;
+    border: 1px solid $border-color;
+    border-radius: 1rem;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    overflow: hidden;
+    width: 100%;
+  }
+
+  .st-content-panel {
+    width: 100%;
+    padding: 3rem; // Plus de confort autour du contenu principal
+    display: flex;
+    flex-direction: column;
+    min-height: 400px;
+
+    @media (max-width: 576px) { padding: 1.5rem; } // Adapté sur mobile
+  }
+
+  .st-view-wrapper { width: 100%; }
+
+  // AJUSTEMENT: Plus d'espace entre les composants enfants d'une même étape
+  .st-animated-view {
+    animation: stFadeIn 0.25s ease-out forwards;
+    display: flex;
+    flex-direction: column;
+    gap: 2.5rem; // Passé de 1.5rem à 2.5rem pour aérer les sections empilées
+  }
+
+  .st-view-header {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .st-badge-row { display: flex; gap: 0.5rem; }
+  .st-badge {
+    padding: 0.25rem 0.65rem; font-size: 0.75rem; font-weight: 700; border-radius: 0.375rem; text-transform: uppercase;
+    &.primary { background: #e0e7ff; color: #3730a3; }
+    &.warning { background: $accent-bg; color: #92400e; border: 1px solid #fde68a; }
+  }
+
+  h2 { font-size: 1.65rem; font-weight: 800; color: #0f172a; margin: 0; }
+  .st-step-description { font-size: 1.05rem; line-height: 1.6; color: #475569; margin: 0; }
+
+  /* --- BLOCS & CARDS --- */
+  .st-section-card {
+    background: $accent-bg; border: 1px solid #fde68a; padding: 1.5rem; border-radius: 0.75rem;
+    h3 { margin-top: 0; font-size: 1.1rem; color: #78350f; margin-bottom: 1rem; }
+  }
+
+  .st-clean-list {
+    list-style: none; padding: 0; margin: 0 0 1.5rem 0;
+    li { padding: 0.35rem 0; font-weight: 500; color: #451a03; font-size: 0.95rem; }
+  }
+
+  .st-sub-box {
+    background: #ffffff; padding: 1.25rem; border-radius: 0.5rem; border: 1px solid #fef3c7; margin-top: 0.5rem;
+    .st-italic-text { font-size: 0.85rem; font-style: italic; color: #6b7280; margin: 0 0 0.75rem 0; }
+  }
+
+  .st-badge-flex { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+  .st-pill { background: #f8fafc; border: 1px solid $border-color; padding: 0.4rem 0.75rem; border-radius: 0.5rem; font-size: 0.85rem; strong { color: #4f46e5; } }
+
+  /* --- ACCORDIONS --- */
+  .st-accordion { 
+    border: 1px solid $border-color; 
+    border-radius: 0.75rem; 
+    overflow: hidden; 
+    width: 100%; 
+    margin-bottom: 1rem; 
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+  }
+
+  .st-accordion-node { 
+    border-bottom: 1px solid $border-color; 
+    background: #f8fafc; // Subtle background color when collapsed
+    transition: all 0.2s ease;
+
+    &:last-child { border-bottom: none; }
+
+    // Visual enhancements when this particular panel is opened/expanded
+    &.is-expanded {
+      background: #ffffff; // Swaps to pure white when open
+      border-left: 4px solid #4f46e5; // Indigo accent bar on the left side
+      
+      .st-accordion-trigger {
+        background: #ffffff;
+        color: #4f46e5; // Text color switches to matches the indigo accent
+      }
+    }
+  }
+
+  .st-accordion-trigger {
+    width: 100%; 
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center; 
+    padding: 1.2rem 1rem;
+    background: transparent; // Lets the node background color shine through
+    border: none; 
+    font-size: 1rem; 
+    font-weight: 600; 
+    text-align: left; 
+    color: #1e293b; 
+    cursor: pointer; 
+    transition: all 0.15s ease;
+
+    &:hover { background: rgba(241, 245, 249, 0.5); }
+  }
+
+  .st-arrow-icon { 
+    font-size: 0.75rem; 
+    color: #94a3b8; 
+    transition: transform 0.2s ease; 
+    &.is-flipped { transform: rotate(180deg); color: #4f46e5; } 
+  }
+
+  .st-accordion-content { 
+    padding: 1.2rem 1rem; 
+    background: #ffffff; // Clean white internal canvas for the rules text
+    border-top: 1px dashed $border-color; 
+    font-size: 0.95rem; 
+    line-height: 1.6; 
+    p { margin: 0 0 0.75rem 0; &:last-child { margin-bottom: 0; } } 
+  }
+
+  .st-sub-categories { margin-top: 1rem; }
+  .st-pill-container { display: flex; flex-wrap: wrap; gap: 0.35rem; margin-top: 0.5rem; }
+  .st-pill-indigo { background: #e0e7ff; color: #4338ca; padding: 0.35rem 0.6rem; border-radius: 0.375rem; font-weight: 600; font-size: 0.8rem; }
+  /* --- TABLEAUX DE POINTS --- */
+  .st-table-section { 
+    width: 100%; 
+    margin-top: 1rem; // Un peu de recul
+    h4 { font-size: 1.1rem; font-weight: 700; margin: 0 0 1rem 0; } 
+  }
+.st-responsive-table {
+    overflow-x: auto; 
+    border: 1px solid $border-color; 
+    border-radius: 0.75rem; 
+    width: 100%;
+    
+    table {
+      width: 100%; border-collapse: collapse; font-size: 0.85rem; min-width: 600px;
+      
+      th { background: #0f172a; color: white; padding: 0.85rem 1rem; font-weight: 600; text-align: center; }
+      th:first-child { text-align: left; position: sticky; left: 0; background: #0f172a; z-index: 2; }
+      td { padding: 0.85rem 1rem; border-bottom: 1px solid $border-color; text-align: center; color: #475569; }
+      
+      .st-sticky-col { 
+        text-align: left; font-weight: 600; background: #ffffff; color: #0f172a; 
+        position: sticky; left: 0; box-shadow: 2px 0 5px rgba(0,0,0,0.04); border-right: 1px solid $border-color; 
+      }
+
+      // MODIFIED: Matches the exact style and colors of your screenshot box
+      tr.st-meta-row {
+        background-color: $box-bg-amber !important;
+        
+        td {
+          color: $box-text-amber !important;
+          font-weight: 700;
+          border-bottom: 1px solid $box-border-amber; // Seamless horizontal line look
+          
+          span.st-highlight-cell {
+            color: $box-text-amber !important; // Forces numbers to stay in the theme color
+          }
+        }
+
+        // Keeps the sticky row header column synchronized with the background color
+        .st-sticky-col {
+          background-color: $box-bg-amber !important;
+          color: $box-text-amber !important;
+        }
+      }
+    }
+    
+    tr:hover td:not(.st-meta-row td) { background-color: #f8fafc; }
+  }
+
+  .st-dash { color: #cbd5e1; background: #f1f5f9; padding: 0.1rem 0.4rem; border-radius: 0.25rem; }
+  .st-highlight-cell { color: #4f46e5; font-weight: 700; }
+
+  .st-total-banner {
+    display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem;
+    background: $emerald-bg; border: 1px solid #a7f3d0; padding: 1rem; border-radius: 0.75rem; margin-top: 1.5rem; // Plus d'espace sous le tableau
+    span { color: $emerald-text; font-weight: 600; font-size: 0.95rem; }
+    strong { color: #047857; font-size: 1.25rem; font-weight: 900; }
+  }
+
+  /* --- EXEMPLES DE CALCUL --- */
+  .st-examples-grid { 
+    display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; width: 100%; 
+    margin-top: 1rem; // Recul par rapport aux blocs précédents
+    @media (max-width: 640px) { grid-template-columns: 1fr; gap: 1rem; } 
+  }
+  .st-example-card {
+    background: $bg-main; border-left: 4px solid #3b82f6; padding: 1.2rem; border-radius: 0 0.75rem 0.75rem 0; border-top: 1px solid $border-color; border-right: 1px solid $border-color; border-bottom: 1px solid $border-color;
+    h5 { margin: 0 0 0.25rem 0; font-size: 1rem; color: #1e293b; font-weight: 700; }
+    .st-scenario-sub { font-size: 0.8rem; color: #64748b; font-style: italic; margin: 0 0 0.75rem 0; }
+  }
+
+  .st-nested-ul {
+    list-style: none; padding: 0.5rem 0.75rem; margin: 0; background: #ffffff; border: 1px solid $border-color; border-radius: 0.5rem;
+    li { display: flex; justify-content: space-between; font-size: 0.85rem; padding: 0.35rem 0; color: #475569; border-bottom: 1px dashed #f1f5f9; &:last-child { border-bottom: none; } }
+  }
+  .st-example-footer { font-size: 0.75rem; font-weight: 700; color: #059669; text-align: right; text-transform: uppercase; margin-top: 0.75rem; span { font-size: 1rem; font-weight: 800; } }
+
+  /* --- BRACKETS --- */
+  .st-alert-pill { background: #eff6ff; color: #1e40af; border: 1px solid #bfdbfe; padding: 0.85rem 1rem; border-radius: 0.5rem; font-size: 0.95rem; font-weight: 600; }
+  .st-bracket-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 0.75rem; width: 100%; }
+  .st-bracket-card {
+    background: #1e293b; color: white; padding: 1rem 0.5rem; border-radius: 0.5rem; text-align: center; display: flex; flex-direction: column;
+    .st-b-label { font-size: 0.75rem; font-weight: 700; color: #94a3b8; text-transform: uppercase; }
+    .st-b-val { font-size: 1.25rem; font-weight: 900; color: #fbbf24; margin-top: 0.35rem; }
+  }
+
+  .st-rule-callout {
+    background: $accent-bg; border: 1px solid #fde68a; padding: 1.25rem; border-radius: 0.75rem; font-size: 0.9rem; color: #78350f; width: 100%;
+    h4 { font-size: 1.05rem; margin: 0 0 0.75rem 0; font-weight: 700; }
+    p { margin: 0 0 0.35rem 0; }
+  }
+
+  .st-chain-flow {
+    display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; margin-top: 1rem; background: rgba(255,255,255,0.7); padding: 0.6rem; border-radius: 0.5rem; border: 1px solid #fef3c7;
+    .st-chain-title { font-size: 0.8rem; font-weight: 700; color: #92400e; }
+    .st-chain-links { display: flex; align-items: center; gap: 0.25rem; flex-wrap: wrap; }
+    .st-chain-badge { background: #d97706; color: white; font-size: 0.75rem; font-weight: 700; padding: 0.2rem 0.5rem; border-radius: 0.25rem; }
+    .st-chain-arrow { font-size: 0.75rem; color: #f59e0b; }
+  }
+
+  /* --- BANNER DE FINALE / CONDITIONS --- */
+  .st-gradient-banner {
+    background: linear-gradient(135deg, #1e3a8a 0%, #0f172a 100%); color: white; padding: 2rem; border-radius: 0.75rem; width: 100%;
+    h4 { margin: 0 0 0.75rem 0; font-size: 1.2rem; color: #fef08a; font-weight: 700; }
+    .st-main-rule { font-size: 1.1rem; font-weight: 600; margin: 0 0 0.5rem 0; }
+    .st-sub-rule { font-size: 0.9rem; color: #cbd5e1; margin: 0; }
+  }
+
+  .st-legal-container { background: $bg-main; padding: 1.25rem; border-radius: 0.75rem; border: 1px dashed #cbd5e1; display: flex; flex-direction: column; gap: 0.75rem; width: 100%; }
+  .st-legal-row { display: flex; gap: 0.75rem; align-items: start; font-size: 0.9rem; line-height: 1.5; color: #475569; .st-icon { font-size: 1.1rem; line-height: 1; } }
+
+  /* --- ACTIONS DU FOOTER --- */
+  .st-footer-actions {
+    margin-top: 3rem; // Plus d'espace sous le dernier élément affiché
+    padding-top: 1.5rem; border-top: 1px solid #f1f5f9;
+    display: flex; justify-content: space-between; gap: 1rem; width: 100%;
+  }
+
+  .st-btn {
+    padding: 0.75rem 1.5rem; font-size: 0.9rem; font-weight: 600; border-radius: 0.5rem; cursor: pointer; transition: all 0.15s ease; border: 1px solid transparent;
+    &:disabled { opacity: 0.35; cursor: not-allowed; &:hover { background: transparent; color: inherit; border-color: inherit; } }
+  }
+  .st-btn-secondary { background: #ffffff; border-color: $border-color; color: #475569; &:hover { background: $bg-main; } }
+  .st-btn-primary { background: #4f46e5; color: #ffffff; &:hover { background: #4338ca; } }
+  .st-btn-accent { background: #d97706; color: #ffffff; &:hover { background: #b45309; } }
+}
+
+@keyframes stFadeIn {
+  0% { opacity: 0; transform: translateY(4px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
