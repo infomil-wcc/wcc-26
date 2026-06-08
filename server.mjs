@@ -10,8 +10,15 @@ const __dirname = path.dirname(__filename);
 const app = express();
 const port = process.env.PORT || 3000;
 
-// Enable CORS for all routes
-app.use(cors());
+// --- UPDATED CORS CONFIGURATION ---
+// origin: true dynamically reflects the incoming request's Origin header.
+// This means it will automatically accept your production URL, localhost, 
+// AND any temporary Vercel preview URLs (like wcc-26-git-dev...).
+// credentials: true allows cookies/auth headers if your Angular app uses them.
+app.use(cors({
+  origin: true, 
+  credentials: true 
+}));
 
 // Middleware to parse JSON bodies
 app.use(express.json());
@@ -30,23 +37,18 @@ async function loadApiRoutes() {
       const modulePath = path.join(apiDirectory, file);
       const { default: handler } = await import(pathToFileURL(modulePath).href);
 
+      // Register the route. 
+      // Note: We removed the manual res.setHeader() and OPTIONS check because 
+      // the cors() middleware configured above handles all of this automatically.
       app.all(`/api${apiPath}`, async (req, res) => {
-        // Set CORS headers for preflight requests and actual requests
-        res.setHeader('Access-Control-Allow-Origin', '*');
-        res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-        res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-
-        if (req.method === 'OPTIONS') {
-          return res.status(200).end();
+        try {
+          await handler(req, res);
+        } catch (error) {
+          console.error(`Error in /api${apiPath}:`, error);
+          res.status(500).json({ error: 'Internal Server Error' });
         }
-        
-        // The API handlers expect request and response objects.
-        // We need to adapt Express's req/res to what the handlers expect.
-        // The existing handlers use `request.query` and `request.method`, `request.body`
-        // which are directly available on Express's `req` object.
-        // They also use `response.status().json()` which is also available on Express's `res`.
-        await handler(req, res);
       });
+      
       console.log(`API route registered: /api${apiPath}`);
     }
   }
