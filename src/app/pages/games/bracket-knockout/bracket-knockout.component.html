@@ -154,14 +154,31 @@
       <div class="match-list">
         <div class="match-node final-standalone-node">
           <div class="match-card final-accent-card">
-            <div class="team-slot large-slot" [class.disabled]="!wS['m1']" [class.selected]="champion?.name === wS['m1']?.name" (click)="wS['m1'] && selectWinner('Final', 'f1', wS['m1']!)">
+            <div class="team-slot large-slot" [class.disabled]="!wS['m1']" [class.selected]="champion?.name === wS['m1']?.name" (click)="wS['m1'] && (champion = wS['m1'])">
               <img [src]="wS['m1']?.flagUrl || 'assets/flags/unknown.png'" class="slot-flag big-flag" alt="">
               <span class="slot-name-text text-lg">{{ wS['m1']?.name || 'Finaliste 1' }}</span>
             </div>
-            <div class="versus-divider-badge">VS</div>
-            <div class="team-slot large-slot" [class.disabled]="!wS['m2']" [class.selected]="champion?.name === wS['m2']?.name" (click)="wS['m2'] && selectWinner('Final', 'f1', wS['m2']!)">
+            
+            <div class="versus-divider-badge" (click)="openWinnerModal('Final', 'f1', wS['m1'], wS['m2'])">VS</div>
+            
+            <div class="team-slot large-slot" [class.disabled]="!wS['m2']" [class.selected]="champion?.name === wS['m2']?.name" (click)="wS['m2'] && (champion = wS['m2'])">
               <img [src]="wS['m2']?.flagUrl || 'assets/flags/unknown.png'" class="slot-flag big-flag" alt="">
               <span class="slot-name-text text-lg">{{ wS['m2']?.name || 'Finaliste 2' }}</span>
+            </div>
+          </div>
+
+          <!-- Generic Winner Selection Modal -->
+          <div class="winner-modal-overlay" *ngIf="showWinnerModal && modalContext">
+            <div class="modal-content">
+              <h3>Choisissez le vainqueur</h3>
+              <div class="modal-options">
+                <button (click)="selectWinner(modalContext.stage, modalContext.matchKey, modalContext.team1); showWinnerModal = false">
+                  <img [src]="modalContext.team1.flagUrl" class="slot-flag"> {{ modalContext.team1.name }}
+                </button>
+                <button (click)="selectWinner(modalContext.stage, modalContext.matchKey, modalContext.team2); showWinnerModal = false">
+                  <img [src]="modalContext.team2.flagUrl" class="slot-flag"> {{ modalContext.team2.name }}
+                </button>
+              </div>
             </div>
           </div>
 

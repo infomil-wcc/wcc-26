@@ -56,6 +56,21 @@ $line-connector-color: #94a3b8; // Tree connector layout lines color
   justify-content: space-around;
   // height: 1500px; // Removed fixed height
   min-height: 800px; // Set a sensible minimum height
+  position: relative;
+}
+
+.stage-final .match-list {
+  // Horizontal line connecting to the vertical line, only for final stage
+  &::after {
+    content: '';
+    position: absolute;
+    left: -40px;
+    top: 50%;
+    width: 40px;
+    height: 2px;
+    background-color: $line-connector-color;
+    z-index: 0;
+  }
 }
 
 /* --- THE AUTOMATIC CONNECTOR TRICK (ZERO JITTER) --- */
@@ -106,16 +121,20 @@ $line-connector-color: #94a3b8; // Tree connector layout lines color
 
 // Hide trailing bracket on the last round step before the Final
 .stage-r2 .matchup-pair-group::after {
-  top: 50%;
-  bottom: auto;
-  height: 2px;
+  content: '';
+  position: absolute;
+  right: 0;
+  top: 25%;
+  bottom: 25%;
   width: 30px;
-  background-color: $line-connector-color;
-  border: none;
+  border: 2px solid $line-connector-color;
+  border-left: none;
 }
-.stage-final .matchup-pair-group::after,
-.stage-final .match-node::after {
-  display: none !important;
+.stage-final {
+  .matchup-pair-group::after,
+  .match-node::before {
+    display: none !important;
+  }
 }
 
 /* --- STANDARD VISUAL STYLING PRESERVATION --- */
@@ -157,4 +176,53 @@ $line-connector-color: #94a3b8; // Tree connector layout lines color
 .node-index { color: rgba(255, 255, 255, 0.6); font-size: 0.7rem; font-weight: 700; margin-bottom: 4px; text-transform: uppercase; }
 .versus-divider-badge { text-align: center; margin: -11px auto; background-color: #0f172a; color: #ffffff; font-size: 0.7rem; font-weight: 900; padding: 3px 12px; border-radius: 20px; z-index: 20; }
 .trophy-announcement-container { margin-top: 20px; text-align: center; .gold-title { color: #fde047; font-size: 0.8rem; font-weight: 900; margin-bottom: 8px; } .winner-gold-badge { display: inline-flex; align-items: center; gap: 10px; background: linear-gradient(135deg, #fef08a 0%, #facc15 100%); padding: 10px 20px; border-radius: 30px; color: #713f12; font-size: 1rem; font-weight: 800; img { width: 32px; height: 20px; border-radius: 3px; } } }
-.btn-fifa-submit { margin-top: 20px; width: 100%; background-color: $fifa-orange; color: #ffffff; border: none; padding: 16px; font-weight: 900; border-radius: 12px; cursor: pointer; text-transform: uppercase; box-shadow: 0 6px 20px rgba(249, 115, 22, 0.4); &:disabled { background-color: #334155; color: #64748b; cursor: not-allowed; box-shadow: none; } }
+.winner-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(15, 23, 42, 0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+}
+
+.modal-content {
+  background: #0f172a;
+  padding: 40px;
+  border-radius: 20px;
+  text-align: center;
+  color: white;
+  width: 90%;
+  max-width: 400px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  
+  h3 { font-size: 1.25rem; font-weight: 800; margin-bottom: 20px; }
+  p { color: #94a3b8; font-size: 0.9rem; margin-bottom: 30px; }
+}
+
+.modal-options {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  
+  button {
+    padding: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    background: #1e293b;
+    color: white;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 1rem;
+    font-weight: 700;
+    transition: all 0.2s;
+    
+    &:hover { background: #334155; border-color: $fifa-orange; }
+    .slot-flag { width: 40px; height: 26px; border-radius: 4px; }
+  }
+}

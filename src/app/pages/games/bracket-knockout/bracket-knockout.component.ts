@@ -57,6 +57,10 @@ export class BracketKnockoutComponent implements OnInit {
   protected wR4: { [key: string]: Country | null } = {};
   protected wS: { [key: string]: Country | null } = {};
   protected champion: Country | null = null;
+  
+  // Generic Modal state
+  protected showWinnerModal: boolean = false;
+  protected modalContext: { stage: string, matchKey: string, team1: Country, team2: Country } | null = null;
 
   // Single-sided fully global match loops maps parameters
   protected matchArray16 = Array.from({ length: 16 }, (_, i) => i + 1); // 1 to 16
@@ -126,6 +130,9 @@ export class BracketKnockoutComponent implements OnInit {
         if (this.champion && this.champion.name !== selection.name) {
           this.champion = null;
         }
+        if (this.wS['m1'] && this.wS['m2']) {
+          this.openWinnerModal('Final', 'f1', this.wS['m1'], this.wS['m2']);
+        }
         break;
       case 'Final':
         this.champion = selection;
@@ -161,6 +168,12 @@ export class BracketKnockoutComponent implements OnInit {
 
   isBracketComplete(): boolean {
     return !!this.champion;
+  }
+
+  openWinnerModal(stage: string, matchKey: string, team1: Country | null | undefined, team2: Country | null | undefined): void {
+    if (!team1 || !team2 || team1.name === 'À déterminer' || team2.name === 'À déterminer') return;
+    this.modalContext = { stage, matchKey, team1, team2 };
+    this.showWinnerModal = true;
   }
 
   validateBracket(): void {
