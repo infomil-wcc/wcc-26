@@ -6,18 +6,19 @@ export default async function handler(request, response) {
   }
 
   try {
-    const gameData = await readJsonFile('game-rules-data.json');
-    const initialData = gameData.elements; // Assuming 'elements' is the array to filter
+    // 1. Keep the original file name unless intentionally changed
+    const gameData = await readJsonFile('game-rules-data.json'); 
+    
+    const { select, ...filters } = request.query;
+    const filterKeys = Object.keys(filters);
 
-    const { status, data } = applyFiltersAndSelect(initialData, request.query, 'nom');
-
-    if (status === 404 && data.error === 'No elements match the provided filters.') {
-      // Special handling for game-rules if no filters and no select, return full gameData
-      const { select, ...filters } = request.query;
-      if (Object.keys(filters).length === 0 && !select) {
-        return response.status(200).json(gameData);
-      }
+    // 2. Fix the Fallback: Check early if we just need to return the whole file
+    if (filterKeys.length === 0 && !select) {
+      return response.status(200).json(gameData);
     }
+
+    // 3. Pass 'nom' as the default mapping key to match French data structures
+    const { status, data } = applyFiltersAndSelect(gameData.elements, request.query, 'nom');
     
     return response.status(status).json(data);
 
