@@ -65,4 +65,25 @@ export class GameRulesComponent implements OnInit {
   formatKey(key: string): string {
     return key.replace(/_/g, ' ').replace('eme', 'ème');
   }
+
+  // Custom comparison function for KeyValue pipe to sort bracket phases
+  public bracketOrder = (a: KeyValue<string, number>, b: KeyValue<string, number>): number => {
+   const order = [
+    '16eme_de_finale',
+    '8eme_de_finale',
+    'quart_de_finale',
+    'demi_finale',
+    'finale'
+  ];
+
+  const indexA = order.indexOf(a.key);
+  const indexB = order.indexOf(b.key);
+
+  // If a key isn't found in the predefined order array
+  if (indexA === -1 && indexB === -1) return 0; 
+  if (indexA === -1) return 1; 
+  if (indexB === -1) return -1; 
+
+  return indexA - indexB;
+  };
 }

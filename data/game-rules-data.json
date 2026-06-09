@@ -78,7 +78,7 @@
       "conditions_egalite": {
         "etape_1": "Le participant ayant le plus grand nombre de prédictions correctes est déclaré gagnant.",
         "etape_2": "En cas d’égalité, on compare la précision des équipes gagnantes pronostiquées, en donnant la priorité aux phases les plus avancées :",
-        "ordre_priorite_phases": ["Finale", "Demi-finales", "Quarts", "Huitièmes"]
+        "ordre_priorite_phases": ["Finale", "Demi-finale", "Quart de finale", "8e de finale", "16e de finale"]
       }
     },
     {
