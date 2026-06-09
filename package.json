@@ -14,9 +14,6 @@
     "start:api": "node server.mjs",
     "dev": "concurrently \"npm run start\" \"npm run start:api\""
   },
-  "engines": {
-  "node": ">=18.0.0"
-  },
   "private": true,
   "dependencies": {
     "@angular/animations": "^18.2.14",
