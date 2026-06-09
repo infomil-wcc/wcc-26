@@ -16,6 +16,7 @@ $line-connector-color: #94a3b8; // Tree connector layout lines color
   display: flex;
   align-items: flex-start;
   padding: 40px;
+  position: relative;
 }
 
 .fifa-bracket-canvas {
@@ -137,7 +138,34 @@ $line-connector-color: #94a3b8; // Tree connector layout lines color
   }
 }
 
-/* --- STANDARD VISUAL STYLING PRESERVATION --- */
+.randomize-container {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  z-index: 50;
+}
+
+.btn-dice-randomize {
+  background: #0f172a;
+  border: 2px solid $fifa-orange;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+
+  &:hover {
+    transform: scale(1.1) rotate(15deg);
+    background: $fifa-orange;
+  }
+}
+
+
 
 .match-card {
   background-color: $card-white;

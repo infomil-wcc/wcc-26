@@ -176,6 +176,45 @@ export class BracketKnockoutComponent implements OnInit {
     this.showWinnerModal = true;
   }
 
+  randomizeBracket(): void {
+    this.resetSelections();
+
+    // 1. Randomize R32
+    for (let i = 1; i <= 16; i++) {
+      const t1 = this.r32Teams[`m${i}_1`];
+      const t2 = this.r32Teams[`m${i}_2`];
+      if (t1 && t2 && t1.name !== 'À déterminer' && t2.name !== 'À déterminer') {
+        this.wR32[`m${i}`] = Math.random() > 0.5 ? t1 : t2;
+      }
+    }
+
+    // 2. Randomize R16
+    for (let i = 1; i <= 8; i++) {
+      const t1 = this.wR32[`m${i * 2 - 1}`];
+      const t2 = this.wR32[`m${i * 2}`];
+      if (t1 && t2) this.wR16[`m${i}`] = Math.random() > 0.5 ? t1 : t2;
+    }
+
+    // 3. Randomize R4
+    for (let i = 1; i <= 4; i++) {
+      const t1 = this.wR16[`m${i * 2 - 1}`];
+      const t2 = this.wR16[`m${i * 2}`];
+      if (t1 && t2) this.wR4[`m${i}`] = Math.random() > 0.5 ? t1 : t2;
+    }
+
+    // 4. Randomize Semis
+    for (let i = 1; i <= 2; i++) {
+      const t1 = this.wR4[`m${i * 2 - 1}`];
+      const t2 = this.wR4[`m${i * 2}`];
+      if (t1 && t2) this.wS[`m${i}`] = Math.random() > 0.5 ? t1 : t2;
+    }
+
+    // 5. Randomize Champion
+    if (this.wS['m1'] && this.wS['m2']) {
+        this.champion = Math.random() > 0.5 ? this.wS['m1'] : this.wS['m2'];
+    }
+  }
+
   validateBracket(): void {
     if (!this.isBracketComplete()) return;
 
