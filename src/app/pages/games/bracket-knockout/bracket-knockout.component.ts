@@ -1,9 +1,8 @@
 import { Component, OnInit, inject, Input, ViewChild, ElementRef } from '@angular/core';
-import { map } from 'rxjs/operators';
-import { Observable } from 'rxjs'; // Added import for Observable
+import { Observable } from 'rxjs';
 import { CookieService } from 'ngx-cookie-service';
-import { StateService } from '../../../shared/services/core/state.service'; // Assumed path
-import { BracketService } from '../../../shared/services/games/bracket.service'; // Assumed path
+import { StateService } from '../../../shared/services/core/state.service'; 
+import { BracketService } from '../../../shared/services/games/bracket.service';
 
 export interface Country {
   name: string;
@@ -12,31 +11,17 @@ export interface Country {
   coach: string;
   worldCupAppearances: number;
   worldCupGoals: number;
-
-  bestResult: {
-    en: string;
-  };
-
+  bestResult: { en: string };
   internationalTitles: string[];
-
   qualification2026: {
     topScorer: { en: string };
     topAssists: { en: string };
-    mostUsed:  string;
+    mostUsed: string;
     chancesCreated: string;
     note: { en: string };
   };
-
-  funFacts: {
-    text: { en: string };
-    emoji: string;
-  }[];
-
-  timeline: {
-    year: number;
-    text: { en: string };
-  }[];
-  // Assuming flagUrl is also part of the Country interface based on errors
+  funFacts: { text: { en: string }; emoji: string; }[];
+  timeline: { year: number; text: { en: string }; }[];
   flagUrl: string; 
   flagId: string;
 }
@@ -50,67 +35,38 @@ export class BracketKnockoutComponent implements OnInit {
   @ViewChild('bracketWrapper') bracketWrapper!: ElementRef;
 
   private stateService = inject(StateService);
-  private bracketService = inject(BracketService); // Injected BracketService
-  private cookieService = inject(CookieService); // Injected CookieService
+  private bracketService = inject(BracketService);
+  private cookieService = inject(CookieService);
 
-  @Input() isOpen: boolean = true; // Declared isOpen property
-  protected currentUser!: string;
-  protected resultMode: boolean = false;
-  protected activeSide: 'left' | 'right' | 'all' = 'all';
-
-  protected $bracket!: Observable<any>; // Declared $bracket property
-
-  /**
-   * Switches the active side and scrolls the container to the appropriate position
-   */
-  protected switchSide(side: 'left' | 'right' | 'all'): void {
-    this.activeSide = side;
-    
-    // Small timeout to allow the DOM to update (especially if *ngIf hides/shows elements)
-    setTimeout(() => {
-      const container = this.bracketWrapper.nativeElement;
-      if (!container) return;
-
-      switch (side) {
-        case 'left':
-          container.scrollTo({ left: 0, behavior: 'smooth' });
-          break;
-        case 'right':
-          container.scrollTo({ left: container.scrollWidth, behavior: 'smooth' });
-          break;
-        case 'all':
-          const centerPosition = (container.scrollWidth - container.clientWidth) / 2;
-          container.scrollTo({ left: centerPosition, behavior: 'smooth' });
-          break;
-      }
-    }, 50);
+  @Input() isOpen: boolean = true;
+  
+  // Dynamic handler setter mapping input array of 32 elements down into sequential pairs
+  @Input() set setupAdvancedTeams(teams: any[] | null) {
+    if (teams && teams.length === 32) {
+      this.populateRoundOf32Pairs(teams);
+    }
   }
 
-  // --- Initial Round of 32 Team Pairings ---
-// Define a clear type with an index signature [key: string]
-protected r32Teams: { [key: string]: Country } = {};
+  protected currentUser!: string;
+  protected resultMode: boolean = false;
+  protected $bracket!: Observable<any>;
 
-  // --- Intermediate Progression State Winners ---
-  // Step 1: Round of 32 Winners (16 teams total)
+  protected r32Teams: { [key: string]: Country } = {};
   protected wR32: { [key: string]: Country | null } = {};
-
-  // Step 2: Round of 16 Winners (8 teams total)
   protected wR16: { [key: string]: Country | null } = {};
-
-  // Step 3: Quarterfinal Winners (4 teams total)
   protected wR4: { [key: string]: Country | null } = {};
-
-  // Step 4: Semifinal Winners (2 teams total)
   protected wS: { [key: string]: Country | null } = {};
-
-  // Final Champion
   protected champion: Country | null = null;
 
+  // Single-sided fully global match loops maps parameters
+  protected matchArray16 = Array.from({ length: 16 }, (_, i) => i + 1); // 1 to 16
+  protected matchArray8  = Array.from({ length: 8 },  (_, i) => i + 1); // 1 to 8
+  protected matchArray4  = Array.from({ length: 4 },  (_, i) => i + 1); // 1 to 4
+  protected matchArray2  = Array.from({ length: 2 },  (_, i) => i + 1); // 1 to 2
+
   ngOnInit(): void {
-    // Initialize blank choices
     this.initializePlaceholders();
     this.resetSelections();
-
     this.currentUser = this.cookieService.get('user_id') || 'Anonyme';
     this.$bracket = this.bracketService.getUserBracket(this.currentUser);
   }
@@ -121,22 +77,10 @@ protected r32Teams: { [key: string]: Country } = {};
         name: 'À déterminer', 
         flagId: 'tbc', 
         flagUrl: 'assets/flags/unknown.png',
-        iso: '', 
-        group: '', 
-        coach: '', 
-        worldCupAppearances: 0, 
-        worldCupGoals: 0,
-        bestResult: { en: '' },
-        internationalTitles: [],
-        qualification2026: {
-          topScorer: { en: '' },
-          topAssists: { en: '' },
-          mostUsed:  '',
-          chancesCreated: '',
-          note: { en: '' },
-        },
-        funFacts: [],
-        timeline: []
+        iso: '', group: '', coach: '', worldCupAppearances: 0, worldCupGoals: 0,
+        bestResult: { en: '' }, internationalTitles: [],
+        qualification2026: { topScorer: { en: '' }, topAssists: { en: '' }, mostUsed: '', chancesCreated: '', note: { en: '' } },
+        funFacts: [], timeline: []
       };
       this.r32Teams[`m${i}_1`] = { ...defaultCountry };
       this.r32Teams[`m${i}_2`] = { ...defaultCountry };
@@ -145,59 +89,24 @@ protected r32Teams: { [key: string]: Country } = {};
 
   private resetSelections(): void {
     for (let i = 1; i <= 16; i++) this.wR32[`m${i}`] = null;
-    for (let i = 1; i <= 8; i++) this.wR16[`m${i}`] = null;
-    for (let i = 1; i <= 4; i++) this.wR4[`m${i}`] = null;
-    for (let i = 1; i <= 2; i++) this.wS[`m${i}`] = null;
+    for (let i = 1; i <= 8; i++)  this.wR16[`m${i}`] = null;
+    for (let i = 1; i <= 4; i++)  this.wR4[`m${i}`] = null;
+    for (let i = 1; i <= 2; i++)  this.wS[`m${i}`] = null;
     this.champion = null;
   }
 
-
-  // 1. ADD THIS SETTER TO CAPTURE THE TEAMS FROM THE PARENT
-  @Input() set setupAdvancedTeams(teams: any[] | null) {
-    if (!teams || teams.length === 0) return;
-
+  private populateRoundOf32Pairs(teams: any[]): void {
     let matchCounter = 1;
     for (let i = 0; i < teams.length; i += 2) {
-      // Safely map the lightweight objects to the strict Country type structure
-      this.r32Teams[`m${matchCounter}_1`] = this.mapToCountry(teams[i]);
-      this.r32Teams[`m${matchCounter}_2`] = this.mapToCountry(teams[i + 1]);
+      this.r32Teams[`m${matchCounter}_1`] = teams[i];
+      this.r32Teams[`m${matchCounter}_2`] = teams[i + 1];
       matchCounter++;
     }
-    
-    // Reset any downstream user bracket selections upon receiving new group results
     this.resetSelections();
   }
 
-// Helper method to keep your Country type mapping clean and prevent runtime errors
-private mapToCountry(team: any): Country {
-  return {
-    name: team.name,
-    flagId: team.flagId || 'tbc',
-    flagUrl: team.flagUrl || 'assets/flags/unknown.png',
-    iso: team.iso || '',
-    group: '', 
-    coach: '', 
-    worldCupAppearances: 0, 
-    worldCupGoals: 0,
-    bestResult: { en: '' },
-    internationalTitles: [],
-    qualification2026: {
-      topScorer: { en: '' },
-      topAssists: { en: '' },
-      mostUsed: '',
-      chancesCreated: '',
-      note: { en: '' },
-    },
-    funFacts: [],
-    timeline: []
-  };
-}
-
-  /**
-   * Evaluates user selection and automatically handles cascading tree changes
-   */
   selectWinner(stage: string, matchKey: string, selection: Country): void {
-    if (!this.isOpen) return;
+    if (!this.isOpen || selection.name === 'À déterminer') return;
 
     switch (stage) {
       case 'R32':
@@ -224,9 +133,6 @@ private mapToCountry(team: any): Country {
     }
   }
 
-  /**
-   * Resets forwarding match predictions if a historical dependent prediction is modified
-   */
   private resetCascadingTree(currentStage: string, matchKey: string): void {
     const num = parseInt(matchKey.replace(/\D/g, ''), 10);
     
