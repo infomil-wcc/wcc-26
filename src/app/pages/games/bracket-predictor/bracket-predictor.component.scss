@@ -232,6 +232,12 @@
   align-items: center;
   color: #ffffff;
 
+  .header-left {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+  }
+
   h3 {
     margin: 0;
     font-size: 1.05rem;

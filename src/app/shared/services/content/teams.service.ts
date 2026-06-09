@@ -48,7 +48,7 @@ export class TeamsService {
   }
 
   getFlags(): Observable<any> {
-    return this.http.get<any>(`${environment.apiBaseUrl}/items/teams?fields=flag_url,name`).pipe(
+    return this.http.get<any>(`${environment.apiBaseUrl}/items/teams?fields=flag_url,name,iso`).pipe(
       map(response => response.data)
     );
   }

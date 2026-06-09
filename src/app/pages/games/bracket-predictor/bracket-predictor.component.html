@@ -46,7 +46,7 @@
                   {{ posIdx + 1 }}
                 </div>
                 
-                <div class="team-flag" [ngStyle]="{'background-image': 'url(' + team.flagUrl + ')'}"></div>
+                <img [src]="team.flagUrl" class="team-flag" [alt]="team.name">
                 <span class="team-name">{{ team.name }}</span>
               </div>
 
@@ -78,14 +78,25 @@
 
       <div class="thirds-card-table">
         <div class="table-header-banner">
-          <h3>CHOISISSEZ LES MEILLEURS TROISIÈMES</h3>
+          <div class="header-left">
+            <h3>CHOISISSEZ LES MEILLEURS TROISIÈMES</h3>
+            <button 
+              type="button"
+              class="btn-group-randomize" 
+              (click)="randomizeThirds()" 
+              title="Sélection aléatoire"
+            >
+              <span class="dice-icon">🎲</span>
+              <span class="btn-text">Choix aléatoire</span>
+            </button>
+          </div>
           <span class="counter-badge" [ngClass]="{'complete': selectedThirdsCount === 8}">
             {{ selectedThirdsCount }} / 8
           </span>
         </div>
 
         <div class="table-columns-label">
-          <span class="col-rank">CM</span>
+          <span class="col-rank">Pos</span>
           <span class="col-team">Équipe</span>
         </div>
 
@@ -97,8 +108,8 @@
             (click)="toggleThirdPlaceSelection(team)"
           >
             <div class="row-left-content">
-              <span class="rank-index">{{ 5 + (idx * 4) }}</span>
-              <div class="team-flag" [ngStyle]="{'background-image': 'url(' + team.flagUrl + ')'}"></div>
+              <span class="rank-index">{{ idx + 1 }}</span>
+              <img [src]="team.flagUrl" class="team-flag" [alt]="team.name">
               <span class="team-name">{{ team.name }}</span>
             </div>
 
@@ -117,7 +128,7 @@
           type="button"
           class="btn-navigation final-submit" 
           [disabled]="selectedThirdsCount !== 8" 
-          (click)="submitPredictions()"
+          (click)="submitGroupStagePredictions()"
         >
           Valider mes prédictions
         </button>

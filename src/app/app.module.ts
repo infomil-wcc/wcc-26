@@ -29,7 +29,7 @@ import { DialogComponent } from './shared/components/dialog/dialog.component';
 import { NavComponent } from './shared/components/nav/nav.component';
 import { BestScorerComponent } from './pages/games/best-scorer/best-scorer.component';
 import { PronostiquesComponent } from './pages/games/pronostiques/pronostiques.component';
-import { BracketComponent } from './pages/games/bracket/bracket.component';
+import { BracketKnockoutComponent } from './pages/games/bracket-knockout/bracket-knockout.component';
 import { QuizComponent } from './pages/games/quiz/quiz.component';
 import { RankingComponent } from './pages/games/ranking/ranking.component';
 import { GamesComponent } from './pages/competition/games/games.component';
@@ -54,6 +54,7 @@ import { HyphernatePipe } from './shared/pipe/hyphernate.pipe';
 import { CountryDetailsComponent } from './shared/components/country-details/country-details.component';
 import { GameRulesComponent } from './pages/game-rules/game-rules.component';
 import { BracketPredictorComponent } from './pages/games/bracket-predictor/bracket-predictor.component';
+import { BracketChallengeComponent } from './pages/games/bracket-challenge/bracket-challenge.component';
 
 @NgModule({ declarations: [
         AppComponent,
@@ -70,7 +71,7 @@ import { BracketPredictorComponent } from './pages/games/bracket-predictor/brack
         NavComponent,
         BestScorerComponent,
         PronostiquesComponent,
-        BracketComponent,
+        BracketKnockoutComponent,
         QuizComponent,
         RankingComponent,
         GamesComponent,
@@ -94,7 +95,8 @@ import { BracketPredictorComponent } from './pages/games/bracket-predictor/brack
         HyphernatePipe,
         CountryDetailsComponent,
         GameRulesComponent,
-        BracketPredictorComponent
+        BracketPredictorComponent,
+        BracketChallengeComponent
     ],
     bootstrap: [AppComponent], 
     imports: [DragDropModule,

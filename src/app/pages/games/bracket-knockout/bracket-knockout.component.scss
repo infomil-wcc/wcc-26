@@ -1,0 +1,386 @@
+@import "../../../../variables.scss";
+
+// Light Theme Palette - Consistent with Bracket Predictor
+$bg-light: #f8fafc;
+$card-bg: #ffffff;
+$text-main: #0f172a;
+$text-muted: #64748b;
+$primary-blue: #2563eb;
+$selected-green: #10b981;
+$border-color: #e2e8f0;
+$line-color: #cbd5e1;
+
+.bracket-controls {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  padding: 20px;
+  background-color: #ffffff;
+  border-top: 1px solid $border-color;
+  position: sticky;
+  bottom: 0;
+  z-index: 100;
+  box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
+
+  button {
+    padding: 12px 28px;
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: $text-muted;
+    background-color: #f8fafc;
+    border: 1px solid $border-color;
+    border-radius: 30px;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+
+    &:hover {
+      background-color: #f1f5f9;
+      color: $text-main;
+      border-color: #cbd5e1;
+    }
+
+    &.active {
+      background-color: $primary-blue;
+      color: #ffffff;
+      border-color: $primary-blue;
+      box-shadow: 0 4px 15px rgba(37, 99, 235, 0.3);
+    }
+  }
+}
+
+.bracket-wrapper {
+  background-color: $bg-light;
+  min-height: 85vh;
+  display: flex;
+  justify-content: flex-start;
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  
+  @media screen and (min-width: 1800px) {
+    justify-content: center;
+  }
+}
+
+.bracket-container {
+  display: flex;
+  flex-direction: row;
+  gap: 80px; 
+  align-items: center;
+  justify-content: flex-start;
+  width: max-content;
+  min-width: 100%;
+  padding: 60px;
+
+  &.isDisabled {
+    opacity: 0.6;
+    pointer-events: none;
+  }
+}
+
+.bracket-half {
+  display: flex;
+  flex-direction: row;
+  gap: 80px;
+  align-items: center;
+
+  &.left-side { flex-direction: row; }
+  &.right-side { flex-direction: row-reverse; }
+}
+
+.round {
+  display: flex;
+  flex-direction: column;
+  height: 950px; 
+  width: 190px;
+  position: relative;
+
+  .round-title {
+    color: $primary-blue;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    font-weight: 800;
+    text-align: center;
+    letter-spacing: 1px;
+    margin-bottom: 20px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    background: #ffffff;
+    border: 1px solid $border-color;
+    border-radius: 6px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.03);
+  }
+
+  .matchup-list {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    position: relative;
+  }
+}
+
+.matchup-box {
+  background: $card-bg;
+  border: 1px solid $border-color;
+  border-radius: 8px;
+  overflow: visible;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.06);
+  position: relative;
+  z-index: 10;
+}
+
+/* --- TRADITIONAL TOURNAMENT TREE PATHS --- */
+
+.matchup-box::before, .matchup-box::after {
+  content: '';
+  position: absolute;
+  background-color: $line-color;
+  z-index: 1;
+}
+
+// Left Side Logic
+.left-side {
+  // Line coming from left (Incoming from previous round)
+  .round:not(:first-child) .matchup-box::before {
+    width: 40px;
+    height: 2px;
+    left: -41px;
+    top: 50%;
+    transform: translateY(-50%);
+  }
+
+  // Line going right (Outgoing to next round)
+  .round:not(:last-child) .matchup-box::after {
+    width: 40px;
+    height: 2px;
+    right: -41px;
+    top: 50%;
+    transform: translateY(-50%);
+  }
+
+  // Vertical connecting lines for pairs
+  .round:not(:last-child) .matchup-box:nth-child(2n-1) {
+    .team-row:last-child::after {
+      content: '';
+      position: absolute;
+      width: 2px;
+      background-color: $line-color;
+      right: -41px;
+      top: 50%;
+      z-index: 1;
+    }
+  }
+  
+  // Heights for the vertical connectors (Odd matchup drops a line to the midpoint)
+  .round:nth-child(1) .matchup-box:nth-child(2n-1) .team-row:last-child::after { height: 112px; }
+  .round:nth-child(2) .matchup-box:nth-child(2n-1) .team-row:last-child::after { height: 225px; }
+  .round:nth-child(3) .matchup-box:nth-child(2n-1) .team-row:last-child::after { height: 450px; }
+}
+
+// Right Side Logic
+.right-side {
+  // Line coming from right (Incoming from previous round - visually from right because reversed)
+  .round:not(:last-child) .matchup-box::before {
+    width: 40px;
+    height: 2px;
+    right: -41px;
+    top: 50%;
+    transform: translateY(-50%);
+  }
+
+  // Line going left (Outgoing to next round)
+  .round:not(:first-child) .matchup-box::after {
+    width: 40px;
+    height: 2px;
+    left: -41px;
+    top: 50%;
+    transform: translateY(-50%);
+  }
+
+  // Vertical connecting lines
+  .round:not(:first-child) .matchup-box:nth-child(2n-1) {
+    .team-row:last-child::after {
+      content: '';
+      position: absolute;
+      width: 2px;
+      background-color: $line-color;
+      left: -41px;
+      top: 50%;
+      z-index: 1;
+    }
+  }
+
+  // Reverse round indexing for right side in template: Semis=1, Quarts=2, R16=3, R32=4
+  .round:nth-child(4) .matchup-box:nth-child(2n-1) .team-row:last-child::after { height: 112px; }
+  .round:nth-child(3) .matchup-box:nth-child(2n-1) .team-row:last-child::after { height: 225px; }
+  .round:nth-child(2) .matchup-box:nth-child(2n-1) .team-row:last-child::after { height: 450px; }
+}
+
+/* --- TEAM ROWS & INTERACTION --- */
+
+.team-row {
+  display: flex;
+  align-items: center;
+  padding: 12px 14px;
+  cursor: pointer;
+  border-bottom: 1px solid $border-color;
+  transition: all 0.2s ease;
+  position: relative;
+
+  &:last-child { border-bottom: none; }
+  &:hover:not(.disabled) { background: #f1f5f9; }
+
+  &.selected {
+    background: #f0fdf4 !important;
+    .team-name { color: $selected-green; font-weight: 700; }
+  }
+
+  &.disabled { opacity: 0.4; cursor: not-allowed; }
+
+  .flag {
+    width: 28px;
+    height: 18px;
+    object-fit: cover;
+    border-radius: 3px;
+    margin-right: 12px;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+  }
+
+  .team-name {
+    color: $text-main;
+    font-size: 0.85rem;
+    font-weight: 600;
+  }
+}
+
+/* --- CENTER FINALE BLOCK --- */
+
+.bracket-center {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  width: 360px;
+  padding: 0 20px;
+
+  .final-box {
+    background: #ffffff;
+    border: 3px solid $primary-blue;
+    border-radius: 20px;
+    padding: 30px;
+    text-align: center;
+    width: 100%;
+    box-shadow: 0 12px 48px rgba(37, 99, 235, 0.15);
+    position: relative;
+    
+    // Final bridge connectors
+    &::before, &::after {
+      content: '';
+      position: absolute;
+      width: 40px;
+      height: 2px;
+      background-color: $line-color;
+      top: 50%;
+    }
+    &::before { left: -40px; }
+    &::after { right: -40px; }
+  }
+
+  .final-title {
+    color: $primary-blue;
+    font-size: 1.4rem;
+    font-weight: 900;
+    letter-spacing: 2px;
+    margin: 0 0 25px 0;
+    text-transform: uppercase;
+  }
+
+  .final-teams { display: flex; flex-direction: column; gap: 14px; }
+
+  .final-team {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    padding: 18px;
+    background: #f8fafc;
+    border: 2px solid #e2e8f0;
+    border-radius: 12px;
+    cursor: pointer;
+    color: $text-main;
+    font-weight: 700;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+
+    &:hover { border-color: $primary-blue; transform: translateY(-2px); }
+
+    &.selected {
+      background: $selected-green;
+      border-color: $selected-green;
+      color: #ffffff;
+      box-shadow: 0 4px 15px rgba(16, 185, 129, 0.35);
+    }
+
+    .final-flag { width: 42px; height: 26px; border-radius: 4px; }
+  }
+
+  .vs-divider {
+    color: $text-muted;
+    font-weight: 900;
+    font-size: 0.8rem;
+    background: #ffffff;
+    padding: 6px 16px;
+    border-radius: 20px;
+    margin: -14px auto;
+    z-index: 20;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  }
+}
+
+.champion-display {
+  margin-top: 40px;
+  padding-top: 30px;
+  border-top: 2px dashed $border-color;
+
+  h4 { color: #b45309; font-size: 1.1rem; font-weight: 800; margin-bottom: 15px; text-transform: uppercase; }
+
+  .champion-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 14px;
+    background: #fef3c7;
+    border: 2px solid #f59e0b;
+    padding: 14px 28px;
+    border-radius: 60px;
+    color: #92400e;
+    font-weight: 800;
+    box-shadow: 0 8px 20px rgba(245, 158, 11, 0.3);
+
+    img { width: 36px; height: 22px; border-radius: 3px; }
+  }
+}
+
+.btn-validate {
+  margin-top: 40px;
+  width: 100%;
+  background: $primary-blue;
+  color: #ffffff;
+  border: none;
+  padding: 18px;
+  font-weight: 800;
+  font-size: 1.1rem;
+  border-radius: 12px;
+  cursor: pointer;
+  text-transform: uppercase;
+  transition: all 0.2s;
+  box-shadow: 0 4px 15px rgba(37, 99, 235, 0.3);
+
+  &:hover:not(:disabled) { background: darken($primary-blue, 5%); box-shadow: 0 10px 25px rgba(37, 99, 235, 0.4); }
+
+  &:disabled { background: #e2e8f0; color: #94a3b8; cursor: not-allowed; box-shadow: none; }
+}

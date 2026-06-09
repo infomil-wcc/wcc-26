@@ -1,4 +1,4 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnInit, Output, EventEmitter } from '@angular/core';
 import { TeamsService } from '../../../shared/services/content/teams.service';
 import { forkJoin } from 'rxjs';
 import { CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
@@ -6,7 +6,8 @@ import { CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
 interface PredictorTeam {
   name: string;
   flagUrl: string;
-  isSelectedThird?: boolean; // Track checkbox selection state
+  flagId?: string; // Added to map back to flag codes (e.g., 'fr', 'br')
+  isSelectedThird?: boolean; 
 }
 
 interface PredictorGroup {
@@ -23,12 +24,14 @@ interface PredictorGroup {
 export class BracketPredictorComponent implements OnInit {
   private teamService = inject(TeamsService);
 
+  // Emit event containing the final ordered 32 qualified teams
+  @Output() public groupStageComplete = new EventEmitter<any[]>();
+
   protected groupsData: PredictorGroup[] = [];
   private initialGroupsData: PredictorGroup[] = [];
   protected isLoading: boolean = true;
 
-  // Step wizard tracking variables
-  protected currentStep: number = 1; // 1 = Group stage brackets, 2 = Choose 3rd places
+  protected currentStep: number = 1; 
   protected thirdPlacedTeams: PredictorTeam[] = [];
   protected selectedThirdsCount: number = 0;
 
@@ -38,33 +41,25 @@ export class BracketPredictorComponent implements OnInit {
       flags: this.teamService.getFlags()
     }).subscribe({
       next: (res) => {
-        this.combineGroupsAndFlags(res.groups, res.flags);
-        this.isLoading = false;
-      },
-      error: (err) => {
-        console.error('Failed loading bracket data', err);
+        const flagMap = new Map(res.flags.map((f: any) => [f.name, { url: f.flag_url, iso: f.iso }]));
+        
+        this.groupsData = res.groups.map((g: any) => ({
+          group_title: g.group_title,
+          color: g.color || '#2b2b2b',
+          teams: [g.team_1, g.team_2, g.team_3, g.team_4].map(teamName => {
+            const teamInfo = flagMap.get(teamName);
+            return {
+              name: teamName,
+              flagUrl: (teamInfo as any)?.url || 'assets/flags/tbc.png',
+              flagId: (teamInfo as any)?.iso?.toLowerCase() || teamName.substring(0,2).toLowerCase()
+            };
+          })
+        }));
+        
+        this.initialGroupsData = JSON.parse(JSON.stringify(this.groupsData));
         this.isLoading = false;
       }
     });
-  }
-
-  private combineGroupsAndFlags(groups: any[], flags: any[]): void {
-    const flagMap = new Map(flags.map(f => [f.name, f.flag_url]));
-
-    this.groupsData = groups.map(g => {
-      const teamNames = [g.team_1, g.team_2, g.team_3, g.team_4];
-      return {
-        group_title: g.group_title,
-        color: g.color || '#2b2b2b',
-        teams: teamNames.map(name => ({
-          name,
-          flagUrl: flagMap.get(name) || '',
-          isSelectedThird: false
-        }))
-      };
-    });
-
-    this.initialGroupsData = JSON.parse(JSON.stringify(this.groupsData));
   }
 
   protected dropTeam(event: CdkDragDrop<PredictorTeam[]>, groupIndex: number): void {
@@ -72,12 +67,11 @@ export class BracketPredictorComponent implements OnInit {
   }
 
   protected randomizeGroup(groupIndex: number): void {
-    const teamsArray = [...this.groupsData[groupIndex].teams];
-    for (let i = teamsArray.length - 1; i > 0; i--) {
+    const teams = this.groupsData[groupIndex].teams;
+    for (let i = teams.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
-      [teamsArray[i], teamsArray[j]] = [teamsArray[j], teamsArray[i]];
+      [teams[i], teams[j]] = [teams[j], teams[i]];
     }
-    this.groupsData[groupIndex].teams = teamsArray;
   }
 
   protected resetAllGroups(): void {
@@ -86,7 +80,6 @@ export class BracketPredictorComponent implements OnInit {
     this.selectedThirdsCount = 0;
   }
 
-  // Navigates to Step 2 and pulls whoever sits at index 2 (3rd place) in every group
   protected goToThirdPlaceSelection(): void {
     this.thirdPlacedTeams = this.groupsData.map(group => group.teams[2]);
     this.updateSelectedCount();
@@ -98,14 +91,27 @@ export class BracketPredictorComponent implements OnInit {
     this.currentStep = 1;
   }
 
-  // Toggles the checked status of a third-placed team (max limit: 8)
   protected toggleThirdPlaceSelection(team: PredictorTeam): void {
     if (!team.isSelectedThird && this.selectedThirdsCount >= 8) {
-      alert("You can only select up to 8 third-placed teams!");
-      return; // Cap limit restriction
+      alert("Vous pouvez sélectionner un maximum de 8 équipes troisièmes !");
+      return;
+    }
+    team.isSelectedThird = !team.isSelectedThird;
+    this.updateSelectedCount();
+  }
+
+  protected randomizeThirds(): void {
+    // 1. Reset all selections
+    this.thirdPlacedTeams.forEach(t => t.isSelectedThird = false);
+    
+    // 2. Shuffle array or pick 8 random indices
+    const shuffled = [...this.thirdPlacedTeams].sort(() => 0.5 - Math.random());
+    
+    // 3. Mark the first 8 as selected
+    for (let i = 0; i < 8 && i < shuffled.length; i++) {
+      shuffled[i].isSelectedThird = true;
     }
     
-    team.isSelectedThird = !team.isSelectedThird;
     this.updateSelectedCount();
   }
 
@@ -113,8 +119,40 @@ export class BracketPredictorComponent implements OnInit {
     this.selectedThirdsCount = this.thirdPlacedTeams.filter(t => t.isSelectedThird).length;
   }
 
-  protected submitPredictions(): void {
-    console.log("Advancing Teams Selected:", this.thirdPlacedTeams.filter(t => t.isSelectedThird));
-    // Ready to calculate Knockout Stage combinations here!
+  /**
+   * New branching method: Compiles group outputs and forwards them to the knockout bracket
+   */
+  protected submitGroupStagePredictions(): void {
+    if (this.selectedThirdsCount !== 8) return;
+
+    const qualifiedTeams: any[] = [];
+
+    // 1. Gather all 1er (Winners) and 2ème (Runners-up) from all 12 groups
+    this.groupsData.forEach(group => {
+      qualifiedTeams.push({
+        name: group.teams[0].name,
+        flagUrl: group.teams[0].flagUrl,
+        flagId: group.teams[0].flagId || group.teams[0].name.substring(0,2).toLowerCase()
+      });
+      qualifiedTeams.push({
+        name: group.teams[1].name,
+        flagUrl: group.teams[1].flagUrl,
+        flagId: group.teams[1].flagId || group.teams[1].name.substring(0,2).toLowerCase()
+      });
+    });
+
+    // 2. Gather the 8 selected best 3rd placed teams
+    this.thirdPlacedTeams.forEach(team => {
+      if (team.isSelectedThird) {
+        qualifiedTeams.push({
+          name: team.name,
+          flagUrl: team.flagUrl,
+          flagId: team.flagId || team.name.substring(0,2).toLowerCase()
+        });
+      }
+    });
+
+    // Emit the payload up to the parent view coordinator
+    this.groupStageComplete.emit(qualifiedTeams);
   }
 }

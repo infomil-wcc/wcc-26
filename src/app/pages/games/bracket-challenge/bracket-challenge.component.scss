@@ -1,0 +1,105 @@
+@import "../../../../variables.scss";
+
+.challenge-container {
+  min-height: 70vh;
+}
+
+.challenge-stepper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  max-width: 600px;
+  margin: 0 auto;
+
+  .step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    z-index: 1;
+
+    .step-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: #1d2b3e;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      border: 2px solid #24344d;
+      transition: all 0.3s ease;
+    }
+
+    .step-label {
+      color: #a3b1cc;
+      font-size: 0.85rem;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    &.active {
+      .step-icon {
+        background: #0ed4de;
+        color: #0b1426;
+        border-color: #0ed4de;
+        box-shadow: 0 0 15px rgba(14, 212, 222, 0.4);
+      }
+      .step-label {
+        color: #0ed4de;
+      }
+    }
+
+    &.completed {
+      .step-icon {
+        background: #00e676;
+        border-color: #00e676;
+        color: #0b1426;
+      }
+    }
+  }
+
+  .step-connector {
+    flex-grow: 1;
+    height: 2px;
+    background: #24344d;
+    margin: 0 -10px 20px -10px;
+    z-index: 0;
+    transition: background 0.3s ease;
+
+    &.completed {
+      background: #00e676;
+    }
+  }
+}
+
+.fade-in {
+  animation: fadeIn 0.5s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.controls-bar {
+  display: flex;
+  justify-content: flex-start;
+}
+
+.btn-secondary {
+  background: #24344d;
+  color: #fff;
+  border: 1px solid #3d5170;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.2s;
+
+  &:hover {
+    background: #2d4059;
+    border-color: #0ed4de;
+  }
+}

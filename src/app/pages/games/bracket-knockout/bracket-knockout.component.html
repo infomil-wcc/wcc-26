@@ -1,0 +1,228 @@
+<div class="bracket-wrapper w-full overflow-x-auto py-4">
+  <div class="bracket-container" [ngClass]="{'isDisabled': !isOpen, 'view-left': activeSide === 'left', 'view-right': activeSide === 'right'}">
+
+    <!-- Left Side -->
+    <div class="bracket-half left-side" *ngIf="activeSide === 'left' || activeSide === 'all'">
+      <!-- Round of 32 -->
+      <div class="round">
+        <h4 class="round-title">1/16 Finales</h4>
+        <div class="matchup-list">
+          <div class="matchup-box" *ngFor="let i of [1,2,3,4,5,6,7,8]">
+            <div class="team-row" [class.selected]="wR32['m'+i]?.name === r32Teams['m'+i+'_1'].name"
+              (click)="selectWinner('R32', 'm'+i, r32Teams['m'+i+'_1'])">
+              <img [src]="r32Teams['m'+i+'_1'].flagUrl" class="flag" alt="">
+              <span class="team-name">{{ r32Teams['m'+i+'_1'].name }}</span>
+            </div>
+            <div class="team-row" [class.selected]="wR32['m'+i]?.name === r32Teams['m'+i+'_2'].name"
+              (click)="selectWinner('R32', 'm'+i, r32Teams['m'+i+'_2'])">
+              <img [src]="r32Teams['m'+i+'_2'].flagUrl" class="flag" alt="">
+              <span class="team-name">{{ r32Teams['m'+i+'_2'].name }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Round of 16 -->
+      <div class="round">
+        <h4 class="round-title">1/8 Finales</h4>
+        <div class="matchup-list">
+          <div class="matchup-box" *ngFor="let i of [1,2,3,4]">
+            <div class="team-row" [class.disabled]="!wR32['m'+(i*2-1)]"
+              [class.selected]="wR16['m'+i]?.name === wR32['m'+(i*2-1)]?.name"
+              (click)="wR32['m'+(i*2-1)] && selectWinner('R16', 'm'+i, wR32['m'+(i*2-1)]!)">
+              <img
+                [src]="wR32['m'+(i*2-1)]?.flagUrl || 'assets/flags/unknown.png'"
+                class="flag" alt="">
+              <span class="team-name">{{ wR32['m'+(i*2-1)]?.name || 'À déterminer' }}</span>
+            </div>
+            <div class="team-row" [class.disabled]="!wR32['m'+(i*2)]"
+              [class.selected]="wR16['m'+i]?.name === wR32['m'+(i*2)]?.name"
+              (click)="wR32['m'+(i*2)] && selectWinner('R16', 'm'+i, wR32['m'+(i*2)]!)">
+              <img [src]="wR32['m'+(i*2)]?.flagUrl || 'assets/flags/unknown.png'"
+                class="flag" alt="">
+              <span class="team-name">{{ wR32['m'+(i*2)]?.name || 'À déterminer' }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quarters -->
+      <div class="round">
+        <h4 class="round-title">Quarts</h4>
+        <div class="matchup-list">
+          <div class="matchup-box" *ngFor="let i of [1,2]">
+            <div class="team-row" [class.disabled]="!wR16['m'+(i*2-1)]"
+              [class.selected]="wR4['m'+i]?.name === wR16['m'+(i*2-1)]?.name"
+              (click)="wR16['m'+(i*2-1)] && selectWinner('R4', 'm'+i, wR16['m'+(i*2-1)]!)">
+              <img
+                [src]="wR16['m'+(i*2-1)]?.flagUrl || 'assets/flags/unknown.png'"
+                class="flag" alt="">
+              <span class="team-name">{{ wR16['m'+(i*2-1)]?.name || 'À déterminer' }}</span>
+            </div>
+            <div class="team-row" [class.disabled]="!wR16['m'+(i*2)]"
+              [class.selected]="wR4['m'+i]?.name === wR16['m'+(i*2)]?.name"
+              (click)="wR16['m'+(i*2)] && selectWinner('R4', 'm'+i, wR16['m'+(i*2)]!)">
+              <img [src]="wR16['m'+(i*2)]?.flagUrl || 'assets/flags/unknown.png'"
+                class="flag" alt="">
+              <span class="team-name">{{ wR16['m'+(i*2)]?.name || 'À déterminer' }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Semis -->
+      <div class="round">
+        <h4 class="round-title">Demi-Finale</h4>
+        <div class="matchup-list">
+          <div class="matchup-box">
+            <div class="team-row" [class.disabled]="!wR4['m1']" [class.selected]="wS['m1']?.name === wR4['m1']?.name"
+              (click)="wR4['m1'] && selectWinner('S', 'm1', wR4['m1']!)">
+              <img [src]="wR4['m1']?.flagUrl || 'assets/flags/unknown.png'" class="flag"
+                alt="">
+              <span class="team-name">{{ wR4['m1']?.name || 'À déterminer' }}</span>
+            </div>
+            <div class="team-row" [class.disabled]="!wR4['m2']" [class.selected]="wS['m1']?.name === wR4['m2']?.name"
+              (click)="wR4['m2'] && selectWinner('S', 'm1', wR4['m2']!)">
+              <img [src]="wR4['m2']?.flagUrl || 'assets/flags/unknown.png'" class="flag"
+                alt="">
+              <span class="team-name">{{ wR4['m2']?.name || 'À déterminer' }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Center (Final) -->
+    <div class="bracket-center">
+      <div class="final-box">
+        <h3 class="final-title">GRANDE FINALE</h3>
+        <div class="final-teams">
+          <div class="final-team" [class.selected]="champion?.name === wS['m1']?.name"
+            (click)="wS['m1'] && selectWinner('Final', 'f1', wS['m1']!)">
+            <img [src]="wS['m1']?.flagUrl || 'assets/flags/unknown.png'"
+              class="final-flag">
+            <div>{{ wS['m1']?.name || 'Finaliste 1' }}</div>
+          </div>
+          <div class="vs-divider">VS</div>
+          <div class="final-team" [class.selected]="champion?.name === wS['m2']?.name"
+            (click)="wS['m2'] && selectWinner('Final', 'f1', wS['m2']!)">
+            <img [src]="wS['m2']?.flagUrl || 'assets/flags/unknown.png'"
+              class="final-flag">
+            <div>{{ wS['m2']?.name || 'Finaliste 2' }}</div>
+          </div>
+        </div>
+
+        <div class="champion-display" *ngIf="champion">
+          <h4>🏆 VAINQUEUR PROVOQUÉ 🏆</h4>
+          <div class="champion-badge">
+            <img [src]="champion.flagUrl">
+            <strong>{{ champion.name }}</strong>
+          </div>
+        </div>
+
+        <button class="btn-validate" [disabled]="!isBracketComplete()" (click)="validateBracket()">
+          Valider mon bracket
+        </button>
+      </div>
+    </div>
+
+    <!-- Right Side -->
+    <div class="bracket-half right-side" *ngIf="activeSide === 'right' || activeSide === 'all'">
+      <!-- Semis -->
+      <div class="round">
+        <h4 class="round-title">Demi-Finale</h4>
+        <div class="matchup-list">
+          <div class="matchup-box">
+            <div class="team-row" [class.disabled]="!wR4['m3']" [class.selected]="wS['m2']?.name === wR4['m3']?.name"
+              (click)="wR4['m3'] && selectWinner('S', 'm2', wR4['m3']!)">
+              <img [src]="wR4['m3']?.flagUrl || 'assets/flags/unknown.png'" class="flag"
+                alt="">
+              <span class="team-name">{{ wR4['m3']?.name || 'À déterminer' }}</span>
+            </div>
+            <div class="team-row" [class.disabled]="!wR4['m4']" [class.selected]="wS['m2']?.name === wR4['m4']?.name"
+              (click)="wR4['m4'] && selectWinner('S', 'm2', wR4['m4']!)">
+              <img [src]="wR4['m4']?.flagUrl || 'assets/flags/unknown.png'" class="flag"
+                alt="">
+              <span class="team-name">{{ wR4['m4']?.name || 'À déterminer' }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quarters -->
+      <div class="round">
+        <h4 class="round-title">Quarts</h4>
+        <div class="matchup-list">
+          <div class="matchup-box" *ngFor="let i of [3,4]">
+            <div class="team-row" [class.disabled]="!wR16['m'+(i*2-1)]"
+              [class.selected]="wR4['m'+i]?.name === wR16['m'+(i*2-1)]?.name"
+              (click)="wR16['m'+(i*2-1)] && selectWinner('R4', 'm'+i, wR16['m'+(i*2-1)]!)">
+              <img
+                [src]="wR16['m'+(i*2-1)]?.flagUrl || 'assets/flags/unknown.png'"
+                class="flag" alt="">
+              <span class="team-name">{{ wR16['m'+(i*2-1)]?.name || 'À déterminer' }}</span>
+            </div>
+            <div class="team-row" [class.disabled]="!wR16['m'+(i*2)]"
+              [class.selected]="wR4['m'+i]?.name === wR16['m'+(i*2)]?.name"
+              (click)="wR16['m'+(i*2)] && selectWinner('R4', 'm'+i, wR16['m'+(i*2)]!)">
+              <img [src]="wR16['m'+(i*2)]?.flagUrl || 'assets/flags/unknown.png'"
+                class="flag" alt="">
+              <span class="team-name">{{ wR16['m'+(i*2)]?.name || 'À déterminer' }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Round of 16 -->
+      <div class="round">
+        <h4 class="round-title">1/8 Finales</h4>
+        <div class="matchup-list">
+          <div class="matchup-box" *ngFor="let i of [5,6,7,8]">
+            <div class="team-row" [class.disabled]="!wR32['m'+(i*2-1)]"
+              [class.selected]="wR16['m'+i]?.name === wR32['m'+(i*2-1)]?.name"
+              (click)="wR32['m'+(i*2-1)] && selectWinner('R16', 'm'+i, wR32['m'+(i*2-1)]!)">
+              <img
+                [src]="wR32['m'+(i*2-1)]?.flagUrl || 'assets/flags/unknown.png'"
+                class="flag" alt="">
+              <span class="team-name">{{ wR32['m'+(i*2-1)]?.name || 'À déterminer' }}</span>
+            </div>
+            <div class="team-row" [class.disabled]="!wR32['m'+(i*2)]"
+              [class.selected]="wR16['m'+i]?.name === wR32['m'+(i*2)]?.name"
+              (click)="wR32['m'+(i*2)] && selectWinner('R16', 'm'+i, wR32['m'+(i*2)]!)">
+              <img [src]="wR32['m'+(i*2)]?.flagUrl || 'assets/flags/unknown.png'"
+                class="flag" alt="">
+              <span class="team-name">{{ wR32['m'+(i*2)]?.name || 'À déterminer' }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Round of 32 -->
+      <div class="round">
+        <h4 class="round-title">1/16 Finales</h4>
+        <div class="matchup-list">
+          <div class="matchup-box" *ngFor="let i of [9,10,11,12,13,14,15,16]">
+            <div class="team-row" [class.selected]="wR32['m'+i]?.name === r32Teams['m'+i+'_1'].name"
+              (click)="selectWinner('R32', 'm'+i, r32Teams['m'+i+'_1'])">
+              <img [src]="r32Teams['m'+i+'_1'].flagUrl" class="flag" alt="">
+              <span class="team-name">{{ r32Teams['m'+i+'_1'].name }}</span>
+            </div>
+            <div class="team-row" [class.selected]="wR32['m'+i]?.name === r32Teams['m'+i+'_2'].name"
+              (click)="selectWinner('R32', 'm'+i, r32Teams['m'+i+'_2'])">
+              <img [src]="r32Teams['m'+i+'_2'].flagUrl" class="flag" alt="">
+              <span class="team-name">{{ r32Teams['m'+i+'_2'].name }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+</div>
+
+<div class="bracket-controls">
+  <button [class.active]="activeSide === 'left'" (click)="activeSide = 'left'">&#9664; Partie gauche</button>
+<button [class.active]="activeSide === 'all'" (click)="activeSide = 'all'">Vue complète</button>
+  <button [class.active]="activeSide === 'right'" (click)="activeSide = 'right'">Partie droite &#9654;</button>
+</div>
