@@ -3,74 +3,9 @@
  <h3 class="mt-0 text-center">Fais tes pronostics pour la Coupe du Monde 2026 et vise des récompenses incroyables.</h3>
  <a href="#" class="registerLink" (click)="showLogin = !showLogin" *ngIf="!isLoggedIn">Clique et inscris-toi dès maintenant pour tenter ta chance !</a>
  <h3>À toi de jouer !</h3>
-
-  <!-- <div class="grid justify-content-center gap-4 mt-4">
-    <div class="col-12 md:col-2">
-      <a href="#meilleur-buteur" class="gameShortcut" title="Les meilleurs joueur">
-        <img src="assets/jeu-meilleur-joueur.png" alt="" width="100%" height="auto" />
-      </a>
-    </div>
-    <div class="col-12 md:col-2">
-      <a href="#pronostiques" class="gameShortcut" title="Pronostiquer les matchs">
-        <img src="assets/jeu-pronostique.png" alt="" width="100%" height="auto" />
-      </a>
-    </div>
-    <div class="col-12 md:col-2">
-      <a href="#bracket" class="gameShortcut" title="Le jeu du bracket">
-        <img src="assets/jeu-bracket.png" alt="" width="100%" height="auto" />
-      </a>
-    </div>
-  </div> -->
-
-  <ng-container *ngIf="$wcGroups | async as groups; else loader">
-    <ng-container *ngIf="$teamsFlags | async as teamsFlags">
-      <div class="groupContainer mt-4">
-        <ng-container *ngFor="let group of groups">
-
-          <div class="group flex align-items-center" [ngStyle]="{'border-color': group.color}">
-            <div class="groupTitle" [ngStyle]="{'background-color': group.color }">
-              {{ group.group_title }}
-            </div>
-            <div class="groupTeams flex gap-4">
-              <div class="teamDetails">
-                <div class="team">
-                  <ng-container *ngFor="let team of teamsFlags">
-                    <div *ngIf="team.name === group.team_1" [ngStyle]="{'background': 'url(' + team.flag_url + ') center/cover'}" class="mr-2 flagContainer"></div>
-                  </ng-container>
-                  {{ group.team_1}}
-                </div>
-                <div class="team">
-                  <ng-container *ngFor="let team of teamsFlags">
-                    <div *ngIf="team.name === group.team_2" [ngStyle]="{'background': 'url(' + team.flag_url + ') center/cover'}" class="mr-2 flagContainer"></div>
-                  </ng-container>
-                  {{ group.team_2}}
-                </div>
-                <div class="team">
-                  <ng-container *ngFor="let team of teamsFlags">
-                    <div *ngIf="team.name === group.team_3" [ngStyle]="{'background': 'url(' + team.flag_url + ') center/cover'}" class="mr-2 flagContainer"></div>
-                  </ng-container>
-                  {{ group.team_3}}
-                </div>
-                <div class="team">
-                  <ng-container *ngFor="let team of teamsFlags">
-                    <div *ngIf="team.name === group.team_4" [ngStyle]="{'background': 'url(' + team.flag_url + ') center/cover'}" class="mr-2 flagContainer"></div>
-                  </ng-container>
-                  {{ group.team_4}}
-                </div>
-              </div>
-              <!-- <div class="teamPoints">
-                <div class="point">{{ group.team_1_point }}</div>
-                <div class="point">{{ group.team_2_point }}</div>
-                <div class="point">{{ group.team_3_point }}</div>
-                <div class="point">{{ group.team_4_point }}</div>
-              </div> -->
-            </div>
-          </div>
-        </ng-container>
-      </div>
-    </ng-container>
-  </ng-container>
 </div>
+
+ <app-bracket-predictor></app-bracket-predictor>
 
 <ng-template #loader>
   <loader [showLoader]="true" />

@@ -10,6 +10,9 @@ import { ServiceWorkerModule } from '@angular/service-worker';
 import { ReactiveFormsModule } from '@angular/forms';
 import { HTTP_INTERCEPTORS, provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
+import { DragDropModule } from '@angular/cdk/drag-drop';
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+
 
 // Components
 import { AppComponent } from './app.component';
@@ -50,6 +53,7 @@ import { GrouplistComponent } from './shared/components/grouplist/grouplist.comp
 import { HyphernatePipe } from './shared/pipe/hyphernate.pipe';
 import { CountryDetailsComponent } from './shared/components/country-details/country-details.component';
 import { GameRulesComponent } from './pages/game-rules/game-rules.component';
+import { BracketPredictorComponent } from './pages/games/bracket-predictor/bracket-predictor.component';
 
 @NgModule({ declarations: [
         AppComponent,
@@ -89,9 +93,12 @@ import { GameRulesComponent } from './pages/game-rules/game-rules.component';
         GrouplistComponent,
         HyphernatePipe,
         CountryDetailsComponent,
-        GameRulesComponent
+        GameRulesComponent,
+        BracketPredictorComponent
     ],
-    bootstrap: [AppComponent], imports: [BrowserModule,
+    bootstrap: [AppComponent], 
+    imports: [DragDropModule,
+        BrowserModule,
         ReactiveFormsModule,
         FormsModule,
         AppRoutingModule,

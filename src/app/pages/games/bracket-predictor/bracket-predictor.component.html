@@ -1,0 +1,129 @@
+<div class="predictor-wrapper">
+  
+  <div *ngIf="isLoading" class="loading-state">
+    <p>Chargement des groupes...</p>
+  </div>
+
+  <ng-container *ngIf="!isLoading">
+    
+    <div *ngIf="currentStep === 1" class="step-container">
+      <div class="dashboard-controls">
+        <h2>Prédictions de la phase de groupes</h2>
+        <button type="button" class="btn-reset" (click)="resetAllGroups()">
+          <span class="icon">&#x21BB;</span> Réinitialiser
+        </button>
+      </div>
+
+      <div class="groups-grid">
+        <div 
+          *ngFor="let group of groupsData; let gIdx = index" 
+          class="group-card" 
+          [ngStyle]="{'border-top-color': group.color}"
+        >
+          <div class="group-header" [ngStyle]="{'background-color': group.color}">
+            <span class="title-text">Groupe {{ group.group_title }}</span>
+            
+            <button 
+              type="button"
+              class="btn-group-randomize" 
+              (click)="randomizeGroup(gIdx); $event.stopPropagation()" 
+              title="Mélanger le groupe"
+            >
+              <span class="dice-icon">🎲</span>
+              <span class="btn-text">Choix aléatoire</span>
+            </button>
+          </div>
+
+          <div 
+            cdkDropList 
+            [cdkDropListData]="group.teams" 
+            (cdkDropListDropped)="dropTeam($event, gIdx)"
+            class="teams-list"
+          >
+            <div *ngFor="let team of group.teams; let posIdx = index" cdkDrag class="team-row">
+              <div class="team-info-block">
+                <div class="pos-badge" [ngClass]="{'is-qualified': posIdx < 2}">
+                  {{ posIdx + 1 }}
+                </div>
+                
+                <div class="team-flag" [ngStyle]="{'background-image': 'url(' + team.flagUrl + ')'}"></div>
+                <span class="team-name">{{ team.name }}</span>
+              </div>
+
+              <div class="drag-anchor-handle" cdkDragHandle>&#9776;</div>
+              <div class="row-drag-placeholder" *cdkDragPlaceholder></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="stepper-footer">
+        <button type="button" class="btn-navigation primary-next" (click)="goToThirdPlaceSelection()">
+          Suivant : Meilleurs 3èmes &rarr;
+        </button>
+      </div>
+    </div>
+
+    <div *ngIf="currentStep === 2" class="step-container">
+      
+      <div class="dashboard-controls">
+        <div class="title-block">
+          <h2>Choisissez les meilleurs troisièmes</h2>
+          <p class="subtitle-text">Sélectionnez les huit troisièmes de groupe qui accéderont à la phase à élimination directe</p>
+        </div>
+        <button type="button" class="btn-reset" (click)="resetAllGroups()">
+          <span class="icon">&#x21BB;</span> Tout réinitialiser
+        </button>
+      </div>
+
+      <div class="thirds-card-table">
+        <div class="table-header-banner">
+          <h3>CHOISISSEZ LES MEILLEURS TROISIÈMES</h3>
+          <span class="counter-badge" [ngClass]="{'complete': selectedThirdsCount === 8}">
+            {{ selectedThirdsCount }} / 8
+          </span>
+        </div>
+
+        <div class="table-columns-label">
+          <span class="col-rank">CM</span>
+          <span class="col-team">Équipe</span>
+        </div>
+
+        <div class="thirds-list">
+          <div 
+            *ngFor="let team of thirdPlacedTeams; let idx = index" 
+            class="third-team-row"
+            [ngClass]="{'row-selected': team.isSelectedThird}"
+            (click)="toggleThirdPlaceSelection(team)"
+          >
+            <div class="row-left-content">
+              <span class="rank-index">{{ 5 + (idx * 4) }}</span>
+              <div class="team-flag" [ngStyle]="{'background-image': 'url(' + team.flagUrl + ')'}"></div>
+              <span class="team-name">{{ team.name }}</span>
+            </div>
+
+            <div class="custom-selection-circle" [ngClass]="{'checked': team.isSelectedThird}">
+              <span class="check-mark" *ngIf="team.isSelectedThird">&#10003;</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="stepper-footer inline-buttons">
+        <button type="button" class="btn-navigation secondary-back" (click)="goBackToGroups()">
+          &larr; Retour aux groupes
+        </button>
+        <button 
+          type="button"
+          class="btn-navigation final-submit" 
+          [disabled]="selectedThirdsCount !== 8" 
+          (click)="submitPredictions()"
+        >
+          Valider mes prédictions
+        </button>
+      </div>
+
+    </div>
+
+  </ng-container>
+</div>

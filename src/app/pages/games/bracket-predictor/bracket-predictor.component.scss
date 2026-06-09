@@ -1,0 +1,382 @@
+// Conteneur principal de l'application (Thème Blanc Unifié)
+.predictor-wrapper {
+  box-sizing: border-box;
+  padding: 2rem 1rem;
+  max-width: 1400px;
+  margin: 0 auto;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  background-color: #f8fafc; // Léger gris de fond pour détacher les cartes blanches
+  border-radius: 16px;
+
+  * {
+    box-sizing: border-box;
+  }
+}
+
+.step-container {
+  width: 100%;
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+.loading-state {
+  text-align: center;
+  font-size: 1.2rem;
+  color: #6b7280;
+  padding: 3rem 0;
+}
+
+// Barre supérieure des contrôles (Commune aux deux étapes)
+.dashboard-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #e2e8f0;
+
+  h2 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #0f172a;
+    margin: 0;
+  }
+
+  .subtitle-text {
+    margin: 0.25rem 0 0 0;
+    color: #64748b;
+    font-size: 0.95rem;
+  }
+}
+
+.btn-reset {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background-color: #ffffff;
+  border: 1px solid #cbd5e1;
+  color: #334155;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background-color: #f8fafc;
+    border-color: #94a3b8;
+    color: #0f172a;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  }
+
+  &:active {
+    transform: scale(0.98);
+  }
+}
+
+// Layout de la Grille de Groupes
+.groups-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
+  width: 100%;
+}
+
+// Structure des Cartes (Groupes et Tableau Étape 2 identiques)
+.group-card {
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.05);
+  border-top: 6px solid #2b2b2b;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+// Headers de groupes (Garde ses couleurs dynamiques FIFA)
+.group-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 1.25rem;
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 1rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+
+  .title-text {
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
+  }
+}
+
+// Bouton Randomize Glassmorphic
+.btn-group-randomize {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  backdrop-filter: blur(4px);
+  color: #ffffff;
+  padding: 0.4rem 0.85rem;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.25);
+    border-color: rgba(255, 255, 255, 0.5);
+    transform: translateY(-1px);
+    
+    .dice-icon { transform: rotate(45deg); }
+  }
+  
+  .dice-icon {
+    font-size: 1.05rem;
+    transition: transform 0.3s ease;
+  }
+}
+
+// Listes d'équipes et Rangées (Appliqué aux deux sections)
+.teams-list {
+  background: #ffffff;
+  min-height: 180px;
+}
+
+.team-row, .third-team-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.85rem 1.25rem;
+  border-bottom: 1px solid #f1f5f9;
+  background-color: #ffffff;
+  user-select: none;
+  transition: background-color 0.15s ease;
+}
+
+.team-row {
+  cursor: grab;
+  &:active { cursor: grabbing; }
+  &:hover { background-color: #f8fafc; }
+}
+
+.team-info-block, .row-left-content {
+  display: flex;
+  align-items: center;
+}
+
+// Badges de position
+.pos-badge {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background-color: #e2e8f0;
+  color: #64748b;
+  font-size: 0.75rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 1rem;
+
+  &.is-qualified {
+    background-color: #10b981;
+    color: #ffffff;
+  }
+}
+
+.team-flag {
+  width: 34px;
+  height: 22px;
+  background-position: center;
+  background-size: cover;
+  background-repeat: no-repeat;
+  border-radius: 4px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  margin-right: 0.85rem;
+  flex-shrink: 0;
+}
+
+.team-name {
+  font-weight: 600;
+  color: #1e293b;
+  font-size: 0.95rem;
+}
+
+.drag-anchor-handle {
+  color: #94a3b8;
+  font-size: 1.2rem;
+  cursor: grab;
+}
+
+/* ================= THÈME ADAPTÉ ÉTAPE 2 : MEILLEURS TROISIÈMES ================= */
+.thirds-card-table {
+  background: #ffffff;
+  border-radius: 12px;
+  overflow: hidden;
+  max-width: 800px;
+  margin: 0 auto;
+  box-shadow: 0 4px 20px rgba(15, 23, 42, 0.08);
+  border: 1px solid #e2e8f0;
+}
+
+.table-header-banner {
+  background-color: #0f172a; // Teinte sombre élégante pour le titre du tableau principal
+  padding: 1.25rem 1.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: #ffffff;
+
+  h3 {
+    margin: 0;
+    font-size: 1.05rem;
+    font-weight: 800;
+    letter-spacing: 0.05em;
+  }
+}
+
+.counter-badge {
+  background: #334155;
+  padding: 0.4rem 1rem;
+  border-radius: 6px;
+  font-weight: 800;
+  font-size: 1.1rem;
+  font-family: monospace;
+  color: #ffffff;
+
+  &.complete {
+    background-color: #10b981;
+  }
+}
+
+.table-columns-label {
+  display: flex;
+  padding: 0.75rem 1.5rem;
+  background-color: #f1f5f9;
+  color: #64748b;
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  border-bottom: 1px solid #e2e8f0;
+
+  .col-rank { width: 60px; flex-shrink: 0; }
+  .col-team { flex-grow: 1; }
+}
+
+.third-team-row {
+  cursor: pointer;
+  
+  &:last-child { border-bottom: none; }
+  &:hover { background-color: #f8fafc; }
+
+  &.row-selected {
+    background-color: #f0fdf4; // Teinte verte discrète si sélectionné
+    
+    .custom-selection-circle {
+      background-color: #10b981;
+      border-color: #10b981;
+    }
+    .team-name {
+      color: #14532d;
+    }
+  }
+
+  .rank-index {
+    width: 60px;
+    color: #64748b;
+    font-weight: 600;
+    flex-shrink: 0;
+  }
+}
+
+// Cercles de sélection Checkbox
+.custom-selection-circle {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 2px solid #cbd5e1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  background-color: #ffffff;
+  flex-shrink: 0;
+
+  .check-mark {
+    color: #ffffff;
+    font-weight: 900;
+    font-size: 0.85rem;
+  }
+}
+
+/* --- Pied de page & Boutons de navigation --- */
+.stepper-footer {
+  margin-top: 3rem;
+  display: flex;
+  justify-content: flex-end;
+  padding-top: 1.5rem;
+  border-top: 1px solid #e2e8f0;
+  width: 100%;
+
+  &.inline-buttons { display: flex; justify-content: space-between; }
+}
+
+.btn-navigation {
+  padding: 0.85rem 2rem;
+  font-size: 1rem;
+  font-weight: 700;
+  border-radius: 8px;
+  cursor: pointer;
+  border: none;
+  transition: all 0.2s ease;
+
+  &.primary-next {
+    background-color: #2563eb;
+    color: #ffffff;
+    &:hover { background-color: #1d4ed8; }
+  }
+
+  &.secondary-back {
+    background-color: #e2e8f0;
+    color: #334155;
+    &:hover { background-color: #cbd5e1; }
+  }
+
+  &.final-submit {
+    background-color: #10b981;
+    color: #ffffff;
+    &:hover:not(:disabled) { background-color: #059669; }
+    
+    &:disabled {
+      background-color: #94a3b8;
+      cursor: not-allowed;
+      opacity: 0.6;
+    }
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Angular CDK Drag Mechanics */
+.cdk-drag-preview {
+  box-shadow: 0 10px 25px rgba(15, 23, 42, 0.15);
+  border-radius: 8px;
+  background-color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.85rem 1.25rem;
+}
+.row-drag-placeholder {
+  opacity: 0.25;
+  background: #f1f5f9;
+  border: 2px dashed #94a3b8;
+}
