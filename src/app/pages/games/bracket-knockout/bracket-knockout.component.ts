@@ -151,19 +151,47 @@ protected r32Teams: { [key: string]: Country } = {};
     this.champion = null;
   }
 
-  /**
-   * Turns an sequential array of 32 incoming teams into matched pairings: m1_1 vs m1_2, m2_1 vs m2_2...
-   */
-  private populateRoundOf32Pairs(teams: Country[]): void {
+
+  // 1. ADD THIS SETTER TO CAPTURE THE TEAMS FROM THE PARENT
+  @Input() set setupAdvancedTeams(teams: any[] | null) {
+    if (!teams || teams.length === 0) return;
+
     let matchCounter = 1;
     for (let i = 0; i < teams.length; i += 2) {
-      this.r32Teams[`m${matchCounter}_1`] = teams[i];
-      this.r32Teams[`m${matchCounter}_2`] = teams[i + 1];
+      // Safely map the lightweight objects to the strict Country type structure
+      this.r32Teams[`m${matchCounter}_1`] = this.mapToCountry(teams[i]);
+      this.r32Teams[`m${matchCounter}_2`] = this.mapToCountry(teams[i + 1]);
       matchCounter++;
     }
-    // Reset selection matches upon receiving new team calculations
+    
+    // Reset any downstream user bracket selections upon receiving new group results
     this.resetSelections();
   }
+
+// Helper method to keep your Country type mapping clean and prevent runtime errors
+private mapToCountry(team: any): Country {
+  return {
+    name: team.name,
+    flagId: team.flagId || 'tbc',
+    flagUrl: team.flagUrl || 'assets/flags/unknown.png',
+    iso: team.iso || '',
+    group: '', 
+    coach: '', 
+    worldCupAppearances: 0, 
+    worldCupGoals: 0,
+    bestResult: { en: '' },
+    internationalTitles: [],
+    qualification2026: {
+      topScorer: { en: '' },
+      topAssists: { en: '' },
+      mostUsed: '',
+      chancesCreated: '',
+      note: { en: '' },
+    },
+    funFacts: [],
+    timeline: []
+  };
+}
 
   /**
    * Evaluates user selection and automatically handles cascading tree changes
