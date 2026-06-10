@@ -1,13 +1,6 @@
-// api/create-user.js
 export default async function handler(req, res) {
-  // Gestion des permissions CORS pour votre front Angular (GitHub Pages)  
-res.setHeader('Access-Control-Allow-Origin', '*'); // Remplacez * par votre URL GitHub Pages en prod  
-res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-
-  if (req.method === 'OPTIONS') {
-    return res.status(200).end();
-  }
+  // No need for CORS headers or OPTIONS checks here. 
+  // The cors() middleware in server.mjs handles it globally.
 
   if (req.method === 'GET') {
     const DIRECTUS_URL = process.env.DIRECTUS_URL;
@@ -34,6 +27,7 @@ res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
     } catch (error) {
       return res.status(500).json({ error: 'Erreur interne du serveur', details: error.message });
     }
+
   } else if (req.method === 'POST') {
     const { email, password, first_name, last_name } = req.body;
 
@@ -44,7 +38,7 @@ res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
     const DIRECTUS_URL = process.env.DIRECTUS_URL;
     const DIRECTUS_ADMIN_TOKEN = process.env.DIRECTUS_ADMIN_TOKEN; 
-    // Note : Le rôle par défaut des utilisateurs créés doit être configuré dans Directus
+    
     try {
       const response = await fetch(`${DIRECTUS_URL}/users`, {
         method: 'POST',

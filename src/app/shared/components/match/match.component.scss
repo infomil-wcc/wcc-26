@@ -7,9 +7,9 @@
   border-radius: 0.5rem;
   min-height: 200px;
 
-  &.pronostiqueMode {
-    min-height: 300px;
-  }
+  // &.pronostiqueMode {
+  //   min-height: 315px;
+  // }
 
   &.donePronostique {
     background: $primaryColor;
@@ -74,5 +74,9 @@
     border-radius: 8px;
     padding: 10px 0 40px;
     color: white;
+  }
+
+  .min-h{
+    min-height: 100px;
   }
 }

@@ -1,7 +1,0 @@
-{
-  "/api": {
-    "target": "https://wcc-26.vercel.app",
-    "secure": true,
-    "changeOrigin": true
-  }
-}

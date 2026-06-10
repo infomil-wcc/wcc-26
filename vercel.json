@@ -1,35 +1,17 @@
 {
   "version": 2,
+  "build": {
+    "env": {
+      "NG_CLI_ANALYTICS": "false"
+    }
+  },
   "routes": [
     {
-      "src": "/api/(.*)",
-      "dest": "/api/$1"
+      "handle": "filesystem"
     },
     {
-      "handle": "filesystem"
-    }
-  ],
-  "headers": [
-    {
-      "source": "/api/(.*)",
-      "headers": [
-        {
-          "key": "Access-Control-Allow-Credentials",
-          "value": "true"
-        },
-        {
-          "key": "Access-Control-Allow-Origin",
-          "value": "https://wcc-26-app.vercel.app"
-        },
-        {
-          "key": "Access-Control-Allow-Methods",
-          "value": "GET,OPTIONS"
-        },
-        {
-          "key": "Access-Control-Allow-Headers",
-          "value": "Content-Type"
-        }
-      ]
+      "src": "/(.*)",
+      "dest": "/index.html"
     }
   ]
 }

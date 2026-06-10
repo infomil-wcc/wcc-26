@@ -120,6 +120,9 @@ export class AppComponent implements OnInit {
       case 'faq':
         this.page = 10;
         break;
+      case 'game-rules':
+        this.page = 12;
+        break;
       case 'accueil':
         this.page = 0;
         break;

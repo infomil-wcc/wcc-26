@@ -28,7 +28,7 @@ export class NavComponent implements OnInit, OnDestroy {
         "active": true
       },
       {
-        "label": "Les matchs",
+        "label": "Le calendrier",
         "route": "les-matchs",
         "active": false
       },
@@ -50,20 +50,20 @@ export class NavComponent implements OnInit, OnDestroy {
         ]
       },
       {
-        "label": "Les Jeux",
+        "label": "Les jeux",
         "route": "jeux",
         "active": false,
         "sub": [
           {
-            "label": "Meilleurs Joueurs",
+            "label": "Stars du tournoi",
             "route": "meilleur-buteur",
             "active": false
           },
-      //     {
-      //       "label": "Pronostic",
-      //       "route": "pronostiques",
-      //       "active": false
-      //     },
+          {
+            "label": "Pronostic",
+            "route": "pronostiques",
+            "active": false
+          },
       //     {
       //       "label": "Jeu du bracket",
       //       "route": "bracket",
@@ -77,8 +77,8 @@ export class NavComponent implements OnInit, OnDestroy {
         ]
       },
       {
-        "label": "Faq",
-        "route": "faq",
+        "label": "FAQ",
+        "route": "game-rules",
         "active": false
       }
     ];
