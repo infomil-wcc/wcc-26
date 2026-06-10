@@ -27,6 +27,7 @@ export interface GameElement {
   nom: string;
   description: string;
   date_debut?: string;
+  date_fin?: string;
   phases?: Record<string, PhaseDetail>;
   bareme_points_detaille?: {
     colonnes: string[];
