@@ -1,229 +1,236 @@
 <div class="match" [ngClass]="{'donePronostique': pronostiqueDone, 'pronostiqueMode': isPronostiques, 'closed': !pronostiqueDone && closed, 'matchPlayed' : match.fulltime_a !== null && match.fulltime_b !== null }">
-  <div class="flex justify-content-between align-items-center mb-3">
-    <div class="flex justify-content-center">
-      <span class="phase mt-0" *ngIf="match.group; else phase">{{ match.group }} - M{{ match.id }}</span>
+  <!-- Stadium Background Overlay with light opacity -->
+  <div class="match-bg-overlay" *ngIf="isPronostiques && stadiumImageUrl" [ngStyle]="{'background-image': 'url(' + stadiumImageUrl + ')'}"></div>
+  
+  <!-- Header Segment -->
+  <div class="match-header flex justify-content-between align-items-center">
+    <div class="header-left">
+      <span class="phase" *ngIf="match.group; else phase">{{ match.group }} - M{{ match.id }}</span>
       <ng-template #phase>
-        <span class="phase mt-0">{{ match.phase }} - M{{ match.id }}</span>
+        <span class="phase">{{ match.phase }} - M{{ match.id }}</span>
       </ng-template>
+      <div class="date-time">{{ match.date | date: 'EEEE d MMMM yyyy | HH:mm' }}</div>
     </div>
-    <div class="flex justify-content-center">
-      <p class="flex align-items-center time m-0">
-        <span class="material-symbols-outlined mr-1 ">schedule</span>
-        {{ match.date | date : 'shortTime' }}</p>
-    </div>
-  </div>
-  <div class="flex align-items-center justify-content-center mb-3" *ngIf="!isPronostiques;">
-    <div class="col-5 p-0 teamDetails">
-      <span class="flex align-items-center justify-content-center">
-        <span class="mr-2 flex flagContainer" [ngStyle]="{'background-image': match.team_a ? 'url(' + teamAFlag + ')'  : 'url(assets/flags/unknown.png)'}">
-        </span>
-        <span class="teamName">{{ match.team_a }}</span>
-      </span>
-      <span class="flex align-items-center justify-content-center mt-4"  *ngIf="match.team_a !== null " >
-        <teamperformance [teamName]="match.team_a" />
-      </span>
-    </div>
-    <div class="col-2  p-0">
-      <div class="flex align-items-center justify-content-center pb-6">
-        vs
-      </div>
-    </div>
-    <div class="col-5 p-0 teamDetails">
-      <span class="flex align-items-center justify-content-center">
-        <span class="teamName">{{ match.team_b }}</span>
-        <span class="ml-2 flex flagContainer" [ngStyle]="{'background-image': match.team_b ? 'url(' + teamBFlag + ')'  : 'url(assets/flags/unknown.png)'}">
-        </span>
-      </span>
-      <span class="flex align-items-center justify-content-center mt-4" *ngIf="match.team_b  !== null ">
-        <teamperformance [teamName]="match.team_b" />
-      </span>
-    </div>
-  </div>
-  <div class="flex justify-content-center" *ngIf="!isPronostiques; else pronostiques">
-    <p><strong>Venue:</strong> {{ match.stadium }}</p>
-  </div>
-
-  <ng-template #pronostiques>
-    <div class="pronostiques">
-      <div class="grid justify-content-center min-h">
-        <div class="md:col-5 col-4">
-          <div class="teamA flex flex-column align-items-center">
-            <span class="mr-2 flex flagContainer" [ngStyle]="{'background-image': match.team_a ? 'url(' + teamAFlag + ')'  : 'url(assets/flags/unknown.png)'}">
-              </span>
-            <div class="mt-2 text-center">
-              <strong>{{ match.team_a}}</strong>
-            </div>
-          </div>
-        </div>
-        <div class="flex-shrink-0 w-4rem flex justify-content-center align-items-center pr-2 pl-2">
-          <strong>vs</strong>
-        </div>
-        <div class="md:col-5 col-4">
-          <div class="teamB flex flex-column align-items-center">
-              <span class="mr-2 flex flagContainer" [ngStyle]="{'background-image': match.team_b ? 'url(' + teamBFlag + ')'  : 'url(assets/flags/unknown.png)'}">
-              </span>
-            <div class="mt-2 text-center">
-              <strong>{{ match.team_b}}</strong>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="pronostiqueWrapper" *ngIf="!pronostiqueDone && (!closed && !pronostiqueDone)">
-
-       
-
-        <div class="p-2 flex justify-content-center mt-2" [ngClass]="{'hidden': calcWinDrawOutcome }">
-         <button class="btn" (click)="showPronostiqueModal = true" *ngIf="!pronostiqueDone">Faire mon pronostic</button>
-        </div>
-
-
-        <modal [showModal]="showPronostiqueModal" [modalSize]="'md'" (showModalChange)="showPronostiqueModal = false">
-          <div class="grid justify-content-center mt-4 mb-2 p-4" [ngClass]="{'hidden': calcWinDrawOutcome }">
-
-             <div class="flex justify-content-center mt-2 mb-2">
-              <h3 class="label">Qui remporte la rencontre ?</h3>
-            </div>
-            <div class="col-12" >
-                <app-windraw [teamA]="match.team_a" [teamB]="match.team_b" [phase]="match.phase" [(outCome)]="matchOutcome" [disabled]="disabled" />
-              </div>
-            </div>
-
-            <ng-container *ngIf="match.fulltime">
-              <div class="flex justify-content-center mt-2">
-                <span class="label">Score Final</span>
-              </div>
-
-              <div class="grid justify-content-center">
-                <div class="col-5 p-0">
-                  <div class="teamA flex flex-column align-items-center">
-                    <app-number-input [(num)]="fullTimeA" [disabled]="disabled"></app-number-input>
-                  </div>
-                </div>
-                <div class="flex-shrink-0 w-2rem flex justify-content-center align-items-center">
-                  |
-                </div>
-                <div class="col-5 p-0">
-                  <div class="teamB flex flex-column align-items-center">
-                    <app-number-input [(num)]="fullTimeB" [disabled]="disabled"></app-number-input>
-                  </div>
-                </div>
-              </div>
-            </ng-container>
-
-            <ng-container *ngIf="match.halftime">
-              <div class="flex justify-content-center">
-                <span class="label">Score mi-temps</span>
-              </div>
-
-              <div class="grid justify-content-center">
-                <div class="col-5">
-                  <div class="teamA flex flex-column align-items-center">
-                    <app-number-input [(num)]="halfTimeA"  [disabled]="disabled"></app-number-input>
-                  </div>
-                </div>
-                <div class="flex-shrink-0 w-2rem flex justify-content-center align-items-center">
-                  |
-                </div>
-                <div class="col-5">
-                  <div class="teamB flex flex-column align-items-center">
-                    <app-number-input [(num)]="halfTimeB"  [disabled]="disabled"></app-number-input>
-                  </div>
-                </div>
-              </div>
-            </ng-container>
-
-
-            <ng-container *ngIf="match.scorer">
-              <div class="flex justify-content-center">
-                <span class="label">Un buteur</span>
-              </div>
-
-              <div class="grid justify-content-center mb-2">
-                <div class="col-6">
-                  <div class="teamA flex flex-column align-items-center input">
-                    <select name="team" id="teamSelection" (change)="nationalitySelected($event)" [disabled]="disabled">
-                      <ng-container>
-                        <option value="-" selected>Nationalité</option>
-                        <option [value]="match.team_a">{{ match.team_a }}</option>
-                        <option [value]="match.team_b">{{ match.team_b }}</option>
-                      </ng-container>
-                    </select>
-                  </div>
-                </div>
-                <div class="col-6">
-                  <div class="teamB flex flex-column align-items-center input">
-                    <select name="player" id="playerSelection" [(ngModel)]="scorer" [disabled]="disabled">
-                      <ng-container>
-                        <option value="-" selected>-</option>
-                        <ng-container *ngIf="$players | async as players">
-                          <ng-container *ngFor="let item of players">
-                            <option [value]="item.player_name">{{ item.player_name }} - ({{ item.position }})</option>
-                          </ng-container>
-                        </ng-container>
-                      </ng-container>
-                    </select>
-                  </div>
-                </div>
-              </div>
-            </ng-container>
-
-            <div class="validate flex justify-content-center mb-3" >
-              <button class="btn" alt="Valider pronostique" [disabled]="(matchOutcome ==='' && !calcWinDrawOutcome) || disabled" (click)="sendBet()">Valider mon pronostique</button>
-            </div>
-        </modal>
-
-      </div>
-
-      <div class="jeuFermer flex justify-content-center h-full align-items-center mt-4" *ngIf="closed && !pronostiqueDone">
-        <h3 class="text-center">Pronostic clos</h3>
-      </div>
-
-      <div class="pronostiqueDone flex flex-column align-items-center mt-4" *ngIf="pronostiqueDone">
-        <p>Mon pronostic:</p>
-        <h4 class="mt-0 mb-4 text-3xl"><strong>{{ donePronostique.winner_draw }}</strong></h4>
-        <ng-container *ngIf="match.fulltime">
-          <h4 class="mt-0 mb-4 text-3xl"><strong>Score final :</strong> {{ donePronostique.fulltime_a }} - {{ donePronostique.fulltime_b }}</h4>
-          <ng-container *ngIf="donePronostique.scorer ">
-            <h5 class="mt-0 mb-4 text-xl"><strong>Buteur:</strong> {{ donePronostique.scorer }}</h5>
-          </ng-container>
+    <div class="header-right">
+      <span class="badge" [ngClass]="{'scheduled': !closed && !pronostiqueDone, 'predicted': pronostiqueDone && !isSavedInApi, 'closed': closed && !pronostiqueDone, 'locked': isSavedInApi}">
+        <ng-container *ngIf="isSavedInApi; else normalBadge">
+          <span class="material-symbols-outlined align-middle mr-1" style="font-size: 0.85rem; vertical-align: middle;">lock</span>
+          <span class="align-middle">LOCKED</span>
         </ng-container>
-      </div>
-
+        <ng-template #normalBadge>
+          {{ pronostiqueDone ? 'Prédit' : (closed ? 'Clos' : 'Scheduled') }}
+        </ng-template>
+      </span>
     </div>
-  </ng-template>
+  </div>
+  <!-- Body Segment -->
+  <div class="match-body">
+    <div class="flex justify-content-between align-items-center mb-2 venue-countdown-row">
+      <div class="venue" *ngIf="match.stadium">{{ match.stadium }}</div>
+      <div class="countdown-timer text-xs font-semibold px-2 py-0.5 rounded flex align-items-center" 
+           *ngIf="countdownText"
+           [ngClass]="{'active-countdown': countdownText !== 'Match commencé' && countdownText !== 'Match terminé'}">
+        <span class="material-symbols-outlined mr-1" style="font-size: 0.95rem;">schedule</span>
+        <span>{{ countdownText }}</span>
+      </div>
+    </div>
 
-  <div class="matchResult mt-3" *ngIf="match.fulltime_a !== null && match.fulltime_b !== null">
-    <h4 class="text-center">Résultat officiel du match</h4>
-    <h4 class="text-center flex justify-content-center align-items-center pl-5"><strong>{{ match.winner_draw }}</strong> <span class="ml-2 material-symbols-outlined">
-      editor_choice
-      </span></h4>
-    <div class="flex">
-      <div class="col-5 p-0">
+    <div class="flex align-items-center justify-content-center mb-3" *ngIf="!isPronostiques;">
+      <div class="col-5 p-0 teamDetails">
         <span class="flex align-items-center justify-content-center">
-          <span class="mr-2 flex">
-            <img src="assets/flags/{{ match.team_a | lowercase }}.png" alt="" class="flag" *ngIf="match.team_a" />
-            <img src="assets/flags/unknown.png" alt="" class="flag" *ngIf="!match.team_a" />
+          <span class="mr-2 flex flagContainer" [ngStyle]="{'background-image': match.team_a ? 'url(' + teamAFlag + ')'  : 'url(assets/flags/unknown.png)'}">
           </span>
-          <span class="teamScore ml-4 text-3xl">{{ match.fulltime_a }}</span>
+          <span class="teamName">{{ match.team_a }}</span>
+        </span>
+        <span class="flex align-items-center justify-content-center mt-4"  *ngIf="match.team_a !== null " >
+          <teamperformance [teamName]="match.team_a" />
         </span>
       </div>
       <div class="col-2  p-0">
-        <div class="flex align-items-center justify-content-center pt-1">
-          -
+        <div class="flex align-items-center justify-content-center pb-6">
+          vs
         </div>
       </div>
-      <div class="col-5 p-0">
+      <div class="col-5 p-0 teamDetails">
         <span class="flex align-items-center justify-content-center">
-          <span class="teamScore mr-4 text-3xl">{{ match.fulltime_b }}</span>
-          <span class="ml-2 flex">
-            <img src="assets/flags/{{ match.team_b | lowercase }}.png" alt="" class="flag" *ngIf="match.team_b" />
-            <img src="assets/flags/unknown.png" alt="" class="flag" *ngIf="!match.team_b " />
+          <span class="teamName">{{ match.team_b }}</span>
+          <span class="ml-2 flex flagContainer" [ngStyle]="{'background-image': match.team_b ? 'url(' + teamBFlag + ')'  : 'url(assets/flags/unknown.png)'}">
           </span>
+        </span>
+        <span class="flex align-items-center justify-content-center mt-4" *ngIf="match.team_b  !== null ">
+          <teamperformance [teamName]="match.team_b" />
         </span>
       </div>
     </div>
+
+    <ng-container *ngIf="isPronostiques">
+      <div class="pronostiques">
+        <div class="grid justify-content-center align-items-center min-h mb-3">
+          
+          <!-- Team A Option Button -->
+          <div class="col-4">
+            <div class="team-option-btn teamA flex flex-column align-items-center justify-content-center position-relative"
+                 [ngClass]="{'active': matchOutcome === match.team_a, 'disabled': disabled || isSubmitting || (pronostiqueDone && !isEditing) || closed || isSavedInApi}"
+                 (click)="selectWinner(match.team_a)">
+              <span class="flex flagContainer" [ngStyle]="{'background-image': match.team_a ? 'url(' + teamAFlag + ')'  : 'url(assets/flags/unknown.png)'}"></span>
+              <span class="material-symbols-outlined winner-tick" *ngIf="matchOutcome === match.team_a">check_circle</span>
+              <div class="mt-2 text-center teamName">
+                <strong>{{ match.team_a | slice:0:3 | uppercase }}</strong>
+              </div>
+            </div>
+          </div>
+
+          <!-- Center Column (Score Inputs + Draw Button / vs) -->
+          <div class="col-4 flex flex-column justify-content-center align-items-center px-1 gap-2">
+            <!-- Always show VS text at the top -->
+            <strong class="text-sm label uppercase">vs</strong>
+
+            <ng-container *ngIf="(!pronostiqueDone || isEditing) && !closed; else predictedScores">
+              <!-- Score Final Inputs -->
+              <div class="flex align-items-center gap-1" *ngIf="match.fulltime">
+                <app-number-input [(num)]="fullTimeA" [disabled]="disabled || isSubmitting"></app-number-input>
+                <span class="px-1 font-bold">:</span>
+                <app-number-input [(num)]="fullTimeB" [disabled]="disabled || isSubmitting"></app-number-input>
+              </div>
+              
+              <!-- Draw Option Button -->
+              <button class="draw-option-btn btn py-1 px-3" 
+                      *ngIf="match.phase === 'Group Stage'"
+                      [ngClass]="{'active': matchOutcome === 'Draw'}"
+                      (click)="selectWinner('Draw')"
+                      [disabled]="disabled || isSubmitting || (pronostiqueDone && !isEditing) || closed || isSavedInApi">
+                Draw
+              </button>
+            </ng-container>
+            
+            <ng-template #predictedScores>
+              <!-- Show predicted scores inline in the center of the flags as styled boxes -->
+              <div class="flex align-items-center gap-2 font-bold text-xl" *ngIf="match.fulltime && pronostiqueDone">
+                <span class="score-box">{{ donePronostique.fulltime_a }}</span>
+                <span class="score-box">{{ donePronostique.fulltime_b }}</span>
+              </div>
+            </ng-template>
+          </div>
+
+          <!-- Team B Option Button -->
+          <div class="col-4">
+            <div class="team-option-btn teamB flex flex-column align-items-center justify-content-center position-relative"
+                 [ngClass]="{'active': matchOutcome === match.team_b, 'disabled': disabled || isSubmitting || (pronostiqueDone && !isEditing) || closed || isSavedInApi}"
+                 (click)="selectWinner(match.team_b)">
+              <span class="flex flagContainer" [ngStyle]="{'background-image': match.team_b ? 'url(' + teamBFlag + ')'  : 'url(assets/flags/unknown.png)'}"></span>
+              <span class="material-symbols-outlined winner-tick" *ngIf="matchOutcome === match.team_b">check_circle</span>
+              <div class="mt-2 text-center teamName">
+                <strong>{{ match.team_b | slice:0:3 | uppercase }}</strong>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="pronostiqueWrapper" *ngIf="(!pronostiqueDone || isEditing) && !closed">
+
+          <!-- Score mi-temps -->
+          <div class="halftimeContainer mt-2 mb-3" *ngIf="match.halftime">
+            <div class="flex justify-content-center mb-2">
+              <span class="label">Score mi-temps</span>
+            </div>
+            <div class="flex justify-content-center align-items-center gap-1">
+              <app-number-input [(num)]="halfTimeA" [disabled]="disabled || isSubmitting"></app-number-input>
+              <span class="px-1 font-bold">:</span>
+              <app-number-input [(num)]="halfTimeB" [disabled]="disabled || isSubmitting"></app-number-input>
+            </div>
+          </div>
+
+          <!-- Un buteur -->
+          <div class="scorerContainer mt-2 mb-3" *ngIf="match.scorer">
+            <div class="flex justify-content-center mb-2">
+              <span class="label">Un buteur</span>
+            </div>
+            <div class="grid justify-content-center mb-2">
+              <div class="col-6">
+                <div class="teamA flex flex-column align-items-center input">
+                  <select name="team" class="w-full text-center py-1" (change)="nationalitySelected($event)" [disabled]="disabled || isSubmitting">
+                    <option value="-" selected>Nationalité</option>
+                    <option [value]="match.team_a">{{ match.team_a }}</option>
+                    <option [value]="match.team_b">{{ match.team_b }}</option>
+                  </select>
+                </div>
+              </div>
+              <div class="col-6">
+                <div class="teamB flex flex-column align-items-center input">
+                  <select name="player" class="w-full text-center py-1" [(ngModel)]="scorer" [disabled]="disabled || isSubmitting">
+                    <option value="-" selected>-</option>
+                    <ng-container *ngIf="$players | async as players">
+                      <option *ngFor="let item of players" [value]="item.player_name">{{ item.player_name }} - ({{ item.position }})</option>
+                    </ng-container>
+                  </select>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+
+
+        </div>
+
+        <div class="jeuFermer flex justify-content-center h-full align-items-center mt-4" *ngIf="closed && !pronostiqueDone">
+          <h3 class="text-center text-sm font-semibold">Pronostic clos</h3>
+        </div>
+
+        <div class="pronostiqueDone flex flex-column align-items-center mt-2" *ngIf="pronostiqueDone && !isEditing">
+          <h4 class="mt-0 mb-1 text-2xl font-bold text-center">
+            <strong>
+              {{ donePronostique.winner_draw }}
+              <span *ngIf="donePronostique.winner_draw && donePronostique.winner_draw !== 'Draw'">🏆</span>
+            </strong>
+          </h4>
+          <ng-container *ngIf="match.fulltime">
+            <h4 class="mt-0 mb-3 text-xl font-bold text-center"><strong>Score final :</strong> {{ donePronostique.fulltime_a }} - {{ donePronostique.fulltime_b }}</h4>
+            <ng-container *ngIf="donePronostique.scorer && donePronostique.scorer !== '-'">
+              <h5 class="mt-0 mb-2 text-md text-center"><strong>Buteur :</strong> {{ donePronostique.scorer }}</h5>
+            </ng-container>
+          </ng-container>
+          
+          <!-- Modify Button -->
+          <button class="btn-pill-orange mt-3 py-1 px-4 text-sm" *ngIf="!closed && !match.played && !isSavedInApi" (click)="isEditing = true">Modifier mon pronostic</button>
+        </div>
+
+      </div>
+    </ng-container>
+    
+    <div class="matchResult mt-3" *ngIf="match.fulltime_a !== null && match.fulltime_b !== null">
+      <h4 class="text-center">Résultat officiel du match</h4>
+      <h4 class="text-center flex justify-content-center align-items-center pl-5"><strong>{{ match.winner_draw }}</strong> <span class="ml-2 material-symbols-outlined">
+        editor_choice
+        </span></h4>
+      <div class="flex">
+        <div class="col-5 p-0">
+          <span class="flex align-items-center justify-content-center">
+            <span class="mr-2 flex">
+              <img src="assets/flags/{{ match.team_a | lowercase }}.png" alt="" class="flag" *ngIf="match.team_a" />
+              <img src="assets/flags/unknown.png" alt="" class="flag" *ngIf="!match.team_a" />
+            </span>
+            <span class="teamScore ml-4 text-3xl">{{ match.fulltime_a }}</span>
+          </span>
+        </div>
+        <div class="col-2  p-0">
+          <div class="flex align-items-center justify-content-center pt-1">
+            -
+          </div>
+        </div>
+        <div class="col-5 p-0">
+          <span class="flex align-items-center justify-content-center">
+            <span class="teamScore mr-4 text-3xl">{{ match.fulltime_b }}</span>
+            <span class="ml-2 flex">
+              <img src="assets/flags/{{ match.team_b | lowercase }}.png" alt="" class="flag" *ngIf="match.team_b" />
+              <img src="assets/flags/unknown.png" alt="" class="flag" *ngIf="!match.team_b " />
+            </span>
+          </span>
+        </div>
+      </div>
+    </div>
   </div>
+
 </div>
 
 <loader [showLoader]="showLoader" />

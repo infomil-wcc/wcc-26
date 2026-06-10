@@ -1,20 +1,19 @@
 <div class="windrawSelector flex" *ngIf="teamA && teamB">
-  <div class="p-0" [ngClass]="{'col-6 sm:col-6': phase !== 'Group Stage', 'col-5 sm:col-4': phase === 'Group Stage' }">
-    <button class="btnSelector teamA flex justify-content-center align-items-center" [ngClass]="{'active': outCome === teamA }" (click)="winDrawSelect(teamA)" [disabled]="disabled">
-      <span class="material-symbols-outlined mr-1" *ngIf="outCome === teamA">check</span>
+  <div class="option-wrapper">
+    <button class="btnSelector teamA" [ngClass]="{'active': outCome === teamA }" (click)="winDrawSelect(teamA)" [disabled]="disabled">
+      <span *ngIf="outCome === teamA">🏆</span>
       {{ teamA }}
     </button>
   </div>
-  <div class="col p-0 sm:col-4" *ngIf="phase === 'Group Stage'">
-    <button class="draw flex justify-content-center align-items-center" [ngClass]="{'active': outCome === 'Draw' }" (click)="winDrawSelect('Draw')" [disabled]="disabled">
-     Draw
+  <div class="option-wrapper" *ngIf="phase === 'Group Stage'">
+    <button class="draw" [ngClass]="{'active': outCome === 'Draw' }" (click)="winDrawSelect('Draw')" [disabled]="disabled">
+      Draw
     </button>
   </div>
-  <div class="p-0" [ngClass]="{'col-6 sm:col-6': phase !== 'Group Stage', 'col-5 sm:col-4': phase === 'Group Stage' }">
-    <button class="btnSelector teamB flex justify-content-center align-items-center" [ngClass]="{'active': outCome === teamB }" (click)="winDrawSelect(teamB)" [disabled]="disabled">
-      <span class="material-symbols-outlined mr-1" *ngIf="outCome === teamB">check</span>
+  <div class="option-wrapper">
+    <button class="btnSelector teamB" [ngClass]="{'active': outCome === teamB }" (click)="winDrawSelect(teamB)" [disabled]="disabled">
+      <span *ngIf="outCome === teamB">🏆</span>
       {{ teamB }}
     </button>
-
   </div>
 </div>
