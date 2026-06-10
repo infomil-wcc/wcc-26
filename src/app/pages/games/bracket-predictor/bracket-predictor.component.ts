@@ -34,6 +34,7 @@ export class BracketPredictorComponent implements OnInit {
   protected currentStep: number = 1; 
   protected thirdPlacedTeams: PredictorTeam[] = [];
   protected selectedThirdsCount: number = 0;
+  protected confirmedGroups: boolean[] = [];
 
   ngOnInit(): void {
     forkJoin({
@@ -57,13 +58,23 @@ export class BracketPredictorComponent implements OnInit {
         }));
         
         this.initialGroupsData = JSON.parse(JSON.stringify(this.groupsData));
+        this.confirmedGroups = new Array(this.groupsData.length).fill(false);
         this.isLoading = false;
       }
     });
   }
 
+  protected toggleGroupConfirmation(index: number): void {
+    this.confirmedGroups[index] = !this.confirmedGroups[index];
+  }
+
+  protected areAllGroupsConfirmed(): boolean {
+    return this.confirmedGroups.every(c => c);
+  }
+
   protected dropTeam(event: CdkDragDrop<PredictorTeam[]>, groupIndex: number): void {
     moveItemInArray(this.groupsData[groupIndex].teams, event.previousIndex, event.currentIndex);
+    this.confirmedGroups[groupIndex] = false; // Reset confirmation if reordered
   }
 
   protected randomizeGroup(groupIndex: number): void {

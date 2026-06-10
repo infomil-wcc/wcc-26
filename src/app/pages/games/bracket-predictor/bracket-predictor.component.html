@@ -42,7 +42,8 @@
           >
             <div *ngFor="let team of group.teams; let posIdx = index" cdkDrag class="team-row">
               <div class="team-info-block">
-                <div class="pos-badge" [ngClass]="{'is-qualified': posIdx < 2}">
+                <!-- Make rank clickable to toggle/confirm -->
+                <div class="pos-badge" [ngClass]="{'is-qualified': posIdx < 2}" (click)="toggleGroupConfirmation(gIdx)">
                   {{ posIdx + 1 }}
                 </div>
                 
@@ -53,12 +54,16 @@
               <div class="drag-anchor-handle" cdkDragHandle>&#9776;</div>
               <div class="row-drag-placeholder" *cdkDragPlaceholder></div>
             </div>
+            <!-- Confirmation indicator -->
+            <div class="group-confirmation" [ngClass]="{'confirmed': confirmedGroups[gIdx]}" (click)="toggleGroupConfirmation(gIdx)">
+                {{ confirmedGroups[gIdx] ? 'Groupe validé ✓' : 'Valider ce groupe' }}
+            </div>
           </div>
         </div>
       </div>
 
       <div class="stepper-footer">
-        <button type="button" class="btn-navigation primary-next" (click)="goToThirdPlaceSelection()">
+        <button type="button" class="btn-navigation primary-next" [disabled]="!areAllGroupsConfirmed()" (click)="goToThirdPlaceSelection()">
           Suivant : Meilleurs 3èmes &rarr;
         </button>
       </div>
