@@ -1,85 +1,127 @@
-<div class="filter w-full pt-4 pb-4 pl-2 pr-2">
-  <div class="container">
-    <h1 class="text-white flex">
-      <span class="material-symbols-outlined">trophy</span>
-      Classement IML
-    </h1>
-  </div>
-</div>
-
-<div class="container pt-4">
-
-
-
-  <ng-container *ngIf="$ranks | async as ranks;">
-
-    <ng-container *ngIf="latestRank">
-      <h2 class="flex flex-column justify-content-between mb-4 md:flex-row">Classement du jeu de "Pronostic" <span class="update mt-4 md:mt-0"><span class="material-symbols-outlined">
-        history_toggle_off
-        </span> Mise a jour le <span class="dateUpdate">{{ latestRank.modified_on | date: 'medium' }}</span></span></h2>
-        <div class="classementContainer">
-          <table class="tableRanking" [cellPadding]="0" [cellSpacing]="0">
-            <thead>
-              <tr>
-                <th>Rang</th>
-                <th>Trigramme</th>
-                <th>Points</th>
-              </tr>
-            </thead>
-            <tbody>
-              <ng-container *ngFor="let rank of latestRank.ranking_json">
-                <tr>
-                  <td>{{ rank.rank }}</td>
-                  <td>{{ rank.key | uppercase }}</td>
-                  <td>{{ rank.point }}</td>
-                </tr>
-              </ng-container>
-            </tbody>
-          </table>
-        </div>
-    </ng-container>
-  </ng-container>
-
-  <ng-container *ngIf="$bracketRanks | async as bracketranks;">
-    <h2 class="flex flex-column justify-content-between mb-4 mt-8 md:flex-row">Classement du jeu "Bracket"</h2>
-    <div class="classementContainer">
-      <table class="tableRanking" [cellPadding]="0" [cellSpacing]="0">
-        <thead>
-          <tr>
-            <th>Rang</th>
-            <th>Trigramme</th>
-            <th>Points</th>
-          </tr>
-        </thead>
-        <tbody>
-        <ng-container *ngFor="let rank of bracketranks[0].ranking_json">
-          <tr>
-            <td>{{ rank.rank }}</td>
-            <td>{{ rank.user | uppercase }}</td>
-            <td>{{ rank.point }}</td>
-          </tr>
-        </ng-container>
-        </tbody>
-      </table>
+<div class="leaderboard-page">
+  <!-- Docked Header -->
+  <div class="ranking-header fixed left-0 w-full">
+    <div class="header-filter w-full pt-4 pb-4 pl-3 pr-3">
+      <div class="container text-left">
+        <h1 class="text-white flex align-items-center gap-2 text-2xl font-bold m-0">
+          <span class="material-symbols-outlined">sports_esports</span>
+          IML FOOT CHALLENGE LEADERBOARD
+        </h1>
+      </div>
     </div>
-  </ng-container>
+  </div>
 
-  <h2 class="flex flex-column justify-content-between mb-4 mt-8 md:flex-row">Gagnant du jeu "Meilleurs Joueurs"</h2>
-  <table class="tableRanking" [cellPadding]="0" [cellSpacing]="0">
-    <thead>
-      <tr>
-        <th>Rang</th>
-        <th>Trigramme</th>
-      </tr>
-    </thead>
-    <tbody>
+  <div class="container leaderboard-main flex flex-column h-full">
 
-      <tr>
-        <td>1</td>
-        <td>IML-SOT</td>
-      </tr>
-    </tbody>
-  </table>
+    <!-- Podium segment -->
+    <div class="podium-container flex justify-content-center align-items-end mb-6 gap-2 md:gap-4">
+      
+      <!-- 2nd Place (Left) -->
+      <div class="podium-spot spot-2nd flex flex-column align-items-center" *ngIf="topThree[0] as player">
+        <div class="avatar-wrapper flex align-items-center justify-content-center mb-2">
+          <img [src]="getChampionFlag(player.key || player.user)" class="champion-flag" alt="" />
+          <div class="podium-username text-xs font-bold text-white">
+            <div class="pos-num">2.</div>
+            <div class="usr-name">{{ (player.key || player.user) | uppercase }}</div>
+          </div>
+        </div>
+        <div class="podium-predicted-winner text-xs font-semibold text-white-alpha-80 mb-2" *ngIf="getChampionCountry(player.key || player.user) as country">
+          🏆 {{ country }}
+        </div>
+        <div class="podium-step flex flex-column align-items-center justify-content-center w-full">
+          <span class="material-symbols-outlined">workspace_premium</span>
+          <span class="podium-pts">{{ player.point }} PTS</span>
+        </div>
+      </div>
+
+      <!-- 1st Place (Center) -->
+      <div class="podium-spot spot-1st flex flex-column align-items-center" *ngIf="topThree[1] as player">
+        <div class="avatar-wrapper first-place flex align-items-center justify-content-center mb-2">
+          <img [src]="getChampionFlag(player.key || player.user)" class="champion-flag" alt="" />
+          <div class="podium-username text-sm font-extrabold text-white">
+            <div class="pos-num">1.</div>
+            <div class="usr-name">{{ (player.key || player.user) | uppercase }}</div>
+          </div>
+        </div>
+        <div class="podium-predicted-winner text-xs font-semibold text-white-alpha-90 mb-2" *ngIf="getChampionCountry(player.key || player.user) as country">
+          🏆 {{ country }}
+        </div>
+        <div class="podium-step flex flex-column align-items-center justify-content-center w-full">
+          <span class="material-symbols-outlined">emoji_events</span>
+          <span class="podium-pts">{{ player.point }} PTS</span>
+        </div>
+      </div>
+
+      <!-- 3rd Place (Right) -->
+      <div class="podium-spot spot-3rd flex flex-column align-items-center" *ngIf="topThree[2] as player">
+        <div class="avatar-wrapper flex align-items-center justify-content-center mb-2">
+          <img [src]="getChampionFlag(player.key || player.user)" class="champion-flag" alt="" />
+          <div class="podium-username text-xs font-bold text-white">
+            <div class="pos-num">3.</div>
+            <div class="usr-name">{{ (player.key || player.user) | uppercase }}</div>
+          </div>
+        </div>
+        <div class="podium-predicted-winner text-xs font-semibold text-white-alpha-80 mb-2" *ngIf="getChampionCountry(player.key || player.user) as country">
+          🏆 {{ country }}
+        </div>
+        <div class="podium-step flex flex-column align-items-center justify-content-center w-full">
+          <span class="material-symbols-outlined">military_tech</span>
+          <span class="podium-pts">{{ player.point }} PTS</span>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Table & Tabbar Wrapper -->
+    <div class="table-wrapper mx-auto mt-4">
+      
+      <!-- Tournament Switch Tabs (now acting as a tabbar on the player rankings list) -->
+      <div class="flex justify-content-center gap-3 mb-3 tournament-tabs">
+        <button class="btn-tab flex align-items-center justify-content-center px-4 py-3 gap-3"
+                [ngClass]="{'active': activeTab === 'prediction'}"
+                (click)="switchTab('prediction')">
+          <img src="assets/jeu-pronostique.png" alt="Prediction" class="tab-logo" />
+          <span class="tab-label">Jeu des pronostics</span>
+        </button>
+        <button class="btn-tab flex align-items-center justify-content-center px-4 py-3 gap-3"
+                [ngClass]="{'active': activeTab === 'bracket'}"
+                (click)="switchTab('bracket')">
+          <img src="assets/jeu-bracket.png" alt="Bracket" class="tab-logo" />
+          <span class="tab-label">Jeu bracket</span>
+        </button>
+
+      </div>
+
+      <!-- Players Table -->
+      <div class="table-container text-left">
+        <div class="table-header flex justify-content-between px-3 py-2 text-xs font-bold uppercase tracking-wider text-white-alpha-50 mb-2">
+          <div class="col-head-player"># Player</div>
+          <div class="col-head-pts">PTS</div>
+        </div>
+        
+        <div class="table-body flex flex-column gap-2">
+          <div class="table-row flex justify-content-between align-items-center px-3 py-2.5" 
+               *ngFor="let player of remainingPlayers; let i = index">
+            <div class="flex align-items-center gap-3">
+              <span class="row-rank text-sm font-bold text-white-alpha-70">{{ player.rank }}</span>
+              <div class="row-avatar flex align-items-center justify-content-center">
+                <img [src]="getChampionFlag(player.key || player.user)" class="champion-flag" alt="" />
+              </div>
+              <div class="flex flex-column text-left">
+                <span class="row-username text-base font-bold text-white">{{ (player.key || player.user) | uppercase }}</span>
+                <span class="text-xs text-white-alpha-60 font-semibold" *ngIf="getChampionCountry(player.key || player.user) as country">
+                  Vainqueur prédit: {{ country }}
+                </span>
+              </div>
+            </div>
+            <span class="row-pts text-base font-bold text-white">{{ player.point }}</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
 </div>
 
 <loader [showLoader]="showLoader" />

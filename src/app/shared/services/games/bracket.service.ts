@@ -31,6 +31,12 @@ export class BracketService {
     }
   }
 
+  getBrackets(): Observable<any> {
+    return this.httpClient.get<any>(`${this.prodUrl}/items/bracket`).pipe(
+      map(response => response.data)
+    );
+  }
+
   postBracket(bracket: any): Observable<any> {
     let token = this.cookieService.get('currentToken');
   
