@@ -19,6 +19,10 @@
                 <img [src]="r32Teams['m'+pair+'_2'].flagUrl" class="slot-flag" alt="">
                 <span class="slot-name-text">{{ r32Teams['m'+pair+'_2'].name }}</span>
               </div>
+              <div class="match-info">
+                <span class="match-date-time">Date: {{ r32Teams['m'+pair].date }} Time: {{ r32Teams['m'+pair].time }}</span>
+                <span class="match-stadium">Stadium: {{ r32Teams['m'+pair].stadium }}</span>
+              </div>
             </div>
           </div>
 
@@ -32,6 +36,10 @@
               <div class="team-slot" [class.selected]="wR32['m'+(pair+1)]?.name === r32Teams['m'+(pair+1)+'_2'].name" (click)="selectWinner('R32', 'm'+(pair+1), r32Teams['m'+(pair+1)+'_2'])">
                 <img [src]="r32Teams['m'+(pair+1)+'_2'].flagUrl" class="slot-flag" alt="">
                 <span class="slot-name-text">{{ r32Teams['m'+(pair+1)+'_2'].name }}</span>
+              </div>
+              <div class="match-info">
+                <span class="match-date-time">Date: {{ r32Teams['m'+(pair+1)].date }} Time: {{ r32Teams['m'+(pair+1)].time }}</span>
+                <span class="match-stadium">Stadium: {{ r32Teams['m'+(pair+1)].stadium }}</span>
               </div>
             </div>
           </div>
@@ -56,6 +64,10 @@
                 <img [src]="wR32['m'+(pair*2)]?.flagUrl || 'assets/flags/unknown.png'" class="slot-flag" alt="">
                 <span class="slot-name-text">{{ wR32['m'+(pair*2)]?.name || 'À déterminer' }}</span>
               </div>
+              <div class="match-info">
+                <span class="match-date-time">Date: {{ wR16['m'+pair].date }} Time: {{ wR16['m'+pair].time }}</span>
+                <span class="match-stadium">Stadium: {{ wR16['m'+pair].stadium }}</span>
+              </div>
             </div>
           </div>
 
@@ -69,6 +81,10 @@
               <div class="team-slot" [class.disabled]="!wR32['m'+((pair+1)*2)]" [class.selected]="wR16['m'+(pair+1)]?.name === wR32['m'+((pair+1)*2)]?.name" (click)="wR32['m'+((pair+1)*2)] && selectWinner('R16', 'm'+(pair+1), wR32['m'+((pair+1)*2)]!)">
                 <img [src]="wR32['m'+((pair+1)*2)]?.flagUrl || 'assets/flags/unknown.png'" class="slot-flag" alt="">
                 <span class="slot-name-text">{{ wR32['m'+((pair+1)*2)]?.name || 'À déterminer' }}</span>
+              </div>
+              <div class="match-info">
+                <span class="match-date-time">Date: {{ wR16['m'+(pair+1)].date }} Time: {{ wR16['m'+(pair+1)].time }}</span>
+                <span class="match-stadium">Stadium: {{ wR16['m'+(pair+1)].stadium }}</span>
               </div>
             </div>
           </div>
@@ -93,6 +109,10 @@
                 <img [src]="wR16['m'+(pair*2)]?.flagUrl || 'assets/flags/unknown.png'" class="slot-flag" alt="">
                 <span class="slot-name-text">{{ wR16['m'+(pair*2)]?.name || 'À déterminer' }}</span>
               </div>
+              <div class="match-info">
+                <span class="match-date-time">Date: {{ wR4['m'+pair].date }} Time: {{ wR4['m'+pair].time }}</span>
+                <span class="match-stadium">Stadium: {{ wR4['m'+pair].stadium }}</span>
+              </div>
             </div>
           </div>
 
@@ -106,6 +126,10 @@
               <div class="team-slot" [class.disabled]="!wR16['m'+((pair+1)*2)]" [class.selected]="wR4['m'+(pair+1)]?.name === wR16['m'+((pair+1)*2)]?.name" (click)="wR16['m'+((pair+1)*2)] && selectWinner('R4', 'm'+(pair+1), wR16['m'+((pair+1)*2)]!)">
                 <img [src]="wR16['m'+((pair+1)*2)]?.flagUrl || 'assets/flags/unknown.png'" class="slot-flag" alt="">
                 <span class="slot-name-text">{{ wR16['m'+((pair+1)*2)]?.name || 'À déterminer' }}</span>
+              </div>
+              <div class="match-info">
+                <span class="match-date-time">Date: {{ wR4['m'+(pair+1)].date }} Time: {{ wR4['m'+(pair+1)].time }}</span>
+                <span class="match-stadium">Stadium: {{ wR4['m'+(pair+1)].stadium }}</span>
               </div>
             </div>
           </div>
@@ -130,6 +154,10 @@
                 <img [src]="wR4['m2']?.flagUrl || 'assets/flags/unknown.png'" class="slot-flag" alt="">
                 <span class="slot-name-text">{{ wR4['m2']?.name || 'À déterminer' }}</span>
               </div>
+              <div class="match-info">
+                <span class="match-date-time">Date: {{ wS['m1'].date }} Time: {{ wS['m1'].time }}</span>
+                <span class="match-stadium">Stadium: {{ wS['m1'].stadium }}</span>
+              </div>
             </div>
           </div>
 
@@ -143,6 +171,10 @@
               <div class="team-slot" [class.disabled]="!wR4['m4']" [class.selected]="wS['m2']?.name === wR4['m4']?.name" (click)="wR4['m4'] && selectWinner('S', 'm2', wR4['m4']!)">
                 <img [src]="wR4['m4']?.flagUrl || 'assets/flags/unknown.png'" class="slot-flag" alt="">
                 <span class="slot-name-text">{{ wR4['m4']?.name || 'À déterminer' }}</span>
+              </div>
+              <div class="match-info">
+                <span class="match-date-time">Date: {{ wS['m2'].date }} Time: {{ wS['m2'].time }}</span>
+                <span class="match-stadium">Stadium: {{ wS['m2'].stadium }}</span>
               </div>
             </div>
           </div>
@@ -166,6 +198,10 @@
             <div class="team-slot large-slot" [class.disabled]="!wS['m2']" [class.selected]="champion?.name === wS['m2']?.name" (click)="wS['m2'] && (champion = wS['m2'])">
               <img [src]="wS['m2']?.flagUrl || 'assets/flags/unknown.png'" class="slot-flag big-flag" alt="">
               <span class="slot-name-text text-lg">{{ wS['m2']?.name || 'Finaliste 2' }}</span>
+            </div>
+            <div class="match-info">
+              <span class="match-date-time">Date: {{ champion?.date }} Time: {{ champion?.time }}</span>
+              <span class="match-stadium">Stadium: {{ champion?.stadium }}</span>
             </div>
           </div>
 
