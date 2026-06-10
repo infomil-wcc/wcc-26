@@ -74,6 +74,7 @@
       "date_debut": "2026-06-28 09:00",
       "date_fin": "2026-06-28 23:00",
       "bareme_points": { "phase_groupe":50,"16eme_de_finale": 10, "8eme_de_finale": 20, "quart_de_finale": 30, "demi_finale": 40,"finaliste": 75, "finale": 100 },      "bonus_tout_groupe": 30,
+       "bonus_tout_group": 30,
       "interet": "Chaque bon vainqueur te fait grimper au classement !",
       "conditions_egalite": {
         "etape_1": "Le participant ayant le plus grand nombre de prédictions correctes est déclaré gagnant.",
