@@ -73,7 +73,8 @@
       "description": "Une fois la phase des groupes terminés, devine les vainqueurs de chaque match jusqu’à la finale.",
       "date_debut": "2026-06-28 09:00",
       "date_fin": "2026-06-28 23:00",
-      "bareme_points": { "phase_groupe":50,"16eme_de_finale": 10, "8eme_de_finale": 20, "quart_de_finale": 30, "demi_finale": 40,"finaliste": 75, "finale": 100 },      "bonus_tout_groupe": 30,
+      "bareme_points": { "phase_groupe":50,"16eme_de_finale": 10, "8eme_de_finale": 20, "quart_de_finale": 30, "demi_finale": 40,"finaliste": 75, "finale": 100 },
+      "bonus_tout_groupe": 30,
       "interet": "Chaque bon vainqueur te fait grimper au classement !",
       "conditions_egalite": {
         "etape_1": "Le participant ayant le plus grand nombre de prédictions correctes est déclaré gagnant.",
@@ -88,7 +89,9 @@
         "La participation au jeu implique l’acceptation complète du présent règlement.",
         "Les organisateurs se réservent le droit de statuer sur toute situation non prévue par le présent règlement.",
         "Ce jeu est exclusivement réservé aux employés d’Infomil (Mauritius) Ltd, et l’inscription doit être effectuée uniquement via votre adresse e-mail @infomil.mu."
-      ]
+      ],
+      "date_debut": "2026-12-31 09:00",
+      "date_fin": "2026-12-31 23:00"
     }
   ]
 }

@@ -138,7 +138,10 @@
                 <span class="st-b-val">+{{ item.value }} PTS</span>
               </div>
             </div>
-            <br />
+            <div class="st-total-banner">
+              <span>Prédiction du bon classement de tout le groupe :</span>
+              <strong>{{ step.bonus_tout_groupe }} Points !</strong>
+            </div>
             <div class="st-rule-callout" *ngIf="step.conditions_egalite">
               <h4>⚖️ Règles d'égalité spécifiques au Bracket :</h4>
               <p><strong>1️⃣</strong> {{ step.conditions_egalite.etape_1 }}</p>

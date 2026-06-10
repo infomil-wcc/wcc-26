@@ -45,6 +45,7 @@ export interface GameElement {
   };
   bareme_points?: Record<string, number>;
   interet?: string;
+  bonus_tout_groupe? : number;
   conditions_egalite?: {
     etape_1: string;
     etape_2: string;
