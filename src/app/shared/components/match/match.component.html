@@ -46,11 +46,11 @@
   <ng-template #pronostiques>
     <div class="pronostiques">
       <div class="grid justify-content-center">
-        <div class="col-4">
+        <div class="md:col-5 col-4">
           <div class="teamA flex flex-column align-items-center">
             <span class="mr-2 flex flagContainer" [ngStyle]="{'background-image': match.team_a ? 'url(' + teamAFlag + ')'  : 'url(assets/flags/unknown.png)'}">
               </span>
-            <div class="mt-2">
+            <div class="mt-2 text-center">
               <strong>{{ match.team_a}}</strong>
             </div>
           </div>
@@ -58,11 +58,11 @@
         <div class="flex-shrink-0 w-4rem flex justify-content-center align-items-center pr-2 pl-2">
           <strong>vs</strong>
         </div>
-        <div class="col-4">
+        <div class="md:col-5 col-4">
           <div class="teamB flex flex-column align-items-center">
               <span class="mr-2 flex flagContainer" [ngStyle]="{'background-image': match.team_b ? 'url(' + teamBFlag + ')'  : 'url(assets/flags/unknown.png)'}">
               </span>
-            <div class="mt-2">
+            <div class="mt-2 text-center">
               <strong>{{ match.team_b}}</strong>
             </div>
           </div>
