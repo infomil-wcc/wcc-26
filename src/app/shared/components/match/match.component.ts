@@ -46,6 +46,7 @@ export class MatchComponent implements OnInit{
   protected teamBFlag: string = '';
   protected $players!: Observable<Player[]>;
   protected donePronostique!: any;
+  protected showPronostiqueModal = false;
 
 
   ngOnInit(): void {
