@@ -267,6 +267,7 @@
               </span>
             </div>
           </div>
+
           <div class="winner-modal-overlay" *ngIf="showWinnerModal && modalContext">
             <div class="modal-content">
               <h3>Choisissez le vainqueur</h3>
@@ -288,14 +289,16 @@
             </div>
 
 
-            <div class="trophy-announcement-container" *ngIf="champion">
-              <div class="gold-title">🏆 VAINQUEUR DU TOURNOI 🏆</div>
-              <div class="winner-gold-badge">
-                <img [src]="champion.flagUrl || 'assets/flags/unknown.png'" alt="">
-                <strong>{{ champion.name || 'Inconnu' }}</strong>
-              </div>
+          </div>
+
+          <div class="trophy-announcement-container" *ngIf="champion">
+            <div class="gold-title">🏆 VAINQUEUR DU TOURNOI 🏆</div>
+            <div class="winner-gold-badge">
+              <img [src]="champion.flagUrl || 'assets/flags/unknown.png'" alt="">
+              <strong>{{ champion.name || 'Inconnu' }}</strong>
             </div>
           </div>
+
         </div>
       </div>
 

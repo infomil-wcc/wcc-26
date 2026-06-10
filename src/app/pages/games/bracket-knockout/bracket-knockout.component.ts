@@ -50,7 +50,7 @@ export class BracketKnockoutComponent implements OnInit {
     }
   }
 
-  protected currentUser!: string;
+  protected currentUser: string = '';
   protected resultMode: boolean = false;
   protected $bracket!: Observable<any>;
 
@@ -74,8 +74,15 @@ export class BracketKnockoutComponent implements OnInit {
   ngOnInit(): void {
     this.initializePlaceholders();
     this.resetSelections();
-    this.currentUser = this.cookieService.get('user_id') || 'Anonyme';
+
+    this.stateService.userState.subscribe({
+      next: (user) => {
+        this.currentUser = user.first_name? user.first_name : '';
+      }
+    })
+    
     this.$bracket = this.bracketService.getUserBracket(this.currentUser);
+
   }
 
   private initializePlaceholders(): void {
@@ -227,18 +234,48 @@ export class BracketKnockoutComponent implements OnInit {
     const payload = {
       status: 'published',
       user: this.currentUser,
-      selections: {
-        r32: this.wR32,
-        r16: this.wR16,
-        r4: this.wR4,
-        semis: this.wS,
-        champion: this.champion
-      }
+      winner_r32_1: this.wR32['m1']?.name,
+      winner_r32_2: this.wR32['m2']?.name,
+      winner_r32_3: this.wR32['m3']?.name,
+      winner_r32_4: this.wR32['m4']?.name,
+      winner_r32_5: this.wR32['m5']?.name,
+      winner_r32_6: this.wR32['m6']?.name,
+      winner_r32_7: this.wR32['m7']?.name,
+      winner_r32_8: this.wR32['m8']?.name,
+      winner_r32_9: this.wR32['m9']?.name,
+      winner_r32_10: this.wR32['m10']?.name,
+      winner_r32_11: this.wR32['m11']?.name,
+      winner_r32_12: this.wR32['m12']?.name,
+      winner_r32_13: this.wR32['m13']?.name,
+      winner_r32_14: this.wR32['m14']?.name,
+      winner_r32_15: this.wR32['m15']?.name,
+      winner_r32_16: this.wR32['m16']?.name,
+      winner_r16_1: this.wR16['m1']?.name,
+      winner_r16_2: this.wR16['m2']?.name,
+      winner_r16_3: this.wR16['m3']?.name,
+      winner_r16_4: this.wR16['m4']?.name,
+      winner_r16_5: this.wR16['m5']?.name,
+      winner_r16_6: this.wR16['m6']?.name,
+      winner_r16_7: this.wR16['m7']?.name,
+      winner_r16_8: this.wR16['m8']?.name,
+      winner_r4_1: this.wR4['m1']?.name,
+      winner_r4_2: this.wR4['m2']?.name,
+      winner_r4_3: this.wR4['m3']?.name,
+      winner_r4_4: this.wR4['m4']?.name,
+      winner_semi_1: this.wS['m1']?.name,
+      winner_semi_2: this.wS['m2']?.name,
+      winner_wc: this.champion?.name,
     };
 
-    this.bracketService.postBracket(payload).subscribe({
-      next: () => alert('Pronostic validé avec succès !'),
-      error: () => alert('Erreur lors de la validation du pronostic.')
-    });
+    console.log('Payload to submit:', payload);
+
+    // this.bracketService.postBracket(payload).subscribe({
+    //   next: () => {
+    //     alert('Pronostic validé avec succès !');
+    //   } ,
+    //   error: () => {
+    //     alert('Erreur lors de la validation du pronostic.');
+    //   }
+    // });
   }
 }

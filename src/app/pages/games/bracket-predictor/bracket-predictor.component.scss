@@ -220,12 +220,12 @@ $fifa-orange: #f97316;
 .thirds-card-table {
   background: #ffffff;
   border-radius: 12px;
-  overflow: hidden;
   max-width: 800px;
   margin: 0 auto;
   box-shadow: 0 4px 20px rgba(15, 23, 42, 0.08);
   border: 1px solid #e2e8f0;
   position: relative; // Added for absolute positioning of randomize button
+  margin-bottom: 6rem;
 }
 
 .table-header-banner {
@@ -400,9 +400,15 @@ $fifa-orange: #f97316;
 .randomize-container {
   position: absolute;
   bottom: 10px; // Position at the bottom
-  left: 50%; // Center horizontally
+  right: 0; // Center horizontally
   transform: translateX(-50%); // Adjust for horizontal centering
   z-index: 50;
+}
+
+.thirds-card-table .randomize-container {
+  bottom: -60px; // Position at the bottom
+  left: 50%; // Position at the right corner
+  right: unset;
 }
 
 .btn-dice-randomize {
