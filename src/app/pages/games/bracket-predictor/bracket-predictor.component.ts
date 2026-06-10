@@ -85,10 +85,19 @@ export class BracketPredictorComponent implements OnInit {
     }
   }
 
-  protected resetAllGroups(): void {
+  protected resetAllPredictions(): void {
     this.groupsData = JSON.parse(JSON.stringify(this.initialGroupsData));
     this.currentStep = 1;
     this.selectedThirdsCount = 0;
+    this.confirmedGroups.fill(false); // Also unvalidate all groups when resetting all predictions
+  }
+
+  protected unvalidateAllGroups(): void {
+    this.confirmedGroups.fill(false);
+  }
+
+  protected validateAllGroups(): void {
+    this.confirmedGroups.fill(true);
   }
 
   protected goToThirdPlaceSelection(): void {

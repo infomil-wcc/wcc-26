@@ -1,3 +1,5 @@
+$fifa-orange: #f97316;
+
 // Conteneur principal de l'application (Thème Blanc Unifié)
 .predictor-wrapper {
   box-sizing: border-box;
@@ -74,6 +76,35 @@
   }
 }
 
+.dashboard-actions {
+  display: flex;
+}
+
+.btn-validate-all {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background-color: #10b981; // Green color for validation
+  border: 1px solid #059669;
+  color: #ffffff;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background-color: #059669;
+    border-color: #047857;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  }
+
+  &:active {
+    transform: scale(0.98);
+  }
+}
+
 // Layout de la Grille de Groupes
 .groups-grid {
   display: grid;
@@ -104,42 +135,14 @@
   font-size: 1rem;
   letter-spacing: 0.05em;
   text-transform: uppercase;
+  position: relative; // Added for absolute positioning of randomize button
 
   .title-text {
     text-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
   }
 }
 
-// Bouton Randomize Glassmorphic
-.btn-group-randomize {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.45rem;
-  background: rgba(255, 255, 255, 0.15);
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  backdrop-filter: blur(4px);
-  color: #ffffff;
-  padding: 0.4rem 0.85rem;
-  border-radius: 20px;
-  font-size: 0.75rem;
-  font-weight: 600;
-  text-transform: none;
-  cursor: pointer;
-  transition: all 0.2s ease;
 
-  &:hover {
-    background: rgba(255, 255, 255, 0.25);
-    border-color: rgba(255, 255, 255, 0.5);
-    transform: translateY(-1px);
-    
-    .dice-icon { transform: rotate(45deg); }
-  }
-  
-  .dice-icon {
-    font-size: 1.05rem;
-    transition: transform 0.3s ease;
-  }
-}
 
 // Listes d'équipes et Rangées (Appliqué aux deux sections)
 .teams-list {
@@ -231,6 +234,7 @@
   justify-content: space-between;
   align-items: center;
   color: #ffffff;
+  position: relative; // Added for absolute positioning of randomize button
 
   .header-left {
     display: flex;
@@ -389,5 +393,33 @@
     background-color: #10b981;
     color: #ffffff;
     &:hover { background-color: #059669; }
+  }
+}
+
+.randomize-container {
+  position: absolute;
+  top: 50%; // Center vertically
+  right: 10px; // Adjust as needed
+  transform: translateY(-50%); // Adjust for vertical centering
+  z-index: 50;
+}
+
+.btn-dice-randomize {
+  background: transparent;
+  border: 2px solid $fifa-orange;
+  width: 40px; // Smaller size for group header
+  height: 40px; // Smaller size for group header
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem; // Smaller font size
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+
+  &:hover {
+    transform: scale(1.1) rotate(15deg);
+    background: $fifa-orange;
   }
 }

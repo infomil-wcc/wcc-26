@@ -9,9 +9,11 @@
     <div *ngIf="currentStep === 1" class="step-container">
       <div class="dashboard-controls">
         <h2>Prédictions de la phase de groupes</h2>
-        <button type="button" class="btn-reset" (click)="resetAllGroups()">
-          <span class="icon">&#x21BB;</span> Réinitialiser
-        </button>
+        <div class="dashboard-actions">
+          <button type="button" class="btn-reset" (click)="unvalidateAllGroups()">
+            <span class="icon">&#x21BB;</span> Réinitialiser
+          </button>
+        </div>
       </div>
 
       <div class="groups-grid">
@@ -23,15 +25,16 @@
           <div class="group-header" [ngStyle]="{'background-color': group.color}">
             <span class="title-text">Groupe {{ group.group_title }}</span>
             
-            <button 
-              type="button"
-              class="btn-group-randomize" 
-              (click)="randomizeGroup(gIdx); $event.stopPropagation()" 
-              title="Mélanger le groupe"
-            >
-              <span class="dice-icon">🎲</span>
-              <span class="btn-text">Choix aléatoire</span>
-            </button>
+            <div class="randomize-container">
+              <button 
+                type="button"
+                class="btn-dice-randomize" 
+                (click)="randomizeGroup(gIdx); $event.stopPropagation()" 
+                title="Mélanger le groupe"
+              >
+                <span class="dice-icon">🎲</span>
+              </button>
+            </div>
           </div>
 
           <div 
@@ -62,7 +65,10 @@
         </div>
       </div>
 
-      <div class="stepper-footer">
+      <div class="stepper-footer inline-buttons">
+        <button type="button" class="btn-validate-all" (click)="validateAllGroups()">
+          <span class="icon">✓</span> Valider tout
+        </button>
         <button type="button" class="btn-navigation primary-next" [disabled]="!areAllGroupsConfirmed()" (click)="goToThirdPlaceSelection()">
           Suivant : Meilleurs 3èmes &rarr;
         </button>
@@ -76,7 +82,7 @@
           <h2>Choisissez les meilleurs troisièmes</h2>
           <p class="subtitle-text">Sélectionnez les huit troisièmes de groupe qui accéderont à la phase à élimination directe</p>
         </div>
-        <button type="button" class="btn-reset" (click)="resetAllGroups()">
+        <button type="button" class="btn-reset" (click)="resetAllPredictions()">
           <span class="icon">&#x21BB;</span> Tout réinitialiser
         </button>
       </div>
@@ -85,19 +91,20 @@
         <div class="table-header-banner">
           <div class="header-left">
             <h3>CHOISISSEZ LES MEILLEURS TROISIÈMES</h3>
+            <span class="counter-badge" [ngClass]="{'complete': selectedThirdsCount === 8}">
+              {{ selectedThirdsCount }} / 8
+            </span>
+          </div>
+          <div class="randomize-container">
             <button 
               type="button"
-              class="btn-group-randomize" 
+              class="btn-dice-randomize" 
               (click)="randomizeThirds()" 
               title="Sélection aléatoire"
             >
               <span class="dice-icon">🎲</span>
-              <span class="btn-text">Choix aléatoire</span>
             </button>
           </div>
-          <span class="counter-badge" [ngClass]="{'complete': selectedThirdsCount === 8}">
-            {{ selectedThirdsCount }} / 8
-          </span>
         </div>
 
         <div class="table-columns-label">

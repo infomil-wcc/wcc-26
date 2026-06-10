@@ -4,13 +4,6 @@
   <div class="fifa-bracket-canvas" [class.isDisabled]="!isOpen">
     
     <div class="bracket-column stage-r32">
-        <!-- Randomize Button (floating dice) -->
-  <div class="randomize-container">
-      <button type="button" class="btn-dice-randomize" (click)="randomizeBracket()" title="Choix aléatoire">
-          <span class="dice-icon">🎲</span>
-      </button>
-  </div>
-  
       <div class="column-header">1/16 Finales</div>
       <div class="match-list">
         <div class="matchup-pair-group" *ngFor="let pair of [1,3,5,7,9,11,13,15]">
@@ -198,13 +191,20 @@
               <strong>{{ champion.name }}</strong>
             </div>
           </div>
-
-          <button class="btn-fifa-submit" [disabled]="!isBracketComplete()" (click)="validateBracket()">
-            Valider mon bracket
-          </button>
         </div>
       </div>
     </div>
 
+  </div>
+
+  <div class="fixed-actions-container">
+    <div class="randomize-container">
+      <button type="button" class="btn-dice-randomize" (click)="randomizeBracket()" title="Choix aléatoire">
+          <span class="dice-icon">🎲</span>
+      </button>
+    </div>
+    <button class="btn-fifa-submit" [disabled]="!isBracketComplete()" (click)="validateBracket()">
+      Valider mon bracket
+    </button>
   </div>
 </div>
