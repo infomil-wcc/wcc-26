@@ -1,27 +1,33 @@
 <div class="fifa-bracket-viewport" #bracketWrapper>
 
-
   <div class="fifa-bracket-canvas" [class.isDisabled]="!isOpen">
-    
+
     <div class="bracket-column stage-r32">
       <div class="column-header">1/16 Finales</div>
       <div class="match-list">
         <div class="matchup-pair-group" *ngFor="let pair of [1,3,5,7,9,11,13,15]">
-          
+
           <div class="match-node">
             <div class="node-index">Match {{ pair }}</div>
             <div class="match-card">
-              <div class="team-slot" [class.selected]="wR32['m'+pair]?.name === r32Teams['m'+pair+'_1'].name" (click)="selectWinner('R32', 'm'+pair, r32Teams['m'+pair+'_1'])">
-                <img [src]="r32Teams['m'+pair+'_1'].flagUrl" class="slot-flag" alt="">
-                <span class="slot-name-text">{{ r32Teams['m'+pair+'_1'].name }}</span>
+              <div class="team-slot" [class.selected]="wR32['m'+pair]?.name === r32Teams['m'+pair+'_1'].name"
+                (click)="r32Teams['m'+pair+'_1'] && selectWinner('R32', 'm'+pair, r32Teams['m'+pair+'_1'])">
+                <img [src]="r32Teams['m'+pair+'_1'].flagUrl || 'assets/flags/unknown.png'" class="slot-flag" alt="">
+                <span class="slot-name-text">{{ r32Teams['m'+pair+'_1'].name || 'À déterminer' }}</span>
               </div>
-              <div class="team-slot" [class.selected]="wR32['m'+pair]?.name === r32Teams['m'+pair+'_2'].name" (click)="selectWinner('R32', 'm'+pair, r32Teams['m'+pair+'_2'])">
-                <img [src]="r32Teams['m'+pair+'_2'].flagUrl" class="slot-flag" alt="">
-                <span class="slot-name-text">{{ r32Teams['m'+pair+'_2'].name }}</span>
+              <div class="team-slot" [class.selected]="wR32['m'+pair]?.name === r32Teams['m'+pair+'_2'].name"
+                (click)="r32Teams['m'+pair+'_2'] && selectWinner('R32', 'm'+pair, r32Teams['m'+pair+'_2'])">
+                <img [src]="r32Teams['m'+pair+'_2'].flagUrl || 'assets/flags/unknown.png'" class="slot-flag" alt="">
+                <span class="slot-name-text">{{ r32Teams['m'+pair+'_2'].name || 'À déterminer' }}</span>
               </div>
               <div class="match-info">
-                <span class="match-date-time">Date: {{ r32Teams['m'+pair].date }} Time: {{ r32Teams['m'+pair].time }}</span>
-                <span class="match-stadium">Stadium: {{ r32Teams['m'+pair].stadium }}</span>
+                <span class="match-date-time">
+                  Date: {{ r32Teams && r32Teams['m'+pair] ? (r32Teams['m'+pair].date || '-') : '-' }} 
+                  {{ r32Teams && r32Teams['m'+pair] ? (r32Teams['m'+pair].time || '-:-') : '-:-' }}
+                </span>
+                <span class="match-stadium">
+                  Stade: {{ r32Teams && r32Teams['m'+pair] ? (r32Teams['m'+pair].stadium || 'Inconnu') : 'Inconnu' }}
+                </span>
               </div>
             </div>
           </div>
@@ -29,17 +35,24 @@
           <div class="match-node">
             <div class="node-index">Match {{ pair + 1 }}</div>
             <div class="match-card">
-              <div class="team-slot" [class.selected]="wR32['m'+(pair+1)]?.name === r32Teams['m'+(pair+1)+'_1'].name" (click)="selectWinner('R32', 'm'+(pair+1), r32Teams['m'+(pair+1)+'_1'])">
-                <img [src]="r32Teams['m'+(pair+1)+'_1'].flagUrl" class="slot-flag" alt="">
-                <span class="slot-name-text">{{ r32Teams['m'+(pair+1)+'_1'].name }}</span>
+              <div class="team-slot" [class.selected]="wR32['m'+(pair+1)]?.name === r32Teams['m'+(pair+1)+'_1'].name"
+                (click)="r32Teams['m'+(pair+1)+'_1'] && selectWinner('R32', 'm'+(pair+1), r32Teams['m'+(pair+1)+'_1'])">
+                <img [src]="r32Teams['m'+(pair+1)+'_1'].flagUrl || 'assets/flags/unknown.png'" class="slot-flag" alt="">
+                <span class="slot-name-text">{{ r32Teams['m'+(pair+1)+'_1'].name || 'À déterminer' }}</span>
               </div>
-              <div class="team-slot" [class.selected]="wR32['m'+(pair+1)]?.name === r32Teams['m'+(pair+1)+'_2'].name" (click)="selectWinner('R32', 'm'+(pair+1), r32Teams['m'+(pair+1)+'_2'])">
-                <img [src]="r32Teams['m'+(pair+1)+'_2'].flagUrl" class="slot-flag" alt="">
-                <span class="slot-name-text">{{ r32Teams['m'+(pair+1)+'_2'].name }}</span>
+              <div class="team-slot" [class.selected]="wR32['m'+(pair+1)]?.name === r32Teams['m'+(pair+1)+'_2'].name"
+                (click)="r32Teams['m'+(pair+1)+'_2'] && selectWinner('R32', 'm'+(pair+1), r32Teams['m'+(pair+1)+'_2'])">
+                <img [src]="r32Teams['m'+(pair+1)+'_2'].flagUrl || 'assets/flags/unknown.png'" class="slot-flag" alt="">
+                <span class="slot-name-text">{{ r32Teams['m'+(pair+1)+'_2'].name || 'À déterminer' }}</span>
               </div>
               <div class="match-info">
-                <span class="match-date-time">Date: {{ r32Teams['m'+(pair+1)].date }} Time: {{ r32Teams['m'+(pair+1)].time }}</span>
-                <span class="match-stadium">Stadium: {{ r32Teams['m'+(pair+1)].stadium }}</span>
+                <span class="match-date-time">
+                  Date: {{ r32Teams && r32Teams['m'+(pair+1)] ? (r32Teams['m'+(pair+1)].date || '-') : '-' }} 
+                  {{ r32Teams && r32Teams['m'+(pair+1)] ? (r32Teams['m'+(pair+1)].time || '-:-') : '-:-' }}
+                </span>
+                <span class="match-stadium">
+                  Stade: {{ r32Teams && r32Teams['m'+(pair+1)] ? (r32Teams['m'+(pair+1)].stadium || 'Inconnu') : 'Inconnu' }}
+                </span>
               </div>
             </div>
           </div>
@@ -52,21 +65,29 @@
       <div class="column-header">1/8 Finales</div>
       <div class="match-list">
         <div class="matchup-pair-group" *ngFor="let pair of [1,3,5,7]">
-          
+
           <div class="match-node">
             <div class="node-index">Huitième {{ pair }}</div>
             <div class="match-card">
-              <div class="team-slot" [class.disabled]="!wR32['m'+(pair*2-1)]" [class.selected]="wR16['m'+pair]?.name === wR32['m'+(pair*2-1)]?.name" (click)="wR32['m'+(pair*2-1)] && selectWinner('R16', 'm'+pair, wR32['m'+(pair*2-1)]!)">
+              <div class="team-slot" [class.disabled]="!wR32['m'+(pair*2-1)]"
+                [class.selected]="wR16['m'+pair]?.name === wR32['m'+(pair*2-1)]?.name"
+                (click)="wR32['m'+(pair*2-1)] && selectWinner('R16', 'm'+pair, wR32['m'+(pair*2-1)]!)">
                 <img [src]="wR32['m'+(pair*2-1)]?.flagUrl || 'assets/flags/unknown.png'" class="slot-flag" alt="">
                 <span class="slot-name-text">{{ wR32['m'+(pair*2-1)]?.name || 'À déterminer' }}</span>
               </div>
-              <div class="team-slot" [class.disabled]="!wR32['m'+(pair*2)]" [class.selected]="wR16['m'+pair]?.name === wR32['m'+(pair*2)]?.name" (click)="wR32['m'+(pair*2)] && selectWinner('R16', 'm'+pair, wR32['m'+(pair*2)]!)">
+              <div class="team-slot" [class.disabled]="!wR32['m'+(pair*2)]"
+                [class.selected]="wR16['m'+pair]?.name === wR32['m'+(pair*2)]?.name"
+                (click)="wR32['m'+(pair*2)] && selectWinner('R16', 'm'+pair, wR32['m'+(pair*2)]!)">
                 <img [src]="wR32['m'+(pair*2)]?.flagUrl || 'assets/flags/unknown.png'" class="slot-flag" alt="">
                 <span class="slot-name-text">{{ wR32['m'+(pair*2)]?.name || 'À déterminer' }}</span>
               </div>
               <div class="match-info">
-                <span class="match-date-time">Date: {{ wR16['m'+pair].date }} Time: {{ wR16['m'+pair].time }}</span>
-                <span class="match-stadium">Stadium: {{ wR16['m'+pair].stadium }}</span>
+                <span class="match-date-time">
+                  Date: {{ wR16['m'+pair]?.date || '-' }} {{ wR16['m'+pair]?.time || '-:-' }}
+                </span>
+                <span class="match-stadium">
+                  Stade: {{ wR16['m'+pair]?.stadium || 'Inconnu' }}
+                </span>
               </div>
             </div>
           </div>
@@ -74,17 +95,25 @@
           <div class="match-node">
             <div class="node-index">Huitième {{ pair + 1 }}</div>
             <div class="match-card">
-              <div class="team-slot" [class.disabled]="!wR32['m'+((pair+1)*2-1)]" [class.selected]="wR16['m'+(pair+1)]?.name === wR32['m'+((pair+1)*2-1)]?.name" (click)="wR32['m'+((pair+1)*2-1)] && selectWinner('R16', 'm'+(pair+1), wR32['m'+((pair+1)*2-1)]!)">
+              <div class="team-slot" [class.disabled]="!wR32['m'+((pair+1)*2-1)]"
+                [class.selected]="wR16['m'+(pair+1)]?.name === wR32['m'+((pair+1)*2-1)]?.name"
+                (click)="wR32['m'+((pair+1)*2-1)] && selectWinner('R16', 'm'+(pair+1), wR32['m'+((pair+1)*2-1)]!)">
                 <img [src]="wR32['m'+((pair+1)*2-1)]?.flagUrl || 'assets/flags/unknown.png'" class="slot-flag" alt="">
                 <span class="slot-name-text">{{ wR32['m'+((pair+1)*2-1)]?.name || 'À déterminer' }}</span>
               </div>
-              <div class="team-slot" [class.disabled]="!wR32['m'+((pair+1)*2)]" [class.selected]="wR16['m'+(pair+1)]?.name === wR32['m'+((pair+1)*2)]?.name" (click)="wR32['m'+((pair+1)*2)] && selectWinner('R16', 'm'+(pair+1), wR32['m'+((pair+1)*2)]!)">
+              <div class="team-slot" [class.disabled]="!wR32['m'+((pair+1)*2)]"
+                [class.selected]="wR16['m'+(pair+1)]?.name === wR32['m'+((pair+1)*2)]?.name"
+                (click)="wR32['m'+((pair+1)*2)] && selectWinner('R16', 'm'+(pair+1), wR32['m'+((pair+1)*2)]!)">
                 <img [src]="wR32['m'+((pair+1)*2)]?.flagUrl || 'assets/flags/unknown.png'" class="slot-flag" alt="">
                 <span class="slot-name-text">{{ wR32['m'+((pair+1)*2)]?.name || 'À déterminer' }}</span>
               </div>
               <div class="match-info">
-                <span class="match-date-time">Date: {{ wR16['m'+(pair+1)].date }} Time: {{ wR16['m'+(pair+1)].time }}</span>
-                <span class="match-stadium">Stadium: {{ wR16['m'+(pair+1)].stadium }}</span>
+                <span class="match-date-time">
+                  Date: {{ wR16['m'+(pair+1)]?.date || '-' }} {{ wR16['m'+(pair+1)]?.time || '-:-' }}
+                </span>
+                <span class="match-stadium">
+                  Stade: {{ wR16['m'+(pair+1)]?.stadium || 'Inconnu' }}
+                </span>
               </div>
             </div>
           </div>
@@ -97,21 +126,29 @@
       <div class="column-header">Quarts de Finale</div>
       <div class="match-list">
         <div class="matchup-pair-group" *ngFor="let pair of [1,3]">
-          
+
           <div class="match-node">
             <div class="node-index">Quart {{ pair }}</div>
             <div class="match-card">
-              <div class="team-slot" [class.disabled]="!wR16['m'+(pair*2-1)]" [class.selected]="wR4['m'+pair]?.name === wR16['m'+(pair*2-1)]?.name" (click)="wR16['m'+(pair*2-1)] && selectWinner('R4', 'm'+pair, wR16['m'+(pair*2-1)]!)">
+              <div class="team-slot" [class.disabled]="!wR16['m'+(pair*2-1)]"
+                [class.selected]="wR4['m'+pair]?.name === wR16['m'+(pair*2-1)]?.name"
+                (click)="wR16['m'+(pair*2-1)] && selectWinner('R4', 'm'+pair, wR16['m'+(pair*2-1)]!)">
                 <img [src]="wR16['m'+(pair*2-1)]?.flagUrl || 'assets/flags/unknown.png'" class="slot-flag" alt="">
                 <span class="slot-name-text">{{ wR16['m'+(pair*2-1)]?.name || 'À déterminer' }}</span>
               </div>
-              <div class="team-slot" [class.disabled]="!wR16['m'+(pair*2)]" [class.selected]="wR4['m'+pair]?.name === wR16['m'+(pair*2)]?.name" (click)="wR16['m'+(pair*2)] && selectWinner('R4', 'm'+pair, wR16['m'+(pair*2)]!)">
+              <div class="team-slot" [class.disabled]="!wR16['m'+(pair*2)]"
+                [class.selected]="wR4['m'+pair]?.name === wR16['m'+(pair*2)]?.name"
+                (click)="wR16['m'+(pair*2)] && selectWinner('R4', 'm'+pair, wR16['m'+(pair*2)]!)">
                 <img [src]="wR16['m'+(pair*2)]?.flagUrl || 'assets/flags/unknown.png'" class="slot-flag" alt="">
                 <span class="slot-name-text">{{ wR16['m'+(pair*2)]?.name || 'À déterminer' }}</span>
               </div>
               <div class="match-info">
-                <span class="match-date-time">Date: {{ wR4['m'+pair].date }} Time: {{ wR4['m'+pair].time }}</span>
-                <span class="match-stadium">Stadium: {{ wR4['m'+pair].stadium }}</span>
+                <span class="match-date-time">
+                  Date: {{ wR4['m'+pair]?.date || '-' }} {{ wR4['m'+pair]?.time || '-:-' }}
+                </span>
+                <span class="match-stadium">
+                  Stade: {{ wR4['m'+pair]?.stadium || 'Inconnu' }}
+                </span>
               </div>
             </div>
           </div>
@@ -119,17 +156,25 @@
           <div class="match-node">
             <div class="node-index">Quart {{ pair + 1 }}</div>
             <div class="match-card">
-              <div class="team-slot" [class.disabled]="!wR16['m'+((pair+1)*2-1)]" [class.selected]="wR4['m'+(pair+1)]?.name === wR16['m'+((pair+1)*2-1)]?.name" (click)="wR16['m'+((pair+1)*2-1)] && selectWinner('R4', 'm'+(pair+1), wR16['m'+((pair+1)*2-1)]!)">
+              <div class="team-slot" [class.disabled]="!wR16['m'+((pair+1)*2-1)]"
+                [class.selected]="wR4['m'+(pair+1)]?.name === wR16['m'+((pair+1)*2-1)]?.name"
+                (click)="wR16['m'+((pair+1)*2-1)] && selectWinner('R4', 'm'+(pair+1), wR16['m'+((pair+1)*2-1)]!)">
                 <img [src]="wR16['m'+((pair+1)*2-1)]?.flagUrl || 'assets/flags/unknown.png'" class="slot-flag" alt="">
                 <span class="slot-name-text">{{ wR16['m'+((pair+1)*2-1)]?.name || 'À déterminer' }}</span>
               </div>
-              <div class="team-slot" [class.disabled]="!wR16['m'+((pair+1)*2)]" [class.selected]="wR4['m'+(pair+1)]?.name === wR16['m'+((pair+1)*2)]?.name" (click)="wR16['m'+((pair+1)*2)] && selectWinner('R4', 'm'+(pair+1), wR16['m'+((pair+1)*2)]!)">
+              <div class="team-slot" [class.disabled]="!wR16['m'+((pair+1)*2)]"
+                [class.selected]="wR4['m'+(pair+1)]?.name === wR16['m'+((pair+1)*2)]?.name"
+                (click)="wR16['m'+((pair+1)*2)] && selectWinner('R4', 'm'+(pair+1), wR16['m'+((pair+1)*2)]!)">
                 <img [src]="wR16['m'+((pair+1)*2)]?.flagUrl || 'assets/flags/unknown.png'" class="slot-flag" alt="">
                 <span class="slot-name-text">{{ wR16['m'+((pair+1)*2)]?.name || 'À déterminer' }}</span>
               </div>
               <div class="match-info">
-                <span class="match-date-time">Date: {{ wR4['m'+(pair+1)].date }} Time: {{ wR4['m'+(pair+1)].time }}</span>
-                <span class="match-stadium">Stadium: {{ wR4['m'+(pair+1)].stadium }}</span>
+                <span class="match-date-time">
+                  Date: {{ wR4['m'+(pair+1)]?.date || '-' }} {{ wR4['m'+(pair+1)]?.time || '-:-' }}
+                </span>
+                <span class="match-stadium">
+                  Stade: {{ wR4['m'+(pair+1)]?.stadium || 'Inconnu' }}
+                </span>
               </div>
             </div>
           </div>
@@ -142,21 +187,27 @@
       <div class="column-header">Demi-Finales</div>
       <div class="match-list">
         <div class="matchup-pair-group">
-          
+
           <div class="match-node">
             <div class="node-index">Demi-Finale 1</div>
             <div class="match-card">
-              <div class="team-slot" [class.disabled]="!wR4['m1']" [class.selected]="wS['m1']?.name === wR4['m1']?.name" (click)="wR4['m1'] && selectWinner('S', 'm1', wR4['m1']!)">
+              <div class="team-slot" [class.disabled]="!wR4['m1']" [class.selected]="wS['m1']?.name === wR4['m1']?.name"
+                (click)="wR4['m1'] && selectWinner('S', 'm1', wR4['m1']!)">
                 <img [src]="wR4['m1']?.flagUrl || 'assets/flags/unknown.png'" class="slot-flag" alt="">
                 <span class="slot-name-text">{{ wR4['m1']?.name || 'À déterminer' }}</span>
               </div>
-              <div class="team-slot" [class.disabled]="!wR4['m2']" [class.selected]="wS['m1']?.name === wR4['m2']?.name" (click)="wR4['m2'] && selectWinner('S', 'm1', wR4['m2']!)">
+              <div class="team-slot" [class.disabled]="!wR4['m2']" [class.selected]="wS['m1']?.name === wR4['m2']?.name"
+                (click)="wR4['m2'] && selectWinner('S', 'm1', wR4['m2']!)">
                 <img [src]="wR4['m2']?.flagUrl || 'assets/flags/unknown.png'" class="slot-flag" alt="">
                 <span class="slot-name-text">{{ wR4['m2']?.name || 'À déterminer' }}</span>
               </div>
               <div class="match-info">
-                <span class="match-date-time">Date: {{ wS['m1'].date }} Time: {{ wS['m1'].time }}</span>
-                <span class="match-stadium">Stadium: {{ wS['m1'].stadium }}</span>
+                <span class="match-date-time">
+                  Date: {{ wS['m1']?.date || '-' }} {{ wS['m1']?.time || '-:-' }}
+                </span>
+                <span class="match-stadium">
+                  Stade: {{ wS['m1']?.stadium || 'Inconnu' }}
+                </span>
               </div>
             </div>
           </div>
@@ -164,17 +215,23 @@
           <div class="match-node">
             <div class="node-index">Demi-Finale 2</div>
             <div class="match-card">
-              <div class="team-slot" [class.disabled]="!wR4['m3']" [class.selected]="wS['m2']?.name === wR4['m3']?.name" (click)="wR4['m3'] && selectWinner('S', 'm2', wR4['m3']!)">
+              <div class="team-slot" [class.disabled]="!wR4['m3']" [class.selected]="wS['m2']?.name === wR4['m3']?.name"
+                (click)="wR4['m3'] && selectWinner('S', 'm2', wR4['m3']!)">
                 <img [src]="wR4['m3']?.flagUrl || 'assets/flags/unknown.png'" class="slot-flag" alt="">
                 <span class="slot-name-text">{{ wR4['m3']?.name || 'À déterminer' }}</span>
               </div>
-              <div class="team-slot" [class.disabled]="!wR4['m4']" [class.selected]="wS['m2']?.name === wR4['m4']?.name" (click)="wR4['m4'] && selectWinner('S', 'm2', wR4['m4']!)">
+              <div class="team-slot" [class.disabled]="!wR4['m4']" [class.selected]="wS['m2']?.name === wR4['m4']?.name"
+                (click)="wR4['m4'] && selectWinner('S', 'm2', wR4['m4']!)">
                 <img [src]="wR4['m4']?.flagUrl || 'assets/flags/unknown.png'" class="slot-flag" alt="">
                 <span class="slot-name-text">{{ wR4['m4']?.name || 'À déterminer' }}</span>
               </div>
               <div class="match-info">
-                <span class="match-date-time">Date: {{ wS['m2'].date }} Time: {{ wS['m2'].time }}</span>
-                <span class="match-stadium">Stadium: {{ wS['m2'].stadium }}</span>
+                <span class="match-date-time">
+                  Date: {{ wS['m2']?.date || '-' }} {{ wS['m2']?.time || '-:-' }}
+                </span>
+                <span class="match-stadium">
+                  Stade: {{ wS['m2']?.stadium || 'Inconnu' }}
+                </span>
               </div>
             </div>
           </div>
@@ -188,59 +245,71 @@
       <div class="match-list">
         <div class="match-node final-standalone-node">
           <div class="match-card final-accent-card">
-            <div class="team-slot large-slot" [class.disabled]="!wS['m1']" [class.selected]="champion?.name === wS['m1']?.name" (click)="wS['m1'] && (champion = wS['m1'])">
+            <div class="team-slot large-slot" [class.disabled]="!wS['m1']"
+              [class.selected]="champion?.name === wS['m1']?.name" (click)="wS['m1'] && (champion = wS['m1'])">
               <img [src]="wS['m1']?.flagUrl || 'assets/flags/unknown.png'" class="slot-flag big-flag" alt="">
               <span class="slot-name-text text-lg">{{ wS['m1']?.name || 'Finaliste 1' }}</span>
             </div>
-            
+
             <div class="versus-divider-badge" (click)="openWinnerModal('Final', 'f1', wS['m1'], wS['m2'])">VS</div>
-            
-            <div class="team-slot large-slot" [class.disabled]="!wS['m2']" [class.selected]="champion?.name === wS['m2']?.name" (click)="wS['m2'] && (champion = wS['m2'])">
+
+            <div class="team-slot large-slot" [class.disabled]="!wS['m2']"
+              [class.selected]="champion?.name === wS['m2']?.name" (click)="wS['m2'] && (champion = wS['m2'])">
               <img [src]="wS['m2']?.flagUrl || 'assets/flags/unknown.png'" class="slot-flag big-flag" alt="">
               <span class="slot-name-text text-lg">{{ wS['m2']?.name || 'Finaliste 2' }}</span>
             </div>
             <div class="match-info">
-              <span class="match-date-time">Date: {{ champion?.date }} Time: {{ champion?.time }}</span>
-              <span class="match-stadium">Stadium: {{ champion?.stadium }}</span>
+              <span class="match-date-time">
+                Date: {{ champion?.date || '-' }} {{ champion?.time || '-:-' }}
+              </span>
+              <span class="match-stadium">
+                Stade: {{ champion?.stadium || 'Inconnu' }}
+              </span>
             </div>
           </div>
-
-          <!-- Generic Winner Selection Modal -->
           <div class="winner-modal-overlay" *ngIf="showWinnerModal && modalContext">
             <div class="modal-content">
               <h3>Choisissez le vainqueur</h3>
               <div class="modal-options">
-                <button (click)="selectWinner(modalContext.stage, modalContext.matchKey, modalContext.team1); showWinnerModal = false">
-                  <img [src]="modalContext.team1.flagUrl" class="slot-flag"> {{ modalContext.team1.name }}
+
+                <button *ngIf="modalContext.team1"
+                  (click)="selectWinner(modalContext.stage, modalContext.matchKey, modalContext.team1); showWinnerModal = false">
+                  <img [src]="modalContext.team1.flagUrl || 'assets/flags/unknown.png'" class="slot-flag">
+                  {{ modalContext.team1.name || 'À déterminer' }}
                 </button>
-                <button (click)="selectWinner(modalContext.stage, modalContext.matchKey, modalContext.team2); showWinnerModal = false">
-                  <img [src]="modalContext.team2.flagUrl" class="slot-flag"> {{ modalContext.team2.name }}
+
+                <button *ngIf="modalContext.team2"
+                  (click)="selectWinner(modalContext.stage, modalContext.matchKey, modalContext.team2); showWinnerModal = false">
+                  <img [src]="modalContext.team2.flagUrl || 'assets/flags/unknown.png'" class="slot-flag">
+                  {{ modalContext.team2.name || 'À déterminer' }}
                 </button>
+
               </div>
             </div>
-          </div>
 
-          <div class="trophy-announcement-container" *ngIf="champion">
-            <div class="gold-title">🏆 VAINQUEUR DU TOURNOI 🏆</div>
-            <div class="winner-gold-badge">
-              <img [src]="champion.flagUrl" alt="">
-              <strong>{{ champion.name }}</strong>
+
+            <div class="trophy-announcement-container" *ngIf="champion">
+              <div class="gold-title">🏆 VAINQUEUR DU TOURNOI 🏆</div>
+              <div class="winner-gold-badge">
+                <img [src]="champion.flagUrl || 'assets/flags/unknown.png'" alt="">
+                <strong>{{ champion.name || 'Inconnu' }}</strong>
+              </div>
             </div>
           </div>
         </div>
       </div>
+
     </div>
 
-  </div>
-
-  <div class="fixed-actions-container">
-    <div class="randomize-container">
-      <button type="button" class="btn-dice-randomize" (click)="randomizeBracket()" title="Choix aléatoire">
+    <div class="fixed-actions-container">
+      <div class="randomize-container">
+        <button type="button" class="btn-dice-randomize" (click)="randomizeBracket()" title="Choix aléatoire">
           <span class="dice-icon">🎲</span>
+        </button>
+      </div>
+      <button class="btn-fifa-submit" [disabled]="!isBracketComplete()" (click)="validateBracket()">
+        Valider mon bracket
       </button>
     </div>
-    <button class="btn-fifa-submit" [disabled]="!isBracketComplete()" (click)="validateBracket()">
-      Valider mon bracket
-    </button>
   </div>
 </div>

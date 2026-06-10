@@ -24,6 +24,9 @@ export interface Country {
   timeline: { year: number; text: { en: string }; }[];
   flagUrl: string; 
   flagId: string;
+  date?: string; // Added
+  time?: string; // Added
+  stadium?: string; // Added
 }
 
 @Component({
@@ -84,7 +87,10 @@ export class BracketKnockoutComponent implements OnInit {
         iso: '', group: '', coach: '', worldCupAppearances: 0, worldCupGoals: 0,
         bestResult: { en: '' }, internationalTitles: [],
         qualification2026: { topScorer: { en: '' }, topAssists: { en: '' }, mostUsed: '', chancesCreated: '', note: { en: '' } },
-        funFacts: [], timeline: []
+        funFacts: [], timeline: [],
+        date: '', // Added
+        time: '', // Added
+        stadium: '' // Added
       };
       this.r32Teams[`m${i}_1`] = { ...defaultCountry };
       this.r32Teams[`m${i}_2`] = { ...defaultCountry };
@@ -99,7 +105,7 @@ export class BracketKnockoutComponent implements OnInit {
     this.champion = null;
   }
 
-  private populateRoundOf32Pairs(teams: any[]): void {
+  private populateRoundOf32Pairs(teams: Country[]): void {
     let matchCounter = 1;
     for (let i = 0; i < teams.length; i += 2) {
       this.r32Teams[`m${matchCounter}_1`] = teams[i];
