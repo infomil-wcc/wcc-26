@@ -95,16 +95,6 @@
               {{ selectedThirdsCount }} / 8
             </span>
           </div>
-          <div class="randomize-container">
-            <button 
-              type="button"
-              class="btn-dice-randomize" 
-              (click)="randomizeThirds()" 
-              title="Sélection aléatoire"
-            >
-              <span class="dice-icon">🎲</span>
-            </button>
-          </div>
         </div>
 
         <div class="table-columns-label">
@@ -129,6 +119,16 @@
               <span class="check-mark" *ngIf="team.isSelectedThird">&#10003;</span>
             </div>
           </div>
+        </div>
+        <div class="randomize-container">
+          <button 
+            type="button"
+            class="btn-dice-randomize" 
+            (click)="randomizeThirds()" 
+            title="Sélection aléatoire"
+          >
+            <span class="dice-icon">🎲</span>
+          </button>
         </div>
       </div>
 
