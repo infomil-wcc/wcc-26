@@ -60,6 +60,13 @@ export class BracketKnockoutComponent implements OnInit {
   protected wR4: { [key: string]: Country | null } = {};
   protected wS: { [key: string]: Country | null } = {};
   protected champion: Country | null = null;
+  // Validated (read-only) snapshot
+  protected validated: boolean = false;
+  protected vR32: { [key: string]: Country | null } = {};
+  protected vR16: { [key: string]: Country | null } = {};
+  protected vR4: { [key: string]: Country | null } = {};
+  protected vS: { [key: string]: Country | null } = {};
+  protected vChampion: Country | null = null;
   
   // Generic Modal state
   protected showWinnerModal: boolean = false;
@@ -78,11 +85,113 @@ export class BracketKnockoutComponent implements OnInit {
     this.stateService.userState.subscribe({
       next: (user) => {
         this.currentUser = user.first_name? user.first_name : '';
+        // fetch saved bracket once we have the current user
+        this.$bracket = this.bracketService.getUserBracket(this.currentUser);
+        this.$bracket.subscribe({
+          next: (data) => {
+            console.log(data);
+            if (data && Array.isArray(data) && data.length > 0) {
+              // use the first saved bracket
+              this.applySavedBracket(data[0]);
+            }
+          },
+          error: () => {
+            // ignore errors retrieving saved bracket
+          }
+        });
       }
     })
-    
-    this.$bracket = this.bracketService.getUserBracket(this.currentUser);
 
+    // No localStorage: R32 pairs should be reconstructed from saved bracket payload via applySavedBracket
+
+  }
+
+  private mapNameToCountry(name?: string | null): Country | null {
+    if (!name) return null;
+    // search initial R32 teams first
+    for (const key of Object.keys(this.r32Teams)) {
+      const c = this.r32Teams[key];
+      if (c && c.name === name) return c;
+    }
+    // fallback to existing selections
+    const searches = [this.wR32, this.wR16, this.wR4, this.wS];
+    for (const map of searches) {
+      for (const k of Object.keys(map)) {
+        const c = map[k];
+        if (c && c.name === name) return c;
+      }
+    }
+    // last resort: return a minimal Country so UI can display the name
+    return { name, flagId: 'tbc', flagUrl: 'assets/flags/unknown.png', iso: '', group: '', coach: '', worldCupAppearances: 0, worldCupGoals: 0, bestResult: { en: '' }, internationalTitles: [], qualification2026: { topScorer: { en: '' }, topAssists: { en: '' }, mostUsed: '', chancesCreated: '', note: { en: '' } }, funFacts: [], timeline: [], date: '', time: '', stadium: '' };
+  }
+
+  private applySavedBracket(payload: any): void {
+    if (!payload) return;
+    // Attempt to reconstruct full R32 teams from payload if present
+    const extracted: any[] = [];
+    if (Array.isArray(payload.r32) && payload.r32.length >= 32) {
+      extracted.push(...payload.r32.slice(0, 32));
+    } else if (Array.isArray(payload.teams32) && payload.teams32.length >= 32) {
+      extracted.push(...payload.teams32.slice(0, 32));
+    } else if (Array.isArray(payload.advancedQualifiers) && payload.advancedQualifiers.length >= 32) {
+      extracted.push(...payload.advancedQualifiers.slice(0, 32));
+    } else {
+      for (let i = 1; i <= 16; i++) {
+        const candidatesLeft = [
+          payload[`r32_${i}_1`], payload[`r32_${i}1`], payload[`team_r32_${i}_1`], payload[`m${i}_1`]
+        ];
+        const candidatesRight = [
+          payload[`r32_${i}_2`], payload[`r32_${i}2`], payload[`team_r32_${i}_2`], payload[`m${i}_2`]
+        ];
+        const leftRaw = candidatesLeft.find(v => v !== undefined && v !== null);
+        const rightRaw = candidatesRight.find(v => v !== undefined && v !== null);
+
+        const normalize = (raw: any) => {
+          if (!raw) return null;
+          if (typeof raw === 'string') return { name: raw, flagUrl: 'assets/flags/unknown.png', flagId: raw.substring(0,2).toLowerCase() };
+          if (raw.name) return raw;
+          return null;
+        }
+
+        const left = normalize(leftRaw);
+        const right = normalize(rightRaw);
+        if (left) extracted.push(left); else extracted.push({ name: 'À déterminer', flagUrl: 'assets/flags/unknown.png', flagId: 'tbc' });
+        if (right) extracted.push(right); else extracted.push({ name: 'À déterminer', flagUrl: 'assets/flags/unknown.png', flagId: 'tbc' });
+      }
+    }
+
+    if (extracted.length >= 32) {
+      this.populateRoundOf32Pairs(extracted.slice(0,32) as Country[]);
+    }
+    // populate validated maps from payload fields
+    for (let i = 1; i <= 16; i++) {
+      const name = payload[`winner_r32_${i}`] || payload[`winner_r32_${i}`];
+      this.vR32[`m${i}`] = this.mapNameToCountry(name);
+      // also put winner into the R32 pair first slot so the match shows the selected team
+      const winnerCountry = this.mapNameToCountry(name);
+      if (winnerCountry) {
+        this.r32Teams[`m${i}_1`] = winnerCountry;
+        // leave m{i}_2 as placeholder if unknown
+        if (!this.r32Teams[`m${i}_2`]) {
+          this.r32Teams[`m${i}_2`] = { name: 'À déterminer', flagId: 'tbc', flagUrl: 'assets/flags/unknown.png', iso: '', group: '', coach: '', worldCupAppearances: 0, worldCupGoals: 0, bestResult: { en: '' }, internationalTitles: [], qualification2026: { topScorer: { en: '' }, topAssists: { en: '' }, mostUsed: '', chancesCreated: '', note: { en: '' } }, funFacts: [], timeline: [], date: '', time: '', stadium: '' };
+        }
+      }
+    }
+    for (let i = 1; i <= 8; i++) {
+      const name = payload[`winner_r16_${i}`];
+      this.vR16[`m${i}`] = this.mapNameToCountry(name);
+    }
+    for (let i = 1; i <= 4; i++) {
+      const name = payload[`winner_r4_${i}`];
+      this.vR4[`m${i}`] = this.mapNameToCountry(name);
+    }
+    for (let i = 1; i <= 2; i++) {
+      const name = payload[`winner_semi_${i}`];
+      this.vS[`m${i}`] = this.mapNameToCountry(name);
+    }
+    const champName = payload[`winner_wc`] || payload[`winner_wc`];
+    this.vChampion = this.mapNameToCountry(champName);
+    this.validated = true;
   }
 
   private initializePlaceholders(): void {
@@ -269,13 +378,25 @@ export class BracketKnockoutComponent implements OnInit {
 
     console.log('Payload to submit:', payload);
 
-    // this.bracketService.postBracket(payload).subscribe({
-    //   next: () => {
-    //     alert('Pronostic validé avec succès !');
-    //   } ,
-    //   error: () => {
-    //     alert('Erreur lors de la validation du pronostic.');
-    //   }
-    // });
+    this.bracketService.postBracket(payload).subscribe({
+      next: () => {
+        alert('Pronostic validé avec succès !');
+        // take a snapshot of the current bracket to show as a read-only validated view
+        this.takeValidatedSnapshot();
+        this.validated = true;
+      } ,
+      error: () => {
+        alert('Erreur lors de la validation du pronostic.');
+      }
+    });
+  }
+
+  private takeValidatedSnapshot(): void {
+    // Deep copy selections into validated maps
+    for (let i = 1; i <= 16; i++) this.vR32[`m${i}`] = this.wR32[`m${i}`] ? { ...this.wR32[`m${i}`] as Country } : null;
+    for (let i = 1; i <= 8; i++) this.vR16[`m${i}`] = this.wR16[`m${i}`] ? { ...this.wR16[`m${i}`] as Country } : null;
+    for (let i = 1; i <= 4; i++) this.vR4[`m${i}`] = this.wR4[`m${i}`] ? { ...this.wR4[`m${i}`] as Country } : null;
+    for (let i = 1; i <= 2; i++) this.vS[`m${i}`] = this.wS[`m${i}`] ? { ...this.wS[`m${i}`] as Country } : null;
+    this.vChampion = this.champion ? { ...this.champion } : null;
   }
 }

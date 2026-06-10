@@ -294,16 +294,17 @@ $line-connector-color: #94a3b8; // Tree connector layout lines color
 }
 
 .match-info {
-  background-color: #f1f5f9; // Light background for info
-  padding: 8px 14px;
-  font-size: 0.75rem;
-  color: #475569;
-  border-bottom-left-radius: 9px;
-  border-bottom-right-radius: 9px;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  border-top: 1px solid #e2e8f0; // Separator from team slots
+  // background-color: #f1f5f9; // Light background for info
+  // padding: 8px 14px;
+  // font-size: 0.75rem;
+  // color: #475569;
+  // border-bottom-left-radius: 9px;
+  // border-bottom-right-radius: 9px;
+  // display: flex;
+  // flex-direction: column;
+  // gap: 4px;
+  // border-top: 1px solid #e2e8f0; // Separator from team slots
+  display: none;
 }
 
 .match-date-time, .match-stadium {
