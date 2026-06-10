@@ -63,30 +63,30 @@
 
           <div *ngIf="step.phases" class="st-compound-block">
 
-          <div class="st-accordion">
-            <ng-container
-              *ngFor="let key of ['phase_de_groupes', 'seiziemes_de_finale', 'huitiemes_de_finale', 'quarts_demis_troisieme_place', 'finale']; let pIdx = index">
-              <div *ngIf="step.phases[key]" class="st-accordion-node" [ngClass]="{'is-expanded': openAccordionIndex === pIdx}">
-                <button (click)="toggleAccordion(pIdx)" class="st-accordion-trigger">
-                  <span>{{ step.phases[key].nom_affiche }}</span>
-                  <span class="st-arrow-icon" [ngClass]="{'is-flipped': openAccordionIndex === pIdx}">▼</span>
-                </button>
-          
-                <div *ngIf="openAccordionIndex === pIdx" class="st-accordion-content">
-                  <p><strong>Règles :</strong> {{ step.phases[key].regles }}</p>
-                  <p *ngIf="step.phases[key].points_info"><strong>Points :</strong> {{ step.phases[key].points_info }}</p>
-          
-                  <div *ngIf="step.phases[key].categories_predictions" class="st-sub-categories">
-                    <strong>Catégories débloquées :</strong>
-                    <div class="st-pill-container">
-                      <span *ngFor="let cat of step.phases[key].categories_predictions" class="st-pill-indigo">🎯 {{ cat }}</span>
+            <div class="st-accordion">
+              <ng-container
+                *ngFor="let key of ['phase_de_groupes', 'seiziemes_de_finale', 'huitiemes_de_finale', 'quarts_demis_troisieme_place', 'finale']; let pIdx = index">
+                <div *ngIf="step.phases[key]" class="st-accordion-node" [ngClass]="{'is-expanded': openAccordionIndex === pIdx}">
+                  <button (click)="toggleAccordion(pIdx)" class="st-accordion-trigger">
+                    <span>{{ step.phases[key].nom_affiche }}</span>
+                    <span class="st-arrow-icon" [ngClass]="{'is-flipped': openAccordionIndex === pIdx}">▼</span>
+                  </button>
+
+                  <div *ngIf="openAccordionIndex === pIdx" class="st-accordion-content">
+                    <p><strong>Règles :</strong> {{ step.phases[key].regles }}</p>
+                    <p *ngIf="step.phases[key].points_info"><strong>Points :</strong> {{ step.phases[key].points_info }}</p>
+
+                    <div *ngIf="step.phases[key].categories_predictions" class="st-sub-categories">
+                      <strong>Catégories débloquées :</strong>
+                      <div class="st-pill-container">
+                        <span *ngFor="let cat of step.phases[key].categories_predictions" class="st-pill-indigo">🎯 {{ cat }}</span>
+                      </div>
                     </div>
                   </div>
+
                 </div>
-          
-              </div>
-            </ng-container>
-          </div>
+              </ng-container>
+            </div>
 
             <div class="st-table-section" *ngIf="step.bareme_points_detaille">
               <h4>📊 Tableau récapitulatif des points :</h4>
@@ -98,9 +98,7 @@
                     </tr>
                   </thead>
                   <tbody>
-                    <tr *ngFor="let row of step.bareme_points_detaille.rows" [ngClass]="{
-                          'st-meta-row': row.cat === 'Nombre de matchs' || row.cat === 'Points max possible / match' || row.cat === 'Total points possible'
-                        }">
+                    <tr *ngFor="let row of step.bareme_points_detaille.rows" [ngClass]="{ 'st-meta-row': row.cat === 'Nombre de matchs' || row.cat === 'Points max possible / match' || row.cat === 'Total points possible' }">
                       <td class="st-sticky-col"><strong>{{ row.cat }}</strong></td>
                       <td *ngFor="let val of row.vals" class="st-center-td">
                         <span [ngClass]="{'st-dash': val === '-', 'st-highlight-cell': val !== '-' && val !== 0}">{{ val }}</span>
@@ -110,6 +108,7 @@
                 </table>
               </div>
               <div class="st-total-banner">
+
                 <span>Points maximum cumulables sur la compétition :</span>
                 <strong>{{ step.bareme_points_detaille.total_points_competition }} Points !</strong>
               </div>
@@ -134,12 +133,12 @@
             <p class="st-alert-pill">🚀 {{ step.interet }}</p>
 
             <div class="st-bracket-grid">
-              <div *ngFor="let item of step.bareme_points | keyvalue" class="st-bracket-card">
+              <div *ngFor="let item of step.bareme_points | keyvalue:bracketOrder" class="st-bracket-card">
                 <span class="st-b-label">{{ formatKey(item.key) }}</span>
                 <span class="st-b-val">+{{ item.value }} PTS</span>
               </div>
             </div>
-<br/>
+            <br />
             <div class="st-rule-callout" *ngIf="step.conditions_egalite">
               <h4>⚖️ Règles d'égalité spécifiques au Bracket :</h4>
               <p><strong>1️⃣</strong> {{ step.conditions_egalite.etape_1 }}</p>
@@ -149,7 +148,7 @@
                 <div class="st-chain-links">
                   <span *ngFor="let phase of step.conditions_egalite.ordre_priorite_phases; let last = last">
                     <span class="st-chain-badge">{{ phase }}</span>
-                    <span *ngIf="!last" class="st-chain-arrow">➔</span>
+                    <span *ngIf="!last" class="st-chain-arrow"> ▶</span>
                   </span>
                 </div>
               </div>
