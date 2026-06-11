@@ -1,0 +1,380 @@
+@import "../../../../variables.scss";
+
+$bg-stadium-dark: #0f172a; 
+$card-white: #ffffff;
+$text-dark-navy: #1e293b;
+$fifa-orange: #f97316;
+$fifa-gold: #eab308;
+$line-connector-color: #94a3b8; // Tree connector layout lines color
+
+.fifa-bracket-viewport {
+  background: radial-gradient(circle at center, #1e40af 0%, #0f172a 100%);
+  min-height: 95vh;
+  width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden; // Reverted to keep full height and no vertical scroll
+  display: flex;
+  align-items: flex-start;
+  padding: 40px;
+  position: relative;
+}
+
+.fixed-actions-container {
+  position: fixed;
+  bottom: 40px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 20px; // Space between the buttons
+  z-index: 100;
+}
+
+.fifa-bracket-canvas {
+  display: flex;
+  flex-direction: row;
+  gap: 40px; // Horizontal column gap channel
+  align-items: stretch;
+  width: max-content;
+  padding-right: 40px;
+  min-height: 100%; // Ensure it fills height if needed
+}
+
+.bracket-column {
+  display: flex;
+  flex-direction: column;
+  width: 280px; // Increased width to prevent vertical scrollbar/wrapping
+  flex-shrink: 0;
+}
+
+.match-list {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  // height: 1500px; // Removed fixed height
+  min-height: 800px; // Set a sensible minimum height
+  position: relative;
+}
+
+.stage-final .match-list {
+  // Horizontal line connecting to the vertical line, only for final stage
+  &::after {
+    content: '';
+    position: absolute;
+    left: -40px;
+    top: 50%;
+    width: 40px;
+    height: 2px;
+    background-color: $line-connector-color;
+    z-index: 0;
+  }
+}
+
+/* --- THE AUTOMATIC CONNECTOR TRICK (ZERO JITTER) --- */
+
+.matchup-pair-group {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  flex-grow: 1;
+  position: relative;
+  padding-right: 30px; // Channel room reserved for outgoing stems
+
+  // 1. Drawing the connecting tree brackets lines
+  &::after {
+    content: '';
+    position: absolute;
+    right: 0;
+    top: 25%;
+    bottom: 25%;
+    width: 30px;
+    border: 2px solid $line-connector-color;
+    border-left: none; // Creates a clean squared "]" bracket envelope
+    z-index: 1;
+  }
+}
+
+// 2. Center departure stem pointing right into the next phase column card
+.match-node {
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  margin: 15px 0;
+
+  // Stems entering from preceding matches on the left side
+  .stage-r16 &, .stage-r4 &, .stage-r2 &, .stage-final & {
+    &::before {
+      content: '';
+      position: absolute;
+      left: -40px; 
+      top: 50%;
+      width: 40px;
+      height: 2px;
+      background-color: $line-connector-color;
+      z-index: 1;
+    }
+  }
+}
+
+// Hide trailing bracket on the last round step before the Final
+.stage-r2 .matchup-pair-group::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  top: 25%;
+  bottom: 25%;
+  width: 30px;
+  border: 2px solid $line-connector-color;
+  border-left: none;
+}
+.stage-final {
+  .matchup-pair-group::after,
+  .match-node::before {
+    display: none !important;
+  }
+}
+
+.randomize-container {
+  z-index: 50; // Keep z-index
+}
+
+.btn-dice-randomize {
+  background: #0f172a;
+  border: 2px solid $fifa-orange;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+
+  &:hover {
+    transform: scale(1.1) rotate(15deg);
+    background: $fifa-orange;
+  }
+}
+
+
+
+.match-card {
+  background-color: #0c1524; // Dark navy matching the mockup
+  border-radius: 12px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25);
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  z-index: 10;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding-bottom: 6px; // Padding at the bottom for aesthetic spacing
+  
+  &.final-accent-card { border: 2px solid $fifa-gold; padding: 6px; }
+}
+
+.team-slot {
+  display: flex;
+  align-items: center;
+  padding: 14px 16px;
+  cursor: pointer;
+  background: $card-white;
+  margin: 6px 10px; // Spacing to separate slots as rounded cards
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+
+  &.large-slot { padding: 20px 16px; }
+  &.disabled { opacity: 0.4; cursor: not-allowed; }
+
+  &.selected {
+    background-color: #ffedd5 !important;
+    border-color: $fifa-orange;
+    .slot-name, .slot-name-text { color: $fifa-orange; font-weight: 800; }
+  }
+
+  .slot-flag { 
+    width: 42px; 
+    height: 26px; 
+    object-fit: cover; 
+    border-radius: 6px; 
+    margin-right: 14px; 
+    box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+  }
+  .slot-name, .slot-name-text { 
+    color: #0f172a; 
+    font-size: 0.95rem; 
+    font-weight: 600; 
+    line-height: 1.25;
+  }
+}
+
+.node-index { 
+  color: #94a3b8; 
+  font-size: 0.8rem; 
+  font-weight: 700; 
+  margin-bottom: 6px; 
+  text-transform: uppercase; 
+  letter-spacing: 0.5px;
+}
+.versus-divider-badge { text-align: center; margin: -11px auto; background-color: #0f172a; color: #ffffff; font-size: 0.7rem; font-weight: 900; padding: 3px 12px; border-radius: 20px; z-index: 20; }
+.trophy-announcement-container { margin-top: 20px; text-align: center; .gold-title { color: #fde047; font-size: 0.8rem; font-weight: 900; margin-bottom: 8px; } .winner-gold-badge { display: inline-flex; align-items: center; gap: 10px; background: linear-gradient(135deg, #fef08a 0%, #facc15 100%); padding: 10px 20px; border-radius: 30px; color: #713f12; font-size: 1rem; font-weight: 800; img { width: 32px; height: 20px; border-radius: 3px; } } }
+.winner-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(15, 23, 42, 0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+}
+
+.modal-content {
+  background: #0f172a;
+  padding: 40px;
+  border-radius: 20px;
+  text-align: center;
+  color: white;
+  width: 90%;
+  max-width: 400px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  
+  h3 { font-size: 1.25rem; font-weight: 800; margin-bottom: 20px; }
+  p { color: #94a3b8; font-size: 0.9rem; margin-bottom: 30px; }
+}
+
+.modal-options {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  
+  button {
+    padding: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    background: #1e293b;
+    color: white;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 1rem;
+    font-weight: 700;
+    transition: all 0.2s;
+    
+    &:hover { background: #334155; border-color: $fifa-orange; }
+    .slot-flag { width: 40px; height: 26px; border-radius: 4px; }
+  }
+}
+
+.btn-fifa-submit {
+  background-color: $fifa-orange;
+  color: white;
+  padding: 15px 30px;
+  border-radius: 30px;
+  font-size: 1.1rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 8px 15px rgba(0, 0, 0, 0.3);
+  transition: all 0.3s ease;
+  z-index: 100;
+
+  &:hover {
+    background-color: darken($fifa-orange, 10%);
+    transform: translateY(-2px);
+    box-shadow: 0 12px 20px rgba(0, 0, 0, 0.4);
+  }
+
+  &:disabled {
+    background-color: #94a3b8;
+    cursor: not-allowed;
+    opacity: 0.7;
+    box-shadow: none;
+    transform: none;
+  }
+}
+
+.match-card-header {
+  background-color: #0c1524; // Deep dark navy theme matching bracket background
+  padding: 12px 14px;
+  border-top-left-radius: 10px;
+  border-top-right-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  text-align: left;
+}
+
+.match-stadium-name {
+  color: #ffffff;
+  font-size: 0.95rem;
+  font-weight: 800;
+  letter-spacing: -0.2px;
+}
+
+.match-date-value {
+  color: $fifa-orange;
+  font-size: 0.82rem;
+  font-weight: 800;
+}
+
+.bracket-headers-row-sticky {
+  position: sticky;
+  top: 9rem; // Offset to sit directly below the fixed website header
+  z-index: 1000;
+  background: radial-gradient(circle at center, #193180 0%, #0d1525 100%); // Match viewport visual gradient
+  width: 100%;
+  padding: 16px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+}
+
+.headers-scroll-sync {
+  overflow-x: hidden; // Hide horizontal scrollbars on headers wrapper
+  width: 100%;
+}
+
+.header-scroll-content {
+  display: flex;
+  flex-direction: row;
+  gap: 40px; // Match canvas column gap
+  padding: 0 40px; // Match viewport padding
+  width: max-content;
+}
+
+.header-pill-col {
+  width: 280px; // Match column width
+  flex-shrink: 0;
+  background: #0f172a; // Dark navy matching mockup
+  color: #ffffff;
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  text-align: center;
+  padding: 12px 20px;
+  border-radius: 30px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+
+  &.highlight-final {
+    border-color: $fifa-gold;
+    color: $fifa-gold;
+  }
+}
+
+.fifa-bracket-canvas.readonly .team-slot {
+  pointer-events: none;
+}
+
+.fifa-bracket-canvas.readonly .stage-r32 .match-node .team-slot + .team-slot {
+  display: none;
+}

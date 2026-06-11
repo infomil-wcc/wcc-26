@@ -111,6 +111,9 @@ export class AppComponent implements OnInit {
       case 'bracket':
         this.page = 7;
         break;
+      case 'bracket-challenge':
+        this.page = 13;
+        break;
       // case 'quiz':
       //   this.page = 8;
       //   break;

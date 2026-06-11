@@ -1,0 +1,72 @@
+<div class="filter w-full pt-4 pb-4 pl-2 pr-2">
+  <div class="container">
+    <h1 class="text-white flex align-items-center gap-2">
+      <span class="material-symbols-outlined">sports_esports</span>
+      Bracket Challenge 2026
+    </h1>
+  </div>
+</div>
+
+<div class="challenge-container py-4" *ngIf="isLoggedIn; else loginPrompt">
+  <div class="">
+    
+    <!-- Stepper / Wizard header -->
+    <div class="challenge-stepper mb-4">
+      <div class="step" [class.active]="activeWizardStep === 'groups'" [class.completed]="activeWizardStep === 'knockout'">
+        <div class="step-icon">1</div>
+        <div class="step-label">Phase de Groupes</div>
+      </div>
+      <div class="step-connector" [class.completed]="activeWizardStep === 'knockout'"></div>
+      <div class="step" [class.active]="activeWizardStep === 'knockout'">
+        <div class="step-icon">2</div>
+        <div class="step-label">Phase à Élimination Directe</div>
+      </div>
+    </div>
+
+    <!-- Group Stage Predictor (State preserved) -->
+    <div [hidden]="activeWizardStep !== 'groups'" class="fade-in">
+      <app-bracket-predictor  (groupStageComplete)="handleGroupPredictionsFinished($event)"></app-bracket-predictor>
+   </div>
+
+    <!-- Knockout Stage Bracket (Fresh state on transition) -->
+    <div [hidden]="activeWizardStep !== 'knockout'" class="fade-in">
+      <div class="controls-bar mb-4">
+        <button *ngIf="!hasSavedBracket" type="button" class="btn btn-secondary flex align-items-center gap-2" (click)="backToGroups()">
+          <span class="material-symbols-outlined">arrow_back</span>
+          Modifier mes phases de groupes
+        </button>
+        <button *ngIf="hasSavedBracket" type="button" class="btn btn-danger flex align-items-center gap-2" (click)="deleteBracket()">
+          <span class="material-symbols-outlined">delete_forever</span>
+          Re-initialiser mon bracket
+        </button>
+      </div>
+      
+      <app-bracket-knockout [setupAdvancedTeams]="advancedQualifiers"></app-bracket-knockout>
+    </div>
+
+  </div>
+</div>
+
+<ng-template #loginPrompt>
+  <modal [showModal]="!isLoggedIn" [showCloseButton]="false">
+    <app-login />
+  </modal>
+
+</ng-template>
+
+<app-dialog [(showDialog)]="showDeleteDialog" [dialogTitle]="'Attention !'" [withOverlay]="true" [allowClose]="true">
+  <ng-container *ngIf="deleteDialogMode === 'confirm'">
+    <p>{{ deleteDialogMessage }}</p>
+    <div class="flex justify-content-between gap-2 mt-4 w-full">
+      <button class="btn btn-primary" (click)="onDeleteConfirmed()">Oui</button>
+      <button class="btn" (click)="onDeleteDialogClose()">Non</button>
+    </div>
+  </ng-container>
+  <ng-container *ngIf="deleteDialogMode === 'info'">
+    <p>{{ deleteDialogMessage }}</p>
+    <div class="flex justify-content-end gap-2 mt-4 w-full">
+      <button class="btn" (click)="onDeleteDialogClose()">OK</button>
+    </div>
+  </ng-container>
+</app-dialog>
+
