@@ -2,6 +2,11 @@
   <!-- Stadium Background Overlay with light opacity -->
   <div class="match-bg-overlay" *ngIf="isPronostiques && stadiumImageUrl" [ngStyle]="{'background-image': 'url(' + stadiumImageUrl + ')'}"></div>
   
+  <!-- Lock Overlay when saved in database -->
+  <div class="lock-overlay" *ngIf="isPronostiques && isSavedInApi">
+    <span class="material-symbols-outlined lock-icon">lock</span>
+  </div>
+  
   <!-- Header Segment -->
   <div class="match-header flex justify-content-between align-items-center">
     <div class="header-left">
