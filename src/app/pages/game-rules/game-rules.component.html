@@ -25,6 +25,9 @@
           <span class="st-step-date">
             <ng-container *ngIf="step.date_debut">
               {{ step.date_debut | date:'dd MMM yyyy': '' :'fr' }}
+            </ng-container>-
+             <ng-container *ngIf="step.date_fin">
+              {{ step.date_fin | date:'dd MMM yyyy': '' :'fr' }}
             </ng-container>
             &nbsp;
           </span>
