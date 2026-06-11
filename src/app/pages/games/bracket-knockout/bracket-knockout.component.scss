@@ -370,3 +370,11 @@ $line-connector-color: #94a3b8; // Tree connector layout lines color
     color: $fifa-gold;
   }
 }
+
+.fifa-bracket-canvas.readonly .team-slot {
+  pointer-events: none;
+}
+
+.fifa-bracket-canvas.readonly .stage-r32 .match-node .team-slot + .team-slot {
+  display: none;
+}

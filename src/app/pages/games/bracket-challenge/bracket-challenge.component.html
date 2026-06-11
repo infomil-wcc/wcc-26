@@ -7,8 +7,8 @@
   </div>
 </div>
 
-<div class="challenge-container py-4">
-  <div class="container">
+<div class="challenge-container py-4" *ngIf="isLoggedIn; else loginPrompt">
+  <div class="">
     
     <!-- Stepper / Wizard header -->
     <div class="challenge-stepper mb-4">
@@ -42,3 +42,11 @@
 
   </div>
 </div>
+
+<ng-template #loginPrompt>
+  <modal [showModal]="!isLoggedIn" [showCloseButton]="false">
+    <app-login />
+  </modal>
+
+</ng-template>
+

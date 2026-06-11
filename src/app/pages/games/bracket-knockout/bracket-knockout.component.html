@@ -28,12 +28,22 @@
                     <div class="match-date-value">{{ matchDetails['R32_m'+mIdx]?.date || '-' }}</div>
                   </div>
                   <ng-container *ngFor="let slot of [1, 2]">
-                    <div class="team-slot" 
-                         [class.selected]="getWinner('R32', 'm'+mIdx)?.name === getTeam('R32', 'm'+mIdx, slot)?.name"
-                         (click)="!validated && getTeam('R32', 'm'+mIdx, slot) && selectWinner('R32', 'm'+mIdx, getTeam('R32', 'm'+mIdx, slot)!)">
-                      <img [src]="getTeam('R32', 'm'+mIdx, slot)?.flagUrl || 'assets/flags/unknown.png'" class="slot-flag" alt="">
-                      <span class="slot-name-text">{{ getTeam('R32', 'm'+mIdx, slot)?.name || 'À déterminer' }}</span>
-                    </div>
+                    <!-- When showing a validated (read-only) saved bracket, display only the chosen winner for R32 -->
+                    <ng-container *ngIf="validated && vR32['m'+mIdx] as savedWinner">
+                      <div class="team-slot"
+                           [class.selected]="getWinner('R32', 'm'+mIdx)?.name === savedWinner?.name">
+                        <img [src]="savedWinner.flagUrl || 'assets/flags/unknown.png'" class="slot-flag" alt="">
+                        <span class="slot-name-text">{{ savedWinner.name || 'À déterminer' }}</span>
+                      </div>
+                    </ng-container>
+                    <ng-container *ngIf="!validated || !vR32['m'+mIdx]">
+                      <div class="team-slot" 
+                           [class.selected]="getWinner('R32', 'm'+mIdx)?.name === getTeam('R32', 'm'+mIdx, slot)?.name"
+                           (click)="!validated && getTeam('R32', 'm'+mIdx, slot) && selectWinner('R32', 'm'+mIdx, getTeam('R32', 'm'+mIdx, slot)!)">
+                        <img [src]="getTeam('R32', 'm'+mIdx, slot)?.flagUrl || 'assets/flags/unknown.png'" class="slot-flag" alt="">
+                        <span class="slot-name-text">{{ getTeam('R32', 'm'+mIdx, slot)?.name || 'À déterminer' }}</span>
+                      </div>
+                    </ng-container>
                   </ng-container>
                 </div>
               </div>

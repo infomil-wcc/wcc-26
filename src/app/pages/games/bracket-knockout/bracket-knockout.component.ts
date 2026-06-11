@@ -4,6 +4,7 @@ import { CookieService } from 'ngx-cookie-service';
 import { StateService } from '../../../shared/services/core/state.service'; 
 import { BracketService } from '../../../shared/services/games/bracket.service';
 import { MatchesService } from '../../../shared/services/content/matches.service';
+import { TeamsService } from '../../../shared/services/content/teams.service';
 
 export interface Country {
   name: string;
@@ -43,6 +44,7 @@ export class BracketKnockoutComponent implements OnInit {
   private bracketService = inject(BracketService);
   private cookieService = inject(CookieService);
   private matchesService = inject(MatchesService);
+  private teamsService = inject(TeamsService);
   private cdr = inject(ChangeDetectorRef);
 
   @Input() isOpen: boolean = true;
@@ -89,6 +91,20 @@ export class BracketKnockoutComponent implements OnInit {
   protected matchArray2  = Array.from({ length: 2 },  (_, i) => i + 1); // 1 to 2
 
   protected matchDetails: { [key: string]: { date: string, time: string, stadium: string } | undefined } = {};
+  // Cached map of known flags from the teams service (name -> { url, iso })
+  protected flagMap: Map<string, { url: string, iso?: string }> = new Map();
+
+  private normalizeName(input?: string | null): string {
+    if (!input) return '';
+    try {
+      const cleaned = String(input).normalize('NFD').replace(/\p{Diacritic}/gu, '').trim().toLowerCase();
+      // common aliases / legacy names
+      if (cleaned === 'turkiye' || cleaned === 'türkiye') return 'turkey';
+      return cleaned;
+    } catch {
+      return String(input).trim().toLowerCase();
+    }
+  }
 
   ngOnInit(): void {
     this.initializePlaceholders();
@@ -120,6 +136,66 @@ export class BracketKnockoutComponent implements OnInit {
         this.populateMatchDetails(matches);
       }
     });
+
+    // Cache available flags from the teams service so we can resolve names -> flagUrl later
+    this.teamsService.getFlags().subscribe({
+      next: (flags: any[]) => {
+        try {
+          flags.forEach((f: any) => {
+            if (f && f.name) {
+              const key = this.normalizeName(f.name);
+              this.flagMap.set(key, { url: f.flag_url || f.url || 'assets/flags/unknown.png', iso: (f.iso || f.iso_code || '').toLowerCase() });
+            }
+          });
+          // After flags populate, refresh any already-applied saved entries
+          this.resolveSavedFlags();
+        } catch {
+          // ignore
+        }
+      }
+    });
+  }
+
+  // Try to replace unknown flagUrls in existing objects using flagMap lookups
+  private resolveSavedFlags(): void {
+    const resolveFor = (obj: { [key: string]: Country | null } | { [key: string]: Country }) => {
+      for (const k of Object.keys(obj)) {
+        const c = (obj as any)[k] as Country | null;
+        if (!c || !c.name) continue;
+        const nameKey = this.normalizeName(c.name);
+        const fromMap = this.flagMap.get(nameKey);
+        if (fromMap && fromMap.url && fromMap.url !== 'assets/flags/unknown.png') {
+          (obj as any)[k] = { ...c, flagUrl: fromMap.url, flagId: fromMap.iso || (c.flagId || '') } as Country;
+        } else {
+          // fuzzy attempt
+          for (const [mk, mv] of this.flagMap.entries()) {
+            if (mk.includes(nameKey) || nameKey.includes(mk)) {
+              (obj as any)[k] = { ...c, flagUrl: mv.url, flagId: mv.iso || (c.flagId || '') } as Country;
+              break;
+            }
+          }
+        }
+      }
+    };
+
+    resolveFor(this.r32Teams);
+    resolveFor(this.wR32);
+    resolveFor(this.vR32);
+    resolveFor(this.wR16);
+    resolveFor(this.vR16);
+    resolveFor(this.wR4);
+    resolveFor(this.vR4);
+    resolveFor(this.wS);
+    resolveFor(this.vS);
+    if (this.vChampion && this.vChampion.name) {
+      const key = this.normalizeName(this.vChampion.name);
+      const m = this.flagMap.get(key);
+      if (m && m.url && m.url !== 'assets/flags/unknown.png') {
+        this.vChampion.flagUrl = m.url;
+        this.vChampion.flagId = m.iso || this.vChampion.flagId;
+      }
+    }
+    this.cdr.detectChanges();
   }
 
   private populateMatchDetails(matches: any[]): void {
@@ -201,19 +277,50 @@ export class BracketKnockoutComponent implements OnInit {
 
   private mapNameToCountry(name?: string | null): Country | null {
     if (!name) return null;
-    // search initial R32 teams first
+    const nameNorm = this.normalizeName(name);
+
+    // 1) Prefer resolving via flagMap (exact then fuzzy) so we get full flagUrl even if r32Teams contains placeholders
+    const exact = this.flagMap.get(nameNorm);
+    if (exact) {
+      return {
+        name,
+        flagUrl: exact.url || 'assets/flags/unknown.png',
+        flagId: (exact.iso || name.substring(0,2)).toLowerCase(),
+        iso: exact.iso || '', group: '', coach: '', worldCupAppearances: 0, worldCupGoals: 0,
+        bestResult: { en: '' }, internationalTitles: [],
+        qualification2026: { topScorer: { en: '' }, topAssists: { en: '' }, mostUsed: '', chancesCreated: '', note: { en: '' } },
+        funFacts: [], timeline: [], date: '', time: '', stadium: ''
+      };
+    }
+
+    for (const [k, v] of this.flagMap.entries()) {
+      if (k.includes(nameNorm) || nameNorm.includes(k)) {
+        return {
+          name,
+          flagUrl: v.url || 'assets/flags/unknown.png',
+          flagId: (v.iso || name.substring(0,2)).toLowerCase(),
+          iso: v.iso || '', group: '', coach: '', worldCupAppearances: 0, worldCupGoals: 0,
+          bestResult: { en: '' }, internationalTitles: [],
+          qualification2026: { topScorer: { en: '' }, topAssists: { en: '' }, mostUsed: '', chancesCreated: '', note: { en: '' } },
+          funFacts: [], timeline: [], date: '', time: '', stadium: ''
+        };
+      }
+    }
+
+    // 2) Then search existing in-memory maps (use normalized comparisons) so we don't return placeholders when full info exists
     for (const key of Object.keys(this.r32Teams)) {
       const c = this.r32Teams[key];
-      if (c && c.name === name) return c;
+      if (c && this.normalizeName(c.name) === nameNorm) return c;
     }
-    // fallback to existing selections
-    const searches = [this.wR32, this.wR16, this.wR4, this.wS];
+
+    const searches = [this.wR32, this.wR16, this.wR4, this.wS, this.vR32, this.vR16, this.vR4, this.vS];
     for (const map of searches) {
       for (const k of Object.keys(map)) {
         const c = map[k];
-        if (c && c.name === name) return c;
+        if (c && this.normalizeName((c as Country).name) === nameNorm) return c as Country;
       }
     }
+
     // last resort: return a minimal Country placeholder so UI can display the name
     return this.createPlaceholderCountry(name);
   }
@@ -263,10 +370,27 @@ export class BracketKnockoutComponent implements OnInit {
       this.vR32[`m${i}`] = winnerCountry;
       // also put winner into the R32 pair first slot so the match shows the selected team
       if (winnerCountry) {
-        this.r32Teams[`m${i}_1`] = winnerCountry;
-        // leave m{i}_2 as placeholder if unknown
-        if (!this.r32Teams[`m${i}_2`]) {
-          this.r32Teams[`m${i}_2`] = this.createPlaceholderCountry();
+        const slot1Key = `m${i}_1`;
+        const slot2Key = `m${i}_2`;
+        const slot1 = this.r32Teams[slot1Key];
+        const slot2 = this.r32Teams[slot2Key];
+        const isSlot1Placeholder = !slot1 || slot1.name === 'À déterminer';
+        const isSlot2Placeholder = !slot2 || slot2.name === 'À déterminer';
+
+        if (isSlot1Placeholder && isSlot2Placeholder) {
+          // No original pair available — show the winner in the first slot only
+          // and keep the second slot as a placeholder so it doesn't appear duplicated
+          this.r32Teams[slot1Key] = winnerCountry;
+          this.r32Teams[slot2Key] = this.createPlaceholderCountry();
+        } else if (isSlot1Placeholder) {
+          this.r32Teams[slot1Key] = winnerCountry;
+        } else if (isSlot2Placeholder) {
+          this.r32Teams[slot2Key] = winnerCountry;
+        } else {
+          // both slots present; ensure at least one matches the winner name
+          if (slot1.name !== winnerCountry.name && slot2.name !== winnerCountry.name) {
+            this.r32Teams[slot1Key] = winnerCountry;
+          }
         }
       }
     }
@@ -281,6 +405,8 @@ export class BracketKnockoutComponent implements OnInit {
     }
     this.vChampion = this.mapNameToCountry(payload[`winner_wc`]);
     this.validated = true;
+    // Ensure flags are resolved now that validated maps are populated
+    this.resolveSavedFlags();
   }
 
   private initializePlaceholders(): void {
