@@ -65,11 +65,30 @@
         </div>
       </div>
 
-      <div class="stepper-footer inline-buttons">
+      <div class="stepper-footer inline-buttons" style="margin-bottom: 6rem;">
         <button type="button" class="btn-validate-all" (click)="validateAllGroups()">
           <span class="icon">✓</span> Valider tout
         </button>
-        <button type="button" class="btn" [disabled]="!areAllGroupsConfirmed()" (click)="goToThirdPlaceSelection()">
+      </div>
+
+      <!-- Floating Action Buttons for Step 1 -->
+      <div class="fixed-actions-container">
+        <div class="randomize-container">
+          <button 
+            type="button"
+            class="btn-dice-randomize" 
+            (click)="randomizeAllGroups()" 
+            title="Sélection aléatoire"
+          >
+            <span class="dice-icon">🎲</span>
+          </button>
+        </div>
+        <button 
+          type="button"
+          class="btn-fifa-submit" 
+          [disabled]="!areAllGroupsConfirmed()" 
+          (click)="goToThirdPlaceSelection()"
+        >
           Suivant : Meilleurs 3èmes &rarr;
         </button>
       </div>
@@ -77,6 +96,12 @@
 
     <div *ngIf="currentStep === 2" class="step-container">
       
+      <div class="controls-bar mb-4">
+        <button type="button" class="btn-navigation secondary-back" (click)="goBackToGroups()">
+          &larr; Retour aux groupes
+        </button>
+      </div>
+
       <div class="dashboard-controls">
         <div class="title-block">
           <h2>Choisissez les meilleurs troisièmes</h2>
@@ -120,6 +145,10 @@
             </div>
           </div>
         </div>
+      </div>
+
+      <!-- Fixed action buttons -->
+      <div class="fixed-actions-container">
         <div class="randomize-container">
           <button 
             type="button"
@@ -130,15 +159,9 @@
             <span class="dice-icon">🎲</span>
           </button>
         </div>
-      </div>
-
-      <div class="stepper-footer inline-buttons">
-        <button type="button" class="btn-navigation secondary-back" (click)="goBackToGroups()">
-          &larr; Retour aux groupes
-        </button>
         <button 
           type="button"
-          class="btn-navigation final-submit" 
+          class="btn-fifa-submit" 
           [disabled]="selectedThirdsCount !== 8" 
           (click)="submitGroupStagePredictions()"
         >

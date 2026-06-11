@@ -1,8 +1,9 @@
-import { Component, OnInit, inject, Input, ViewChild, ElementRef } from '@angular/core';
+import { Component, OnInit, inject, Input, ViewChild, ElementRef, ChangeDetectorRef } from '@angular/core';
 import { Observable } from 'rxjs';
 import { CookieService } from 'ngx-cookie-service';
 import { StateService } from '../../../shared/services/core/state.service'; 
 import { BracketService } from '../../../shared/services/games/bracket.service';
+import { MatchesService } from '../../../shared/services/content/matches.service';
 
 export interface Country {
   name: string;
@@ -36,12 +37,21 @@ export interface Country {
 })
 export class BracketKnockoutComponent implements OnInit {
   @ViewChild('bracketWrapper') bracketWrapper!: ElementRef;
+  @ViewChild('headersSync') headersSync!: ElementRef;
 
   private stateService = inject(StateService);
   private bracketService = inject(BracketService);
   private cookieService = inject(CookieService);
+  private matchesService = inject(MatchesService);
+  private cdr = inject(ChangeDetectorRef);
 
   @Input() isOpen: boolean = true;
+
+  protected syncHeadersScroll(): void {
+    if (this.headersSync && this.bracketWrapper) {
+      this.headersSync.nativeElement.scrollLeft = this.bracketWrapper.nativeElement.scrollLeft;
+    }
+  }
   
   // Dynamic handler setter mapping input array of 32 elements down into sequential pairs
   @Input() set setupAdvancedTeams(teams: any[] | null) {
@@ -78,6 +88,8 @@ export class BracketKnockoutComponent implements OnInit {
   protected matchArray4  = Array.from({ length: 4 },  (_, i) => i + 1); // 1 to 4
   protected matchArray2  = Array.from({ length: 2 },  (_, i) => i + 1); // 1 to 2
 
+  protected matchDetails: { [key: string]: { date: string, time: string, stadium: string } | undefined } = {};
+
   ngOnInit(): void {
     this.initializePlaceholders();
     this.resetSelections();
@@ -100,10 +112,91 @@ export class BracketKnockoutComponent implements OnInit {
           }
         });
       }
-    })
+    });
 
-    // No localStorage: R32 pairs should be reconstructed from saved bracket payload via applySavedBracket
+    // Fetch matches to populate dates, times, and stadiums
+    this.matchesService.getAllMatches().subscribe({
+      next: (matches) => {
+        this.populateMatchDetails(matches);
+      }
+    });
+  }
 
+  private populateMatchDetails(matches: any[]): void {
+    matches.forEach((m: any) => {
+      let key = '';
+      if (m.phase === 'Round of 32') {
+        const index = m.id - 72; // ID 73 -> index 1
+        key = `R32_m${index}`;
+      } else if (m.phase === 'Round of 16') {
+        const index = m.id - 88; // ID 89 -> index 1
+        key = `R16_m${index}`;
+      } else if (m.phase === 'Quarter-finals') {
+        const index = m.id - 96; // ID 97 -> index 1
+        key = `R4_m${index}`;
+      } else if (m.phase === 'Semi-finals') {
+        const index = m.id - 100; // ID 101 -> index 1
+        key = `S_m${index}`;
+      } else if (m.phase === 'Final') {
+        key = `Final_f1`;
+      }
+
+      if (key) {
+        let datePart = '-';
+        let timePart = '';
+        if (m.date) {
+          const formatted = this.formatMatchDate(m.date);
+          datePart = formatted.date;
+          timePart = formatted.time;
+        }
+        this.matchDetails[key] = {
+          date: datePart,
+          time: timePart,
+          stadium: m.stadium || 'Inconnu'
+        };
+      }
+    });
+    this.cdr.detectChanges();
+  }
+
+  private formatMatchDate(rawDateStr: string): { date: string, time: string } {
+    try {
+      const formattedStr = rawDateStr.replace(' ', 'T');
+      const d = new Date(formattedStr);
+      if (isNaN(d.getTime())) {
+        return { date: rawDateStr, time: '' };
+      }
+
+      const days = ['Dimanche', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'];
+      const dayName = days[d.getDay()];
+
+      const day = String(d.getDate()).padStart(2, '0');
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+
+      let hours = d.getHours();
+      const ampm = hours >= 12 ? 'PM' : 'AM';
+      hours = hours % 12;
+      hours = hours ? hours : 12;
+
+      return {
+        date: `${dayName} ${day}-${month} ${hours}${ampm}`,
+        time: ''
+      };
+    } catch {
+      return { date: rawDateStr, time: '' };
+    }
+  }
+
+  private createPlaceholderCountry(name: string = 'À déterminer'): Country {
+    return {
+      name,
+      flagId: 'tbc',
+      flagUrl: 'assets/flags/unknown.png',
+      iso: '', group: '', coach: '', worldCupAppearances: 0, worldCupGoals: 0,
+      bestResult: { en: '' }, internationalTitles: [],
+      qualification2026: { topScorer: { en: '' }, topAssists: { en: '' }, mostUsed: '', chancesCreated: '', note: { en: '' } },
+      funFacts: [], timeline: [], date: '', time: '', stadium: ''
+    };
   }
 
   private mapNameToCountry(name?: string | null): Country | null {
@@ -121,8 +214,8 @@ export class BracketKnockoutComponent implements OnInit {
         if (c && c.name === name) return c;
       }
     }
-    // last resort: return a minimal Country so UI can display the name
-    return { name, flagId: 'tbc', flagUrl: 'assets/flags/unknown.png', iso: '', group: '', coach: '', worldCupAppearances: 0, worldCupGoals: 0, bestResult: { en: '' }, internationalTitles: [], qualification2026: { topScorer: { en: '' }, topAssists: { en: '' }, mostUsed: '', chancesCreated: '', note: { en: '' } }, funFacts: [], timeline: [], date: '', time: '', stadium: '' };
+    // last resort: return a minimal Country placeholder so UI can display the name
+    return this.createPlaceholderCountry(name);
   }
 
   private applySavedBracket(payload: any): void {
@@ -155,8 +248,8 @@ export class BracketKnockoutComponent implements OnInit {
 
         const left = normalize(leftRaw);
         const right = normalize(rightRaw);
-        if (left) extracted.push(left); else extracted.push({ name: 'À déterminer', flagUrl: 'assets/flags/unknown.png', flagId: 'tbc' });
-        if (right) extracted.push(right); else extracted.push({ name: 'À déterminer', flagUrl: 'assets/flags/unknown.png', flagId: 'tbc' });
+        extracted.push(left || this.createPlaceholderCountry());
+        extracted.push(right || this.createPlaceholderCountry());
       }
     }
 
@@ -165,51 +258,35 @@ export class BracketKnockoutComponent implements OnInit {
     }
     // populate validated maps from payload fields
     for (let i = 1; i <= 16; i++) {
-      const name = payload[`winner_r32_${i}`] || payload[`winner_r32_${i}`];
-      this.vR32[`m${i}`] = this.mapNameToCountry(name);
-      // also put winner into the R32 pair first slot so the match shows the selected team
+      const name = payload[`winner_r32_${i}`];
       const winnerCountry = this.mapNameToCountry(name);
+      this.vR32[`m${i}`] = winnerCountry;
+      // also put winner into the R32 pair first slot so the match shows the selected team
       if (winnerCountry) {
         this.r32Teams[`m${i}_1`] = winnerCountry;
         // leave m{i}_2 as placeholder if unknown
         if (!this.r32Teams[`m${i}_2`]) {
-          this.r32Teams[`m${i}_2`] = { name: 'À déterminer', flagId: 'tbc', flagUrl: 'assets/flags/unknown.png', iso: '', group: '', coach: '', worldCupAppearances: 0, worldCupGoals: 0, bestResult: { en: '' }, internationalTitles: [], qualification2026: { topScorer: { en: '' }, topAssists: { en: '' }, mostUsed: '', chancesCreated: '', note: { en: '' } }, funFacts: [], timeline: [], date: '', time: '', stadium: '' };
+          this.r32Teams[`m${i}_2`] = this.createPlaceholderCountry();
         }
       }
     }
     for (let i = 1; i <= 8; i++) {
-      const name = payload[`winner_r16_${i}`];
-      this.vR16[`m${i}`] = this.mapNameToCountry(name);
+      this.vR16[`m${i}`] = this.mapNameToCountry(payload[`winner_r16_${i}`]);
     }
     for (let i = 1; i <= 4; i++) {
-      const name = payload[`winner_r4_${i}`];
-      this.vR4[`m${i}`] = this.mapNameToCountry(name);
+      this.vR4[`m${i}`] = this.mapNameToCountry(payload[`winner_r4_${i}`]);
     }
     for (let i = 1; i <= 2; i++) {
-      const name = payload[`winner_semi_${i}`];
-      this.vS[`m${i}`] = this.mapNameToCountry(name);
+      this.vS[`m${i}`] = this.mapNameToCountry(payload[`winner_semi_${i}`]);
     }
-    const champName = payload[`winner_wc`] || payload[`winner_wc`];
-    this.vChampion = this.mapNameToCountry(champName);
+    this.vChampion = this.mapNameToCountry(payload[`winner_wc`]);
     this.validated = true;
   }
 
   private initializePlaceholders(): void {
     for (let i = 1; i <= 16; i++) {
-      const defaultCountry: Country = { 
-        name: 'À déterminer', 
-        flagId: 'tbc', 
-        flagUrl: 'assets/flags/unknown.png',
-        iso: '', group: '', coach: '', worldCupAppearances: 0, worldCupGoals: 0,
-        bestResult: { en: '' }, internationalTitles: [],
-        qualification2026: { topScorer: { en: '' }, topAssists: { en: '' }, mostUsed: '', chancesCreated: '', note: { en: '' } },
-        funFacts: [], timeline: [],
-        date: '', // Added
-        time: '', // Added
-        stadium: '' // Added
-      };
-      this.r32Teams[`m${i}_1`] = { ...defaultCountry };
-      this.r32Teams[`m${i}_2`] = { ...defaultCountry };
+      this.r32Teams[`m${i}_1`] = this.createPlaceholderCountry();
+      this.r32Teams[`m${i}_2`] = this.createPlaceholderCountry();
     }
   }
 
@@ -229,6 +306,47 @@ export class BracketKnockoutComponent implements OnInit {
       matchCounter++;
     }
     this.resetSelections();
+  }
+
+  getWinner(stage: string, matchKey: string): Country | null {
+    if (this.validated) {
+      if (stage === 'R32') return this.vR32[matchKey] || null;
+      if (stage === 'R16') return this.vR16[matchKey] || null;
+      if (stage === 'R4') return this.vR4[matchKey] || null;
+      if (stage === 'S') return this.vS[matchKey] || null;
+      if (stage === 'Final') return this.vChampion || null;
+    } else {
+      if (stage === 'R32') return this.wR32[matchKey] || null;
+      if (stage === 'R16') return this.wR16[matchKey] || null;
+      if (stage === 'R4') return this.wR4[matchKey] || null;
+      if (stage === 'S') return this.wS[matchKey] || null;
+      if (stage === 'Final') return this.champion || null;
+    }
+    return null;
+  }
+
+  getTeam(stage: string, matchKey: string, slot: number): Country | null {
+    const num = parseInt(matchKey.replace(/\D/g, ''), 10);
+    if (stage === 'R32') {
+      return this.r32Teams[`${matchKey}_${slot}`] || null;
+    }
+
+    const prevWinnerMap = this.validated ? {
+      'R16': this.vR32,
+      'R4': this.vR16,
+      'S': this.vR4,
+      'Final': this.vS
+    } : {
+      'R16': this.wR32,
+      'R4': this.wR16,
+      'S': this.wR4,
+      'Final': this.wS
+    };
+
+    const prevStage = stage === 'R16' ? 'R16' : (stage === 'R4' ? 'R4' : (stage === 'S' ? 'S' : 'Final'));
+    const sourceMap = (prevWinnerMap as any)[prevStage];
+    const sourceMatchKey = stage === 'Final' ? `m${slot}` : `m${(num * 2) - (2 - slot)}`;
+    return sourceMap ? (sourceMap[sourceMatchKey] || null) : null;
   }
 
   selectWinner(stage: string, matchKey: string, selection: Country): void {
@@ -340,41 +458,24 @@ export class BracketKnockoutComponent implements OnInit {
   validateBracket(): void {
     if (!this.isBracketComplete()) return;
 
-    const payload = {
+    const payload: any = {
       status: 'published',
       user: this.currentUser,
-      winner_r32_1: this.wR32['m1']?.name,
-      winner_r32_2: this.wR32['m2']?.name,
-      winner_r32_3: this.wR32['m3']?.name,
-      winner_r32_4: this.wR32['m4']?.name,
-      winner_r32_5: this.wR32['m5']?.name,
-      winner_r32_6: this.wR32['m6']?.name,
-      winner_r32_7: this.wR32['m7']?.name,
-      winner_r32_8: this.wR32['m8']?.name,
-      winner_r32_9: this.wR32['m9']?.name,
-      winner_r32_10: this.wR32['m10']?.name,
-      winner_r32_11: this.wR32['m11']?.name,
-      winner_r32_12: this.wR32['m12']?.name,
-      winner_r32_13: this.wR32['m13']?.name,
-      winner_r32_14: this.wR32['m14']?.name,
-      winner_r32_15: this.wR32['m15']?.name,
-      winner_r32_16: this.wR32['m16']?.name,
-      winner_r16_1: this.wR16['m1']?.name,
-      winner_r16_2: this.wR16['m2']?.name,
-      winner_r16_3: this.wR16['m3']?.name,
-      winner_r16_4: this.wR16['m4']?.name,
-      winner_r16_5: this.wR16['m5']?.name,
-      winner_r16_6: this.wR16['m6']?.name,
-      winner_r16_7: this.wR16['m7']?.name,
-      winner_r16_8: this.wR16['m8']?.name,
-      winner_r4_1: this.wR4['m1']?.name,
-      winner_r4_2: this.wR4['m2']?.name,
-      winner_r4_3: this.wR4['m3']?.name,
-      winner_r4_4: this.wR4['m4']?.name,
-      winner_semi_1: this.wS['m1']?.name,
-      winner_semi_2: this.wS['m2']?.name,
-      winner_wc: this.champion?.name,
+      winner_wc: this.champion?.name
     };
+
+    for (let i = 1; i <= 16; i++) {
+      payload[`winner_r32_${i}`] = this.wR32[`m${i}`]?.name;
+    }
+    for (let i = 1; i <= 8; i++) {
+      payload[`winner_r16_${i}`] = this.wR16[`m${i}`]?.name;
+    }
+    for (let i = 1; i <= 4; i++) {
+      payload[`winner_r4_${i}`] = this.wR4[`m${i}`]?.name;
+    }
+    for (let i = 1; i <= 2; i++) {
+      payload[`winner_semi_${i}`] = this.wS[`m${i}`]?.name;
+    }
 
     console.log('Payload to submit:', payload);
 

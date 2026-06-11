@@ -142,8 +142,6 @@ $fifa-orange: #f97316;
   }
 }
 
-
-
 // Listes d'équipes et Rangées (Appliqué aux deux sections)
 .teams-list {
   background: #ffffff;
@@ -377,6 +375,7 @@ $fifa-orange: #f97316;
 }
 
 /* Angular CDK Drag Mechanics */
+
 .group-confirmation {
   padding: 0.75rem;
   text-align: center;
@@ -397,6 +396,25 @@ $fifa-orange: #f97316;
   }
 }
 
+.fixed-actions-container {
+  position: fixed;
+  bottom: 40px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  z-index: 100;
+
+  .randomize-container {
+    position: relative;
+    bottom: auto;
+    right: auto;
+    transform: none;
+    z-index: auto;
+  }
+}
+
 .randomize-container {
   position: absolute;
   bottom: 10px; // Position at the bottom
@@ -405,14 +423,8 @@ $fifa-orange: #f97316;
   z-index: 50;
 }
 
-.thirds-card-table .randomize-container {
-  bottom: -60px; // Position at the bottom
-  left: 50%; // Position at the right corner
-  right: unset;
-}
-
 .btn-dice-randomize {
-  background: transparent;
+  background: #0f172a;
   border: 2px solid $fifa-orange;
   width: 50px; // Match bracket-knockout
   height: 50px; // Match bracket-knockout
@@ -431,8 +443,45 @@ $fifa-orange: #f97316;
   }
 }
 
+.btn-fifa-submit {
+  background-color: $fifa-orange;
+  color: white;
+  padding: 15px 30px;
+  border-radius: 30px;
+  font-size: 1.1rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 8px 15px rgba(0, 0, 0, 0.3);
+  transition: all 0.3s ease;
+  z-index: 100;
+
+  &:hover:not(:disabled) {
+    background-color: darken($fifa-orange, 10%);
+    transform: translateY(-2px);
+    box-shadow: 0 12px 20px rgba(0, 0, 0, 0.4);
+  }
+
+  &:disabled {
+    background-color: #94a3b8;
+    cursor: not-allowed;
+    opacity: 0.7;
+    box-shadow: none;
+    transform: none;
+  }
+}
+
 .group-header .randomize-container .btn-dice-randomize {
   width: 35px;
   height: 35px;
   font-size: 1rem;
+  background: transparent;
+}
+
+.controls-bar {
+  display: flex;
+  justify-content: flex-start;
+  margin-bottom: 1.5rem;
 }

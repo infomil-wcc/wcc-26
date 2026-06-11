@@ -85,6 +85,13 @@ export class BracketPredictorComponent implements OnInit {
     }
   }
 
+  protected randomizeAllGroups(): void {
+    for (let i = 0; i < this.groupsData.length; i++) {
+      this.randomizeGroup(i);
+    }
+    this.confirmedGroups.fill(true);
+  }
+
   protected resetAllPredictions(): void {
     this.groupsData = JSON.parse(JSON.stringify(this.initialGroupsData));
     this.currentStep = 1;

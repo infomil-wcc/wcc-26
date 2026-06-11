@@ -12,7 +12,7 @@ $line-connector-color: #94a3b8; // Tree connector layout lines color
   min-height: 95vh;
   width: 100%;
   overflow-x: auto;
-  overflow-y: auto; // Changed from hidden to auto for vertical scroll
+  overflow-y: hidden; // Reverted to keep full height and no vertical scroll
   display: flex;
   align-items: flex-start;
   padding: 40px;
@@ -43,22 +43,8 @@ $line-connector-color: #94a3b8; // Tree connector layout lines color
 .bracket-column {
   display: flex;
   flex-direction: column;
-  width: 230px;
+  width: 280px; // Increased width to prevent vertical scrollbar/wrapping
   flex-shrink: 0;
-
-  .column-header {
-    background: rgba(15, 23, 42, 0.6);
-    color: #ffffff;
-    font-size: 0.8rem;
-    font-weight: 900;
-    text-transform: uppercase;
-    letter-spacing: 1.5px;
-    text-align: center;
-    padding: 10px;
-    border-radius: 8px;
-    margin-bottom: 20px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-  }
 }
 
 .match-list {
@@ -176,13 +162,15 @@ $line-connector-color: #94a3b8; // Tree connector layout lines color
 
 
 .match-card {
-  background-color: $card-white;
-  border-radius: 10px;
+  background-color: #0c1524; // Dark navy matching the mockup
+  border-radius: 12px;
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25);
   display: flex;
   flex-direction: column;
   position: relative;
   z-index: 10;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding-bottom: 6px; // Padding at the bottom for aesthetic spacing
   
   &.final-accent-card { border: 2px solid $fifa-gold; padding: 6px; }
 }
@@ -190,26 +178,47 @@ $line-connector-color: #94a3b8; // Tree connector layout lines color
 .team-slot {
   display: flex;
   align-items: center;
-  padding: 12px 14px;
+  padding: 14px 16px;
   cursor: pointer;
-  border-bottom: 1px solid #e2e8f0;
   background: $card-white;
+  margin: 6px 10px; // Spacing to separate slots as rounded cards
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
 
-  &:first-child { border-top-left-radius: 9px; border-top-right-radius: 9px; }
-  &:last-child { border-bottom: none; border-bottom-left-radius: 9px; border-bottom-right-radius: 9px; }
-  &.large-slot { padding: 20px 14px; }
+  &.large-slot { padding: 20px 16px; }
   &.disabled { opacity: 0.4; cursor: not-allowed; }
 
   &.selected {
     background-color: #ffedd5 !important;
-    .slot-name { color: $fifa-orange; font-weight: 800; }
+    border-color: $fifa-orange;
+    .slot-name, .slot-name-text { color: $fifa-orange; font-weight: 800; }
   }
 
-  .slot-flag { width: 28px; height: 18px; object-fit: cover; border-radius: 3px; margin-right: 12px; }
-  .slot-name { color: $text-dark-navy; font-size: 0.85rem; font-weight: 700; }
+  .slot-flag { 
+    width: 42px; 
+    height: 26px; 
+    object-fit: cover; 
+    border-radius: 6px; 
+    margin-right: 14px; 
+    box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+  }
+  .slot-name, .slot-name-text { 
+    color: #0f172a; 
+    font-size: 0.95rem; 
+    font-weight: 600; 
+    line-height: 1.25;
+  }
 }
 
-.node-index { color: rgba(255, 255, 255, 0.6); font-size: 0.7rem; font-weight: 700; margin-bottom: 4px; text-transform: uppercase; }
+.node-index { 
+  color: #94a3b8; 
+  font-size: 0.8rem; 
+  font-weight: 700; 
+  margin-bottom: 6px; 
+  text-transform: uppercase; 
+  letter-spacing: 0.5px;
+}
 .versus-divider-badge { text-align: center; margin: -11px auto; background-color: #0f172a; color: #ffffff; font-size: 0.7rem; font-weight: 900; padding: 3px 12px; border-radius: 20px; z-index: 20; }
 .trophy-announcement-container { margin-top: 20px; text-align: center; .gold-title { color: #fde047; font-size: 0.8rem; font-weight: 900; margin-bottom: 8px; } .winner-gold-badge { display: inline-flex; align-items: center; gap: 10px; background: linear-gradient(135deg, #fef08a 0%, #facc15 100%); padding: 10px 20px; border-radius: 30px; color: #713f12; font-size: 1rem; font-weight: 800; img { width: 32px; height: 20px; border-radius: 3px; } } }
 .winner-modal-overlay {
@@ -293,20 +302,71 @@ $line-connector-color: #94a3b8; // Tree connector layout lines color
   }
 }
 
-.match-info {
-  // background-color: #f1f5f9; // Light background for info
-  // padding: 8px 14px;
-  // font-size: 0.75rem;
-  // color: #475569;
-  // border-bottom-left-radius: 9px;
-  // border-bottom-right-radius: 9px;
-  // display: flex;
-  // flex-direction: column;
-  // gap: 4px;
-  // border-top: 1px solid #e2e8f0; // Separator from team slots
-  display: none;
+.match-card-header {
+  background-color: #0c1524; // Deep dark navy theme matching bracket background
+  padding: 12px 14px;
+  border-top-left-radius: 10px;
+  border-top-right-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  text-align: left;
 }
 
-.match-date-time, .match-stadium {
-  font-weight: 600;
+.match-stadium-name {
+  color: #ffffff;
+  font-size: 0.95rem;
+  font-weight: 800;
+  letter-spacing: -0.2px;
+}
+
+.match-date-value {
+  color: $fifa-orange;
+  font-size: 0.82rem;
+  font-weight: 800;
+}
+
+.bracket-headers-row-sticky {
+  position: sticky;
+  top: 9rem; // Offset to sit directly below the fixed website header
+  z-index: 1000;
+  background: radial-gradient(circle at center, #193180 0%, #0d1525 100%); // Match viewport visual gradient
+  width: 100%;
+  padding: 16px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+}
+
+.headers-scroll-sync {
+  overflow-x: hidden; // Hide horizontal scrollbars on headers wrapper
+  width: 100%;
+}
+
+.header-scroll-content {
+  display: flex;
+  flex-direction: row;
+  gap: 40px; // Match canvas column gap
+  padding: 0 40px; // Match viewport padding
+  width: max-content;
+}
+
+.header-pill-col {
+  width: 280px; // Match column width
+  flex-shrink: 0;
+  background: #0f172a; // Dark navy matching mockup
+  color: #ffffff;
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  text-align: center;
+  padding: 12px 20px;
+  border-radius: 30px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+
+  &.highlight-final {
+    border-color: $fifa-gold;
+    color: $fifa-gold;
+  }
 }
