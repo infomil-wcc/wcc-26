@@ -108,7 +108,13 @@ export class BracketPredictorComponent implements OnInit {
   }
 
   protected goToThirdPlaceSelection(): void {
-    this.thirdPlacedTeams = this.groupsData.map(group => group.teams[2]);
+    this.thirdPlacedTeams = this.groupsData.map(group => {
+      const team = group.teams[2];
+      return {
+        ...team,
+        group: group.group_title
+      };
+    });
     this.updateSelectedCount();
     this.currentStep = 2;
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -146,9 +152,6 @@ export class BracketPredictorComponent implements OnInit {
     this.selectedThirdsCount = this.thirdPlacedTeams.filter(t => t.isSelectedThird).length;
   }
 
-  /**
-   * New branching method: Compiles group outputs and forwards them to the knockout bracket
-   */
   protected submitGroupStagePredictions(): void {
     if (this.selectedThirdsCount !== 8) return;
 
@@ -159,12 +162,20 @@ export class BracketPredictorComponent implements OnInit {
       qualifiedTeams.push({
         name: group.teams[0].name,
         flagUrl: group.teams[0].flagUrl,
-        flagId: group.teams[0].flagId || group.teams[0].name.substring(0,2).toLowerCase()
+        flagId: group.teams[0].flagId || group.teams[0].name.substring(0,2).toLowerCase(),
+        group: group.group_title,
+        rankIndex: 0,
+        rank: group.group_title + ' Winner',
+        placeholderName: group.group_title + ' Winner'
       });
       qualifiedTeams.push({
         name: group.teams[1].name,
         flagUrl: group.teams[1].flagUrl,
-        flagId: group.teams[1].flagId || group.teams[1].name.substring(0,2).toLowerCase()
+        flagId: group.teams[1].flagId || group.teams[1].name.substring(0,2).toLowerCase(),
+        group: group.group_title,
+        rankIndex: 1,
+        rank: group.group_title + ' Runner-up',
+        placeholderName: group.group_title + ' Runner-up'
       });
     });
 
@@ -174,7 +185,11 @@ export class BracketPredictorComponent implements OnInit {
         qualifiedTeams.push({
           name: team.name,
           flagUrl: team.flagUrl,
-          flagId: team.flagId || team.name.substring(0,2).toLowerCase()
+          flagId: team.flagId || team.name.substring(0,2).toLowerCase(),
+          group: (team as any).group,
+          rankIndex: 2,
+          rank: 'Best 3rd Place (' + (team as any).group + ')',
+          placeholderName: 'Best 3rd Place (' + (team as any).group + ')'
         });
       }
     });

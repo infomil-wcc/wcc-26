@@ -65,14 +65,15 @@
         </div>
       </div>
 
-      <div class="stepper-footer inline-buttons" style="margin-bottom: 6rem;">
-        <button type="button" class="btn-validate-all" (click)="validateAllGroups()">
-          <span class="icon">✓</span> Valider tout
-        </button>
-      </div>
-
       <!-- Floating Action Buttons for Step 1 -->
       <div class="fixed-actions-container">
+        <button 
+          type="button"
+          class="btn-fifa-submit btn-greenish" 
+          (click)="validateAllGroups()"
+        >
+          ✓ Valider les groupes
+        </button>
         <div class="randomize-container">
           <button 
             type="button"
@@ -88,8 +89,9 @@
           class="btn-fifa-submit" 
           [disabled]="!areAllGroupsConfirmed()" 
           (click)="goToThirdPlaceSelection()"
+          style="display: inline-flex; align-items: center; gap: 8px; justify-content: center;"
         >
-          Suivant : Meilleurs 3èmes &rarr;
+          Meilleurs 3e <span class="material-symbols-outlined" style="font-size: 1.25rem; line-height: 1;">arrow_forward</span>
         </button>
       </div>
     </div>
