@@ -211,10 +211,11 @@
     .team-option-btn {
       position: relative;
       width: 100%;
+      min-height: 92px;
       cursor: pointer;
       border: 2px solid transparent;
       border-radius: 10px;
-      padding: 6px 4px;
+      padding: 8px 4px;
       transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 
       &:hover:not(.disabled) {
@@ -227,6 +228,11 @@
         background: rgba($primaryColor, 0.06);
         border-color: $primaryColor;
         box-shadow: 0 4px 12px rgba($primaryColor, 0.1);
+        
+        .draw-vs-box {
+          background-color: rgba(255, 255, 255, 0.2);
+          color: #ffffff;
+        }
       }
 
       &.disabled {
@@ -238,6 +244,20 @@
           background: transparent;
           border-color: transparent;
         }
+      }
+
+      .draw-vs-box {
+        width: 52px;
+        height: 34px;
+        border-radius: 8px;
+        background-color: #edf2f7;
+        color: #4a5568;
+        font-weight: 850;
+        font-size: 0.95rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s ease;
       }
     }
 
@@ -274,40 +294,7 @@
     }
   }
 
-  .draw-option-btn {
-    border: 1.5px solid #cbd5e0;
-    background: #f7fafc;
-    color: #4a5568;
-    font-weight: 700;
-    font-size: 0.85rem;
-    border-radius: 8px;
-    padding: 6px 16px;
-    min-width: 80px;
-    height: 32px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-    cursor: pointer;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 
-    &:hover:not(:disabled) {
-      background: #edf2f7;
-      border-color: #a0aec0;
-      color: #2d3748;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
-      transform: translateY(-1px);
-    }
-
-    &.active {
-      background: #3f51b5;
-      color: #ffffff;
-      border-color: transparent;
-      font-weight: 800;
-      text-transform: uppercase;
-      box-shadow: 0 4px 15px rgba(63, 81, 181, 0.4);
-    }
-  }
 
   @keyframes popTrophy {
     from {
@@ -531,5 +518,16 @@
       opacity: 0.6;
       cursor: not-allowed;
     }
+  }
+
+  .pronostiqueDone {
+    background-color: #f1f5f9;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 10px 16px;
+    width: 100%;
+    margin-top: 14px;
+    box-sizing: border-box;
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.02);
   }
 }
