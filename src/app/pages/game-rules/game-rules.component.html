@@ -112,12 +112,7 @@
                     </tr>
                   </tbody>
                 </table>
-              </div>
-              <div class="st-total-banner">
-
-                <span>Points maximum cumulables sur la compétition :</span>
-                <strong>{{ step.bareme_points_detaille.total_points_competition }} Points !</strong>
-              </div>
+              </div>             
             </div>
 
             <div *ngIf="step.exemples_calcul" class="st-examples-grid">
@@ -144,7 +139,20 @@
                 <span class="st-b-val">+{{ item.value }} PTS</span>
               </div>
             </div>
-            <br />
+            <div class="st-total-banner jeu-bracket">
+              <p>
+                <span>Prédiction du bon classement de tout le groupe :</span>
+                <strong>{{ step.bonus_tout_groupe }} Points !</strong>
+              </p>
+              <p>
+                <span>Pronostic correct de la qualification d’une équipe pour la finale :</span>
+                <strong>{{ step.bonus_equipe_finale }} Points !</strong>
+              </p>
+              <p>
+                <span>Points maximum cumulables sur la compétition :</span>
+                <strong>{{ step.maximum_possible }} Points !</strong>
+              </p>              
+            </div>           
             <div class="st-rule-callout" *ngIf="step.conditions_egalite">
               <h4>⚖️ Règles d'égalité spécifiques au Bracket :</h4>
               <p><strong>1️⃣</strong> {{ step.conditions_egalite.etape_1 }}</p>

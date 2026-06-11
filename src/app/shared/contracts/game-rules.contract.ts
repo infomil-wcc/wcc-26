@@ -46,6 +46,9 @@ export interface GameElement {
   };
   bareme_points?: Record<string, number>;
   interet?: string;
+  bonus_tout_groupe? : number;
+  bonus_equipe_finale?: number;
+  maximum_possible?: number;
   conditions_egalite?: {
     etape_1: string;
     etape_2: string;
