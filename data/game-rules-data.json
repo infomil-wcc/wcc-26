@@ -9,8 +9,8 @@
       "date_debut": "2026-06-10 15:00",
       "date_fin": "2026-07-19 22:55",
       "phases": {
-        "phase_de_groupes": { "nom_affiche": "⚽ Phase de groupes", "regles": "Devine le résultat de chaque match : victoire ou match nul.", "points_info": "Bonne réponse = points gagnés. Bonus si tu trouves le score exact !" },
-        "seiziemes_de_finale": { "nom_affiche": "🚪 16èmes de finale", "regles": "Les choses sérieuses commencent : Plus tu avances, plus les points augmentent !", "points_info": "Trouver le vainqueur ou le nul rapporte davantage. Score exact = encore plus de points." },
+        "phase_de_groupes": { "nom_affiche": "⚽ Phase de groupes", "regles": "Devine le résultat de chaque match : victoire ou match nul.", "points_info": "Bonne réponse = points gagnés." },
+        "seiziemes_de_finale": { "nom_affiche": "🚪 16èmes de finale", "regles": "Les choses sérieuses commencent : Plus tu avances, plus les points augmentent !", "points_info": "Trouver le vainqueur ou le nul rapporte davantage.  Bonus si tu trouves le score exact !" },
         "huitiemes_de_finale": { "nom_affiche": "⚔️ 8èmes de finale", "regles": "Nouveautés pour booster ton score.", "categories_predictions": ["Score à la mi-temps", "Un buteur du match", "Point de consolation (1 point si raté complètement)"] },
         "quarts_demis_troisieme_place": { "nom_affiche": "🥉 Quarts & demis (+ 3e place)", "regles": "Tout compte encore plus, les gains augmentent sur toutes les catégories !", "categories_predictions": ["Vainqueur", "Score final", "Score à la mi-temps", "Buteur"] },
         "finale": { "nom_affiche": "🏆 Finale", "regles": "Là, c’est le jackpot, les points sont au maximum !", "categories_predictions": ["Vainqueur ou nul", "Mi-temps", "Score final (prolongations incluses)", "Buteur"] }
