@@ -24,7 +24,7 @@
           <div class="st-step-line"></div>
           <span class="st-step-date">
             <ng-container *ngIf="step.date_debut">
-              {{ step.date_debut | date:'dd MMM yyyy':'':'fr' }}
+              {{ step.date_debut | date:'dd MMM yyyy': '' :'fr' }}
             </ng-container>
             &nbsp;
           </span>
@@ -41,8 +41,8 @@
           <div class="st-view-header">
             <div class="st-badge-row">
               <span class="st-badge primary">Étape {{ idx + 1 }}</span>
-              <span *ngIf="step.date_debut" class="st-badge warning">🗓️ Début: {{ step.date_debut | date:'dd MMMM yyyy':'':'fr' }}</span>
-              <span *ngIf="step.date_fin" class="st-badge warning">🗓️ Fin: {{ step.date_fin | date:'dd MMMM yyyy':'':'fr' }}</span>
+              <span *ngIf="step.date_debut" class="st-badge warning">🗓️ Début: {{ step.date_debut | date:'dd MMMM yyyy HH:mm':'':'fr' }}</span>
+              <span *ngIf="step.date_fin" class="st-badge warning">🗓️ Fin: {{ step.date_fin | date:'dd MMMM yyyy HH:mm':'':'fr' }}</span>
             </div>
             <h2>{{ step.nom }}</h2>
             <p class="st-step-description">{{ step.description }}</p>
