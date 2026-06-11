@@ -137,8 +137,15 @@ export class MatchComponent implements OnInit, OnDestroy{
     });
   }
 
+  onScoreChanged(): void {
+    if (this.calcWinDrawOutcome) {
+      this.matchOutcome = this.calculateWinDraw(this.match.team_a, this.match.team_b, this.fullTimeA, this.fullTimeB);
+    }
+    this.sendBet();
+  }
+
   selectWinner(outcome: string): void {
-    if (this.disabled || this.isSubmitting || (this.pronostiqueDone && !this.isEditing) || this.closed || this.isSavedInApi) {
+    if (this.disabled || this.isSubmitting || this.closed || this.isSavedInApi) {
       return;
     }
     this.matchOutcome = outcome;
@@ -171,7 +178,9 @@ export class MatchComponent implements OnInit, OnDestroy{
 
     this.pronostiqueDone = true;
     this.donePronostique = prediction;
-    this.isEditing = false;
+    if (!this.isEditing) {
+      this.isEditing = false;
+    }
     this.showLoader = false;
     this.isSubmitting = false;
   }
