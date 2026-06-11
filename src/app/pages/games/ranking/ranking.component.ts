@@ -1,7 +1,9 @@
-import { Component, OnDestroy, OnInit, inject } from '@angular/core';
+import { Component, OnDestroy, OnInit, inject, ChangeDetectorRef } from '@angular/core';
 import { RankingcalculationService } from '../../../shared/services/core/rankingcalculation.service';
-import { Observable, last } from 'rxjs';
+import { Observable, Subscription } from 'rxjs';
 import { GlobaltimeService } from '../../../shared/services/core/globaltime.service';
+import { HttpClient } from '@angular/common/http';
+import { BracketService } from '../../../shared/services/games/bracket.service';
 
 @Component({
   selector: 'app-ranking',
@@ -10,22 +12,30 @@ import { GlobaltimeService } from '../../../shared/services/core/globaltime.serv
 })
 export class RankingComponent implements OnInit, OnDestroy {
 
-  private rankCalcSercvice = inject(RankingcalculationService);
+  private rankCalcService = inject(RankingcalculationService);
   private globalTime = inject(GlobaltimeService);
+  private http = inject(HttpClient);
+  private bracketService = inject(BracketService);
+  private cdr = inject(ChangeDetectorRef);
   private today: Date = new Date();
 
   protected showLoader: boolean = true;
   protected $ranks!: Observable<any>;
   protected $bracketRanks!: Observable<any>;
   protected latestRank!: any;
+  protected bracketRankingsList: any[] = [];
+  protected activeTab: 'prediction' | 'bracket' = 'prediction';
+  protected userChampions: { [username: string]: string } = {};
+
+  private ranksSub!: Subscription;
+  private bracketSub!: Subscription;
 
   ngOnInit():void {
-    this.$ranks = this.rankCalcSercvice.getCurrentrankings();
-    this.$bracketRanks = this.rankCalcSercvice.getBracketRankings();
+    this.$ranks = this.rankCalcService.getCurrentrankings();
+    this.$bracketRanks = this.rankCalcService.getBracketRankings();
 
-    this.$ranks.subscribe({
+    this.ranksSub = this.$ranks.subscribe({
       next: (response)=>{
-
         if(response.length < 1){
           this.updateRanks();
           setTimeout(() => {
@@ -39,14 +49,91 @@ export class RankingComponent implements OnInit, OnDestroy {
         if(this.latestRank){
           this.showLoader = false;
         }
+        this.cdr.detectChanges();
       }
-    })
+    });
 
-    this.rankCalcSercvice.calcBracket();
+    this.bracketSub = this.$bracketRanks.subscribe({
+      next: (res) => {
+        if (res && res.length > 0) {
+          this.bracketRankingsList = res[0].ranking_json || [];
+        }
+        this.cdr.detectChanges();
+      }
+    });
+
+    this.rankCalcService.calcBracket();
+    this.loadUserChampions();
+  }
+
+  loadUserChampions(): void {
+    this.bracketService.getBrackets().subscribe({
+      next: (data) => {
+        if (data) {
+          data.forEach((b: any) => {
+            if (b.user && b.winner_euro) {
+              const uKey = b.user.toLowerCase().trim();
+              const country = b.winner_euro.trim();
+              this.userChampions[uKey] = country;
+            }
+          });
+        }
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  getChampionCountry(username: string): string {
+    if (!username) return '';
+    const key = username.toLowerCase().trim();
+    return this.userChampions[key] || '';
+  }
+
+  getChampionFlag(username: string): string {
+    if (!username) return 'assets/flags/unknown.png';
+    const key = username.toLowerCase().trim();
+    const champ = this.userChampions[key];
+    if (champ) {
+      let flagFile = champ.toLowerCase().trim();
+      // Normalize accent characters (e.g. Écosse -> ecosse, Géorgie -> georgie)
+      flagFile = flagFile.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+      // Replace spaces with hyphens
+      flagFile = flagFile.replace(/[\s_]+/g, '-');
+      return `assets/flags/${flagFile}.png`;
+    }
+    return 'assets/flags/unknown.png';
+  }
+
+  get activeList(): any[] {
+    if (this.activeTab === 'prediction') {
+      return this.latestRank?.ranking_json || [];
+    } else {
+      return this.bracketRankingsList || [];
+    }
+  }
+
+  get topThree(): any[] {
+    const list = this.activeList;
+    // Return in order [2nd place, 1st place, 3rd place]
+    return [
+      list[1] || null,
+      list[0] || null,
+      list[2] || null
+    ];
+  }
+
+  get remainingPlayers(): any[] {
+    const list = this.activeList;
+    return list.slice(3);
+  }
+
+  switchTab(tab: 'prediction' | 'bracket'): void {
+    this.activeTab = tab;
+    this.cdr.detectChanges();
   }
 
   updateRanks(): void {
-    this.rankCalcSercvice.startCalcRanking();
+    this.rankCalcService.startCalcRanking();
   }
 
   formatDate(date: Date) {
@@ -57,6 +144,7 @@ export class RankingComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    this.$ranks.subscribe().unsubscribe();
+    if (this.ranksSub) this.ranksSub.unsubscribe();
+    if (this.bracketSub) this.bracketSub.unsubscribe();
   }
 }

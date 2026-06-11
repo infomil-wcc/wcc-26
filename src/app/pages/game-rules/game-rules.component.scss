@@ -121,6 +121,16 @@ $emerald-bg: #ecfdf5;
       top: 128px;
       border: 1px solid #cbd5e1;
       border-radius: 1rem;
+
+      &::after {
+        content:"";
+        position: absolute;
+        top: calc(50% - 2px);
+        width: 90%;
+        height: 2px;
+        background: #ccc;
+      }
+
       .st-step-label-group { display: none; }
       .st-step-node { justify-content: center !important; padding-right: 0}
       .st-step-line { left: calc(-50% + 1.125rem); right: calc(50% + 1.125rem); }

@@ -10,110 +10,68 @@
   <div class="playedFilter w-full pt-3 pb-3 pl-2 pr-2">
     <div class="container">
       <div class="flex w-full align-items-center justify-content-end">
-      <button class="btnFilter flex align-items-center mr-2" [ngClass]="{'active': activeMatches}" (click)="activeMatches = true">
-        Matchs à venir
-        <span class="material-symbols-outlined ml-2 mr-0">
-          check
-          </span>
-      </button>
-      <button class="btnFilter flex align-items-center" [ngClass]="{'active': !activeMatches}" (click)="activeMatches = false">
-        Matchs joués
-        <span class="material-symbols-outlined ml-2 mr-0">
-          check
-          </span>
-      </button>
+        <button class="btnFilter flex align-items-center mr-2" [ngClass]="{'active': activeMatches}" (click)="activeMatches = true">
+          Matchs à venir
+          <span class="material-symbols-outlined ml-2 mr-0">check</span>
+        </button>
+        <button class="btnFilter flex align-items-center" [ngClass]="{'active': !activeMatches}" (click)="activeMatches = false">
+          Matchs joués
+          <span class="material-symbols-outlined ml-2 mr-0">check</span>
+        </button>
       </div>
     </div>
   </div>
 </div>
 
 <div class="container pronostiquesMain">
-
-  <ng-container *ngIf="activeMatches; else played">
-    <ng-container *ngIf="$today | async as today; else loader">
-      <div *ngIf="$groupedMatches | async as groupedMatches; else loader">
-
+  <ng-container *ngIf="$today | async as today; else loader">
+    <div *ngIf="$groupedMatches | async as groupedMatches; else loader">
+      
+      <!-- Matchs à venir (activeMatches = true) -->
+      <ng-container *ngIf="activeMatches">
         <ng-container *ngFor="let date of getDates(groupedMatches)">
-
-            <ng-container *ngIf="compareDates(today.dateTime, date); else notPlayed">
-              <div class="played" *ngIf="!activeMatches">
-                <h2 class="capitalize">{{ date | date: 'fullDate' }}</h2>
-
-                <div class="flex gap-2 mb-8 flex-wrap">
-                  <ng-container *ngFor="let match of groupedMatches[date]">
-                    <div class="col-12 p-0 flex-shrink-0 lg:col-4">
-                      <app-match [match]="match" [isPronostiques]="true" [disabled]="!isLoggedIn" [dateTime]="today.dateTime" />
-                    </div>
-                  </ng-container>
-                </div>
-              </div>
-            </ng-container>
-
-            <ng-template #notPlayed>
-              <div class="notPlayed" *ngIf="activeMatches">
-                <h2 class="capitalize">{{ date | date: 'fullDate' }}</h2>
-
-                <div class="flex gap-2 mb-8 flex-wrap">
-                  <ng-container *ngFor="let match of groupedMatches[date]">
-                    <input type="hidden" #hasPlayed/>
-                    <div class="col-12 p-0 flex-shrink-0 lg:col-4">
-                      <app-match [match]="match" [isPronostiques]="true" [disabled]="!isLoggedIn" [dateTime]="today.dateTime" />
-                    </div>
-                  </ng-container>
-                </div>
-              </div>
-
-            </ng-template>
-          </ng-container>
-
-
-      </div>
-    </ng-container>
-  </ng-container>
-
-  <ng-template #played>
-    <ng-container *ngIf="$today | async as today; else loader">
-      <div *ngIf="$groupedMatches | async as groupedMatches; else loader">
-
-        <ng-container *ngFor="let date of getPlayedDates(groupedMatches)">
-
-          <ng-container *ngIf="compareDates(today.dateTime, date); else notPlayed">
-            <div class="played" *ngIf="!activeMatches">
-              <h2 class="capitalize">{{ date | date: 'fullDate' }}</h2>
-
-              <div class="flex gap-2 mb-8 flex-wrap">
-                <ng-container *ngFor="let match of groupedMatches[date]">
-                  <div class="col-12 p-0 flex-shrink-0 lg:col-4">
-                    <app-match [match]="match" [isPronostiques]="true" [disabled]="!isLoggedIn" [dateTime]="today.dateTime" />
-                  </div>
-                </ng-container>
-              </div>
-          </div>
-          </ng-container>
-
-          <ng-template #notPlayed>
-            <div class="notPlayed" *ngIf="activeMatches">
-              <h2 class="capitalize">{{ date | date: 'fullDate' }}</h2>
-
-              <div class="flex gap-2 mb-8 flex-wrap">
-                <ng-container *ngFor="let match of groupedMatches[date]">
-                  <input type="hidden" #hasPlayed/>
-                  <div class="col-12 p-0 flex-shrink-0 lg:col-4">
-                    <app-match [match]="match" [isPronostiques]="true" [disabled]="!isLoggedIn" [dateTime]="today.dateTime" />
-                  </div>
-                </ng-container>
+          <div class="notPlayed" *ngIf="!compareDates(today.dateTime, date)">
+            <h2 class="capitalize">{{ date | date: 'fullDate' }}</h2>
+            <div class="flex gap-2 mb-8 flex-wrap">
+              <div *ngFor="let match of groupedMatches[date]" class="col-12 p-0 flex-shrink-0 lg:col-4">
+                <app-match [match]="match" [isPronostiques]="true" [disabled]="!isLoggedIn" [dateTime]="today.dateTime" />
               </div>
             </div>
-
-          </ng-template>
+          </div>
         </ng-container>
+      </ng-container>
 
-      </div>
-    </ng-container>
-  </ng-template>
+      <!-- Matchs joués (activeMatches = false) -->
+      <ng-container *ngIf="!activeMatches">
+        <ng-container *ngFor="let date of getPlayedDates(groupedMatches)">
+          <div class="played" *ngIf="compareDates(today.dateTime, date)">
+            <h2 class="capitalize">{{ date | date: 'fullDate' }}</h2>
+            <div class="flex gap-2 mb-8 flex-wrap">
+              <div *ngFor="let match of groupedMatches[date]" class="col-12 p-0 flex-shrink-0 lg:col-4">
+                <app-match [match]="match" [isPronostiques]="true" [disabled]="!isLoggedIn" [dateTime]="today.dateTime" />
+              </div>
+            </div>
+          </div>
+        </ng-container>
+      </ng-container>
 
+    </div>
+  </ng-container>
 </div>
 
 <ng-template #loader>
   <loader [showLoader]="true" />
 </ng-template>
+
+<!-- Viewport Dock with Global Actions -->
+<div class="viewport-dock-container" *ngIf="draftsCount > 0">
+  <button class="btn-bulk-cancel" (click)="cancelAllDrafts()">
+    Réinitialiser
+    <span class="material-symbols-outlined ml-2">restart_alt</span>
+  </button>
+  <button class="btn-bulk-save" (click)="saveAllPredictions()" [disabled]="isSubmittingBulk">
+    <span class="material-symbols-outlined mr-2">save</span>
+    Sauvegarder ({{ draftsCount }})
+  </button>
+</div>
+

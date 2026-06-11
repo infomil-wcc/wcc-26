@@ -32,5 +32,31 @@
       border-bottom: 0;
     }
   }
+
+  .rules {
+
+    h3 {
+      margin: 1rem 0 .85rem;
+
+      & + p {
+        margin-bottom: .25rem;
+      }
+    }
+
+    p, li {
+      line-height: 2;
+    }
+
+    li strong {
+      padding-left: .2rem;
+    }
+
+    .description .section {
+      background: #FFF;
+      padding: 1rem;
+      margin-bottom: 1.5rem;
+      border-radius: 18px;
+    }
+  }
 }
 

@@ -1,19 +1,53 @@
 @import "../../../../variables.scss";
 
 .match {
-  background: white;
-  border: 1px solid #efefef;
-  padding: 1rem 1.5rem;
-  border-radius: 0.5rem;
-  min-height: 200px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.02);
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  flex-direction: column;
+  max-width: 400px;
+  position: relative;
+  margin-bottom: 1.5rem;
 
-  &.pronostiqueMode {
-    min-height: 300px;
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.04);
+    border-color: darken(#e2e8f0, 8%);
   }
 
   &.donePronostique {
-    background: $primaryColor;
-    color: white !important;
+    border-color: rgba($secondaryColor, 0.35);
+    box-shadow: 0 6px 15px -3px rgba($secondaryColor, 0.12);
+    background: linear-gradient(135deg, rgba($secondaryColor, 0.02) 0%, rgba($secondaryColor, 0.08) 100%);
+
+    .match-header {
+      background: linear-gradient(135deg, $secondaryColor 0%, darken($secondaryColor, 8%) 100%);
+    }
+
+    .match-body {
+      background: transparent;
+    }
+
+    .match-footer {
+      background: linear-gradient(135deg, $secondaryColor 0%, darken($secondaryColor, 8%) 100%);
+    }
+  }
+
+  .match-bg-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-size: cover;
+    background-position: center;
+    opacity: 0.08;
+    z-index: 0;
+    pointer-events: none;
   }
 
   &.closed {
@@ -21,15 +55,125 @@
     pointer-events: none;
   }
 
+  // Header Segment
+  .match-header {
+    background: #001e50; // Deep navy blue
+    padding: 0.35rem 0.8rem;
+    color: #ffffff;
+    box-sizing: border-box;
+    position: relative;
+    z-index: 1;
+
+    .phase {
+      font-size: 0.8rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      display: block;
+      color: #ffffff;
+    }
+
+    .date-time {
+      font-size: 0.7rem;
+      color: rgba(255, 255, 255, 0.8);
+      margin-top: 2px;
+    }
+
+    .badge {
+      font-size: 0.65rem;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 6px;
+      text-transform: uppercase;
+
+      &.scheduled {
+        background: #fbd38d; // orange-yellow
+        color: #744210;
+      }
+
+      &.predicted {
+        background: #c6f6d5; // light green
+        color: #22543d;
+      }
+
+      &.closed {
+        background: #fed7d7; // light red
+        color: #742a2a;
+      }
+
+      &.locked {
+        background: #e2e8f0; // light steel gray
+        color: #4a5568;      // dark steel gray
+        border: 1px solid #cbd5e0;
+      }
+    }
+  }
+
+  // Body Segment
+  .match-body {
+    padding: 0.6rem 0.8rem;
+    background: transparent;
+    flex-grow: 1;
+    box-sizing: border-box;
+    position: relative;
+    z-index: 1;
+    transition: padding-bottom 0.2s ease;
+
+    &.editing-mode {
+      padding-bottom: 3.5rem;
+    }
+
+    .venue {
+      font-size: 0.75rem;
+      color: #718096;
+      font-weight: 600;
+    }
+
+    .venue-countdown-row {
+      width: 100%;
+    }
+
+    .countdown-timer {
+      font-size: 0.72rem;
+      padding: 2px 8px;
+      border-radius: 6px;
+      font-weight: 600;
+      color: #4a5568;
+      background: #edf2f7;
+      border: 1px solid #e2e8f0;
+      display: inline-flex;
+      align-items: center;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+
+      span {
+        font-size: 0.72rem;
+      }
+
+      &.active-countdown {
+        color: #b45309;
+        background: #fffbeb;
+        border-color: #fde68a;
+        box-shadow: 0 1px 3px rgba(180, 83, 9, 0.08);
+
+        .material-symbols-outlined {
+          color: #d97706;
+        }
+      }
+    }
+  }
+
+
+
+  // Option Elements
   .flagContainer {
-    width: 40px;
-    height: 28px;
+    width: 52px;
+    height: 34px;
     background-size: cover;
     background-position: center;
     flex-shrink: 0;
     overflow: hidden;
-    border-radius: 4px;
-    box-shadow: 0 0 4px rgba(5, 132, 56, 0.5);
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   }
 
   .teamDetails {
@@ -40,8 +184,9 @@
   }
 
   .teamName {
-    font-size: 1rem;
-    font-weight: bold;
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #1a202c;
   }
 
   .flag {
@@ -53,8 +198,9 @@
   .phase,
   .time,
   .time span {
-    color: #acacac;
+    color: #718096;
     font-size: 0.85rem;
+    font-weight: 500;
   }
 
   .time span {
@@ -62,10 +208,202 @@
   }
 
   .pronostiques {
+    .team-option-btn {
+      position: relative;
+      width: 100%;
+      cursor: pointer;
+      border: 2px solid transparent;
+      border-radius: 10px;
+      padding: 6px 4px;
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 
-    .flag {
-      width: 50px;
-      height: 50px;
+      &:hover:not(.disabled) {
+        background: #f7fafc;
+        border-color: #e2e8f0;
+        transform: translateY(-1px);
+      }
+
+      &.active {
+        background: rgba($primaryColor, 0.06);
+        border-color: $primaryColor;
+        box-shadow: 0 4px 12px rgba($primaryColor, 0.1);
+      }
+
+      &.disabled {
+        cursor: not-allowed;
+        opacity: 0.8;
+        
+        &:hover {
+          transform: none;
+          background: transparent;
+          border-color: transparent;
+        }
+      }
+    }
+
+    .winner-tick {
+      position: absolute;
+      top: -8px;
+      right: -8px;
+      font-size: 1.35rem;
+      color: $secondaryColor;
+      background: #ffffff;
+      border-radius: 50%;
+      z-index: 10;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+      animation: popTrophy 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .check-icon {
+      font-size: 1.25rem;
+      color: $secondaryColor;
+      vertical-align: middle;
+      margin-left: 4px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .teamName strong {
+      font-size: 0.9rem;
+      display: block;
+      line-height: 1.2;
+    }
+  }
+
+  .draw-option-btn {
+    border: 1.5px solid #cbd5e0;
+    background: #f7fafc;
+    color: #4a5568;
+    font-weight: 700;
+    font-size: 0.85rem;
+    border-radius: 8px;
+    padding: 6px 16px;
+    min-width: 80px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: pointer;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+
+    &:hover:not(:disabled) {
+      background: #edf2f7;
+      border-color: #a0aec0;
+      color: #2d3748;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+      transform: translateY(-1px);
+    }
+
+    &.active {
+      background: #3f51b5;
+      color: #ffffff;
+      border-color: transparent;
+      font-weight: 800;
+      text-transform: uppercase;
+      box-shadow: 0 4px 15px rgba(63, 81, 181, 0.4);
+    }
+  }
+
+  @keyframes popTrophy {
+    from {
+      transform: scale(0) rotate(-45deg);
+    }
+    to {
+      transform: scale(1) rotate(0);
+    }
+  }
+
+  .score-box {
+    background: #001e50; // dark blue
+    color: #ffffff;
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.15rem;
+    font-weight: 700;
+  }
+
+  .pronostiqueWrapper {
+    border-top: 1px solid #edf2f7;
+    margin-top: 0.5rem;
+    padding-top: 0.5rem;
+  }
+
+  .windrawContainer,
+  .halftimeContainer,
+  .scorerContainer {
+    .label {
+      font-weight: 600;
+      color: #4a5568;
+    }
+  }
+
+  select {
+    width: 100%;
+    background: #f7fafc;
+    border: 1px solid #cbd5e0;
+    border-radius: 8px;
+    color: #4a5568;
+    font-size: 0.85rem;
+    font-weight: 500;
+    outline: none;
+    transition: all 0.2s ease;
+    padding: 0.35rem 0.5rem;
+
+    &:focus {
+      border-color: $primaryColor;
+      box-shadow: 0 0 0 3px rgba($primaryColor, 0.15);
+    }
+  }
+
+  .btn {
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    transition: all 0.2s ease;
+    border: none;
+    cursor: pointer;
+
+    &:hover:not(:disabled) {
+      filter: brightness(1.05);
+      transform: translateY(-1px);
+    }
+
+    &:active:not(:disabled) {
+      transform: translateY(0);
+    }
+
+    &:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    &.btn-primary {
+      background: $primaryColor;
+      color: #ffffff;
+      
+      &:hover:not(:disabled) {
+        background: darken($primaryColor, 8%);
+      }
+    }
+
+    &.btn-secondary {
+      background: #edf2f7;
+      color: #4a5568;
+      border: 1px solid #e2e8f0;
+      
+      &:hover:not(:disabled) {
+        background: #cbd5e0;
+        color: #2d3748;
+      }
     }
   }
 
@@ -74,5 +412,124 @@
     border-radius: 8px;
     padding: 10px 0 40px;
     color: white;
+  }
+
+  .min-h {
+    min-height: 50px;
+  }
+
+  .btn-sauvegarder {
+    position: absolute;
+    bottom: 15px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 20;
+
+    &:hover:not(:disabled) {
+      transform: translateX(-50%) translateY(-2px);
+    }
+
+    &:active:not(:disabled) {
+      transform: translateX(-50%) translateY(0);
+    }
+  }
+
+  .btn-pill-orange {
+    background: #ffab91;
+    color: #1a1a1a;
+    border: none;
+    border-radius: 50px;
+    padding: 8px 28px;
+    font-size: 0.95rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    box-shadow: 0 4px 12px rgba(255, 171, 145, 0.35), 0 2px 4px rgba(0, 0, 0, 0.08);
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    &:hover:not(:disabled) {
+      background: darken(#ffab91, 5%);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(255, 171, 145, 0.45), 0 3px 6px rgba(0, 0, 0, 0.12);
+    }
+
+    &:active:not(:disabled) {
+      transform: translateY(0);
+    }
+
+    &:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+  }
+
+  .btn-pill-indigo {
+    background: #3f51b5; // Indigo Blue
+    color: #ffffff;
+    border: none;
+    border-radius: 50px;
+    padding: 8px 28px;
+    font-size: 0.95rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    box-shadow: 0 4px 12px rgba(63, 81, 181, 0.3), 0 2px 4px rgba(0, 0, 0, 0.08);
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    &:hover:not(:disabled) {
+      background: darken(#3f51b5, 5%);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(63, 81, 181, 0.4), 0 3px 6px rgba(0, 0, 0, 0.12);
+    }
+
+    &:active:not(:disabled) {
+      transform: translateY(0);
+    }
+
+    &:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+  }
+
+  .btn-pill-green {
+    background: $green;
+    color: #ffffff;
+    border: none;
+    border-radius: 50px;
+    padding: 8px 28px;
+    font-size: 0.95rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    box-shadow: 0 4px 12px rgba(0, 168, 93, 0.35), 0 2px 4px rgba(0, 0, 0, 0.08);
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    &:hover:not(:disabled) {
+      background: darken($green, 5%);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(0, 168, 93, 0.45), 0 3px 6px rgba(0, 0, 0, 0.12);
+    }
+
+    &:active:not(:disabled) {
+      transform: translateY(0);
+    }
+
+    &:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
   }
 }
