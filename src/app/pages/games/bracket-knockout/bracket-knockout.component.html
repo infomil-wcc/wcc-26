@@ -3,11 +3,14 @@
   <div class="bracket-headers-row-sticky" *ngIf="isOpen">
     <div class="headers-scroll-sync" #headersSync>
       <div class="header-scroll-content">
-        <div class="header-pill-col">1/16 Finales{{ validated ? ' (Validé)' : '' }}</div>
-        <div class="header-pill-col">1/8 Finales{{ validated ? ' (Validé)' : '' }}</div>
-        <div class="header-pill-col">Quarts de Finale{{ validated ? ' (Validé)' : '' }}</div>
-        <div class="header-pill-col">Demi-Finales{{ validated ? ' (Validé)' : '' }}</div>
-        <div class="header-pill-col highlight-final">Grande Finale{{ validated ? ' (Validé)' : '' }}</div>
+        <button type="button" class="header-pill-col back-btn-header" *ngIf="activeStageIndex > 0" (click)="setActiveStage(activeStageIndex - 1)">
+          <span class="material-symbols-outlined">arrow_back</span> Retour
+        </button>
+        <button type="button" class="header-pill-col" *ngIf="activeStageIndex <= 0" (click)="setActiveStage(1)">1/16 Finales{{ validated ? ' (Validé)' : '' }}</button>
+        <button type="button" class="header-pill-col" *ngIf="activeStageIndex <= 1" (click)="setActiveStage(2)">1/8 Finales{{ validated ? ' (Validé)' : '' }}</button>
+        <button type="button" class="header-pill-col" *ngIf="activeStageIndex <= 2" (click)="setActiveStage(3)">Quarts de Finale{{ validated ? ' (Validé)' : '' }}</button>
+        <button type="button" class="header-pill-col" *ngIf="activeStageIndex <= 3" (click)="setActiveStage(4)">Demi-Finales{{ validated ? ' (Validé)' : '' }}</button>
+        <button type="button" class="header-pill-col highlight-final" *ngIf="activeStageIndex <= 4" (click)="setActiveStage(4)">Grande Finale{{ validated ? ' (Validé)' : '' }}</button>
       </div>
     </div>
   </div>
@@ -16,12 +19,12 @@
     <div class="fifa-bracket-canvas" [class.readonly]="validated" [class.isDisabled]="!isOpen && !validated">
 
       <!-- Column 1: Round of 32 -->
-      <div class="bracket-column stage-r32">
+      <div class="bracket-column stage-r32" *ngIf="activeStageIndex <= 0">
         <div class="match-list">
           <div class="matchup-pair-group" *ngFor="let pair of [1,3,5,7,9,11,13,15]">
             <ng-container *ngFor="let mIdx of [pair, pair + 1]">
               <div class="match-node">
-                <div class="node-index">Match {{ mIdx }}</div>
+                <div class="node-index">{{ getStageMatchIdLabel('R32', mIdx) }}</div>
                 <div class="match-card">
                   <div class="match-card-header">
                     <div class="match-stadium-name">{{ matchDetails['R32_m'+mIdx]?.stadium || 'Inconnu' }}</div>
@@ -30,17 +33,17 @@
                   <ng-container *ngFor="let slot of [1, 2]">
                     <!-- When showing a validated (read-only) saved bracket, display only the chosen winner for R32 -->
                     <ng-container *ngIf="validated && vR32['m'+mIdx] as savedWinner">
-                      <div class="team-slot"
-                           [class.selected]="getWinner('R32', 'm'+mIdx)?.name === savedWinner?.name">
+                      <div class="team-slot" [class.selected]="getWinner('R32', 'm'+mIdx)?.name === savedWinner?.name">
                         <img [src]="savedWinner.flagUrl || 'assets/flags/unknown.png'" class="slot-flag" alt="">
                         <span class="slot-name-text">{{ savedWinner.name || 'À déterminer' }}</span>
                       </div>
                     </ng-container>
                     <ng-container *ngIf="!validated || !vR32['m'+mIdx]">
-                      <div class="team-slot" 
-                           [class.selected]="getWinner('R32', 'm'+mIdx)?.name === getTeam('R32', 'm'+mIdx, slot)?.name"
-                           (click)="!validated && getTeam('R32', 'm'+mIdx, slot) && selectWinner('R32', 'm'+mIdx, getTeam('R32', 'm'+mIdx, slot)!)">
-                        <img [src]="getTeam('R32', 'm'+mIdx, slot)?.flagUrl || 'assets/flags/unknown.png'" class="slot-flag" alt="">
+                      <div class="team-slot"
+                        [class.selected]="getWinner('R32', 'm'+mIdx)?.name === getTeam('R32', 'm'+mIdx, slot)?.name"
+                        (click)="!validated && getTeam('R32', 'm'+mIdx, slot) && selectWinner('R32', 'm'+mIdx, getTeam('R32', 'm'+mIdx, slot)!)">
+                        <img [src]="getTeam('R32', 'm'+mIdx, slot)?.flagUrl || 'assets/flags/unknown.png'"
+                          class="slot-flag" alt="">
                         <span class="slot-name-text">{{ getTeam('R32', 'm'+mIdx, slot)?.name || 'À déterminer' }}</span>
                       </div>
                     </ng-container>
@@ -53,23 +56,23 @@
       </div>
 
       <!-- Column 2: Round of 16 -->
-      <div class="bracket-column stage-r16">
+      <div class="bracket-column stage-r16" *ngIf="activeStageIndex <= 1">
         <div class="match-list">
           <div class="matchup-pair-group" *ngFor="let pair of [1,3,5,7]">
             <ng-container *ngFor="let mIdx of [pair, pair + 1]">
               <div class="match-node">
-                <div class="node-index">Huitième {{ mIdx }}</div>
+                <div class="node-index">{{ getStageMatchIdLabel('R16', mIdx) }}</div>
                 <div class="match-card">
                   <div class="match-card-header">
                     <div class="match-stadium-name">{{ matchDetails['R16_m'+mIdx]?.stadium || 'Inconnu' }}</div>
                     <div class="match-date-value">{{ matchDetails['R16_m'+mIdx]?.date || '-' }}</div>
                   </div>
                   <ng-container *ngFor="let slot of [1, 2]">
-                    <div class="team-slot"
-                         [class.disabled]="!getTeam('R16', 'm'+mIdx, slot)"
-                         [class.selected]="getWinner('R16', 'm'+mIdx)?.name === getTeam('R16', 'm'+mIdx, slot)?.name"
-                         (click)="!validated && getTeam('R16', 'm'+mIdx, slot) && selectWinner('R16', 'm'+mIdx, getTeam('R16', 'm'+mIdx, slot)!)">
-                      <img [src]="getTeam('R16', 'm'+mIdx, slot)?.flagUrl || 'assets/flags/unknown.png'" class="slot-flag" alt="">
+                    <div class="team-slot" [class.disabled]="!getTeam('R16', 'm'+mIdx, slot)"
+                      [class.selected]="getWinner('R16', 'm'+mIdx)?.name === getTeam('R16', 'm'+mIdx, slot)?.name"
+                      (click)="!validated && getTeam('R16', 'm'+mIdx, slot) && selectWinner('R16', 'm'+mIdx, getTeam('R16', 'm'+mIdx, slot)!)">
+                      <img [src]="getTeam('R16', 'm'+mIdx, slot)?.flagUrl || 'assets/flags/unknown.png'"
+                        class="slot-flag" alt="">
                       <span class="slot-name-text">{{ getTeam('R16', 'm'+mIdx, slot)?.name || 'À déterminer' }}</span>
                     </div>
                   </ng-container>
@@ -81,23 +84,23 @@
       </div>
 
       <!-- Column 3: Quarter-finals -->
-      <div class="bracket-column stage-r4">
+      <div class="bracket-column stage-r4" *ngIf="activeStageIndex <= 2">
         <div class="match-list">
           <div class="matchup-pair-group" *ngFor="let pair of [1,3]">
             <ng-container *ngFor="let mIdx of [pair, pair + 1]">
               <div class="match-node">
-                <div class="node-index">Quart {{ mIdx }}</div>
+                <div class="node-index">{{ getStageMatchIdLabel('R4', mIdx) }}</div>
                 <div class="match-card">
                   <div class="match-card-header">
                     <div class="match-stadium-name">{{ matchDetails['R4_m'+mIdx]?.stadium || 'Inconnu' }}</div>
                     <div class="match-date-value">{{ matchDetails['R4_m'+mIdx]?.date || '-' }}</div>
                   </div>
                   <ng-container *ngFor="let slot of [1, 2]">
-                    <div class="team-slot"
-                         [class.disabled]="!getTeam('R4', 'm'+mIdx, slot)"
-                         [class.selected]="getWinner('R4', 'm'+mIdx)?.name === getTeam('R4', 'm'+mIdx, slot)?.name"
-                         (click)="!validated && getTeam('R4', 'm'+mIdx, slot) && selectWinner('R4', 'm'+mIdx, getTeam('R4', 'm'+mIdx, slot)!)">
-                      <img [src]="getTeam('R4', 'm'+mIdx, slot)?.flagUrl || 'assets/flags/unknown.png'" class="slot-flag" alt="">
+                    <div class="team-slot" [class.disabled]="!getTeam('R4', 'm'+mIdx, slot)"
+                      [class.selected]="getWinner('R4', 'm'+mIdx)?.name === getTeam('R4', 'm'+mIdx, slot)?.name"
+                      (click)="!validated && getTeam('R4', 'm'+mIdx, slot) && selectWinner('R4', 'm'+mIdx, getTeam('R4', 'm'+mIdx, slot)!)">
+                      <img [src]="getTeam('R4', 'm'+mIdx, slot)?.flagUrl || 'assets/flags/unknown.png'"
+                        class="slot-flag" alt="">
                       <span class="slot-name-text">{{ getTeam('R4', 'm'+mIdx, slot)?.name || 'À déterminer' }}</span>
                     </div>
                   </ng-container>
@@ -109,23 +112,23 @@
       </div>
 
       <!-- Column 4: Semi-finals -->
-      <div class="bracket-column stage-r2">
+      <div class="bracket-column stage-r2" *ngIf="activeStageIndex <= 3">
         <div class="match-list">
           <div class="matchup-pair-group">
             <ng-container *ngFor="let mIdx of [1, 2]">
               <div class="match-node">
-                <div class="node-index">Demi-Finale {{ mIdx }}</div>
+                <div class="node-index">{{ getStageMatchIdLabel('S', mIdx) }}</div>
                 <div class="match-card">
                   <div class="match-card-header">
                     <div class="match-stadium-name">{{ matchDetails['S_m'+mIdx]?.stadium || 'Inconnu' }}</div>
                     <div class="match-date-value">{{ matchDetails['S_m'+mIdx]?.date || '-' }}</div>
                   </div>
                   <ng-container *ngFor="let slot of [1, 2]">
-                    <div class="team-slot"
-                         [class.disabled]="!getTeam('S', 'm'+mIdx, slot)"
-                         [class.selected]="getWinner('S', 'm'+mIdx)?.name === getTeam('S', 'm'+mIdx, slot)?.name"
-                         (click)="!validated && getTeam('S', 'm'+mIdx, slot) && selectWinner('S', 'm'+mIdx, getTeam('S', 'm'+mIdx, slot)!)">
-                      <img [src]="getTeam('S', 'm'+mIdx, slot)?.flagUrl || 'assets/flags/unknown.png'" class="slot-flag" alt="">
+                    <div class="team-slot" [class.disabled]="!getTeam('S', 'm'+mIdx, slot)"
+                      [class.selected]="getWinner('S', 'm'+mIdx)?.name === getTeam('S', 'm'+mIdx, slot)?.name"
+                      (click)="!validated && getTeam('S', 'm'+mIdx, slot) && selectWinner('S', 'm'+mIdx, getTeam('S', 'm'+mIdx, slot)!)">
+                      <img [src]="getTeam('S', 'm'+mIdx, slot)?.flagUrl || 'assets/flags/unknown.png'" class="slot-flag"
+                        alt="">
                       <span class="slot-name-text">{{ getTeam('S', 'm'+mIdx, slot)?.name || 'À déterminer' }}</span>
                     </div>
                   </ng-container>
@@ -137,24 +140,27 @@
       </div>
 
       <!-- Column 5: Grande Finale -->
-      <div class="bracket-column stage-final">
+      <div class="bracket-column stage-final" *ngIf="activeStageIndex <= 4">
         <div class="match-list">
           <div class="match-node final-standalone-node">
+            <div class="node-index">{{ getStageMatchIdLabel('Final', 1) }}</div>
             <div class="match-card final-accent-card">
               <div class="match-card-header">
                 <div class="match-stadium-name">{{ matchDetails['Final_f1']?.stadium || 'Inconnu' }}</div>
                 <div class="match-date-value">{{ matchDetails['Final_f1']?.date || '-' }}</div>
               </div>
               <ng-container *ngFor="let slot of [1, 2]">
-                <div class="team-slot large-slot"
-                     [class.disabled]="!getTeam('Final', 'f1', slot)"
-                     [class.selected]="getWinner('Final', 'f1')?.name === getTeam('Final', 'f1', slot)?.name"
-                     (click)="!validated && getTeam('Final', 'f1', slot) && selectWinner('Final', 'f1', getTeam('Final', 'f1', slot)!)">
-                  <img [src]="getTeam('Final', 'f1', slot)?.flagUrl || 'assets/flags/unknown.png'" class="slot-flag big-flag" alt="">
-                  <span class="slot-name-text text-lg">{{ getTeam('Final', 'f1', slot)?.name || ('Finaliste ' + slot) }}</span>
+                <div class="team-slot large-slot" [class.disabled]="!getTeam('Final', 'f1', slot)"
+                  [class.selected]="getWinner('Final', 'f1')?.name === getTeam('Final', 'f1', slot)?.name"
+                  (click)="!validated && getTeam('Final', 'f1', slot) && selectWinner('Final', 'f1', getTeam('Final', 'f1', slot)!)">
+                  <img [src]="getTeam('Final', 'f1', slot)?.flagUrl || 'assets/flags/unknown.png'"
+                    class="slot-flag big-flag" alt="">
+                  <span class="slot-name-text text-lg">{{ getTeam('Final', 'f1', slot)?.name || ('Finaliste ' + slot)
+                    }}</span>
                 </div>
-                <div class="versus-divider-badge" *ngIf="slot === 1" 
-                     (click)="!validated && openWinnerModal('Final', 'f1', getTeam('Final', 'f1', 1), getTeam('Final', 'f1', 2))">VS</div>
+                <div class="versus-divider-badge" *ngIf="slot === 1"
+                  (click)="!validated && openWinnerModal('Final', 'f1', getTeam('Final', 'f1', 1), getTeam('Final', 'f1', 2))">
+                  VS</div>
               </ng-container>
             </div>
 

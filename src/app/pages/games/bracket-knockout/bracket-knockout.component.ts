@@ -1,5 +1,5 @@
 import { Component, OnInit, inject, Input, ViewChild, ElementRef, ChangeDetectorRef } from '@angular/core';
-import { Observable } from 'rxjs';
+import { Observable, forkJoin } from 'rxjs';
 import { CookieService } from 'ngx-cookie-service';
 import { StateService } from '../../../shared/services/core/state.service'; 
 import { BracketService } from '../../../shared/services/games/bracket.service';
@@ -55,10 +55,187 @@ export class BracketKnockoutComponent implements OnInit {
     }
   }
   
+  protected activeStageIndex: number = 0;
+
+  protected setActiveStage(index: number): void {
+    this.activeStageIndex = index;
+    this.cdr.detectChanges();
+  }
+
+  private isAdvancedTeamsSet: boolean = false;
+
+  private predictionTeams: any[] = [];
+  private dbMatches: any[] = [];
+
   // Dynamic handler setter mapping input array of 32 elements down into sequential pairs
   @Input() set setupAdvancedTeams(teams: any[] | null) {
     if (teams && teams.length === 32) {
-      this.populateRoundOf32Pairs(teams);
+      this.predictionTeams = teams;
+      this.isAdvancedTeamsSet = true;
+      this.pairTeamsFromPredictionsAndMatches();
+    }
+  }
+
+  private pairTeamsFromPredictionsAndMatches(): void {
+    if (!this.dbMatches || this.dbMatches.length === 0 || !this.predictionTeams || this.predictionTeams.length === 0) {
+      return;
+    }
+
+    const standings: { [key: string]: any[] } = {};
+    this.predictionTeams.forEach(t => {
+      let grp = t.group || 'Group A';
+      if (!grp.startsWith('Group ')) {
+        grp = `Group ${grp}`;
+      }
+      if (!standings[grp]) standings[grp] = [];
+      standings[grp].push(t);
+    });
+
+    Object.keys(standings).forEach(grp => {
+      standings[grp].sort((a, b) => a.rankIndex - b.rankIndex);
+    });
+
+    const getTeamByRank = (groupLetter: string, rankIndex: number): any => {
+      const grp = standings[`Group ${groupLetter}`];
+      if (grp) {
+        const found = grp.find(t => t.rankIndex === rankIndex);
+        if (found) {
+          return {
+            name: found.name,
+            group: `Group ${groupLetter}`,
+            rank: rankIndex === 0 ? `Group ${groupLetter} Winner` : (rankIndex === 1 ? `Group ${groupLetter} Runner-up` : `Best 3rd Place (Group ${groupLetter})`),
+            flagUrl: found.flagUrl,
+            flagId: found.flagId
+          };
+        }
+      }
+      return null;
+    };
+
+    const bestEightThirds = this.predictionTeams.filter(t => t.rankIndex === 2);
+    while (bestEightThirds.length < 8) {
+      bestEightThirds.push({
+        name: 'À déterminer',
+        group: '',
+        flagUrl: 'assets/flags/unknown.png',
+        flagId: 'tbc'
+      });
+    }
+
+    const slotWinners = ['Group E', 'Group I', 'Group A', 'Group L', 'Group D', 'Group G', 'Group B', 'Group K'];
+    const assignedThirds = new Array(8);
+    const used = new Set<number>();
+
+    const backtrack = (winnerIndex: number): boolean => {
+      if (winnerIndex === 8) return true;
+      const wGroup = slotWinners[winnerIndex];
+      for (let i = 0; i < 8; i++) {
+        if (!used.has(i)) {
+          const third = bestEightThirds[i];
+          if (third && third.group !== wGroup) {
+            used.add(i);
+            assignedThirds[winnerIndex] = third;
+            if (backtrack(winnerIndex + 1)) return true;
+            used.delete(i);
+          }
+        }
+      }
+      return false;
+    };
+
+    if (!backtrack(0)) {
+      for (let i = 0; i < 8; i++) {
+        assignedThirds[i] = bestEightThirds[i];
+      }
+    }
+
+    const r32Matches = this.dbMatches.filter(m => m.phase === 'Round of 32');
+
+    const r32Order = [74, 77, 73, 75, 83, 84, 81, 82, 76, 78, 79, 80, 86, 88, 85, 87];
+    r32Matches.sort((a, b) => {
+      const idA = parseInt(a.id || a.game_id, 10);
+      const idB = parseInt(b.id || b.game_id, 10);
+      return r32Order.indexOf(idA) - r32Order.indexOf(idB);
+    });
+
+    const parsePlaceholder = (placeholder: string): { groupLetter: string, rankIndex: number } | null => {
+      if (!placeholder) return null;
+      const lower = placeholder.toLowerCase().trim();
+      let groupLetter = '';
+      const groupMatch = lower.match(/group\s+([a-l])/i) || lower.match(/gr\.\s*([a-l])/i) || lower.match(/\s([a-l])$/i) || lower.match(/\s([a-l])\s/i);
+      if (groupMatch) {
+        groupLetter = groupMatch[1].toUpperCase();
+      }
+
+      if (lower.includes('winner') || lower.includes('1er') || lower.includes('1st') || lower.includes('vainqueur')) {
+        return { groupLetter, rankIndex: 0 };
+      }
+      if (lower.includes('runner-up') || lower.includes('runner up') || lower.includes('2nd') || lower.includes('2eme') || lower.includes('second')) {
+        return { groupLetter, rankIndex: 1 };
+      }
+      if (lower.includes('3rd') || lower.includes('3eme') || lower.includes('third') || lower.includes('troisieme')) {
+        return { groupLetter, rankIndex: 2 };
+      }
+      return null;
+    };
+
+    const mappedR32Teams: any[] = [];
+
+    r32Matches.forEach((m) => {
+      const getTeamForPlaceholder = (placeholder: string): any => {
+        if (!placeholder) return null;
+        const lower = placeholder.toLowerCase().trim();
+        if (!lower.includes('group') && !lower.includes('winner') && !lower.includes('runner') && !lower.includes('3rd') && !lower.includes('determiner')) {
+          const found = this.predictionTeams.find(t => t.name.toLowerCase() === lower);
+          if (found) return found;
+        }
+        const parsed = parsePlaceholder(placeholder);
+        if (parsed) {
+          if (parsed.rankIndex === 2) {
+            const id = parseInt(m.id || m.game_id, 10);
+            let third = null;
+            if (id === 74) third = assignedThirds[0];
+            else if (id === 77) third = assignedThirds[1];
+            else if (id === 79) third = assignedThirds[2];
+            else if (id === 80) third = assignedThirds[3];
+            else if (id === 81) third = assignedThirds[4];
+            else if (id === 82) third = assignedThirds[5];
+            else if (id === 85) third = assignedThirds[6];
+            else if (id === 87) third = assignedThirds[7];
+
+            if (third && third.name !== 'À déterminer') {
+              return {
+                name: third.name,
+                group: third.group || '',
+                rank: 'Best 3rd Place (' + (third.group || '') + ')',
+                flagUrl: third.flagUrl,
+                flagId: third.flagId
+              };
+            }
+          } else {
+            const team = getTeamByRank(parsed.groupLetter, parsed.rankIndex);
+            if (team) return team;
+          }
+        }
+
+        return {
+          name: placeholder,
+          group: '',
+          rank: '',
+          flagUrl: 'assets/flags/unknown.png',
+          flagId: 'tbc'
+        };
+      };
+
+      const teamA = getTeamForPlaceholder(m.team_a);
+      const teamB = getTeamForPlaceholder(m.team_b);
+
+      mappedR32Teams.push(teamA);
+      mappedR32Teams.push(teamB);
+    });
+
+    if (mappedR32Teams.length === 32) {
+      this.populateRoundOf32Pairs(mappedR32Teams);
     }
   }
 
@@ -110,36 +287,11 @@ export class BracketKnockoutComponent implements OnInit {
     this.initializePlaceholders();
     this.resetSelections();
 
-    this.stateService.userState.subscribe({
-      next: (user) => {
-        this.currentUser = user.first_name? user.first_name : '';
-        // fetch saved bracket once we have the current user
-        this.$bracket = this.bracketService.getUserBracket(this.currentUser);
-        this.$bracket.subscribe({
-          next: (data) => {
-            console.log(data);
-            if (data && Array.isArray(data) && data.length > 0) {
-              // use the first saved bracket
-              this.applySavedBracket(data[0]);
-            }
-          },
-          error: () => {
-            // ignore errors retrieving saved bracket
-          }
-        });
-      }
-    });
-
-    // Fetch matches to populate dates, times, and stadiums
-    this.matchesService.getAllMatches().subscribe({
-      next: (matches) => {
-        this.populateMatchDetails(matches);
-      }
-    });
-
-    // Cache available flags from the teams service so we can resolve names -> flagUrl later
-    this.teamsService.getFlags().subscribe({
-      next: (flags: any[]) => {
+    forkJoin({
+      matches: this.matchesService.getAllMatches(),
+      flags: this.teamsService.getFlags()
+    }).subscribe({
+      next: ({ matches, flags }) => {
         try {
           flags.forEach((f: any) => {
             if (f && f.name) {
@@ -147,11 +299,40 @@ export class BracketKnockoutComponent implements OnInit {
               this.flagMap.set(key, { url: f.flag_url || f.url || 'assets/flags/unknown.png', iso: (f.iso || f.iso_code || '').toLowerCase() });
             }
           });
-          // After flags populate, refresh any already-applied saved entries
-          this.resolveSavedFlags();
         } catch {
           // ignore
         }
+
+        this.dbMatches = matches;
+        this.populateMatchDetails(matches);
+
+        if (!this.isAdvancedTeamsSet) {
+          const generatedR32Teams = this.bracketService.generateRoundOf32FromGroups(matches, flags);
+          if (generatedR32Teams && generatedR32Teams.length === 32) {
+            this.populateRoundOf32Pairs(generatedR32Teams);
+          }
+        } else {
+          this.pairTeamsFromPredictionsAndMatches();
+        }
+
+        this.resolveSavedFlags();
+
+        this.stateService.userState.subscribe({
+          next: (user) => {
+            this.currentUser = user.first_name ? user.first_name : '';
+            this.$bracket = this.bracketService.getUserBracket(this.currentUser);
+            this.$bracket.subscribe({
+              next: (data) => {
+                if (data && Array.isArray(data) && data.length > 0) {
+                  this.applySavedBracket(data[0]);
+                }
+              },
+              error: () => {
+                // ignore
+              }
+            });
+          }
+        });
       }
     });
   }
@@ -199,39 +380,108 @@ export class BracketKnockoutComponent implements OnInit {
   }
 
   private populateMatchDetails(matches: any[]): void {
-    matches.forEach((m: any) => {
-      let key = '';
-      if (m.phase === 'Round of 32') {
-        const index = m.id - 72; // ID 73 -> index 1
-        key = `R32_m${index}`;
-      } else if (m.phase === 'Round of 16') {
-        const index = m.id - 88; // ID 89 -> index 1
-        key = `R16_m${index}`;
-      } else if (m.phase === 'Quarter-finals') {
-        const index = m.id - 96; // ID 97 -> index 1
-        key = `R4_m${index}`;
-      } else if (m.phase === 'Semi-finals') {
-        const index = m.id - 100; // ID 101 -> index 1
-        key = `S_m${index}`;
-      } else if (m.phase === 'Final') {
-        key = `Final_f1`;
+    const filterAndSort = (phase: string) => {
+      const filtered = matches.filter(m => m.phase === phase);
+      if (phase === 'Round of 32') {
+        const r32Order = [74, 77, 73, 75, 83, 84, 81, 82, 76, 78, 79, 80, 86, 88, 85, 87];
+        filtered.sort((a, b) => {
+          const idA = parseInt(a.id || a.game_id, 10);
+          const idB = parseInt(b.id || b.game_id, 10);
+          return r32Order.indexOf(idA) - r32Order.indexOf(idB);
+        });
+        return filtered;
       }
+      return filtered.sort((a, b) => parseInt(a.id || a.game_id, 10) - parseInt(b.id || b.game_id, 10));
+    };
 
-      if (key) {
-        let datePart = '-';
-        let timePart = '';
-        if (m.date) {
-          const formatted = this.formatMatchDate(m.date);
-          datePart = formatted.date;
-          timePart = formatted.time;
-        }
-        this.matchDetails[key] = {
-          date: datePart,
-          time: timePart,
-          stadium: m.stadium || 'Inconnu'
-        };
+    const r32 = filterAndSort('Round of 32');
+    r32.forEach((m, idx) => {
+      const index = idx + 1;
+      const key = `R32_m${index}`;
+      let datePart = '-';
+      let timePart = '';
+      if (m.date) {
+        const formatted = this.formatMatchDate(m.date);
+        datePart = formatted.date;
+        timePart = formatted.time;
       }
+      this.matchDetails[key] = {
+        date: datePart,
+        time: timePart,
+        stadium: m.stadium || 'Inconnu'
+      };
     });
+
+    const r16 = filterAndSort('Round of 16');
+    r16.forEach((m, idx) => {
+      const index = idx + 1;
+      const key = `R16_m${index}`;
+      let datePart = '-';
+      let timePart = '';
+      if (m.date) {
+        const formatted = this.formatMatchDate(m.date);
+        datePart = formatted.date;
+        timePart = formatted.time;
+      }
+      this.matchDetails[key] = {
+        date: datePart,
+        time: timePart,
+        stadium: m.stadium || 'Inconnu'
+      };
+    });
+
+    const quarters = filterAndSort('Quarter-finals');
+    quarters.forEach((m, idx) => {
+      const index = idx + 1;
+      const key = `R4_m${index}`;
+      let datePart = '-';
+      let timePart = '';
+      if (m.date) {
+        const formatted = this.formatMatchDate(m.date);
+        datePart = formatted.date;
+        timePart = formatted.time;
+      }
+      this.matchDetails[key] = {
+        date: datePart,
+        time: timePart,
+        stadium: m.stadium || 'Inconnu'
+      };
+    });
+
+    const semis = filterAndSort('Semi-finals');
+    semis.forEach((m, idx) => {
+      const index = idx + 1;
+      const key = `S_m${index}`;
+      let datePart = '-';
+      let timePart = '';
+      if (m.date) {
+        const formatted = this.formatMatchDate(m.date);
+        datePart = formatted.date;
+        timePart = formatted.time;
+      }
+      this.matchDetails[key] = {
+        date: datePart,
+        time: timePart,
+        stadium: m.stadium || 'Inconnu'
+      };
+    });
+
+    const finalMatch = matches.find(m => m.phase === 'Final');
+    if (finalMatch) {
+      let datePart = '-';
+      let timePart = '';
+      if (finalMatch.date) {
+        const formatted = this.formatMatchDate(finalMatch.date);
+        datePart = formatted.date;
+        timePart = formatted.time;
+      }
+      this.matchDetails['Final_f1'] = {
+        date: datePart,
+        time: timePart,
+        stadium: finalMatch.stadium || 'Inconnu'
+      };
+    }
+
     this.cdr.detectChanges();
   }
 
@@ -360,7 +610,10 @@ export class BracketKnockoutComponent implements OnInit {
       }
     }
 
-    if (extracted.length >= 32) {
+    const hasRealTeams = extracted.some(t => t && t.name && t.name !== 'À déterminer');
+    const hasCurrentRealTeams = Object.values(this.r32Teams).some(t => t && t.name && t.name !== 'À déterminer');
+
+    if (extracted.length >= 32 && (hasRealTeams || !hasCurrentRealTeams)) {
       this.populateRoundOf32Pairs(extracted.slice(0,32) as Country[]);
     }
     // populate validated maps from payload fields
@@ -433,6 +686,7 @@ export class BracketKnockoutComponent implements OnInit {
       matchCounter++;
     }
     this.resetSelections();
+    this.cdr.detectChanges();
   }
 
   getWinner(stage: string, matchKey: string): Country | null {
@@ -627,5 +881,47 @@ export class BracketKnockoutComponent implements OnInit {
     for (let i = 1; i <= 4; i++) this.vR4[`m${i}`] = this.wR4[`m${i}`] ? { ...this.wR4[`m${i}`] as Country } : null;
     for (let i = 1; i <= 2; i++) this.vS[`m${i}`] = this.wS[`m${i}`] ? { ...this.wS[`m${i}`] as Country } : null;
     this.vChampion = this.champion ? { ...this.champion } : null;
+  }
+
+  getMatchIdLabel(mIdx: number): string {
+    const r32Order = [74, 77, 73, 75, 83, 84, 81, 82, 76, 78, 79, 80, 86, 88, 85, 87];
+    if (this.dbMatches && this.dbMatches.length > 0) {
+      const r32Matches = this.dbMatches.filter(m => m.phase === 'Round of 32');
+      r32Matches.sort((a, b) => {
+        const idA = parseInt(a.id || a.game_id, 10);
+        const idB = parseInt(b.id || b.game_id, 10);
+        return r32Order.indexOf(idA) - r32Order.indexOf(idB);
+      });
+      const match = r32Matches[mIdx - 1];
+      if (match) {
+        return 'M' + (match.id || match.game_id);
+      }
+    }
+    return 'M' + r32Order[mIdx - 1];
+  }
+
+  getStageMatchIdLabel(stage: string, mIdx: number): string {
+    if (stage === 'R32') {
+      return this.getMatchIdLabel(mIdx);
+    }
+    if (this.dbMatches && this.dbMatches.length > 0) {
+      let phaseName = '';
+      if (stage === 'R16') phaseName = 'Round of 16';
+      else if (stage === 'R4') phaseName = 'Quarter-finals';
+      else if (stage === 'S') phaseName = 'Semi-finals';
+      else if (stage === 'Final') phaseName = 'Final';
+
+      const phaseMatches = this.dbMatches.filter(m => m.phase === phaseName);
+      phaseMatches.sort((a, b) => parseInt(a.id || a.game_id, 10) - parseInt(b.id || b.game_id, 10));
+      const match = phaseMatches[mIdx - 1];
+      if (match) {
+        return 'M' + (match.id || match.game_id);
+      }
+    }
+    if (stage === 'R16') return 'M' + (88 + mIdx);
+    if (stage === 'R4') return 'M' + (96 + mIdx);
+    if (stage === 'S') return 'M' + (100 + mIdx);
+    if (stage === 'Final') return 'M104';
+    return '';
   }
 }

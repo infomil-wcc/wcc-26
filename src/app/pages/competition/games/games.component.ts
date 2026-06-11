@@ -10,7 +10,7 @@ import { map } from 'rxjs/operators';
   templateUrl: './games.component.html',
   styleUrl: './games.component.scss'
 })
-export class GamesComponent implements OnInit{
+export class GamesComponent implements OnInit {
 
   private matchesService = inject(MatchesService);
   private globalTime = inject(GlobaltimeService);

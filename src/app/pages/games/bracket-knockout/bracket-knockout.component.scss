@@ -364,10 +364,37 @@ $line-connector-color: #94a3b8; // Tree connector layout lines color
   border-radius: 30px;
   border: 1px solid rgba(255, 255, 255, 0.15);
   box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: inherit;
+
+  &:hover {
+    background-color: #1d4ed8;
+    border-color: #3b82f6;
+  }
 
   &.highlight-final {
     border-color: $fifa-gold;
     color: $fifa-gold;
+
+    &:hover {
+      background-color: #1d4ed8;
+      border-color: lighten($fifa-gold, 15%);
+    }
+  }
+
+  &.back-btn-header {
+    background-color: #1e293b;
+    border-color: rgba(255, 255, 255, 0.25);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+
+    &:hover {
+      background-color: #334155;
+      border-color: #ffffff;
+    }
   }
 }
 
