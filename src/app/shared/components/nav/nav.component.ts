@@ -60,7 +60,7 @@ export class NavComponent implements OnInit, OnDestroy {
             "active": false
           },
           {
-            "label": "Pronostic",
+            "label": "Pronostics",
             "route": "pronostiques",
             "active": false
           },

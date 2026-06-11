@@ -178,6 +178,7 @@
         </div>
 
         <div class="pronostiqueDone flex flex-column align-items-center mt-2" *ngIf="pronostiqueDone && !isEditing">
+          <p *ngIf="match.fulltime_a !== null && match.fulltime_b !== null">Mon Pronostic</p>
           <h4 class="mt-0 mb-1 text-2xl font-bold text-center">
             <strong>
               {{ donePronostique.winner_draw }}
@@ -206,10 +207,7 @@
       <div class="flex">
         <div class="col-5 p-0">
           <span class="flex align-items-center justify-content-center">
-            <span class="mr-2 flex">
-              <img src="assets/flags/{{ match.team_a | lowercase }}.png" alt="" class="flag" *ngIf="match.team_a" />
-              <img src="assets/flags/unknown.png" alt="" class="flag" *ngIf="!match.team_a" />
-            </span>
+            <span class="flex flagContainer" [ngStyle]="{'background-image': match.team_a ? 'url(' + teamAFlag + ')'  : 'url(assets/flags/unknown.png)'}"></span>
             <span class="teamScore ml-4 text-3xl">{{ match.fulltime_a }}</span>
           </span>
         </div>
@@ -221,10 +219,7 @@
         <div class="col-5 p-0">
           <span class="flex align-items-center justify-content-center">
             <span class="teamScore mr-4 text-3xl">{{ match.fulltime_b }}</span>
-            <span class="ml-2 flex">
-              <img src="assets/flags/{{ match.team_b | lowercase }}.png" alt="" class="flag" *ngIf="match.team_b" />
-              <img src="assets/flags/unknown.png" alt="" class="flag" *ngIf="!match.team_b " />
-            </span>
+            <span class="ml-2 flex flagContainer" [ngStyle]="{'background-image': match.team_b ? 'url(' + teamBFlag + ')'  : 'url(assets/flags/unknown.png)'}"></span>
           </span>
         </div>
       </div>

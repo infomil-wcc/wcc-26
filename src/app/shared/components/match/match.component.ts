@@ -97,6 +97,10 @@ export class MatchComponent implements OnInit, OnDestroy{
       this.calcWinDrawOutcome = true;
     }
 
+    // Forcing for testing 
+    // this.match.fulltime_a = 1;
+    // this.match.fulltime_b = 2;
+    // this.match.winner_draw = this.match.team_b;
   }
 
   ngOnDestroy(): void {
