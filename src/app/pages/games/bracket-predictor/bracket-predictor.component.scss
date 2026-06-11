@@ -464,6 +464,14 @@ $fifa-orange: #f97316;
     box-shadow: 0 12px 20px rgba(0, 0, 0, 0.4);
   }
 
+  &.btn-greenish {
+    background-color: #10b981;
+    
+    &:hover:not(:disabled) {
+      background-color: #059669;
+    }
+  }
+
   &:disabled {
     background-color: #94a3b8;
     cursor: not-allowed;
