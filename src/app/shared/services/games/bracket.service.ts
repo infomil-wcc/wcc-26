@@ -52,4 +52,20 @@ export class BracketService {
       return throwError('No token found');
     }
   }
+
+  deleteBracket(id: string): Observable<any> {
+    let token = this.cookieService.get('currentToken');
+    if (token) {
+      let httpOptions = {
+        headers: new HttpHeaders({
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        })
+      };
+
+      return this.httpClient.delete(`${this.prodUrl}/items/bracket/${id}`, httpOptions);
+    } else {
+      return throwError('No token found');
+    }
+  }
 }

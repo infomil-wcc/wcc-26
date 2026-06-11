@@ -16,6 +16,11 @@ export class BracketChallengeComponent implements OnInit {
   protected activeWizardStep: 'groups' | 'knockout' = 'groups';
   protected advancedQualifiers: any[] = [];
   protected isLoggedIn: boolean = false;
+  protected hasSavedBracket: boolean = false;
+  private savedBracketId: string | null = null;
+  protected showDeleteDialog: boolean = false;
+  protected deleteDialogMode: 'confirm' | 'info' = 'confirm';
+  protected deleteDialogMessage: string = '';
 
   ngOnInit(): void {
     // prefer application user state (first_name) to find saved bracket
@@ -27,10 +32,15 @@ export class BracketChallengeComponent implements OnInit {
           this.bracketService.getUserBracket(firstName).subscribe({
             next: (data) => {
               if (data && Array.isArray(data) && data.length > 0) {
-                    // user already has a saved bracket — try to reconstruct full 32-team qualifiers from payload
-                    const payload = data[0] || {};
+                // user already has a saved bracket — try to reconstruct full 32-team qualifiers from payload
+                const payload = data[0] || {};
+                // mark that user has a saved bracket and keep its id for potential deletion
+                this.hasSavedBracket = true;
+                this.savedBracketId = payload?.id || null;
 
-                    const extracted: any[] = [];
+                  console.log('Found saved bracket for user', firstName, 'with payload:', payload);
+                
+                  const extracted: any[] = [];
 
                     // 1) If payload exposes an array named 'r32' or 'teams32' or 'advancedQualifiers', use it
                     if (Array.isArray(payload.r32) && payload.r32.length >= 32) {
@@ -83,6 +93,9 @@ export class BracketChallengeComponent implements OnInit {
                       if (foundWinner && winners.length === 32) {
                         this.advancedQualifiers = winners;
                       }
+                      // mark that user has a saved bracket and keep its id for potential deletion
+                      this.hasSavedBracket = true;
+                      this.savedBracketId = payload?.id || (data[0] && data[0].id) || null;
                     }
 
                     this.activeWizardStep = 'knockout';
@@ -108,5 +121,48 @@ export class BracketChallengeComponent implements OnInit {
   backToGroups(): void {
     this.activeWizardStep = 'groups';
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  deleteBracket(): void {
+    if (!this.savedBracketId) {
+      this.deleteDialogMode = 'info';
+      this.deleteDialogMessage = 'Aucun bracket trouvé à réinitialiser.';
+      this.showDeleteDialog = true;
+      return;
+    }
+    // show confirmation dialog
+    this.deleteDialogMode = 'confirm';
+    this.deleteDialogMessage = 'Voulez-vous vraiment réinitialiser votre bracket ? Cette action est irréversible.';
+    this.showDeleteDialog = true;
+  }
+
+  onDeleteConfirmed(): void {
+    if (!this.savedBracketId) {
+      this.deleteDialogMode = 'info';
+      this.deleteDialogMessage = 'Aucun bracket trouvé à réinitialiser.';
+      return;
+    }
+    // perform delete
+    this.bracketService.deleteBracket(this.savedBracketId).subscribe({
+      next: () => {
+        this.hasSavedBracket = false;
+        this.savedBracketId = null;
+        this.advancedQualifiers = [];
+        this.activeWizardStep = 'groups';
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        this.deleteDialogMode = 'info';
+        this.deleteDialogMessage = 'Bracket réinitialisé.';
+        this.showDeleteDialog = true; // keep dialog open to show message
+      },
+      error: () => {
+        this.deleteDialogMode = 'info';
+        this.deleteDialogMessage = 'Erreur lors de la réinitialisation du bracket.';
+        this.showDeleteDialog = true;
+      }
+    });
+  }
+
+  onDeleteDialogClose(): void {
+    this.showDeleteDialog = false;
   }
 }

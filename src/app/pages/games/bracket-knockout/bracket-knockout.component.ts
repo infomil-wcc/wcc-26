@@ -407,6 +407,7 @@ export class BracketKnockoutComponent implements OnInit {
     this.validated = true;
     // Ensure flags are resolved now that validated maps are populated
     this.resolveSavedFlags();
+
   }
 
   private initializePlaceholders(): void {
@@ -607,11 +608,12 @@ export class BracketKnockoutComponent implements OnInit {
 
     this.bracketService.postBracket(payload).subscribe({
       next: () => {
-        alert('Pronostic validé avec succès !');
         // take a snapshot of the current bracket to show as a read-only validated view
         this.takeValidatedSnapshot();
         this.validated = true;
-      } ,
+        // refresh the page to reflect saved state
+        window.location.reload();
+      },
       error: () => {
         alert('Erreur lors de la validation du pronostic.');
       }
