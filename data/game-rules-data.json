@@ -27,7 +27,7 @@
           { "cat": "Points max possible / match", "vals": [3, 6, 11, 15, 24] },
           { "cat": "Total points possible", "vals": [216, 96, 88, 105, 24] }
         ],
-        "total_points_competition": 529
+        "total_points_competition": 1200
       },
       "exemples_calcul": [
         {
@@ -73,8 +73,10 @@
       "description": "Une fois la phase des groupes terminés, devine les vainqueurs de chaque match jusqu’à la finale.",
       "date_debut": "2026-06-28 09:00",
       "date_fin": "2026-06-28 23:00",
-      "bareme_points": { "phase_groupe":50,"16eme_de_finale": 10, "8eme_de_finale": 20, "quart_de_finale": 30, "demi_finale": 40,"finaliste": 75, "finale": 100 },
+      "bareme_points": { "phase_groupe":50,"16eme_de_finale": 10, "8eme_de_finale": 20, "quart_de_finale": 30, "demi_finale": 40, "finale": 100 },
       "bonus_tout_groupe": 30,
+      "bonus_equipe_finale": 75,
+      "maximum_possible": 1200,
       "interet": "Chaque bon vainqueur te fait grimper au classement !",
       "conditions_egalite": {
         "etape_1": "Le participant ayant le plus grand nombre de prédictions correctes est déclaré gagnant.",

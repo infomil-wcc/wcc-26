@@ -74,7 +74,6 @@ export class GameRulesComponent implements OnInit {
     '8eme_de_finale',
     'quart_de_finale',
     'demi_finale',
-    'finaliste',
     'finale'
   ];
 

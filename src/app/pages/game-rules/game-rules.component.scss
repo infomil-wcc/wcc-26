@@ -316,7 +316,15 @@ $emerald-bg: #ecfdf5;
 
   .st-total-banner {
     display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem;
-    background: $emerald-bg; border: 1px solid #a7f3d0; padding: 1rem; border-radius: 0.75rem; margin-top: 1.5rem; // Plus d'espace sous le tableau
+    background: $emerald-bg; border: 1px solid #a7f3d0; padding: 1rem; border-radius: 0.75rem; margin-top: 1.5rem; 
+    &.jeu-bracket { 
+      flex-direction: column;
+      p {
+        display: flex; 
+        justify-content: space-between;
+        width: 100%;
+      }
+    }
     span { color: $emerald-text; font-weight: 600; font-size: 0.95rem; }
     strong { color: #047857; font-size: 1.25rem; font-weight: 900; }
   }
