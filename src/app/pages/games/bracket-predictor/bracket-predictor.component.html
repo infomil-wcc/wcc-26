@@ -1,11 +1,11 @@
 <div class="predictor-wrapper">
-  
+
   <div *ngIf="isLoading" class="loading-state">
     <p>Chargement des groupes...</p>
   </div>
 
   <ng-container *ngIf="!isLoading">
-    
+
     <div *ngIf="currentStep === 1" class="step-container">
       <div class="dashboard-controls">
         <h2>Prédictions de la phase de groupes</h2>
@@ -17,39 +17,28 @@
       </div>
 
       <div class="groups-grid">
-        <div 
-          *ngFor="let group of groupsData; let gIdx = index" 
-          class="group-card" 
-          [ngStyle]="{'border-top-color': group.color}"
-        >
+        <div *ngFor="let group of groupsData; let gIdx = index" class="group-card"
+          [ngStyle]="{'border-top-color': group.color}">
           <div class="group-header" [ngStyle]="{'background-color': group.color}">
             <span class="title-text">Groupe {{ group.group_title }}</span>
-            
+
             <div class="randomize-container">
-              <button 
-                type="button"
-                class="btn-dice-randomize" 
-                (click)="randomizeGroup(gIdx); $event.stopPropagation()" 
-                title="Mélanger le groupe"
-              >
+              <button type="button" class="btn-dice-randomize" (click)="randomizeGroup(gIdx); $event.stopPropagation()"
+                title="Mélanger le groupe">
                 <span class="dice-icon">🎲</span>
               </button>
             </div>
           </div>
 
-          <div 
-            cdkDropList 
-            [cdkDropListData]="group.teams" 
-            (cdkDropListDropped)="dropTeam($event, gIdx)"
-            class="teams-list"
-          >
+          <div cdkDropList [cdkDropListData]="group.teams" (cdkDropListDropped)="dropTeam($event, gIdx)"
+            class="teams-list">
             <div *ngFor="let team of group.teams; let posIdx = index" cdkDrag class="team-row">
               <div class="team-info-block">
                 <!-- Make rank clickable to toggle/confirm -->
                 <div class="pos-badge" [ngClass]="{'is-qualified': posIdx < 2}" (click)="toggleGroupConfirmation(gIdx)">
                   {{ posIdx + 1 }}
                 </div>
-                
+
                 <img [src]="team.flagUrl" class="team-flag" [alt]="team.name">
                 <span class="team-name">{{ team.name }}</span>
               </div>
@@ -58,8 +47,9 @@
               <div class="row-drag-placeholder" *cdkDragPlaceholder></div>
             </div>
             <!-- Confirmation indicator -->
-            <div class="group-confirmation" [ngClass]="{'confirmed': confirmedGroups[gIdx]}" (click)="toggleGroupConfirmation(gIdx)">
-                {{ confirmedGroups[gIdx] ? 'Groupe validé ✓' : 'Valider ce groupe' }}
+            <div class="group-confirmation" [ngClass]="{'confirmed': confirmedGroups[gIdx]}"
+              (click)="toggleGroupConfirmation(gIdx)">
+              {{ confirmedGroups[gIdx] ? 'Groupe validé ✓' : 'Valider ce groupe' }}
             </div>
           </div>
         </div>
@@ -67,37 +57,25 @@
 
       <!-- Floating Action Buttons for Step 1 -->
       <div class="fixed-actions-container">
-        <button 
-          type="button"
-          class="btn-fifa-submit btn-greenish" 
-          (click)="validateAllGroups()"
-        >
+        <button type="button" class="btn-fifa-submit btn-greenish" (click)="validateAllGroups()">
           ✓ Valider les groupes
         </button>
         <div class="randomize-container">
-          <button 
-            type="button"
-            class="btn-dice-randomize" 
-            (click)="randomizeAllGroups()" 
-            title="Sélection aléatoire"
-          >
+          <button type="button" class="btn-dice-randomize" (click)="randomizeAllGroups()" title="Sélection aléatoire">
             <span class="dice-icon">🎲</span>
           </button>
         </div>
-        <button 
-          type="button"
-          class="btn-fifa-submit" 
-          [disabled]="!areAllGroupsConfirmed()" 
+        <button type="button" class="btn-fifa-submit" [disabled]="!areAllGroupsConfirmed()"
           (click)="goToThirdPlaceSelection()"
-          style="display: inline-flex; align-items: center; gap: 8px; justify-content: center;"
-        >
-          Meilleurs 3e <span class="material-symbols-outlined" style="font-size: 1.25rem; line-height: 1;">arrow_forward</span>
+          style="display: inline-flex; align-items: center; gap: 8px; justify-content: center;">
+          Meilleurs 3ème <span class="material-symbols-outlined"
+            style="font-size: 1.25rem; line-height: 1;">arrow_forward</span>
         </button>
       </div>
     </div>
 
     <div *ngIf="currentStep === 2" class="step-container">
-      
+
       <div class="controls-bar mb-4">
         <button type="button" class="btn-navigation secondary-back" (click)="goBackToGroups()">
           &larr; Retour aux groupes
@@ -107,7 +85,8 @@
       <div class="dashboard-controls">
         <div class="title-block">
           <h2>Choisissez les meilleurs troisièmes</h2>
-          <p class="subtitle-text">Sélectionnez les huit troisièmes de groupe qui accéderont à la phase à élimination directe</p>
+          <p class="subtitle-text">Sélectionnez les huit troisièmes de groupe qui accéderont à la phase à élimination
+            directe</p>
         </div>
         <button type="button" class="btn-reset" (click)="resetAllPredictions()">
           <span class="icon">&#x21BB;</span> Tout réinitialiser
@@ -130,12 +109,8 @@
         </div>
 
         <div class="thirds-list">
-          <div 
-            *ngFor="let team of thirdPlacedTeams; let idx = index" 
-            class="third-team-row"
-            [ngClass]="{'row-selected': team.isSelectedThird}"
-            (click)="toggleThirdPlaceSelection(team)"
-          >
+          <div *ngFor="let team of thirdPlacedTeams; let idx = index" class="third-team-row"
+            [ngClass]="{'row-selected': team.isSelectedThird}" (click)="toggleThirdPlaceSelection(team)">
             <div class="row-left-content">
               <span class="rank-index">{{ idx + 1 }}</span>
               <img [src]="team.flagUrl" class="team-flag" [alt]="team.name">
@@ -152,21 +127,12 @@
       <!-- Fixed action buttons -->
       <div class="fixed-actions-container">
         <div class="randomize-container">
-          <button 
-            type="button"
-            class="btn-dice-randomize" 
-            (click)="randomizeThirds()" 
-            title="Sélection aléatoire"
-          >
+          <button type="button" class="btn-dice-randomize" (click)="randomizeThirds()" title="Sélection aléatoire">
             <span class="dice-icon">🎲</span>
           </button>
         </div>
-        <button 
-          type="button"
-          class="btn-fifa-submit" 
-          [disabled]="selectedThirdsCount !== 8" 
-          (click)="submitGroupStagePredictions()"
-        >
+        <button type="button" class="btn-fifa-submit" [disabled]="selectedThirdsCount !== 8"
+          (click)="submitGroupStagePredictions()">
           Valider mes prédictions
         </button>
       </div>
