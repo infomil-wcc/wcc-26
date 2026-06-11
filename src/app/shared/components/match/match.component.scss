@@ -530,4 +530,31 @@
     box-sizing: border-box;
     box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.02);
   }
+
+  .lock-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 14px;
+    pointer-events: none;
+    animation: popLock 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+
+    .lock-icon {
+      font-size: 9rem;
+      color: rgba(0, 30, 80, 0.35);
+      font-variation-settings: 'FILL' 1, 'wght' 700;
+      margin-top: -35px;
+    }
+  }
+}
+
+@keyframes popLock {
+  from { transform: scale(0.7); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
 }
