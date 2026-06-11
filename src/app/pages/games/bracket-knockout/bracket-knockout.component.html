@@ -25,7 +25,7 @@
             <ng-container *ngFor="let mIdx of [pair, pair + 1]">
               <div class="match-node">
                 <div class="node-index">{{ getStageMatchIdLabel('R32', mIdx) }}</div>
-                <div class="match-card">
+                <div class="match-card" [style.zIndex]="(activeDropdownSlot !== null && (activeDropdownSlot === getThirdPlaceSlotIdx(mIdx, 1) || activeDropdownSlot === getThirdPlaceSlotIdx(mIdx, 2))) ? 100 : 10">
                   <div class="match-card-header">
                     <div class="match-stadium-name">{{ matchDetails['R32_m'+mIdx]?.stadium || 'Inconnu' }}</div>
                     <div class="match-date-value">{{ matchDetails['R32_m'+mIdx]?.date || '-' }}</div>
@@ -39,13 +39,43 @@
                       </div>
                     </ng-container>
                     <ng-container *ngIf="!validated || !vR32['m'+mIdx]">
-                      <div class="team-slot"
-                        [class.selected]="getWinner('R32', 'm'+mIdx)?.name === getTeam('R32', 'm'+mIdx, slot)?.name"
-                        (click)="!validated && getTeam('R32', 'm'+mIdx, slot) && selectWinner('R32', 'm'+mIdx, getTeam('R32', 'm'+mIdx, slot)!)">
-                        <img [src]="getTeam('R32', 'm'+mIdx, slot)?.flagUrl || 'assets/flags/unknown.png'"
-                          class="slot-flag" alt="">
-                        <span class="slot-name-text">{{ getTeam('R32', 'm'+mIdx, slot)?.name || 'À déterminer' }}</span>
+                      <div class="team-slot third-place-dropdown-slot" *ngIf="getThirdPlaceSlotIdx(mIdx, slot) !== -1; else regularSlot"
+                           [class.selected]="getWinner('R32', 'm'+mIdx)?.name === getTeam('R32', 'm'+mIdx, slot)?.name">
+                        
+                        <div class="slot-click-area" (click)="!validated && getTeam('R32', 'm'+mIdx, slot) && selectWinner('R32', 'm'+mIdx, getTeam('R32', 'm'+mIdx, slot)!)">
+                          <img *ngIf="getTeam('R32', 'm'+mIdx, slot)?.flagId && getTeam('R32', 'm'+mIdx, slot)?.flagId !== 'tbc'; else noFlag"
+                               [src]="getTeam('R32', 'm'+mIdx, slot)?.flagUrl || 'assets/flags/unknown.png'"
+                               class="slot-flag" alt="">
+                          <ng-template #noFlag>
+                            <div class="slot-flag-placeholder"></div>
+                          </ng-template>
+                          <span class="slot-name-text">{{ getTeam('R32', 'm'+mIdx, slot)?.name || 'À déterminer' }}</span>
+                        </div>
+
+                        <div class="custom-dropdown-container">
+                          <button type="button" class="dropdown-trigger-btn" (click)="!validated && toggleDropdown(getThirdPlaceSlotIdx(mIdx, slot), $event)">
+                            <span class="material-symbols-outlined">arrow_drop_down</span>
+                          </button>
+                          
+                          <div class="custom-dropdown-menu" *ngIf="activeDropdownSlot === getThirdPlaceSlotIdx(mIdx, slot)">
+                            <div class="custom-dropdown-item" *ngFor="let opt of getThirdPlaceOptions(getThirdPlaceSlotIdx(mIdx, slot))" (click)="selectThirdPlaceTeam(getThirdPlaceSlotIdx(mIdx, slot), opt); $event.stopPropagation()">
+                              <img [src]="opt.flagUrl || 'assets/flags/unknown.png'" class="dropdown-item-flag" alt="">
+                              <span class="dropdown-item-text">{{ opt.name }} (Gr. {{ opt.group?.replace('Group ', '') }})</span>
+                            </div>
+                          </div>
+                        </div>
+
                       </div>
+
+                      <ng-template #regularSlot>
+                        <div class="team-slot"
+                          [class.selected]="getWinner('R32', 'm'+mIdx)?.name === getTeam('R32', 'm'+mIdx, slot)?.name"
+                          (click)="!validated && getTeam('R32', 'm'+mIdx, slot) && selectWinner('R32', 'm'+mIdx, getTeam('R32', 'm'+mIdx, slot)!)">
+                          <img [src]="getTeam('R32', 'm'+mIdx, slot)?.flagUrl || 'assets/flags/unknown.png'"
+                            class="slot-flag" alt="">
+                          <span class="slot-name-text">{{ getTeam('R32', 'm'+mIdx, slot)?.name || 'À déterminer' }}</span>
+                        </div>
+                      </ng-template>
                     </ng-container>
                   </ng-container>
                 </div>

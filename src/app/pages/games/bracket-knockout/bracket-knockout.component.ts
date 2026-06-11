@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, Input, ViewChild, ElementRef, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, inject, Input, ViewChild, ElementRef, ChangeDetectorRef, HostListener } from '@angular/core';
 import { Observable, forkJoin } from 'rxjs';
 import { CookieService } from 'ngx-cookie-service';
 import { StateService } from '../../../shared/services/core/state.service'; 
@@ -67,11 +67,15 @@ export class BracketKnockoutComponent implements OnInit {
   private predictionTeams: any[] = [];
   private dbMatches: any[] = [];
 
+  protected bestEightThirds: any[] = [];
+  protected assignedThirds: any[] = [];
+
   // Dynamic handler setter mapping input array of 32 elements down into sequential pairs
   @Input() set setupAdvancedTeams(teams: any[] | null) {
     if (teams && teams.length === 32) {
       this.predictionTeams = teams;
       this.isAdvancedTeamsSet = true;
+      this.assignedThirds = []; // Reset on new predictions to trigger backtrack
       this.pairTeamsFromPredictionsAndMatches();
     }
   }
@@ -112,40 +116,44 @@ export class BracketKnockoutComponent implements OnInit {
       return null;
     };
 
-    const bestEightThirds = this.predictionTeams.filter(t => t.rankIndex === 2);
-    while (bestEightThirds.length < 8) {
-      bestEightThirds.push({
-        name: 'À déterminer',
-        group: '',
-        flagUrl: 'assets/flags/unknown.png',
-        flagId: 'tbc'
-      });
-    }
+    const hasAssignedThirds = this.assignedThirds && this.assignedThirds.length === 8 && this.assignedThirds.every(t => t);
+    if (!hasAssignedThirds) {
+      this.bestEightThirds = this.predictionTeams.filter(t => t.rankIndex === 2);
+      while (this.bestEightThirds.length < 8) {
+        this.bestEightThirds.push({
+          name: 'À déterminer',
+          group: '',
+          flagUrl: 'assets/flags/unknown.png',
+          flagId: 'tbc',
+          rankIndex: 2
+        });
+      }
 
-    const slotWinners = ['Group E', 'Group I', 'Group A', 'Group L', 'Group D', 'Group G', 'Group B', 'Group K'];
-    const assignedThirds = new Array(8);
-    const used = new Set<number>();
+      this.assignedThirds = new Array(8);
+      const slotWinners = ['Group E', 'Group I', 'Group A', 'Group L', 'Group D', 'Group G', 'Group B', 'Group K'];
+      const used = new Set<number>();
 
-    const backtrack = (winnerIndex: number): boolean => {
-      if (winnerIndex === 8) return true;
-      const wGroup = slotWinners[winnerIndex];
-      for (let i = 0; i < 8; i++) {
-        if (!used.has(i)) {
-          const third = bestEightThirds[i];
-          if (third && third.group !== wGroup) {
-            used.add(i);
-            assignedThirds[winnerIndex] = third;
-            if (backtrack(winnerIndex + 1)) return true;
-            used.delete(i);
+      const backtrack = (winnerIndex: number): boolean => {
+        if (winnerIndex === 8) return true;
+        const wGroup = slotWinners[winnerIndex];
+        for (let i = 0; i < 8; i++) {
+          if (!used.has(i)) {
+            const third = this.bestEightThirds[i];
+            if (third && third.group !== wGroup) {
+              used.add(i);
+              this.assignedThirds[winnerIndex] = third;
+              if (backtrack(winnerIndex + 1)) return true;
+              used.delete(i);
+            }
           }
         }
-      }
-      return false;
-    };
+        return false;
+      };
 
-    if (!backtrack(0)) {
-      for (let i = 0; i < 8; i++) {
-        assignedThirds[i] = bestEightThirds[i];
+      if (!backtrack(0)) {
+        for (let i = 0; i < 8; i++) {
+          this.assignedThirds[i] = this.bestEightThirds[i];
+        }
       }
     }
 
@@ -194,14 +202,14 @@ export class BracketKnockoutComponent implements OnInit {
           if (parsed.rankIndex === 2) {
             const id = parseInt(m.id || m.game_id, 10);
             let third = null;
-            if (id === 74) third = assignedThirds[0];
-            else if (id === 77) third = assignedThirds[1];
-            else if (id === 79) third = assignedThirds[2];
-            else if (id === 80) third = assignedThirds[3];
-            else if (id === 81) third = assignedThirds[4];
-            else if (id === 82) third = assignedThirds[5];
-            else if (id === 85) third = assignedThirds[6];
-            else if (id === 87) third = assignedThirds[7];
+            if (id === 74) third = this.assignedThirds[0];
+            else if (id === 77) third = this.assignedThirds[1];
+            else if (id === 79) third = this.assignedThirds[2];
+            else if (id === 80) third = this.assignedThirds[3];
+            else if (id === 81) third = this.assignedThirds[4];
+            else if (id === 82) third = this.assignedThirds[5];
+            else if (id === 85) third = this.assignedThirds[6];
+            else if (id === 87) third = this.assignedThirds[7];
 
             if (third && third.name !== 'À déterminer') {
               return {
@@ -237,6 +245,128 @@ export class BracketKnockoutComponent implements OnInit {
     if (mappedR32Teams.length === 32) {
       this.populateRoundOf32Pairs(mappedR32Teams);
     }
+  }
+
+  getThirdPlaceSlotIdx(mIdx: number, slot: number): number {
+    if (slot !== 2) return -1;
+    const r32Order = [74, 77, 73, 75, 83, 84, 81, 82, 76, 78, 79, 80, 86, 88, 85, 87];
+    if (this.dbMatches && this.dbMatches.length > 0) {
+      const r32Matches = this.dbMatches.filter(m => m.phase === 'Round of 32');
+      r32Matches.sort((a, b) => {
+        const idA = parseInt(a.id || a.game_id, 10);
+        const idB = parseInt(b.id || b.game_id, 10);
+        return r32Order.indexOf(idA) - r32Order.indexOf(idB);
+      });
+      const match = r32Matches[mIdx - 1];
+      if (match) {
+        const id = parseInt(match.id || match.game_id, 10);
+        if (id === 74) return 0;
+        if (id === 77) return 1;
+        if (id === 79) return 2;
+        if (id === 80) return 3;
+        if (id === 81) return 4;
+        if (id === 82) return 5;
+        if (id === 85) return 6;
+        if (id === 87) return 7;
+      }
+    }
+    if (mIdx === 1) return 0;
+    if (mIdx === 2) return 1;
+    if (mIdx === 7) return 4;
+    if (mIdx === 8) return 5;
+    if (mIdx === 11) return 2;
+    if (mIdx === 12) return 3;
+    if (mIdx === 15) return 6;
+    if (mIdx === 16) return 7;
+    return -1;
+  }
+
+  getThirdPlaceOptions(slotIdx: number): any[] {
+    const slotOpponentGroups = ['Group E', 'Group I', 'Group A', 'Group L', 'Group D', 'Group G', 'Group B', 'Group K'];
+    const forbiddenGroupForCurrent = slotOpponentGroups[slotIdx];
+    const currentTeam = this.assignedThirds[slotIdx];
+    if (!currentTeam) return [];
+
+    let allowedGroups: string[] | null = null;
+    if (this.dbMatches && this.dbMatches.length > 0) {
+      const idMap = [74, 77, 79, 80, 81, 82, 85, 87];
+      const matchId = idMap[slotIdx];
+      const match = this.dbMatches.find(m => parseInt(m.id || m.game_id, 10) === matchId);
+      if (match) {
+        const placeholder = (match.team_b || '').includes('3rd') ? match.team_b : match.team_a;
+        if (placeholder) {
+          const matchLetters = placeholder.match(/\(([^)]+)\)/);
+          if (matchLetters) {
+            allowedGroups = matchLetters[1].split('/').map((g: string) => g.trim().toUpperCase());
+          }
+        }
+      }
+    }
+
+    return this.bestEightThirds.filter(team => {
+      let teamGrp = team.group || '';
+      if (teamGrp && !teamGrp.startsWith('Group ')) teamGrp = `Group ${teamGrp}`;
+      if (teamGrp === forbiddenGroupForCurrent) return false;
+
+      let teamGrpLetter = '';
+      if (teamGrp.startsWith('Group ')) {
+        teamGrpLetter = teamGrp.replace('Group ', '').trim().toUpperCase();
+      } else {
+        teamGrpLetter = teamGrp.trim().toUpperCase();
+      }
+      if (allowedGroups && !allowedGroups.includes(teamGrpLetter)) {
+        return false;
+      }
+
+      const otherSlotIdx = this.assignedThirds.findIndex(t => t && t.name === team.name);
+      if (otherSlotIdx !== -1 && otherSlotIdx !== slotIdx) {
+        const forbiddenGroupForOther = slotOpponentGroups[otherSlotIdx];
+        let currentTeamGrp = currentTeam.group || '';
+        if (currentTeamGrp && !currentTeamGrp.startsWith('Group ')) currentTeamGrp = `Group ${currentTeamGrp}`;
+        if (currentTeamGrp === forbiddenGroupForOther) return false;
+      }
+
+      return true;
+    });
+  }
+
+  onThirdPlaceSelected(slotIdx: number, teamName: string): void {
+    const selectedTeam = this.bestEightThirds.find(t => t.name === teamName);
+    if (!selectedTeam) return;
+
+    const currentTeam = this.assignedThirds[slotIdx];
+    const otherSlotIdx = this.assignedThirds.findIndex(t => t && t.name === selectedTeam.name);
+
+    if (otherSlotIdx !== -1 && otherSlotIdx !== slotIdx) {
+      this.assignedThirds[otherSlotIdx] = currentTeam;
+    }
+    this.assignedThirds[slotIdx] = selectedTeam;
+
+    this.pairTeamsFromPredictionsAndMatches();
+    this.cdr.detectChanges();
+  }
+
+  protected activeDropdownSlot: number | null = null;
+
+  toggleDropdown(slotIdx: number, event: Event): void {
+    event.stopPropagation();
+    if (this.activeDropdownSlot === slotIdx) {
+      this.activeDropdownSlot = null;
+    } else {
+      this.activeDropdownSlot = slotIdx;
+    }
+    this.cdr.detectChanges();
+  }
+
+  selectThirdPlaceTeam(slotIdx: number, team: any): void {
+    this.onThirdPlaceSelected(slotIdx, team.name);
+    this.activeDropdownSlot = null;
+    this.cdr.detectChanges();
+  }
+
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: Event): void {
+    this.activeDropdownSlot = null;
   }
 
   protected currentUser: string = '';

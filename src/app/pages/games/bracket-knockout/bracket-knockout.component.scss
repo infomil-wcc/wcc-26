@@ -405,3 +405,100 @@ $line-connector-color: #94a3b8; // Tree connector layout lines color
 .fifa-bracket-canvas.readonly .stage-r32 .match-node .team-slot + .team-slot {
   display: none;
 }
+
+.third-place-dropdown-slot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  cursor: default !important;
+  background-color: #eff6ff;
+  border: 1px dashed #3b82f6;
+  
+  &:hover {
+    background-color: #dbeafe;
+  }
+  
+  .slot-click-area {
+    flex-grow: 1;
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    height: 100%;
+    margin-right: 8px;
+  }
+
+  .slot-flag-placeholder {
+    width: 42px;
+    height: 26px;
+    margin-right: 14px;
+    flex-shrink: 0;
+  }
+}
+
+.custom-dropdown-container {
+  position: relative;
+  display: inline-block;
+}
+
+.dropdown-trigger-btn {
+  background-color: #e2e8f0;
+  border: 1px solid #cbd5e1;
+  color: #334155;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+  
+  &:hover {
+    background-color: #cbd5e1;
+    color: #0f172a;
+    border-color: #94a3b8;
+  }
+}
+
+.custom-dropdown-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 8px;
+  background-color: #1e293b;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+  min-width: 220px;
+  max-height: 250px;
+  overflow-y: auto;
+  z-index: 1000;
+  padding: 6px 0;
+}
+
+.custom-dropdown-item {
+  display: flex;
+  align-items: center;
+  padding: 10px 16px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  
+  &:hover {
+    background-color: #334155;
+  }
+  
+  .dropdown-item-flag {
+    width: 30px;
+    height: 20px;
+    object-fit: cover;
+    border-radius: 4px;
+    margin-right: 12px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+  }
+  
+  .dropdown-item-text {
+    color: #ffffff;
+    font-size: 0.85rem;
+    font-weight: 600;
+  }
+}
