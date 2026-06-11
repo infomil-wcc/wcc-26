@@ -19,15 +19,15 @@
         "colonnes": ["Catégories", "Phase de Groupes", "16ᵉˢ", "8ᵉˢ", "Quarts/Demis", "Finale"],
         "rows": [
           { "cat": "Trouver le bon vainqueur / Match nul", "vals": [1, 2, 3, 4, 5] },
-          { "cat": "Score final (jusqu'à prolongation)", "vals": ["+2", "+4", "+5", "+6", "+10"] },
+          { "cat": "Score final (jusqu'à prolongation)", "vals": ["-", "+4", "+5", "+6", "+10"] },
           { "cat": "Score mi-temps", "vals": ["-", "-", "+2", "+3", "+5"] },
           { "cat": "Nom d'un buteur", "vals": ["-", "-", "+1", "+2", "+4"] },
           { "cat": "Point de consolation (si 0 pt)", "vals": ["-", "-", 1, 1, 1] },
           { "cat": "Nombre de matchs", "vals": [72, 16, 8, 7, 1] },
-          { "cat": "Points max possible / match", "vals": [3, 6, 11, 15, 24] },
-          { "cat": "Total points possible", "vals": [216, 96, 88, 105, 24] }
+          { "cat": "Points max possible / match", "vals": [1, 6, 11, 15, 24] },
+          { "cat": "Total points possible", "vals": [72, 96, 88, 105, 24] }
         ],
-        "total_points_competition": 529
+        "total_points_competition": 385
       },
       "exemples_calcul": [
         {
