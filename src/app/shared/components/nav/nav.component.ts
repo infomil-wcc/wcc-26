@@ -60,7 +60,7 @@ export class NavComponent implements OnInit, OnDestroy {
             "active": false
           },
           {
-            "label": "Bracket Challenge",
+            "label": "Bracket challenge",
             "route": "bracket-challenge",
             "active": false
           },
@@ -69,17 +69,18 @@ export class NavComponent implements OnInit, OnDestroy {
             "route": "pronostiques",
             "active": false
           },
-      //     {
-      //       "label": "Jeu du bracket",
-      //       "route": "bracket",
-      //       "active": false
-      //     },
-      //     {
-      //       "label": "Classement IML",
-      //       "route": "classement",
-      //       "active": false
-      //     }
+          //     {
+          //       "label": "Jeu du bracket",
+          //       "route": "bracket",
+          //       "active": false
+          //     },
+
         ]
+      },
+      {
+        "label": "Leaderboard",
+        "route": "classement",
+        "active": false
       },
       {
         "label": "FAQ",
