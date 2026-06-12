@@ -1,7 +1,7 @@
 import { Component, inject } from '@angular/core';
 import { NewsService } from '../../shared/services/content/news.service';
-import { Observable, combineLatest } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { Observable, combineLatest, timer } from 'rxjs';
+import { map, switchMap } from 'rxjs/operators';
 import { MatchesService } from '../../shared/services/content/matches.service';
 import { GlobaltimeService } from '../../shared/services/core/globaltime.service';
 import { Matches } from '../../shared/contracts/matches.contract';
@@ -12,30 +12,21 @@ import { Matches } from '../../shared/contracts/matches.contract';
   styleUrl: './hpnews.component.scss'
 })
 export class HpnewsComponent {
-
   private newsService = inject(NewsService);
   protected $newsData!: Observable<any[]>;
   protected $registeredUsers!: Observable<any>;
   protected currentPage: number = 0;
-  // private matchesService = inject(MatchesService);
-  // private globalTime = inject(GlobaltimeService);
+  private matchesService = inject(MatchesService);
+  private globalTime = inject(GlobaltimeService);
 
-  // $groupedMatches!: Observable<{ [key: string]: Matches[] }>;
-  // protected $today!: Observable<any>;
+  $filteredMatches!: Observable<Matches[]>;
+  $currentSlideIndex!: Observable<number>;
+  protected $today!: Observable<any>;
 
   ngOnInit():void {
     this.$newsData = this.newsService.getHPnews();
     this.$registeredUsers = this.newsService.getRegisteredUsers();
-
-    // this.$today = this.globalTime.getMuTime();
-    
-    // // Combine both streams to ensure we have the current reference date for filtering
-    // this.$groupedMatches = combineLatest([
-    //   this.matchesService.getAllMatches(),
-    //   this.$today
-    // ]).pipe(
-    //   map(([matches, todayDateString]) => this.groupMatchesByThreeDayWindow(matches, todayDateString))
-    // );
+    this.initialiseMatchSlider();
   }
 
   newsChunks(news: any[], size: number) {
@@ -62,27 +53,42 @@ export class HpnewsComponent {
     }
   }
 
-  // groupMatchesByThreeDayWindow(matches: Matches[], todayStr: string): { [key: string]: Matches[] } {
-  //   const today = new Date(todayStr);
-  //   today.setHours(0, 0, 0, 0);
+  initialiseMatchSlider() {
+    this.$today = this.globalTime.getMuTime();
+  
+    // Get matches for current day + 2 days
+    this.$filteredMatches = combineLatest([
+      this.matchesService.getAllMatches(),
+      this.$today
+    ]).pipe(
+      map(([matches, today]) => {
+        const baseDate = new Date(today.dateTime);
+        const allowedDates = Array.from({ length: 3 }, (_, i) => {
+          const targetDate = new Date(baseDate);
+          targetDate.setDate(baseDate.getDate() + i);
+          
+          const year = targetDate.getFullYear();
+          const month = String(targetDate.getMonth() + 1).padStart(2, '0');
+          const day = String(targetDate.getDate()).padStart(2, '0');
+          return `${year}-${month}-${day}`;
+        });
 
-  //   const maxDate = new Date(today);
-  //   maxDate.setDate(today.getDate() + 2);
-  //   maxDate.setHours(23, 59, 59, 999);
-
-  //   const groupKey = 'Today & Next 2 Days';
-  //   const filteredMatches = matches.filter(match => {
-  //     const matchDate = new Date(match.date);
-  //     return matchDate >= today && matchDate <= maxDate;
-  //   });
-
-  //   // Sort chronologically
-  //   filteredMatches.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-
-  //   return { [groupKey]: filteredMatches };
-  // }
-
-  // getDates(groupedMatches: { [key: string]: Matches[] }): string[] {
-  //   return Object.keys(groupedMatches);
-  // }
+        return matches
+          .filter(match => {
+            const matchDateStr = match.date.split(' ')[0];
+            return allowedDates.includes(matchDateStr);
+          })
+          .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+      })
+    );
+    
+    // Auto-slide tracker (Changes every 5000ms)
+    this.$currentSlideIndex = this.$filteredMatches.pipe(
+      switchMap(matches => 
+        timer(0, 5000).pipe(
+          map(tick => matches.length ? tick % matches.length : 0)
+        )
+      )
+    );
+  }
 }

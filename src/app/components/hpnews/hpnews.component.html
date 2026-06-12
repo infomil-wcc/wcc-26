@@ -1,34 +1,27 @@
 <div class="container h-full flex align-items-center flex-column gap-2 pl-3 pr-3 pt-3 pb-3 lg:pt-0 lg:pb-0 lg:flex-row lg:justify-content-between lg:pl-0 lg:pr-0">
-
+  
   <div class="newsPane newsPaneBlur newsMain col-12 p-0 overflow-hidden">
     <div class="picture overflow-hidden">
-      <!-- <img src="assets/world-cup-2026.jpg" alt="" class="w-full h-full" /> -->
-      <!-- <div class="home-carousel">
+      <div class="container pt-4">
         <ng-container *ngIf="$today | async as today">
-          <div *ngIf="$groupedMatches | async as groupedMatches; else loader">
-
-            <ng-container *ngFor="let date of getDates(groupedMatches)">
-              <h3 class="capitalize">{{ date }}</h3>
-              
-              <div class="flex flex-wrap gap-2 mb-8">
-                <ng-container *ngFor="let match of groupedMatches[date]">
-                  <div class="col-12 p-0 lg:col-4">
-                    <app-match [match]="match" [dateTime]="today.dateTime" />
+          <div *ngIf="$filteredMatches | async as matches; else loader">
+            <div class="slider-viewport">
+              <div class="slider-track" [style.transform]="'translateX(-' + ((($currentSlideIndex | async) ?? 0) * 100) + '%)'">
+                <div *ngFor="let match of matches" class="slide-item">
+                  <app-match [match]="match" [dateTime]="today.dateTime" />
+                  <div class="title pl-5 pr-5">
+                    <div class="text-white text-sm mt-3 md:text-2xl md:mt-1">{{ match.date | date: 'EEEE d MMMM yyyy | HH:mm' }}</div>
                   </div>
-                </ng-container>
+                </div>
               </div>
-            </ng-container>
-
+            </div>
           </div>
         </ng-container>
       </div>
 
       <ng-template #loader>
         <loader [showLoader]="true" />
-      </ng-template> -->
-    </div>
-    <div class="title pl-5 pr-5">
-      <h3 class="text-white text-sm mt-3 md:text-2xl md:mt-3">IML Football Challenge est de Retour!</h3>
+      </ng-template>
     </div>
   </div>
 
