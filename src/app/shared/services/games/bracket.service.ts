@@ -32,7 +32,7 @@ export class BracketService {
   }
 
   getBrackets(): Observable<any> {
-    return this.httpClient.get<any>(`${this.prodUrl}/items/bracket`).pipe(
+      return this.httpClient.get<any>(`${this.prodUrl}/items/bracket`).pipe(
       map(response => response.data)
     );
   }
