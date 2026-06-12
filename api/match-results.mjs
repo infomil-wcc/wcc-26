@@ -28,7 +28,7 @@ function getNormalizedTeamName(externalName) {
 export default async function handler(request, response) {
   if (handleCors(request, response)) return;
 
-  if (request.method !== 'GET') {
+  if (request.method !== 'POST') {
     return response.status(405).json({ error: 'Method Not Allowed' });
   }
 
