@@ -1,6 +1,10 @@
 import { Component, inject } from '@angular/core';
 import { NewsService } from '../../shared/services/content/news.service';
-import { Observable } from 'rxjs';
+import { Observable, combineLatest } from 'rxjs';
+import { map } from 'rxjs/operators';
+import { MatchesService } from '../../shared/services/content/matches.service';
+import { GlobaltimeService } from '../../shared/services/core/globaltime.service';
+import { Matches } from '../../shared/contracts/matches.contract';
 
 @Component({
   selector: 'app-hpnews',
@@ -13,11 +17,25 @@ export class HpnewsComponent {
   protected $newsData!: Observable<any[]>;
   protected $registeredUsers!: Observable<any>;
   protected currentPage: number = 0;
+  // private matchesService = inject(MatchesService);
+  // private globalTime = inject(GlobaltimeService);
+
+  // $groupedMatches!: Observable<{ [key: string]: Matches[] }>;
+  // protected $today!: Observable<any>;
 
   ngOnInit():void {
     this.$newsData = this.newsService.getHPnews();
     this.$registeredUsers = this.newsService.getRegisteredUsers();
 
+    // this.$today = this.globalTime.getMuTime();
+    
+    // // Combine both streams to ensure we have the current reference date for filtering
+    // this.$groupedMatches = combineLatest([
+    //   this.matchesService.getAllMatches(),
+    //   this.$today
+    // ]).pipe(
+    //   map(([matches, todayDateString]) => this.groupMatchesByThreeDayWindow(matches, todayDateString))
+    // );
   }
 
   newsChunks(news: any[], size: number) {
@@ -43,4 +61,28 @@ export class HpnewsComponent {
       console.log('handle news content');
     }
   }
+
+  // groupMatchesByThreeDayWindow(matches: Matches[], todayStr: string): { [key: string]: Matches[] } {
+  //   const today = new Date(todayStr);
+  //   today.setHours(0, 0, 0, 0);
+
+  //   const maxDate = new Date(today);
+  //   maxDate.setDate(today.getDate() + 2);
+  //   maxDate.setHours(23, 59, 59, 999);
+
+  //   const groupKey = 'Today & Next 2 Days';
+  //   const filteredMatches = matches.filter(match => {
+  //     const matchDate = new Date(match.date);
+  //     return matchDate >= today && matchDate <= maxDate;
+  //   });
+
+  //   // Sort chronologically
+  //   filteredMatches.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+
+  //   return { [groupKey]: filteredMatches };
+  // }
+
+  // getDates(groupedMatches: { [key: string]: Matches[] }): string[] {
+  //   return Object.keys(groupedMatches);
+  // }
 }
