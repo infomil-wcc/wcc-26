@@ -112,7 +112,7 @@
             
             <ng-template #predictedScores>
               <!-- Show predicted scores inline in the center of the flags as styled boxes -->
-              <div class="flex align-items-center gap-2 font-bold text-xl" *ngIf="match.fulltime">
+              <div class="flex align-items-center gap-2 font-bold text-xl predicted-scores" *ngIf="match.fulltime && (match.phase !== 'Group Stage' && match.phase !== 'Round of 32')">
                 <span class="score-box">{{ donePronostique.fulltime_a }}</span>
                 <span class="score-box">{{ donePronostique.fulltime_b }}</span>
               </div>
@@ -197,7 +197,7 @@
               </ng-template>
             </strong>
           </h4>
-          <ng-container *ngIf="closed">
+          <ng-container *ngIf="closed && (match.phase !== 'Group Stage' && match.phase !== 'Round of 32')">
             <p *ngIf="match.fulltime_a !== null && match.fulltime_b !== null">Mon Pronostic</p>
             <ng-container *ngIf="match.fulltime">
               <h4 class="mt-0 mb-3 text-xl font-bold text-center"><strong>Score final :</strong> {{ donePronostique.fulltime_a }} - {{ donePronostique.fulltime_b }}</h4>
