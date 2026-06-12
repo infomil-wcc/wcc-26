@@ -4,6 +4,7 @@ import { Observable, Subscription } from 'rxjs';
 import { GlobaltimeService } from '../../../shared/services/core/globaltime.service';
 import { HttpClient } from '@angular/common/http';
 import { BracketService } from '../../../shared/services/games/bracket.service';
+import { TeamsService } from '../../../shared/services/content/teams.service';
 
 @Component({
   selector: 'app-ranking',
@@ -17,6 +18,7 @@ export class RankingComponent implements OnInit, OnDestroy {
   private http = inject(HttpClient);
   private bracketService = inject(BracketService);
   private cdr = inject(ChangeDetectorRef);
+  private teamsService = inject(TeamsService);
   private today: Date = new Date();
 
   protected showLoader: boolean = true;
@@ -26,9 +28,11 @@ export class RankingComponent implements OnInit, OnDestroy {
   protected bracketRankingsList: any[] = [];
   protected activeTab: 'prediction' | 'bracket' = 'prediction';
   protected userChampions: { [username: string]: string } = {};
+  protected flags: any[] = [];
 
   private ranksSub!: Subscription;
   private bracketSub!: Subscription;
+  private flagsSub!: Subscription;
 
   ngOnInit():void {
     this.$ranks = this.rankCalcService.getCurrentrankings();
@@ -62,18 +66,26 @@ export class RankingComponent implements OnInit, OnDestroy {
       }
     });
 
+    this.flagsSub = this.teamsService.getFlags().subscribe({
+      next: (flagsData) => {
+        this.flags = flagsData;
+        this.cdr.detectChanges();
+      }
+    });
+
     this.rankCalcService.calcBracket();
     this.loadUserChampions();
   }
 
   loadUserChampions(): void {
+
     this.bracketService.getBrackets().subscribe({
       next: (data) => {
         if (data) {
           data.forEach((b: any) => {
-            if (b.user && b.winner_euro) {
+            if (b.user && b.winner_wc) {
               const uKey = b.user.toLowerCase().trim();
-              const country = b.winner_euro.trim();
+              const country = b.winner_wc.trim();
               this.userChampions[uKey] = country;
             }
           });
@@ -93,13 +105,12 @@ export class RankingComponent implements OnInit, OnDestroy {
     if (!username) return 'assets/flags/unknown.png';
     const key = username.toLowerCase().trim();
     const champ = this.userChampions[key];
+
     if (champ) {
-      let flagFile = champ.toLowerCase().trim();
-      // Normalize accent characters (e.g. Écosse -> ecosse, Géorgie -> georgie)
-      flagFile = flagFile.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-      // Replace spaces with hyphens
-      flagFile = flagFile.replace(/[\s_]+/g, '-');
-      return `assets/flags/${flagFile}.png`;
+      const flag = this.flags.find(f => f.name.toLowerCase().trim() === champ.toLowerCase().trim());
+      if (flag && flag.flag_url) {
+        return flag.flag_url;
+      }
     }
     return 'assets/flags/unknown.png';
   }
@@ -146,5 +157,6 @@ export class RankingComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     if (this.ranksSub) this.ranksSub.unsubscribe();
     if (this.bracketSub) this.bracketSub.unsubscribe();
+    if (this.flagsSub) this.flagsSub.unsubscribe();
   }
 }
