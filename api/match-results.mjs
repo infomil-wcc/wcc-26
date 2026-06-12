@@ -5,11 +5,11 @@ import { handleCors } from './utils.mjs';
 const teamNameMap = {
   "South Korea": "Korea Republic",
   "Czech Republic": "Czechia",
-  "Unites States": "USA",
+  "United States": "USA",
   "Curaçao": "Curacao",
-  "Türkiye": "Turkey",
-  "Cabo Verde": "Cape Verde",
-  "DR Congo": "Democratic Republic of the Congo",
+  "Turkey": "Türkiye",
+  "Cape Verde": "Cabo Verde",
+  "Democratic Republic of the Congo": "DR Congo",
   // "External Name From API": "Exact Name In Your Directus DB"
 };
 
@@ -97,7 +97,7 @@ export default async function handler(request, response) {
         fulltime: true
       };
 
-      /*
+      
       // Send update payload to Directus match item
       const directusResponse = await fetch(`${process.env.DIRECTUS_URL}/items/matches/${game.id}`, {
         method: 'PATCH',
@@ -107,19 +107,20 @@ export default async function handler(request, response) {
         },
         body: JSON.stringify(payload)
       });
-      */
+      
 
       results.push({ 
         id: game.id, 
-        teams: `${game.home_team_name_en} vs ${game.away_team_name_en}`,
-        preparedPayload: payload 
+        teams: `${dbHomeName} vs ${dbAwayName}`,
+        status: "Updated",
+        success: directusResponse.ok 
       });
     }
 
     return response.status(200).json({ 
       success: true, 
-      message: "Dry run complete.", 
-      preview: results 
+      message: `Synchronisation effectuée. ${results.length} matchs terminés mis à jour.`, 
+      updates: results 
     });
 
   } catch (error) {
