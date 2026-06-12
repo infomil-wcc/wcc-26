@@ -36,9 +36,10 @@
   }
 
   .picture {
-    height: 80%;
+    // height: 80%;
+    height: 100%;
     width: 100%;
-    background: white;
+    // background: white;
 
     img {
       object-fit: cover;
@@ -97,9 +98,9 @@
   .newsPane.newsRotator {
     height: 80%;
 
-    .picture {
-      height: 85%;
-    }
+    // .picture {
+    //   height: 85%;
+    // }
   }
 
   .newsMain {
@@ -109,4 +110,27 @@
   .newsRotator {
     width: 33%;
   }
+}
+
+// For slider
+.slider-viewport {
+  width: 100%;
+  overflow: hidden;
+  margin-bottom: 2rem;
+}
+
+.slider-track {
+  display: flex;
+  width: 100%;
+  transition: transform 0.5s ease-in-out; 
+}
+
+.slide-item {
+  width: 100%;
+  flex-shrink: 0;
+  padding: 0 0.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
 }
