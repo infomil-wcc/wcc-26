@@ -27,7 +27,7 @@
     top: -3rem;
     background: $primaryColor;
     display: none !important;
-    z-index: 1000;
+    z-index: 3000;
 
     &.showMenu {
       display: flex !important;

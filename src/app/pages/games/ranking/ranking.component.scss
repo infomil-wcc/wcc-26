@@ -12,7 +12,7 @@
 
 // Docked Header styling (matching pronostiques header and color scheme)
 .ranking-header {
-  top: 128px;
+  top: $pagesHeader;
   z-index: 50;
   height: 64px;
 
@@ -227,7 +227,7 @@
   justify-content: space-around;
   width: 100%;
   position: sticky;
-  top: 192px; // Sticks below the docked header (128px + 64px)
+  top: $pagesHeader + 64px; // Sticks below the docked header (128px + 64px)
   z-index: 49;
   background: #ffffff; // Blends with white page background when sticky
   border-bottom: 2px solid #e2e8f0;
