@@ -413,7 +413,18 @@ export class BracketKnockoutComponent implements OnInit {
     }
   }
 
+  private targetDate = new Date(2026, 5, 12, 22, 55, 0);
+  private currentDate = new Date();
+  protected jeuFermer: boolean = false;
+
   ngOnInit(): void {
+
+    if (this.currentDate < this.targetDate) {
+      this.jeuFermer = false;
+    }
+    else {
+      this.jeuFermer = true;
+    }
     this.initializePlaceholders();
     this.resetSelections();
 

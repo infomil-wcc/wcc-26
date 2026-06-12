@@ -36,7 +36,19 @@ export class BracketPredictorComponent implements OnInit {
   protected selectedThirdsCount: number = 0;
   protected confirmedGroups: boolean[] = [];
 
+  private targetDate = new Date(2026, 5, 12, 22, 55, 0);
+  private currentDate = new Date();
+  protected jeuFermer: boolean = false;
+
   ngOnInit(): void {
+
+    if (this.currentDate < this.targetDate) {
+      this.jeuFermer = false;
+    }
+    else {
+      this.jeuFermer = true;
+    }
+
     forkJoin({
       groups: this.teamService.getGroups(),
       flags: this.teamService.getFlags()

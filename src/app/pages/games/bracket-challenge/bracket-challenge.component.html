@@ -9,9 +9,9 @@
 
 <div class="challenge-container py-4" *ngIf="isLoggedIn; else loginPrompt">
   <div class="">
-    
+    <h2 *ngIf="this.jeuFermer" class="text-center">Le jeu est clos</h2>
     <!-- Stepper / Wizard header -->
-    <div class="challenge-stepper mb-4">
+    <div class="challenge-stepper mb-4" *ngIf="!this.jeuFermer" >
       <div class="step" [class.active]="activeWizardStep === 'groups'" [class.completed]="activeWizardStep === 'knockout'">
         <div class="step-icon">1</div>
         <div class="step-label">Phase de Groupes</div>
@@ -30,7 +30,7 @@
 
     <!-- Knockout Stage Bracket (Fresh state on transition) -->
     <div [hidden]="activeWizardStep !== 'knockout'" class="fade-in">
-      <div class="controls-bar mb-4">
+      <div class="controls-bar mb-4" *ngIf="!this.jeuFermer">
         <button *ngIf="!hasSavedBracket" type="button" class="btn btn-secondary flex align-items-center gap-2" (click)="backToGroups()">
           <span class="material-symbols-outlined">arrow_back</span>
           Modifier mes phases de groupes

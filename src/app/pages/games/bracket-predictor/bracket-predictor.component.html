@@ -1,4 +1,4 @@
-<div class="predictor-wrapper">
+<div class="predictor-wrapper" [ngClass]="{'wrapper': this.jeuFermer}">
 
   <div *ngIf="isLoading" class="loading-state">
     <p>Chargement des groupes...</p>
@@ -6,8 +6,8 @@
 
   <ng-container *ngIf="!isLoading">
 
-    <div *ngIf="currentStep === 1" class="step-container">
-      <div class="dashboard-controls">
+    <div *ngIf="currentStep === 1 " class="step-container">
+      <div class="dashboard-controls" *ngIf="!this.jeuFermer">
         <h2>Prédictions de la phase de groupes</h2>
         <div class="dashboard-actions">
           <button type="button" class="btn-reset" (click)="unvalidateAllGroups()">
@@ -56,7 +56,7 @@
       </div>
 
       <!-- Floating Action Buttons for Step 1 -->
-      <div class="fixed-actions-container">
+      <div class="fixed-actions-container" *ngIf="!this.jeuFermer">
         <button type="button" class="btn-fifa-submit btn-greenish" (click)="validateAllGroups()">
           ✓ Valider les groupes
         </button>

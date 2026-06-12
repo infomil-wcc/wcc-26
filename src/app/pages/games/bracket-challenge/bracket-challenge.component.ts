@@ -12,6 +12,9 @@ export class BracketChallengeComponent implements OnInit {
   private cookieService = inject(CookieService);
   private bracketService = inject(BracketService);
   private stateService = inject(StateService);
+
+  private targetDate = new Date(2026, 5, 12, 22, 55, 0);
+  private currentDate = new Date();
   
   protected activeWizardStep: 'groups' | 'knockout' = 'groups';
   protected advancedQualifiers: any[] = [];
@@ -21,8 +24,16 @@ export class BracketChallengeComponent implements OnInit {
   protected showDeleteDialog: boolean = false;
   protected deleteDialogMode: 'confirm' | 'info' = 'confirm';
   protected deleteDialogMessage: string = '';
+  protected jeuFermer: boolean = false;
 
   ngOnInit(): void {
+    if (this.currentDate < this.targetDate) {
+      this.jeuFermer = false;
+    }
+    else {
+      this.jeuFermer = true;
+    }
+
     // prefer application user state (first_name) to find saved bracket
     this.stateService.userState.subscribe({
       next: (user) => {
@@ -98,6 +109,13 @@ export class BracketChallengeComponent implements OnInit {
                       this.savedBracketId = payload?.id || (data[0] && data[0].id) || null;
                     }
 
+                    // Only allow moving to knockout if the bracket is not closed for registered users
+                    if (this.jeuFermer && this.isLoggedIn) {
+                      this.deleteDialogMode = 'info';
+                      this.deleteDialogMessage = 'Le bracket est fermé. Vous ne pouvez plus jouer.';
+                      this.showDeleteDialog = true;
+                      // this.activeWizardStep = 'knockout';
+                    }
                     this.activeWizardStep = 'knockout';
                   }
             },
@@ -110,9 +128,19 @@ export class BracketChallengeComponent implements OnInit {
         }
       }
     });
+
+
   }
 
   handleGroupPredictionsFinished(qualifiedTeams: any[]): void {
+    // prevent registered users from proceeding if the game is closed
+    if (this.jeuFermer && this.isLoggedIn) {
+      this.deleteDialogMode = 'info';
+      this.deleteDialogMessage = 'Le bracket est fermé. Vous ne pouvez plus jouer.';
+      this.showDeleteDialog = true;
+      return;
+    }
+
     this.advancedQualifiers = qualifiedTeams;
     this.activeWizardStep = 'knockout';
     window.scrollTo({ top: 0, behavior: 'smooth' });

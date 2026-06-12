@@ -13,6 +13,11 @@ $fifa-orange: #f97316;
   * {
     box-sizing: border-box;
   }
+
+  &.wrapper {
+    opacity: 0.4;
+    pointer-events: none;
+  }
 }
 
 .step-container {
