@@ -12,7 +12,7 @@
 
 // Docked Header styling (matching pronostiques header and color scheme)
 .ranking-header {
-  top: 128px;
+  top: $pagesHeader;
   z-index: 50;
   height: 64px;
 
@@ -30,10 +30,14 @@
       }
     }
   }
+
+  @media screen and (max-width: 640px){
+    top: 128px;
+  }
 }
 
 .leaderboard-main {
-  padding-top: 5.5rem; // Space for the fixed header
+  padding-top: 2.5rem; // Space for the fixed header
 }
 
 // Podium styles (now scrolls naturally with the page)
@@ -227,7 +231,7 @@
   justify-content: space-around;
   width: 100%;
   position: sticky;
-  top: 192px; // Sticks below the docked header (128px + 64px)
+  top: $pagesHeader + 64px; // Sticks below the docked header (128px + 64px)
   z-index: 49;
   background: #ffffff; // Blends with white page background when sticky
   border-bottom: 2px solid #e2e8f0;
@@ -295,6 +299,10 @@
         border-radius: 3px;
       }
     }
+  }
+
+  @media  screen and (max-width: 640px) {
+    top: 190px; // Adjust sticky position for mobile where header is taller
   }
 }
 

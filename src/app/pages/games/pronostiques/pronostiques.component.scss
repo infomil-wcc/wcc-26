@@ -1,8 +1,12 @@
 @import "../../../../variables.scss";
 
 .pronostiqueHeader {
-  top: 128px;
+  top: $pagesHeader;
   z-index: 50;
+
+  @media screen and (max-width: 640px){
+    top: 128px;
+  }
 }
 
 .filter {
@@ -39,7 +43,7 @@
 }
 
 .pronostiquesMain {
-  padding-top: 178px;
+  padding-top: 128px;
 }
 
 // @media screen and (min-width: 576px){
