@@ -135,7 +135,25 @@ export class RankingComponent implements OnInit, OnDestroy {
 
   get remainingPlayers(): any[] {
     const list = this.activeList;
-    return list.slice(3);
+    if (this.showPodium) {
+      return list.slice(3);
+    } else {
+      return list;
+    }
+  }
+
+  get showPodium(): boolean {
+    const list = this.activeList;
+    if (list.length < 3) {
+      return false; // Not enough players for a podium
+    }
+
+    const rank1Count = list.filter(player => player.rank === 1).length;
+    const rank2Count = list.filter(player => player.rank === 2).length;
+    const rank3Count = list.filter(player => player.rank === 3).length;
+
+    // Show podium only if there's exactly one player for each of the top 3 ranks
+    return rank1Count === 1 && rank2Count === 1 && rank3Count === 1;
   }
 
   switchTab(tab: 'prediction' | 'bracket'): void {
