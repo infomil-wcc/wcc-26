@@ -30,10 +30,14 @@
       }
     }
   }
+
+  @media screen and (max-width: 640px){
+    top: 128px;
+  }
 }
 
 .leaderboard-main {
-  padding-top: 5.5rem; // Space for the fixed header
+  padding-top: 2.5rem; // Space for the fixed header
 }
 
 // Podium styles (now scrolls naturally with the page)
@@ -295,6 +299,10 @@
         border-radius: 3px;
       }
     }
+  }
+
+  @media  screen and (max-width: 640px) {
+    top: 190px; // Adjust sticky position for mobile where header is taller
   }
 }
 
