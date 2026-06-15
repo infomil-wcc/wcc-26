@@ -97,4 +97,9 @@ export class HpnewsComponent {
     const upcomingMatch = allMatches.find(m => new Date(m.date).getTime() > now);
     return upcomingMatch ? match === upcomingMatch : false;
   }
+
+  isFuturMatch(match: Matches, currentDateTime: string): boolean {
+    const now = new Date(currentDateTime).getTime();
+    return now > new Date(match.date).getTime() ? false : true;
+  }
 }
