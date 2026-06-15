@@ -1,200 +1,206 @@
-<div id="rules-app">
+<ng-container *ngIf="this.apiResponse$; else loader">
+  <div id="rules-app">
 
-  <header class="st-header">
-    <h1>{{ titleGeneral }}</h1>
-    <p>{{ introduction }}</p>
-  </header>
+    <header class="st-header">
+      <h1>{{ titleGeneral }}</h1>
+      <p>{{ introduction }}</p>
+    </header>
 
-  <nav class="st-horizontal-stepper">
-    <div *ngFor="let step of sortedSteps; let idx = index" (click)="goToStep(idx)" class="st-step-node" [ngClass]="{
-        'is-active': activeStepIndex === idx,
-        'is-completed': activeStepIndex > idx
-      }">
+    <nav class="st-horizontal-stepper">
+      <div *ngFor="let step of sortedSteps; let idx = index" (click)="goToStep(idx)" class="st-step-node" [ngClass]="{
+          'is-active': activeStepIndex === idx,
+          'is-completed': activeStepIndex > idx
+        }">
 
-      <!-- <div class="st-step-line" *ngIf="idx > 0"></div> -->
+        <!-- <div class="st-step-line" *ngIf="idx > 0"></div> -->
 
-      <div class="st-step-trigger">
-        <span class="st-step-indicator">
-          <span *ngIf="activeStepIndex > idx; else numBlock">✓</span>
-          <ng-template #numBlock><span>{{ idx + 1 }}</span></ng-template>
-        </span>
-
-        <div class="st-step-label-group">
-          <p class="st-step-title">{{ step.nom }}</p>
-          <div class="st-step-line"></div>
-          <span class="st-step-date">
-            <ng-container *ngIf="step.date_debut">
-              {{ step.date_debut | date:'dd MMM yyyy': '' :'fr' }}
-            </ng-container>-
-             <ng-container *ngIf="step.date_fin">
-              {{ step.date_fin | date:'dd MMM yyyy': '' :'fr' }}
-            </ng-container>
-            &nbsp;
+        <div class="st-step-trigger">
+          <span class="st-step-indicator">
+            <span *ngIf="activeStepIndex > idx; else numBlock">✓</span>
+            <ng-template #numBlock><span>{{ idx + 1 }}</span></ng-template>
           </span>
+
+          <div class="st-step-label-group">
+            <p class="st-step-title">{{ step.nom }}</p>
+            <div class="st-step-line"></div>
+            <span class="st-step-date">
+              <ng-container *ngIf="step.date_debut">
+                {{ step.date_debut | date:'dd MMM yyyy': '' :'fr' }}
+              </ng-container>-
+              <ng-container *ngIf="step.date_fin">
+                {{ step.date_fin | date:'dd MMM yyyy': '' :'fr' }}
+              </ng-container>
+              &nbsp;
+            </span>
+          </div>
         </div>
       </div>
-    </div>
-  </nav>
+    </nav>
 
-  <div class="st-layout-container">
-    <main class="st-content-panel">
-      <div *ngFor="let step of sortedSteps; let idx = index" class="st-view-wrapper">
-        <div *ngIf="activeStepIndex === idx" class="st-animated-view">
+    <div class="st-layout-container">
+      <main class="st-content-panel">
+        <div *ngFor="let step of sortedSteps; let idx = index" class="st-view-wrapper">
+          <div *ngIf="activeStepIndex === idx" class="st-animated-view">
 
-          <div class="st-view-header">
-            <div class="st-badge-row">
-              <span class="st-badge primary">Étape {{ idx + 1 }}</span>
-              <span *ngIf="step.date_debut" class="st-badge warning">🗓️ Début: {{ step.date_debut | date:'dd MMMM yyyy HH:mm':'':'fr' }}</span>
-              <span *ngIf="step.date_fin" class="st-badge warning">🗓️ Fin: {{ step.date_fin | date:'dd MMMM yyyy HH:mm':'':'fr' }}</span>
-            </div>
-            <h2>{{ step.nom }}</h2>
-            <p class="st-step-description">{{ step.description }}</p>
-          </div>
-
-          <div *ngIf="step.elements_a_predire" class="st-section-card accent-card">
-            <h3>🌟 Éléments clés à pronostiquer :</h3>
-            <ul class="st-clean-list">
-              <li *ngFor="let item of step.elements_a_predire">⚡ {{ item }}</li>
-            </ul>
-
-            <div *ngIf="step.systeme_points_departage" class="st-sub-box">
-              <p class="st-italic-text">{{ step.systeme_points_departage.introduction }}</p>
-              <div class="st-badge-flex">
-                <span *ngFor="let pt of step.systeme_points_departage.points | keyvalue" class="st-pill">
-                  {{ pt.key }} : <strong>+{{ pt.value }} pts</strong>
-                </span>
+            <div class="st-view-header">
+              <div class="st-badge-row">
+                <span class="st-badge primary">Étape {{ idx + 1 }}</span>
+                <span *ngIf="step.date_debut" class="st-badge warning">🗓️ Début: {{ step.date_debut | date:'dd MMMM yyyy HH:mm':'':'fr' }}</span>
+                <span *ngIf="step.date_fin" class="st-badge warning">🗓️ Fin: {{ step.date_fin | date:'dd MMMM yyyy HH:mm':'':'fr' }}</span>
               </div>
-            </div>
-          </div>
-
-          <div *ngIf="step.phases" class="st-compound-block">
-
-            <div class="st-accordion">
-              <ng-container
-                *ngFor="let key of ['phase_de_groupes', 'seiziemes_de_finale', 'huitiemes_de_finale', 'quarts_demis_troisieme_place', 'finale']; let pIdx = index">
-                <div *ngIf="step.phases[key]" class="st-accordion-node" [ngClass]="{'is-expanded': openAccordionIndex === pIdx}">
-                  <button (click)="toggleAccordion(pIdx)" class="st-accordion-trigger">
-                    <span>{{ step.phases[key].nom_affiche }}</span>
-                    <span class="st-arrow-icon" [ngClass]="{'is-flipped': openAccordionIndex === pIdx}">▼</span>
-                  </button>
-
-                  <div *ngIf="openAccordionIndex === pIdx" class="st-accordion-content">
-                    <p><strong>Règles :</strong> {{ step.phases[key].regles }}</p>
-                    <p *ngIf="step.phases[key].points_info"><strong>Points :</strong> {{ step.phases[key].points_info }}</p>
-
-                    <div *ngIf="step.phases[key].categories_predictions" class="st-sub-categories">
-                      <strong>Catégories débloquées :</strong>
-                      <div class="st-pill-container">
-                        <span *ngFor="let cat of step.phases[key].categories_predictions" class="st-pill-indigo">🎯 {{ cat }}</span>
-                      </div>
-                    </div>
-                  </div>
-
-                </div>
-              </ng-container>
+              <h2>{{ step.nom }}</h2>
+              <p class="st-step-description">{{ step.description }}</p>
             </div>
 
-            <div class="st-table-section" *ngIf="step.bareme_points_detaille">
-              <h4>📊 Tableau récapitulatif des points :</h4>
-              <div class="st-responsive-table">
-                <table>
-                  <thead>
-                    <tr>
-                      <th *ngFor="let col of step.bareme_points_detaille.colonnes">{{ col }}</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr *ngFor="let row of step.bareme_points_detaille.rows" [ngClass]="{ 'st-meta-row': row.cat === 'Nombre de matchs' || row.cat === 'Points max possible / match' || row.cat === 'Total points possible' }">
-                      <td class="st-sticky-col"><strong>{{ row.cat }}</strong></td>
-                      <td *ngFor="let val of row.vals" class="st-center-td">
-                        <span [ngClass]="{'st-dash': val === '-', 'st-highlight-cell': val !== '-' && val !== 0}">{{ val }}</span>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>             
-            </div>
+            <div *ngIf="step.elements_a_predire" class="st-section-card accent-card">
+              <h3>🌟 Éléments clés à pronostiquer :</h3>
+              <ul class="st-clean-list">
+                <li *ngFor="let item of step.elements_a_predire">⚡ {{ item }}</li>
+              </ul>
 
-            <div *ngIf="step.exemples_calcul" class="st-examples-grid">
-              <div *ngFor="let ex of step.exemples_calcul" class="st-example-card">
-                <h5>💡 {{ ex.type }}</h5>
-                <p class="st-scenario-sub">{{ ex.scenario }}</p>
-                <ul class="st-nested-ul">
-                  <li *ngFor="let det of ex.details">
-                    <span>• {{ det.prediction }}</span>
-                    <strong>+{{ det.points }} pts</strong>
-                  </li>
-                </ul>
-                <div class="st-example-footer">Total du match : <span>{{ ex.total }} pts</span></div>
-              </div>
-            </div>
-          </div>
-
-          <div *ngIf="step.bareme_points" class="st-bracket-section">
-            <p class="st-alert-pill">🚀 {{ step.interet }}</p>
-
-            <div class="st-bracket-grid">
-              <div *ngFor="let item of step.bareme_points | keyvalue:bracketOrder" class="st-bracket-card">
-                <span class="st-b-label">{{ formatKey(item.key) }}</span>
-                <span class="st-b-val">+{{ item.value }} PTS</span>
-              </div>
-            </div>
-            <div class="st-total-banner jeu-bracket">
-              <p>
-                <span>Prédiction du bon classement de tout le groupe :</span>
-                <strong>{{ step.bonus_tout_groupe }} Points !</strong>
-              </p>
-              <p>
-                <span>Pronostic correct de la qualification d’une équipe pour la finale :</span>
-                <strong>{{ step.bonus_equipe_finale }} Points !</strong>
-              </p>
-              <p>
-                <span>Points maximum cumulables sur la compétition :</span>
-                <strong>{{ step.maximum_possible }} Points !</strong>
-              </p>              
-            </div>           
-            <div class="st-rule-callout" *ngIf="step.conditions_egalite">
-              <h4>⚖️ Règles d'égalité spécifiques au Bracket :</h4>
-              <p><strong>1️⃣</strong> {{ step.conditions_egalite.etape_1 }}</p>
-              <p><strong>2️⃣</strong> {{ step.conditions_egalite.etape_2 }}</p>
-              <div class="st-chain-flow">
-                <span class="st-chain-title">Priorité par phase :</span>
-                <div class="st-chain-links">
-                  <span *ngFor="let phase of step.conditions_egalite.ordre_priorite_phases; let last = last">
-                    <span class="st-chain-badge">{{ phase }}</span>
-                    <span *ngIf="!last" class="st-chain-arrow"> ▶</span>
+              <div *ngIf="step.systeme_points_departage" class="st-sub-box">
+                <p class="st-italic-text">{{ step.systeme_points_departage.introduction }}</p>
+                <div class="st-badge-flex">
+                  <span *ngFor="let pt of step.systeme_points_departage.points | keyvalue" class="st-pill">
+                    {{ pt.key }} : <strong>+{{ pt.value }} pts</strong>
                   </span>
                 </div>
               </div>
             </div>
-          </div>
 
-          <div *ngIf="step.conditions_victoire_et_egalite" class="st-global-rules">
-            <div class="st-gradient-banner">
-              <h4>🏆 Clause de victoire générale</h4>
-              <p class="st-main-rule">{{ step.conditions_victoire_et_egalite.regle_principale }}</p>
-              <p *ngFor="let dep of step.conditions_victoire_et_egalite.departage_egalite" class="st-sub-rule">⚖️ {{ dep
-                }}</p>
+            <div *ngIf="step.phases" class="st-compound-block">
+
+              <div class="st-accordion">
+                <ng-container
+                  *ngFor="let key of ['phase_de_groupes', 'seiziemes_de_finale', 'huitiemes_de_finale', 'quarts_demis_troisieme_place', 'finale']; let pIdx = index">
+                  <div *ngIf="step.phases[key]" class="st-accordion-node" [ngClass]="{'is-expanded': openAccordionIndex === pIdx}">
+                    <button (click)="toggleAccordion(pIdx)" class="st-accordion-trigger">
+                      <span>{{ step.phases[key].nom_affiche }}</span>
+                      <span class="st-arrow-icon" [ngClass]="{'is-flipped': openAccordionIndex === pIdx}">▼</span>
+                    </button>
+
+                    <div *ngIf="openAccordionIndex === pIdx" class="st-accordion-content">
+                      <p><strong>Règles :</strong> {{ step.phases[key].regles }}</p>
+                      <p *ngIf="step.phases[key].points_info"><strong>Points :</strong> {{ step.phases[key].points_info }}</p>
+
+                      <div *ngIf="step.phases[key].categories_predictions" class="st-sub-categories">
+                        <strong>Catégories débloquées :</strong>
+                        <div class="st-pill-container">
+                          <span *ngFor="let cat of step.phases[key].categories_predictions" class="st-pill-indigo">🎯 {{ cat }}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                  </div>
+                </ng-container>
+              </div>
+
+              <div class="st-table-section" *ngIf="step.bareme_points_detaille">
+                <h4>📊 Tableau récapitulatif des points :</h4>
+                <div class="st-responsive-table">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th *ngFor="let col of step.bareme_points_detaille.colonnes">{{ col }}</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr *ngFor="let row of step.bareme_points_detaille.rows" [ngClass]="{ 'st-meta-row': row.cat === 'Nombre de matchs' || row.cat === 'Points max possible / match' || row.cat === 'Total points possible' }">
+                        <td class="st-sticky-col"><strong>{{ row.cat }}</strong></td>
+                        <td *ngFor="let val of row.vals" class="st-center-td">
+                          <span [ngClass]="{'st-dash': val === '-', 'st-highlight-cell': val !== '-' && val !== 0}">{{ val }}</span>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>             
+              </div>
+
+              <div *ngIf="step.exemples_calcul" class="st-examples-grid">
+                <div *ngFor="let ex of step.exemples_calcul" class="st-example-card">
+                  <h5>💡 {{ ex.type }}</h5>
+                  <p class="st-scenario-sub">{{ ex.scenario }}</p>
+                  <ul class="st-nested-ul">
+                    <li *ngFor="let det of ex.details">
+                      <span>• {{ det.prediction }}</span>
+                      <strong>+{{ det.points }} pts</strong>
+                    </li>
+                  </ul>
+                  <div class="st-example-footer">Total du match : <span>{{ ex.total }} pts</span></div>
+                </div>
+              </div>
             </div>
-          </div>
 
-          <div *ngIf="step.regles" class="st-legal-container">
-            <div *ngFor="let regle of step.regles" class="st-legal-row">
-              <span class="st-icon">📜</span> <span class="st-text">{{ regle }}</span>
+            <div *ngIf="step.bareme_points" class="st-bracket-section">
+              <p class="st-alert-pill">🚀 {{ step.interet }}</p>
+
+              <div class="st-bracket-grid">
+                <div *ngFor="let item of step.bareme_points | keyvalue:bracketOrder" class="st-bracket-card">
+                  <span class="st-b-label">{{ formatKey(item.key) }}</span>
+                  <span class="st-b-val">+{{ item.value }} PTS</span>
+                </div>
+              </div>
+              <div class="st-total-banner jeu-bracket">
+                <p>
+                  <span>Prédiction du bon classement de tout le groupe :</span>
+                  <strong>{{ step.bonus_tout_groupe }} Points !</strong>
+                </p>
+                <p>
+                  <span>Pronostic correct de la qualification d’une équipe pour la finale :</span>
+                  <strong>{{ step.bonus_equipe_finale }} Points !</strong>
+                </p>
+                <p>
+                  <span>Points maximum cumulables sur la compétition :</span>
+                  <strong>{{ step.maximum_possible }} Points !</strong>
+                </p>              
+              </div>           
+              <div class="st-rule-callout" *ngIf="step.conditions_egalite">
+                <h4>⚖️ Règles d'égalité spécifiques au Bracket :</h4>
+                <p><strong>1️⃣</strong> {{ step.conditions_egalite.etape_1 }}</p>
+                <p><strong>2️⃣</strong> {{ step.conditions_egalite.etape_2 }}</p>
+                <div class="st-chain-flow">
+                  <span class="st-chain-title">Priorité par phase :</span>
+                  <div class="st-chain-links">
+                    <span *ngFor="let phase of step.conditions_egalite.ordre_priorite_phases; let last = last">
+                      <span class="st-chain-badge">{{ phase }}</span>
+                      <span *ngIf="!last" class="st-chain-arrow"> ▶</span>
+                    </span>
+                  </div>
+                </div>
+              </div>
             </div>
-          </div>
 
+            <div *ngIf="step.conditions_victoire_et_egalite" class="st-global-rules">
+              <div class="st-gradient-banner">
+                <h4>🏆 Clause de victoire générale</h4>
+                <p class="st-main-rule">{{ step.conditions_victoire_et_egalite.regle_principale }}</p>
+                <p *ngFor="let dep of step.conditions_victoire_et_egalite.departage_egalite" class="st-sub-rule">⚖️ {{ dep
+                  }}</p>
+              </div>
+            </div>
+
+            <div *ngIf="step.regles" class="st-legal-container">
+              <div *ngFor="let regle of step.regles" class="st-legal-row">
+                <span class="st-icon">📜</span> <span class="st-text">{{ regle }}</span>
+              </div>
+            </div>
+
+          </div>
         </div>
-      </div>
 
-      <footer class="st-footer-actions">
-        <button (click)="prevStep()" [disabled]="activeStepIndex === 0" class="st-btn st-btn-secondary">Retour</button>
-        <button *ngIf="activeStepIndex < sortedSteps.length - 1" (click)="nextStep()"
-          class="st-btn btn">Suivant</button>
-        <button *ngIf="activeStepIndex === sortedSteps.length - 1" (click)="resetStepper()"
-          class="st-btn st-btn-accent">Recommencer la lecture</button>
-      </footer>
+        <footer class="st-footer-actions">
+          <button (click)="prevStep()" [disabled]="activeStepIndex === 0" class="st-btn st-btn-secondary">Retour</button>
+          <button *ngIf="activeStepIndex < sortedSteps.length - 1" (click)="nextStep()"
+            class="st-btn btn">Suivant</button>
+          <button *ngIf="activeStepIndex === sortedSteps.length - 1" (click)="resetStepper()"
+            class="st-btn st-btn-accent">Recommencer la lecture</button>
+        </footer>
 
-    </main>
+      </main>
+    </div>
   </div>
-</div>
+</ng-container>
+
+<ng-template #loader>
+  <loader [showLoader]="true" />
+</ng-template>
