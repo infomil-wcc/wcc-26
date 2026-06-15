@@ -134,3 +134,18 @@
   align-items: center;
   justify-content: center;
 }
+
+.hurry-up-text {
+  animation: glow 1s ease-in-out infinite alternate;
+  color: red;
+  font-weight: 600;
+}
+
+@keyframes glow {
+    from {
+      text-shadow: 0 0 20px rgba(250, 10, 10, 0.911);
+    }
+    to {
+      text-shadow: 0 0 30px #ffffff;
+    }
+  }
