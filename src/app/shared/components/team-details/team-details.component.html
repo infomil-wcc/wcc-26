@@ -109,9 +109,11 @@
 
           <div class="flex flex-wrap gap-2 mb-8">
             <ng-container *ngFor="let match of matches">
-              <div class="col-12 p-0 sm:col-4">
-                <app-match [match]="match" [dateTime]="match.date" />
-              </div>
+              <ng-container *ngIf="this.$today | async as today;">
+                <div class="col-12 p-0 sm:col-4">
+                  <app-match [match]="match" [dateTime]="today.dateTime" />
+                </div>
+              </ng-container>
             </ng-container>
           </div>
 
