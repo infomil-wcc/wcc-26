@@ -1,5 +1,5 @@
 <ng-container *ngIf="this.apiResponse$; else loader">
-  <div id="rules-app">
+<div id="rules-app">
 
     <header class="st-header">
       <h1>{{ titleGeneral }}</h1>
@@ -95,26 +95,30 @@
                 </ng-container>
               </div>
 
-              <div class="st-table-section" *ngIf="step.bareme_points_detaille">
-                <h4>📊 Tableau récapitulatif des points :</h4>
-                <div class="st-responsive-table">
-                  <table>
-                    <thead>
-                      <tr>
-                        <th *ngFor="let col of step.bareme_points_detaille.colonnes">{{ col }}</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr *ngFor="let row of step.bareme_points_detaille.rows" [ngClass]="{ 'st-meta-row': row.cat === 'Nombre de matchs' || row.cat === 'Points max possible / match' || row.cat === 'Total points possible' }">
-                        <td class="st-sticky-col"><strong>{{ row.cat }}</strong></td>
-                        <td *ngFor="let val of row.vals" class="st-center-td">
-                          <span [ngClass]="{'st-dash': val === '-', 'st-highlight-cell': val !== '-' && val !== 0}">{{ val }}</span>
-                        </td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>             
+            <div class="st-table-section" *ngIf="step.bareme_points_detaille">
+              <h4>📊 Tableau récapitulatif des points :</h4>
+              <div class="st-responsive-table">
+                <table>
+                  <thead>
+                    <tr>
+                      <th *ngFor="let col of step.bareme_points_detaille.colonnes">{{ col }}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr *ngFor="let row of step.bareme_points_detaille.rows" [ngClass]="{ 'st-meta-row': row.cat === 'Nombre de matchs' || row.cat === 'Points max possible / match' || row.cat === 'Total points possible' }">
+                      <td class="st-sticky-col"><strong>{{ row.cat }}</strong></td>
+                      <td *ngFor="let val of row.vals" class="st-center-td">
+                        <span [ngClass]="{'st-dash': val === '-', 'st-highlight-cell': val !== '-' && val !== 0}">{{ val }}</span>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
               </div>
+              <div class="st-total-banner">
+                <span>Points maximum cumulables sur la compétition :</span>
+                <strong>{{ step.bareme_points_detaille.total_points_competition }} Points !</strong>
+              </div>          
+            </div>
 
               <div *ngIf="step.exemples_calcul" class="st-examples-grid">
                 <div *ngFor="let ex of step.exemples_calcul" class="st-example-card">
@@ -196,9 +200,10 @@
             class="st-btn st-btn-accent">Recommencer la lecture</button>
         </footer>
 
-      </main>
-    </div>
+    </main>
   </div>
+</div>
+
 </ng-container>
 
 <ng-template #loader>
