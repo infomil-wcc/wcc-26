@@ -6,6 +6,7 @@ import { MatchesService } from '../../services/content/matches.service';
 import { Observable } from 'rxjs';
 import { map, tap } from 'rxjs/operators';
 import { Country } from '../country-details/country-details.component';
+import { GlobaltimeService } from '../../services/core/globaltime.service';
 
 @Component({
   selector: 'team-details',
@@ -18,12 +19,18 @@ export class TeamDetailsComponent implements OnInit {
 
   private teamsService = inject(TeamsService);
   private matchesService = inject(MatchesService);
+  private globalTime = inject(GlobaltimeService);
+
+  protected $today!:Observable<any>;
 
   $teamMatches!: Observable<Matches[]>;
   $teamPlayers!: Observable<teamsApiData[]>;
   $teamDetails!: Observable<Country[]>;
 
   ngOnInit(): void {
+
+    this.$today = this.globalTime.getMuTime();
+
     // this.$teamPlayers = this.teamsService.getPlayersByTeamName(this.team.name);
     this.$teamMatches = this.matchesService.getMatchesByTeam(this.team.name);
         this.$teamDetails = this.teamsService.getTeamsInfo(this.team.iso).pipe(
