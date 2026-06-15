@@ -27,7 +27,7 @@
           { "cat": "Points max possible / match", "vals": [1, 6, 11, 15, 24] },
           { "cat": "Total points possible", "vals": [72, 96, 88, 105, 24] }
         ],
-        "total_points_competition": 1200
+        "total_points_competition": 385
       },
       "exemples_calcul": [
         {
