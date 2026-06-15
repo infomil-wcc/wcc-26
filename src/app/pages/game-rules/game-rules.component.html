@@ -1,3 +1,4 @@
+<ng-container *ngIf="this.apiResponse$; else loader">
 <div id="rules-app">
 
   <header class="st-header">
@@ -202,3 +203,9 @@
     </main>
   </div>
 </div>
+
+</ng-container>
+
+<ng-template #loader>
+  <loader [showLoader]="true" />
+</ng-template>
