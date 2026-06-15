@@ -8,10 +8,11 @@
             <div class="slider-viewport">
               <div class="slider-track" [style.transform]="'translateX(-' + ((($currentSlideIndex | async) ?? 0) * 100) + '%)'">
                 <div *ngFor="let match of matches" class="slide-item">
-                  <app-match [match]="match" [dateTime]="today.dateTime" />
-                  <div class="title pl-5 pr-5">
-                    <div class="text-white text-sm mt-3 md:text-2xl md:mt-1">{{ match.date | date: 'EEEE d MMMM yyyy | HH:mm' }}</div>
-                  </div>
+                    <app-match [match]="match" [dateTime]="today.dateTime" />
+                    <div class="title pl-5 pr-5 text-white text-sm mt-3 md:text-2xl md:mt-1">
+                      <span class="hurry-up-text" *ngIf="isUpcomingMatch(match, matches, today.dateTime)">Prochain match :</span>
+                      {{ match.date | date: 'EEEE d MMMM yyyy | HH:mm' }}
+                    </div>
                 </div>
               </div>
             </div>

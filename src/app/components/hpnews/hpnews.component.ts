@@ -91,4 +91,10 @@ export class HpnewsComponent {
       )
     );
   }
+
+  isUpcomingMatch(match: Matches, allMatches: Matches[], currentDateTime: string): boolean {
+    const now = new Date(currentDateTime).getTime();
+    const upcomingMatch = allMatches.find(m => new Date(m.date).getTime() > now);
+    return upcomingMatch ? match === upcomingMatch : false;
+  }
 }
