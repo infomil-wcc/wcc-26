@@ -13,6 +13,7 @@ export class PredictionsService {
   private httpClient = inject(HttpClient);
   private cookieService = inject(CookieService);
   private prodUrl: string = environment.apiBaseUrl;
+  private vercelApi: string = environment.apiUrl;
 
   private draftsSubject = new BehaviorSubject<any[]>([]);
   drafts$ = this.draftsSubject.asObservable();
@@ -73,5 +74,9 @@ export class PredictionsService {
     } else {
       return throwError('No token found');
     }
+  }
+
+  updateResults(): Observable<any> {
+    return this.httpClient.post(`${this.vercelApi}/match-results`, {});
   }
 }

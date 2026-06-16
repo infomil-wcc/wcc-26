@@ -86,7 +86,20 @@ export class MatchComponent implements OnInit, OnDestroy{
 
     if(this.today > this.limitDate) {
       this.closed = true;
+
+      if(this.match.fulltime_a === null || this.match.fulltime_b === null) {
+        console.log('match finished but result not updated');
+        this.predictionService.updateResults().subscribe({
+          next: (response) => {
+            if(response.success) { 
+              window.location.reload();
+            }
+          }
+        });
+      }
     }
+
+
 
     this.getTeamFlag(this.match.team_a, (flag: string) => this.teamAFlag = flag);
     this.getTeamFlag(this.match.team_b, (flag: string) => this.teamBFlag = flag);
