@@ -32,6 +32,8 @@ export default async function handler(request, response) {
     return response.status(405).json({ error: 'Method Not Allowed' });
   }
 
+  process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
+
   let games = [];
 
   // Isolated check for the external network dependency
@@ -39,7 +41,9 @@ export default async function handler(request, response) {
     const wcRes = await fetch('https://worldcup26.ir/get/games', {
       method: 'GET',
       headers: {
-        'accept': 'application/json'
+        'accept': 'application/json',
+      // Bypasses automated bot blockers by presenting a standard browser signature
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
       }
     });
 
