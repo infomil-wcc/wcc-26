@@ -89,13 +89,7 @@ export class MatchComponent implements OnInit, OnDestroy{
 
       if(this.match.fulltime_a === null || this.match.fulltime_b === null) {
         console.log('match finished but result not updated');
-        this.predictionService.updateResults().subscribe({
-          next: (response) => {
-            if(response.success) { 
-              window.location.reload();
-            }
-          }
-        });
+        // this.predictionService.updateResults();
       }
     }
 
