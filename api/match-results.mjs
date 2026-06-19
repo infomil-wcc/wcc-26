@@ -103,14 +103,14 @@ export default async function handler(request, response) {
 
       
       // Send update payload to Directus match item
-      const directusResponse = await fetch(`${process.env.DIRECTUS_URL}/items/matches/${game.id}`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${process.env.DIRECTUS_ADMIN_TOKEN}`
-        },
-        body: JSON.stringify(payload)
-      });
+      // const directusResponse = await fetch(`${process.env.DIRECTUS_URL}/items/matches/${game.id}`, {
+      //   method: 'PATCH',
+      //   headers: {
+      //     'Content-Type': 'application/json',
+      //     'Authorization': `Bearer ${process.env.DIRECTUS_ADMIN_TOKEN}`
+      //   },
+      //   body: JSON.stringify(payload)
+      // });
       
 
       results.push({ 

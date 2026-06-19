@@ -76,7 +76,7 @@ export class PredictionsService {
     }
   }
 
-  updateResults(): Observable<any> {
-    return this.httpClient.post(`${this.vercelApi}/match-results`, {});
-  }
+  // updateResults(): Observable<any> {
+  //   return this.httpClient.post(`${this.vercelApi}/match-results`, {});
+  // }
 }

@@ -93,8 +93,6 @@ export class MatchComponent implements OnInit, OnDestroy{
       }
     }
 
-
-
     this.getTeamFlag(this.match.team_a, (flag: string) => this.teamAFlag = flag);
     this.getTeamFlag(this.match.team_b, (flag: string) => this.teamBFlag = flag);
     this.getStadiumImage();
