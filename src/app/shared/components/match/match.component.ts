@@ -51,7 +51,7 @@ export class MatchComponent implements OnInit, OnDestroy{
   protected isSavedInApi: boolean = false;
   private countdownIntervalId: any;
   private timeOffset: number = 0;
-  protected $players!: Observable<Player[]>;
+  protected $players!: Observable<any>;
   protected donePronostique!: any;
   protected showPronostiqueModal = false;
   protected isSubmitting = false;
@@ -124,6 +124,12 @@ export class MatchComponent implements OnInit, OnDestroy{
   nationalitySelected(ev: Event):void {
     let selectBox = ev.target as HTMLSelectElement;
     this.$players = this.teamService.getPlayersByTeamName(selectBox.value);
+
+    this.$players.subscribe({
+      next: (response) => {
+        console.log(response[0].players);
+      }
+    })
   }
 
   getTeamFlag(teamName: string, callback: (flag: string) => void): void {

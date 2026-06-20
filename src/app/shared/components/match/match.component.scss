@@ -208,6 +208,11 @@
   }
 
   .pronostiques {
+
+    &.scores_counts .team-option-btn {
+      pointer-events: none;
+    }
+    
     .team-option-btn {
       position: relative;
       width: 100%;

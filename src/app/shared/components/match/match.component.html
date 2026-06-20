@@ -40,6 +40,7 @@
       </div>
     </div>
 
+    <!--- Match Details Calendar view-->
     <div class="flex align-items-center justify-content-center mb-3" *ngIf="!isPronostiques;">
       <div class="col-5 p-0 teamDetails">
         <span class="flex align-items-center justify-content-center">
@@ -68,8 +69,9 @@
       </div>
     </div>
 
+    <!-- Pronostique View -->
     <ng-container *ngIf="isPronostiques">
-      <div class="pronostiques">
+      <div class="pronostiques" [ngClass]="{'scores_counts': match.phase !== 'Group Stage'}">
         <div class="grid justify-content-center align-items-center min-h mb-3">
           
           <!-- Team A Option Button -->
@@ -88,12 +90,6 @@
           <!-- Center Column (Score Inputs + Draw Button / vs) -->
           <div class="col-4 flex flex-column justify-content-center align-items-center px-1 gap-2">
             <ng-container *ngIf="!closed; else predictedScores">
-              <!-- Score Final Inputs -->
-              <div class="flex align-items-center gap-1" *ngIf="match.fulltime">
-                <app-number-input [(num)]="fullTimeA" (numChange)="onScoreChanged()" [disabled]="disabled || isSubmitting || isSavedInApi"></app-number-input>
-                <span class="px-1 font-bold">:</span>
-                <app-number-input [(num)]="fullTimeB" (numChange)="onScoreChanged()" [disabled]="disabled || isSubmitting || isSavedInApi"></app-number-input>
-              </div>
               
               <!-- Draw Option Button -->
               <div class="team-option-btn draw flex flex-column align-items-center justify-content-center position-relative w-full" 
@@ -138,25 +134,37 @@
           <!-- Score mi-temps -->
           <div class="halftimeContainer mt-2 mb-3" *ngIf="match.halftime">
             <div class="flex justify-content-center mb-2">
-              <span class="label">Score mi-temps</span>
+              <span class="label">Half Time Score</span>
             </div>
             <div class="flex justify-content-center align-items-center gap-1">
-              <app-number-input [(num)]="halfTimeA" (numChange)="sendBet()" [disabled]="disabled || isSubmitting || isSavedInApi"></app-number-input>
+              <app-number-input [(num)]="halfTimeA" [disabled]="disabled || isSubmitting || isSavedInApi"></app-number-input>
               <span class="px-1 font-bold">:</span>
-              <app-number-input [(num)]="halfTimeB" (numChange)="sendBet()" [disabled]="disabled || isSubmitting || isSavedInApi"></app-number-input>
+              <app-number-input [(num)]="halfTimeB" [disabled]="disabled || isSubmitting || isSavedInApi"></app-number-input>
+            </div>
+          </div>
+
+          <!-- Score Final Inputs -->
+          <div class="halftimeContainer mt-2 mb-3" *ngIf="match.fulltime">
+            <div class="flex justify-content-center mb-2">
+              <span class="label">Full Time Score</span>
+            </div>
+            <div class="flex justify-content-center align-items-center gap-1" *ngIf="match.fulltime">
+              <app-number-input [(num)]="fullTimeA" (numChange)="onScoreChanged()" [disabled]="disabled || isSubmitting || isSavedInApi"></app-number-input>
+              <span class="px-1 font-bold">:</span>
+              <app-number-input [(num)]="fullTimeB" (numChange)="onScoreChanged()" [disabled]="disabled || isSubmitting || isSavedInApi"></app-number-input>
             </div>
           </div>
 
           <!-- Un buteur -->
           <div class="scorerContainer mt-2 mb-3" *ngIf="match.scorer">
             <div class="flex justify-content-center mb-2">
-              <span class="label">Un buteur</span>
+              <span class="label">A player who will score</span>
             </div>
             <div class="grid justify-content-center mb-2">
               <div class="col-6">
                 <div class="teamA flex flex-column align-items-center input">
                   <select name="team" class="w-full text-center py-1" (change)="nationalitySelected($event)" [disabled]="disabled || isSubmitting || isSavedInApi">
-                    <option value="-" selected>Nationalité</option>
+                    <option value="-" selected>Player's Country</option>
                     <option [value]="match.team_a">{{ match.team_a }}</option>
                     <option [value]="match.team_b">{{ match.team_b }}</option>
                   </select>
@@ -167,7 +175,7 @@
                   <select name="player" class="w-full text-center py-1" [(ngModel)]="scorer" (change)="sendBet()" [disabled]="disabled || isSubmitting || isSavedInApi">
                     <option value="-" selected>-</option>
                     <ng-container *ngIf="$players | async as players">
-                      <option *ngFor="let item of players" [value]="item.player_name">{{ item.player_name }} - ({{ item.position }})</option>
+                      <option *ngFor="let item of players[0].players" [value]="item.player_name">{{ item.player_name }} - ({{ item.position }})</option>
                     </ng-container>
                   </select>
                 </div>
