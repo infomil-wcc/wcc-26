@@ -1,15 +1,16 @@
 import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
-import { CommonModule, KeyValue } from '@angular/common';
+import { CommonModule, KeyValue, NgClass, DatePipe, KeyValuePipe } from '@angular/common';
 import { ApiResponse, GameElement } from '../../shared/contracts/game-rules.contract';
 import { GameRulesService } from '../../shared/services/content/game-rules.service';
 import { Observable } from 'rxjs';
+import { LoaderComponent } from '../../shared/components/loader/loader.component';
 
 @Component({
     selector: 'app-game-rules',
     templateUrl: './game-rules.component.html',
     styleUrls: ['./game-rules.component.scss'],
     changeDetection: ChangeDetectionStrategy.Eager,
-    standalone: false
+    imports: [NgClass, LoaderComponent, DatePipe, KeyValuePipe]
 })
 export class GameRulesComponent implements OnInit {
   

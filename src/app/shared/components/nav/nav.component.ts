@@ -1,6 +1,7 @@
 import { Component, OnInit, OnDestroy, ChangeDetectionStrategy } from '@angular/core';
 import { StateService, AppState } from '../../services/core/state.service';
 import { Subscription } from 'rxjs';
+import { NgClass } from '@angular/common';
 
 interface NavigationItem {
   label: string;
@@ -14,7 +15,7 @@ interface NavigationItem {
     templateUrl: './nav.component.html',
     styleUrls: ['./nav.component.scss'],
     changeDetection: ChangeDetectionStrategy.Eager,
-    standalone: false
+    imports: [NgClass]
 })
 export class NavComponent implements OnInit, OnDestroy {
 

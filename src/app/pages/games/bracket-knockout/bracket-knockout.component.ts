@@ -1,4 +1,5 @@
 import { Component, OnInit, inject, Input, ViewChild, ElementRef, ChangeDetectorRef, HostListener, ChangeDetectionStrategy } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { Observable, forkJoin } from 'rxjs';
 import { CookieService } from '../../../shared/services/core/cookie.service';
 import { StateService } from '../../../shared/services/core/state.service'; 
@@ -36,7 +37,7 @@ export interface Country {
     templateUrl: './bracket-knockout.component.html',
     styleUrl: './bracket-knockout.component.scss',
     changeDetection: ChangeDetectionStrategy.Eager,
-    standalone: false
+    imports: [CommonModule]
 })
 export class BracketKnockoutComponent implements OnInit {
   @ViewChild('bracketWrapper') bracketWrapper!: ElementRef;

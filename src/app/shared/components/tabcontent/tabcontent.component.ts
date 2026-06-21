@@ -1,9 +1,7 @@
 import { Component, ContentChildren, QueryList, AfterContentInit, TemplateRef, Input, ViewChild, Directive, ChangeDetectionStrategy } from '@angular/core';
+import { NgTemplateOutlet } from '@angular/common';
 
-@Directive({
-    selector: '[tabContent]',
-    standalone: false
-})
+@Directive({ selector: '[tabContent]' })
 
 export class TabContentDirective {
   @Input() title?: string;
@@ -15,7 +13,7 @@ export class TabContentDirective {
     templateUrl: './tabcontent.component.html',
     styleUrl: './tabcontent.component.scss',
     changeDetection: ChangeDetectionStrategy.Eager,
-    standalone: false
+    imports: [NgTemplateOutlet]
 })
 export class TabcontentComponent {
 

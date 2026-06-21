@@ -11,9 +11,8 @@ describe('BestScorerComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [ReactiveFormsModule],
-      declarations: [BestScorerComponent, ModalComponent, LoginComponent]
-    })
+    imports: [ReactiveFormsModule, BestScorerComponent, ModalComponent, LoginComponent]
+})
     .compileComponents();
     
     fixture = TestBed.createComponent(BestScorerComponent);

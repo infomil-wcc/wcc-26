@@ -13,10 +13,6 @@ export class TeamsApiService {
     return this.http.get<any>(`${environment.apiBaseUrl}/items/teams${queryParams}`);
   }
 
-  getPlayersByCountry(country: string): Observable<any> {
-    return this.http.get<any>(`/api/squads?country=${country}`);
-  }
-
   getTeamsInfo(teamisoname: string, options: any): Observable<any> {
     return this.http.get<any>(`${environment.apiUrl}/teams?iso=${teamisoname}`, options);
   }

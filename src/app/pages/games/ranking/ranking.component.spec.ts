@@ -9,8 +9,8 @@ describe('RankingComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [RankingComponent, LoaderComponent]
-    })
+    imports: [RankingComponent, LoaderComponent]
+})
     .compileComponents();
     
     fixture = TestBed.createComponent(RankingComponent);

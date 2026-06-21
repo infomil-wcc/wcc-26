@@ -4,6 +4,7 @@ import { Teams, Group } from '../../contracts/teams.contract';
 import { Observable, map } from 'rxjs';
 import { TeamsApiService } from '../api/teams-api.service';
 import { GroupsApiService } from '../api/groups-api.service';
+import { SquadsApiService } from '../api/squads-api.service';
 
 @Injectable({
   providedIn: 'root'
@@ -11,6 +12,7 @@ import { GroupsApiService } from '../api/groups-api.service';
 export class TeamsService {
   private teamsApiService = inject(TeamsApiService);
   private groupsApiService = inject(GroupsApiService);
+  private squadsApiService = inject(SquadsApiService);
 
   private httpOptions = {
     headers: new HttpHeaders({
@@ -31,7 +33,7 @@ export class TeamsService {
   }
 
   getPlayersByTeamName(teamName: string): Observable<any> {
-    return this.teamsApiService.getPlayersByCountry(teamName).pipe(
+    return this.squadsApiService.getPlayersByCountry(teamName).pipe(
       map(response => response[0])
     );
   }

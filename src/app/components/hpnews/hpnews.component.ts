@@ -5,13 +5,16 @@ import { map, switchMap } from 'rxjs/operators';
 import { MatchesService } from '../../shared/services/content/matches.service';
 import { GlobaltimeService } from '../../shared/services/core/globaltime.service';
 import { Matches } from '../../shared/contracts/matches.contract';
+import { MatchComponent } from '../../shared/components/match/match.component';
+import { LoaderComponent } from '../../shared/components/loader/loader.component';
+import { AsyncPipe, DatePipe } from '@angular/common';
 
 @Component({
     selector: 'app-hpnews',
     templateUrl: './hpnews.component.html',
     styleUrl: './hpnews.component.scss',
     changeDetection: ChangeDetectionStrategy.Eager,
-    standalone: false
+    imports: [MatchComponent, LoaderComponent, AsyncPipe, DatePipe]
 })
 export class HpnewsComponent {
   private newsService = inject(NewsService);

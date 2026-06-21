@@ -4,13 +4,17 @@ import { Group, Teams } from '../../shared/contracts/teams.contract';
 import { Observable } from 'rxjs';
 import { HeaderComponent } from '../../shared/components/header/header.component';
 import { CookieService } from '../../shared/services/core/cookie.service';
+import { NgStyle, AsyncPipe } from '@angular/common';
+import { LoaderComponent } from '../../shared/components/loader/loader.component';
+import { ModalComponent } from '../../shared/components/modal/modal.component';
+import { LoginComponent } from '../../shared/components/login/login.component';
 
 @Component({
     selector: 'app-homepage',
     templateUrl: './homepage.component.html',
     styleUrl: './homepage.component.scss',
     changeDetection: ChangeDetectionStrategy.Eager,
-    standalone: false
+    imports: [NgStyle, LoaderComponent, ModalComponent, LoginComponent, AsyncPipe]
 })
 export class HomepageComponent {
   private teamService = inject<TeamsService>(TeamsService);

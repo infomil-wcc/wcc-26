@@ -1,16 +1,14 @@
-import { Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { Injectable, inject } from '@angular/core';
+import { HttpHeaders } from '@angular/common/http';
 import { ApiResponse } from '../../contracts/game-rules.contract';
-import { Observable, map } from 'rxjs';
-import { environment } from '../../../../environments/environment';
-
+import { Observable } from 'rxjs';
+import { GameRulesApiService } from '../api/game-rules-api.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class GameRulesService {
-
-constructor(private http: HttpClient) { }
+  private gameRulesApiService = inject(GameRulesApiService);
 
   private httpOptions = {
     headers: new HttpHeaders({
@@ -19,6 +17,6 @@ constructor(private http: HttpClient) { }
   };
 
   getGameRules(): Observable<ApiResponse> {
-     return this.http.get<ApiResponse>(`${environment.apiUrl}/game-rules`, this.httpOptions);
+     return this.gameRulesApiService.getGameRules(this.httpOptions);
   }
 }

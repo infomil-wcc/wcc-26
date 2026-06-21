@@ -8,8 +8,8 @@ describe('WindrawComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [WindrawComponent]
-    })
+    imports: [WindrawComponent]
+})
     .compileComponents();
     
     fixture = TestBed.createComponent(WindrawComponent);

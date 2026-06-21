@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpHeaders } from '@angular/common/http';
 import { Observable, from } from 'rxjs';
 import { map, groupBy, mergeMap, toArray, reduce } from 'rxjs/operators';
 import { CookieService } from './cookie.service';
@@ -8,6 +8,11 @@ import { Matches } from '../../contracts/matches.contract';
 import { Pronostiques, pronostiquesApiData } from '../../contracts/pronostiques.contract';
 import { PredictionsService } from '../games/predictions.service';
 import { AuthService } from './auth.service';
+import { PronostiquesRankingsApiService } from '../api/pronostiques-rankings-api.service';
+import { BracketRankingsApiService } from '../api/bracket-rankings-api.service';
+import { BracketApiService } from '../api/bracket-api.service';
+import { BracketResultApiService } from '../api/bracket-result-api.service';
+import { PredictionsApiService } from '../api/predictions-api.service';
 
 interface result {
   id: number;
@@ -30,7 +35,11 @@ interface result {
 })
 export class RankingcalculationService {
 
-  private http = inject(HttpClient);
+  private pronostiquesRankingsApiService = inject(PronostiquesRankingsApiService);
+  private bracketRankingsApiService = inject(BracketRankingsApiService);
+  private bracketApiService = inject(BracketApiService);
+  private bracketResultApiService = inject(BracketResultApiService);
+  private predictionsApiService = inject(PredictionsApiService);
   private cookieService = inject(CookieService);
   private matchService = inject(MatchesService);
   private predictionService = inject(PredictionsService);
@@ -46,12 +55,12 @@ export class RankingcalculationService {
   }
 
   getCurrentrankings(): Observable<any> {
-    return this.http.get<any>(`https://euro.omediainteractive.net/imleuro/items/pronostiques_rankings`).pipe(
+    return this.pronostiquesRankingsApiService.getRankings().pipe(
       map(response => response.data));
   }
 
   getBracketRankings(): Observable<any> {
-    return this.http.get<any>(`https://euro.omediainteractive.net/imleuro/items/bracket_rankings`).pipe(map(response=> response.data));
+    return this.bracketRankingsApiService.getRankings().pipe(map(response=> response.data));
   }
 
 
@@ -100,12 +109,12 @@ export class RankingcalculationService {
   }
 
   private getBrackets(): Observable<any> {
-    return this.http.get<any>('https://euro.omediainteractive.net/imleuro/items/bracket').pipe(
+    return this.bracketApiService.getBrackets().pipe(
       map(response => response.data));
   }
 
   private getBracketResults(): Observable<any> {
-    return this.http.get<any>('https://euro.omediainteractive.net/imleuro/items/bracket_result').pipe(
+    return this.bracketResultApiService.getBracketResult().pipe(
       map(response => response.data));
   }
 
@@ -117,8 +126,8 @@ export class RankingcalculationService {
       })
     }
 
-    return this.http.get<pronostiquesApiData>(`https://euro.omediainteractive.net/imleuro/items/pronostiques`, httpOptions).pipe(
-      map(response => response.data),
+    return this.predictionsApiService.getPredictions('', httpOptions).pipe(
+      map(response => response.data as Pronostiques[]),
       mergeMap(pronostiques => from(pronostiques)),
       groupBy((pronostique: Pronostiques) => pronostique.user),
       mergeMap(group => group.pipe(toArray())),
@@ -288,7 +297,7 @@ export class RankingcalculationService {
         })
       };
 
-      this.http.post(`https://euro.omediainteractive.net/imleuro/items/pronostiques_rankings`, rankingData, httpOptions).subscribe({
+      this.pronostiquesRankingsApiService.createRankings(rankingData, httpOptions).subscribe({
         next: (response)=>{
           console.log(response);
         },
@@ -401,7 +410,7 @@ export class RankingcalculationService {
         })
       };
 
-      this.http.post(`https://euro.omediainteractive.net/imleuro/items/bracket_rankings`, rankingData, httpOptions).subscribe({
+      this.bracketRankingsApiService.createRankings(rankingData, httpOptions).subscribe({
         next: (response)=>{
           console.log(response);
         },

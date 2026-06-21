@@ -1,17 +1,16 @@
-import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable, map } from 'rxjs';
-import { environment } from '../../../../environments/environment';
+import { StadiumsApiService } from '../api/stadiums-api.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class StadiumsService {
 
-  private http = inject(HttpClient);
+  private stadiumsApiService = inject(StadiumsApiService);
 
   getStadium(): Observable<any> {
-    return this.http.get<any>(`${environment.apiBaseUrl}/items/stadiums`).pipe(
+    return this.stadiumsApiService.getStadiums().pipe(
       map((response: { data: any; }) => response.data)
     );
   }

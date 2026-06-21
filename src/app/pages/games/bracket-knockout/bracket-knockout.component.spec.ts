@@ -30,16 +30,15 @@ describe('BracketKnockoutComponent', () => {
     mockGlobaltimeService = {};
 
     await TestBed.configureTestingModule({
-      declarations: [BracketKnockoutComponent],
-      imports: [HttpClientTestingModule],
-      providers: [
+    imports: [HttpClientTestingModule, BracketKnockoutComponent],
+    providers: [
         { provide: BracketService, useValue: mockBracketService },
         { provide: CookieService, useValue: mockCookieService },
         { provide: StateService, useValue: mockStateService },
         { provide: GlobaltimeService, useValue: mockGlobaltimeService }
-      ],
-      schemas: [CUSTOM_ELEMENTS_SCHEMA]
-    })
+    ],
+    schemas: [CUSTOM_ELEMENTS_SCHEMA]
+})
     .compileComponents();
 
     fixture = TestBed.createComponent(BracketKnockoutComponent);

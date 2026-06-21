@@ -1,19 +1,42 @@
 import { Component, Input, OnInit, ChangeDetectionStrategy } from '@angular/core';
-import { ActivatedRoute, NavigationStart, Router } from '@angular/router';
+import { ActivatedRoute, NavigationStart, Router, RouterOutlet } from '@angular/router';
 import { StateService, AppState, user } from './shared/services/core/state.service';
 import { AuthService } from './shared/services/core/auth.service';
 import { TeamsService } from './shared/services/content/teams.service';
 import { CookieService } from './shared/services/core/cookie.service';
 import { Observable, catchError, throwError } from 'rxjs';
 import { TotalgoalsService } from './shared/services/core/totalgoals.service';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
+import { LayoutComponent } from './shared/components/layout/layout.component';
+import { NgSwitch, NgSwitchCase } from '@angular/common';
+import { HeaderComponent } from './shared/components/header/header.component';
+import { HeroComponent } from './shared/components/hero/hero.component';
+import { HpnewsComponent } from './components/hpnews/hpnews.component';
+import { HomepageComponent } from './pages/homepage/homepage.component';
+import { ErrorComponent } from './pages/error/error.component';
+import { GamesComponent } from './pages/competition/games/games.component';
+import { TeamsComponent } from './pages/competition/teams/teams.component';
+import { StadiumsComponent } from './pages/competition/stadiums/stadiums.component';
+import { StatisticsComponent } from './pages/competition/statistics/statistics.component';
+import { BestScorerComponent } from './pages/games/best-scorer/best-scorer.component';
+import { PronostiquesComponent } from './pages/games/pronostiques/pronostiques.component';
+import { BracketKnockoutComponent } from './pages/games/bracket-knockout/bracket-knockout.component';
+import { BracketChallengeComponent } from './pages/games/bracket-challenge/bracket-challenge.component';
+import { QuizComponent } from './pages/games/quiz/quiz.component';
+import { RankingComponent } from './pages/games/ranking/ranking.component';
+import { FaqComponent } from './pages/faq/faq.component';
+import { GameRulesComponent } from './pages/game-rules/game-rules.component';
+import { FooterComponent } from './shared/components/footer/footer.component';
+import { DialogComponent } from './shared/components/dialog/dialog.component';
+import { LoaderComponent } from './shared/components/loader/loader.component';
+import { ModalComponent } from './shared/components/modal/modal.component';
 
 @Component({
     selector: 'app-root',
     templateUrl: './app.component.html',
     styleUrl: './app.component.scss',
     changeDetection: ChangeDetectionStrategy.Eager,
-    standalone: false
+    imports: [LayoutComponent, NgSwitch, HeaderComponent, NgSwitchCase, HeroComponent, HpnewsComponent, HomepageComponent, ErrorComponent, GamesComponent, TeamsComponent, StadiumsComponent, StatisticsComponent, BestScorerComponent, PronostiquesComponent, BracketKnockoutComponent, BracketChallengeComponent, QuizComponent, RankingComponent, FaqComponent, GameRulesComponent, RouterOutlet, FooterComponent, DialogComponent, ReactiveFormsModule, LoaderComponent, ModalComponent]
 })
 export class AppComponent implements OnInit {
 

@@ -2,13 +2,18 @@ import { Component, inject, OnInit, ChangeDetectionStrategy } from '@angular/cor
 import { CookieService } from '../../../shared/services/core/cookie.service';
 import { StateService } from '../../../shared/services/core/state.service';
 import { BracketService } from '../../../shared/services/games/bracket.service';
+import { BracketPredictorComponent } from '../bracket-predictor/bracket-predictor.component';
+import { BracketKnockoutComponent } from '../bracket-knockout/bracket-knockout.component';
+import { ModalComponent } from '../../../shared/components/modal/modal.component';
+import { LoginComponent } from '../../../shared/components/login/login.component';
+import { DialogComponent } from '../../../shared/components/dialog/dialog.component';
 
 @Component({
     selector: 'app-bracket-challenge',
     templateUrl: './bracket-challenge.component.html',
     styleUrl: './bracket-challenge.component.scss',
     changeDetection: ChangeDetectionStrategy.Eager,
-    standalone: false
+    imports: [BracketPredictorComponent, BracketKnockoutComponent, ModalComponent, LoginComponent, DialogComponent]
 })
 export class BracketChallengeComponent implements OnInit {
   private cookieService = inject(CookieService);

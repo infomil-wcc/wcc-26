@@ -1,11 +1,12 @@
 import { Component, EventEmitter, Input, Output, ChangeDetectionStrategy } from '@angular/core';
+import { NgClass } from '@angular/common';
 
 @Component({
     selector: 'app-windraw',
     templateUrl: './windraw.component.html',
     styleUrl: './windraw.component.scss',
     changeDetection: ChangeDetectionStrategy.Eager,
-    standalone: false
+    imports: [NgClass]
 })
 export class WindrawComponent {
 

@@ -5,8 +5,7 @@ import { Stadium } from '../../pages/competition/stadiums/stadiums.component';
     selector: 'stadiumdetails',
     templateUrl: './stadiumdetails.component.html',
     styleUrl: './stadiumdetails.component.scss',
-    changeDetection: ChangeDetectionStrategy.Eager,
-    standalone: false
+    changeDetection: ChangeDetectionStrategy.Eager
 })
 export class StadiumdetailsComponent {
 

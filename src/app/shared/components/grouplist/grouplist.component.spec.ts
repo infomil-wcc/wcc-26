@@ -8,8 +8,8 @@ describe('GrouplistComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [GrouplistComponent]
-    })
+    imports: [GrouplistComponent]
+})
     .compileComponents();
 
     fixture = TestBed.createComponent(GrouplistComponent);

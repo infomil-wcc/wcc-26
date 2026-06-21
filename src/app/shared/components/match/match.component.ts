@@ -8,13 +8,18 @@ import { Pronostiques } from '../../contracts/pronostiques.contract';
 import { PredictionsService } from '../../services/games/predictions.service';
 import { GlobaltimeService } from '../../services/core/globaltime.service';
 import { StadiumsService } from '../../services/content/stadiums.service';
+import { NgClass, NgStyle, AsyncPipe, UpperCasePipe, SlicePipe, DatePipe } from '@angular/common';
+import { TeamperformanceComponent } from '../teamperformance/teamperformance.component';
+import { NumberInputComponent } from '../number-input/number-input.component';
+import { ReactiveFormsModule, FormsModule } from '@angular/forms';
+import { LoaderComponent } from '../loader/loader.component';
 
 @Component({
     selector: 'app-match',
     templateUrl: './match.component.html',
     styleUrl: './match.component.scss',
     changeDetection: ChangeDetectionStrategy.Eager,
-    standalone: false
+    imports: [NgClass, NgStyle, TeamperformanceComponent, NumberInputComponent, ReactiveFormsModule, FormsModule, LoaderComponent, AsyncPipe, UpperCasePipe, SlicePipe, DatePipe]
 })
 export class MatchComponent implements OnInit, OnDestroy{
 

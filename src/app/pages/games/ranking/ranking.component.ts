@@ -5,13 +5,15 @@ import { GlobaltimeService } from '../../../shared/services/core/globaltime.serv
 import { HttpClient } from '@angular/common/http';
 import { BracketService } from '../../../shared/services/games/bracket.service';
 import { TeamsService } from '../../../shared/services/content/teams.service';
+import { NgClass, UpperCasePipe } from '@angular/common';
+import { LoaderComponent } from '../../../shared/components/loader/loader.component';
 
 @Component({
     selector: 'app-ranking',
     templateUrl: './ranking.component.html',
     styleUrl: './ranking.component.scss',
     changeDetection: ChangeDetectionStrategy.Eager,
-    standalone: false
+    imports: [NgClass, LoaderComponent, UpperCasePipe]
 })
 export class RankingComponent implements OnInit, OnDestroy {
 

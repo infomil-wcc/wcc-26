@@ -4,8 +4,7 @@ import { Component, EventEmitter, Input, Output, ChangeDetectionStrategy } from 
     selector: 'app-dialog',
     templateUrl: './dialog.component.html',
     styleUrl: './dialog.component.scss',
-    changeDetection: ChangeDetectionStrategy.Eager,
-    standalone: false
+    changeDetection: ChangeDetectionStrategy.Eager
 })
 export class DialogComponent {
   @Input() showDialog?: boolean;

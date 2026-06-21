@@ -4,8 +4,7 @@ import { Component, EventEmitter, Input, OnChanges, Output, SimpleChange, Change
     selector: 'loader',
     templateUrl: './loader.component.html',
     styleUrl: './loader.component.scss',
-    changeDetection: ChangeDetectionStrategy.Eager,
-    standalone: false
+    changeDetection: ChangeDetectionStrategy.Eager
 })
 export class LoaderComponent implements OnChanges {
 

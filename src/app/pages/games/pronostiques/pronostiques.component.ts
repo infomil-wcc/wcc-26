@@ -6,13 +6,16 @@ import { map, catchError } from 'rxjs/operators';
 import { StateService } from '../../../shared/services/core/state.service';
 import { GlobaltimeService } from '../../../shared/services/core/globaltime.service';
 import { PredictionsService } from '../../../shared/services/games/predictions.service';
+import { NgClass, AsyncPipe, DatePipe } from '@angular/common';
+import { MatchComponent } from '../../../shared/components/match/match.component';
+import { LoaderComponent } from '../../../shared/components/loader/loader.component';
 
 @Component({
     selector: 'app-pronostiques',
     templateUrl: './pronostiques.component.html',
     styleUrl: './pronostiques.component.scss',
     changeDetection: ChangeDetectionStrategy.Eager,
-    standalone: false
+    imports: [NgClass, MatchComponent, LoaderComponent, AsyncPipe, DatePipe]
 })
 export class PronostiquesComponent {
 

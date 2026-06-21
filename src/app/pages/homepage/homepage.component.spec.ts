@@ -12,9 +12,8 @@ describe('HomepageComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [ReactiveFormsModule],
-      declarations: [HomepageComponent, ModalComponent, LoginComponent, LoaderComponent]
-    })
+    imports: [ReactiveFormsModule, HomepageComponent, ModalComponent, LoginComponent, LoaderComponent]
+})
     .compileComponents();
     
     fixture = TestBed.createComponent(HomepageComponent);

@@ -10,20 +10,48 @@
   </ng-container>
 
   <ng-container slot="main" >
-    <app-homepage *ngSwitchCase="0" />
-    <app-error *ngSwitchCase="11" />
-    <app-games *ngSwitchCase="1" />
-    <app-teams *ngSwitchCase="2" />
-    <app-stadiums *ngSwitchCase="3" />
-    <app-statistics *ngSwitchCase="4" />
-    <app-best-scorer *ngSwitchCase="5" />
-    <app-pronostiques *ngSwitchCase="6" />
-    <app-bracket-knockout *ngSwitchCase="7" />
-    <app-bracket-challenge *ngSwitchCase="13" />
-    <app-quiz *ngSwitchCase="8" />
-    <app-ranking *ngSwitchCase="9" />
-    <app-faq *ngSwitchCase="10" />
-    <app-game-rules *ngSwitchCase="12" />
+    @defer (on idle) {
+      <app-homepage *ngSwitchCase="0" />
+    }
+    @defer (on idle) {
+      <app-error *ngSwitchCase="11" />
+    }
+    @defer (on idle) {
+      <app-games *ngSwitchCase="1" />
+    }
+    @defer (on idle) {
+      <app-teams *ngSwitchCase="2" />
+    }
+    @defer (on idle) {
+      <app-stadiums *ngSwitchCase="3" />
+    }
+    @defer (on idle) {
+      <app-statistics *ngSwitchCase="4" />
+    }
+    @defer (on idle) {
+      <app-best-scorer *ngSwitchCase="5" />
+    }
+    @defer (on idle) {
+      <app-pronostiques *ngSwitchCase="6" />
+    }
+    @defer (on idle) {
+      <app-bracket-knockout *ngSwitchCase="7" />
+    }
+    @defer (on idle) {
+      <app-bracket-challenge *ngSwitchCase="13" />
+    }
+    @defer (on idle) {
+      <app-quiz *ngSwitchCase="8" />
+    }
+    @defer (on idle) {
+      <app-ranking *ngSwitchCase="9" />
+    }
+    @defer (on idle) {
+      <app-faq *ngSwitchCase="10" />
+    }
+    @defer (on idle) {
+      <app-game-rules *ngSwitchCase="12" />
+    }
     <router-outlet></router-outlet>
   </ng-container>
 

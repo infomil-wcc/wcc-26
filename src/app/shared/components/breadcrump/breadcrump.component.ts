@@ -1,4 +1,5 @@
 import { Component, EventEmitter, Input, Output, ChangeDetectionStrategy } from '@angular/core';
+import { NgClass } from '@angular/common';
 
 export interface breadCrump {
   label: string;
@@ -11,7 +12,7 @@ export interface breadCrump {
     templateUrl: './breadcrump.component.html',
     styleUrl: './breadcrump.component.scss',
     changeDetection: ChangeDetectionStrategy.Eager,
-    standalone: false
+    imports: [NgClass]
 })
 
 export class BreadcrumpComponent {

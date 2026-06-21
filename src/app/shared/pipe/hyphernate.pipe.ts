@@ -1,9 +1,6 @@
 import { Pipe, PipeTransform } from '@angular/core';
 
-@Pipe({
-    name: 'hyphernate',
-    standalone: false
-})
+@Pipe({ name: 'hyphernate' })
 export class HyphernatePipe implements PipeTransform {
   transform(value: string): string {
     if (!value) return value;

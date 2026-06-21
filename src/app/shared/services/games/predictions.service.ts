@@ -1,19 +1,19 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Observable, BehaviorSubject, map, switchMap, tap, throwError } from 'rxjs';
+import { HttpHeaders } from '@angular/common/http';
+import { Observable, BehaviorSubject, map, throwError } from 'rxjs';
 import { CookieService } from '../core/cookie.service';
-import { environment } from '../../../../environments/environment';
 import { Pronostiques } from '../../contracts/pronostiques.contract';
+import { PredictionsApiService } from '../api/predictions-api.service';
+import { MatchResultsApiService } from '../api/match-results-api.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class PredictionsService {
 
-  private httpClient = inject(HttpClient);
+  private predictionsApiService = inject(PredictionsApiService);
+  private matchResultsApiService = inject(MatchResultsApiService);
   private cookieService = inject(CookieService);
-  private prodUrl: string = environment.apiBaseUrl;
-  private vercelApi: string = environment.apiUrl;
 
   private draftsSubject = new BehaviorSubject<any[]>([]);
   drafts$ = this.draftsSubject.asObservable();
@@ -48,9 +48,9 @@ export class PredictionsService {
         })
       };
       if (predictions.id) {
-        return this.httpClient.put(`${this.prodUrl}/items/pronostiques/${predictions.id}`, predictions, httpOptions);
+        return this.predictionsApiService.updatePrediction(predictions.id, predictions, httpOptions);
       } else {
-        return this.httpClient.post(`${this.prodUrl}/items/pronostiques`, predictions, httpOptions);
+        return this.predictionsApiService.createPrediction(predictions, httpOptions);
       }
     } else {
       return throwError('No token found');
@@ -68,7 +68,7 @@ export class PredictionsService {
           'Authorization': `Bearer ${token}`
         })
       };
-      return this.httpClient.get<any>(`${environment.apiBaseUrl}/items/pronostiques?filter[game_id]=${gameID}`, httpOptions).pipe(
+      return this.predictionsApiService.getPredictions(`?filter[game_id]=${gameID}`, httpOptions).pipe(
         map(response => response.data)
       );
     } else {
@@ -77,6 +77,6 @@ export class PredictionsService {
   }
 
   updateResults(): Observable<any> {
-    return this.httpClient.post(`${this.vercelApi}/match-results`, {});
+    return this.matchResultsApiService.postMatchResults();
   }
 }

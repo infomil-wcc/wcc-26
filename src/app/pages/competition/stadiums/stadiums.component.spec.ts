@@ -10,8 +10,8 @@ describe('StadiumsComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [StadiumsComponent, BreadcrumpComponent, LoaderComponent]
-    })
+    imports: [StadiumsComponent, BreadcrumpComponent, LoaderComponent]
+})
     .compileComponents();
     
     fixture = TestBed.createComponent(StadiumsComponent);
