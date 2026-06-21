@@ -2,23 +2,22 @@ import { Component, inject, ChangeDetectorRef, ChangeDetectionStrategy } from '@
 import { MatchesService } from '../../../shared/services/content/matches.service';
 import { Observable, forkJoin, of } from 'rxjs';
 import { Matches } from '../../../shared/contracts/matches.contract';
-import { map, catchError } from 'rxjs/operators';
+import { map, catchError, tap } from 'rxjs/operators';
 import { StateService } from '../../../shared/services/core/state.service';
 import { GlobaltimeService } from '../../../shared/services/core/globaltime.service';
 import { PredictionsService } from '../../../shared/services/games/predictions.service';
 import { NgClass, AsyncPipe, DatePipe } from '@angular/common';
 import { MatchComponent } from '../../../shared/components/match/match.component';
 import { LoaderComponent } from '../../../shared/components/loader/loader.component';
-import { tap } from 'rxjs/operators';
 
 /** Tournament phase display config in bracket order */
 const PHASE_CONFIG: { key: string; label: string; icon: string; color: string }[] = [
-  { key: 'Group Stage',   label: 'Phase de groupes',  icon: 'groups',          color: '#3b5bdb' },
-  { key: 'Round of 32',  label: 'Huitièmes de finale', icon: 'filter_none',    color: '#7048e8' },
-  { key: 'Round of 16',  label: 'Seizièmes de finale', icon: 'filter_8',       color: '#9c36b5' },
-  { key: 'Quarter-finals', label: 'Quarts de finale', icon: 'emoji_events',    color: '#d6336c' },
-  { key: 'Semi-finals',  label: 'Demi-finales',        icon: 'military_tech',  color: '#f76707' },
-  { key: 'Final',        label: 'Finale',              icon: 'workspace_premium', color: '#f59f00' },
+  { key: 'Group Stage',    label: 'Phase de groupes',    icon: 'groups',            color: '#3b5bdb' },
+  { key: 'Round of 32',   label: 'Seizièmes de finale',  icon: 'filter_none',       color: '#7048e8' },
+  { key: 'Round of 16',   label: 'Huitièmes de finale',  icon: 'filter_8',          color: '#9c36b5' },
+  { key: 'Quarter-finals',label: 'Quarts de finale',     icon: 'emoji_events',      color: '#d6336c' },
+  { key: 'Semi-finals',   label: 'Demi-finales',         icon: 'military_tech',     color: '#f76707' },
+  { key: 'Final',         label: 'Finale',               icon: 'workspace_premium', color: '#f59f00' },
 ];
 
 @Component({
@@ -35,6 +34,7 @@ export class PronostiquesComponent {
   private globalTime = inject(GlobaltimeService);
   private predictionService = inject(PredictionsService);
   private cdr = inject(ChangeDetectorRef);
+
   protected isLoggedIn: boolean = false;
   protected $today!: Observable<any>;
   protected activeMatches: boolean = true;
@@ -42,8 +42,10 @@ export class PronostiquesComponent {
   protected isSubmittingBulk: boolean = false;
   protected upcomingCount: number = 0;
   protected playedCount: number = 0;
-  protected todayMatchCount: number = 0;   // unfinished matches today
-  protected todayTotalCount: number = 0;   // all matches today
+  protected todayMatchCount: number = 0;     // today's unplayed matches
+  protected todayTotalCount: number = 0;     // all matches today
+  protected todayPlayedCount: number = 0;    // today's matches with official results
+  protected todayPredictedCount: number = 0; // today's unplayed matches with user prediction
 
   $groupedMatches!: Observable<{ [key: string]: Matches[] }>;
   $playedMatches!: Observable<Matches[]>;
@@ -58,9 +60,26 @@ export class PronostiquesComponent {
         const todayKey = today.toISOString().split('T')[0];
         this.upcomingCount = matches.filter(m => new Date(m.date) >= today).length;
         this.playedCount = matches.filter(m => m.fulltime_a !== null && m.fulltime_b !== null).length;
+
         const todayMatches = matches.filter(m => m.date.split(' ')[0] === todayKey);
         this.todayTotalCount = todayMatches.length;
+        this.todayPlayedCount = todayMatches.filter(m => m.fulltime_a !== null && m.fulltime_b !== null).length;
         this.todayMatchCount = todayMatches.filter(m => m.fulltime_a === null).length;
+
+        // Fetch user's predictions for today's unplayed matches (single bulk query)
+        const unplayedToday = todayMatches.filter(m => m.fulltime_a === null);
+        if (unplayedToday.length > 0 && this.isLoggedIn) {
+          const ids = unplayedToday.map(m => m.id).join(',');
+          this.predictionService.getMyPredictions(`[_in]=${ids}`).subscribe({
+            next: (preds: any[]) => {
+              this.todayPredictedCount = preds.length;
+              this.cdr.detectChanges();
+            },
+            error: () => { this.todayPredictedCount = 0; }
+          });
+        } else {
+          this.todayPredictedCount = 0;
+        }
       }),
       map(matches => this.groupMatchesByDate(matches))
     );
@@ -153,8 +172,7 @@ export class PronostiquesComponent {
 
     this.isSubmittingBulk = true;
 
-    // Prepare bulk requests
-    const requests = drafts.map(draft => 
+    const requests = drafts.map(draft =>
       this.predictionService.sendPrediction(draft).pipe(
         catchError(err => {
           console.error('Failed to send prediction for game:', draft.game_id, err);

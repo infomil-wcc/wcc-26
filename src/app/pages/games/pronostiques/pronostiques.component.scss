@@ -182,7 +182,7 @@
     }
   }
 
-  // Green variant: all caught up
+  // Green variant: all matches today played
   &.today-banner-done {
     background: linear-gradient(135deg, #e8f5e9 0%, #f1f8f1 100%);
     border-color: $secondaryColor;
@@ -190,17 +190,31 @@
 
     .today-banner-icon {
       color: $secondaryColor;
-      animation: none; // no pulsing when all done
+      animation: none;
       font-variation-settings: 'FILL' 1, 'wght' 600, 'GRAD' 0, 'opsz' 48;
     }
 
     .today-banner-text {
-      strong {
-        color: $darkSecondary;
-      }
-      span {
-        color: color.adjust($secondaryColor, $lightness: -15%);
-      }
+      strong { color: $darkSecondary; }
+      span { color: color.adjust($secondaryColor, $lightness: -15%); }
+    }
+  }
+
+  // Blue variant: all today matches predicted, waiting for kickoff
+  &.today-banner-predicted {
+    background: linear-gradient(135deg, #e8eaf6 0%, #f3f4fd 100%);
+    border-color: #3b5bdb;
+    box-shadow: 0 2px 12px rgba(59, 91, 219, 0.18);
+
+    .today-banner-icon {
+      color: #3b5bdb;
+      animation: none;
+      font-variation-settings: 'FILL' 1, 'wght' 600, 'GRAD' 0, 'opsz' 48;
+    }
+
+    .today-banner-text {
+      strong { color: #1a237e; }
+      span { color: #3949ab; }
     }
   }
 }

@@ -48,24 +48,37 @@
   @if ($today | async; as today) {
     @if ($groupedMatches | async; as groupedMatches) {
 
-      <!-- Today banner: pending predictions -->
-      @if (activeMatches && todayMatchCount > 0) {
+      <!-- ── TODAY BANNER ───────────────────────────────────────────────────── -->
+
+      <!-- State 1: Today has matches and all have been played (results in) → GREEN -->
+      @if (activeMatches && todayPlayedCount === todayTotalCount && todayTotalCount > 0) {
+        <div class="today-banner today-banner-done">
+          <span class="material-symbols-outlined today-banner-icon">check_circle</span>
+          <div class="today-banner-text">
+            <strong>Les matchs du jour sont terminés !</strong>
+            <span>Consultez les résultats dans l'onglet « Joués ».</span>
+          </div>
+        </div>
+      }
+
+      <!-- State 2: Unplayed today matches, user has predicted all of them → BLUE -->
+      @if (activeMatches && todayMatchCount > 0 && todayPredictedCount >= todayMatchCount) {
+        <div class="today-banner today-banner-predicted">
+          <span class="material-symbols-outlined today-banner-icon">sports_score</span>
+          <div class="today-banner-text">
+            <strong>{{ todayMatchCount }} match{{ todayMatchCount > 1 ? 's' : '' }} aujourd'hui</strong>
+            <span>Vos pronostics sont soumis. En attente du coup d'envoi !</span>
+          </div>
+        </div>
+      }
+
+      <!-- State 3: Unplayed today matches, user hasn't predicted all → AMBER -->
+      @if (activeMatches && todayMatchCount > 0 && todayPredictedCount < todayMatchCount) {
         <div class="today-banner">
           <span class="material-symbols-outlined today-banner-icon">alarm</span>
           <div class="today-banner-text">
             <strong>{{ todayMatchCount }} match{{ todayMatchCount > 1 ? 's' : '' }} aujourd'hui !</strong>
             <span>Ne manquez pas vos pronostics du jour.</span>
-          </div>
-        </div>
-      }
-
-      <!-- Today banner: all caught up -->
-      @if (activeMatches && todayTotalCount > 0 && todayMatchCount === 0) {
-        <div class="today-banner today-banner-done">
-          <span class="material-symbols-outlined today-banner-icon">check_circle</span>
-          <div class="today-banner-text">
-            <strong>Tout est à jour !</strong>
-            <span>Tous vos pronostics du jour sont soumis. Bonne chance !</span>
           </div>
         </div>
       }
