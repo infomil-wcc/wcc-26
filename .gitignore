@@ -9,6 +9,5 @@ dist
 *.tmp
 .angular
 .env.local
-package-lock.json
 scratch
 coverage
