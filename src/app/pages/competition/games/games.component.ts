@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectionStrategy } from '@angular/core';
 import { MatchesService } from '../../../shared/services/content/matches.service';
 import { Matches } from '../../../shared/contracts/matches.contract';
 import { GlobaltimeService } from '../../../shared/services/core/globaltime.service';
@@ -6,9 +6,11 @@ import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 
 @Component({
-  selector: 'app-games',
-  templateUrl: './games.component.html',
-  styleUrl: './games.component.scss'
+    selector: 'app-games',
+    templateUrl: './games.component.html',
+    styleUrl: './games.component.scss',
+    changeDetection: ChangeDetectionStrategy.Eager,
+    standalone: false
 })
 export class GamesComponent implements OnInit {
 

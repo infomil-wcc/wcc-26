@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectionStrategy } from '@angular/core';
 import { StateService, AppState } from '../../services/core/state.service';
 import { Subscription } from 'rxjs';
 
@@ -10,9 +10,11 @@ interface NavigationItem {
 }
 
 @Component({
-  selector: 'cmp-nav',
-  templateUrl: './nav.component.html',
-  styleUrls: ['./nav.component.scss']
+    selector: 'cmp-nav',
+    templateUrl: './nav.component.html',
+    styleUrls: ['./nav.component.scss'],
+    changeDetection: ChangeDetectionStrategy.Eager,
+    standalone: false
 })
 export class NavComponent implements OnInit, OnDestroy {
 

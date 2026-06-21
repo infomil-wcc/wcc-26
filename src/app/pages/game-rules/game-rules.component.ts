@@ -1,13 +1,15 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule, KeyValue } from '@angular/common';
 import { ApiResponse, GameElement } from '../../shared/contracts/game-rules.contract';
 import { GameRulesService } from '../../shared/services/content/game-rules.service';
 import { Observable } from 'rxjs';
 
 @Component({
-  selector: 'app-game-rules',
-  templateUrl: './game-rules.component.html',
-  styleUrls: ['./game-rules.component.scss']
+    selector: 'app-game-rules',
+    templateUrl: './game-rules.component.html',
+    styleUrls: ['./game-rules.component.scss'],
+    changeDetection: ChangeDetectionStrategy.Eager,
+    standalone: false
 })
 export class GameRulesComponent implements OnInit {
   

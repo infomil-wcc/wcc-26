@@ -1,6 +1,9 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { BestScorerComponent } from './best-scorer.component';
+import { ModalComponent } from '../../../shared/components/modal/modal.component';
+import { LoginComponent } from '../../../shared/components/login/login.component';
+import { ReactiveFormsModule } from '@angular/forms';
 
 describe('BestScorerComponent', () => {
   let component: BestScorerComponent;
@@ -8,7 +11,8 @@ describe('BestScorerComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [BestScorerComponent]
+      imports: [ReactiveFormsModule],
+      declarations: [BestScorerComponent, ModalComponent, LoginComponent]
     })
     .compileComponents();
     

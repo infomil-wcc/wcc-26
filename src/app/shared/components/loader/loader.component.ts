@@ -1,9 +1,11 @@
-import { Component, EventEmitter, Input, OnChanges, Output, SimpleChange } from '@angular/core';
+import { Component, EventEmitter, Input, OnChanges, Output, SimpleChange, ChangeDetectionStrategy } from '@angular/core';
 
 @Component({
-  selector: 'loader',
-  templateUrl: './loader.component.html',
-  styleUrl: './loader.component.scss'
+    selector: 'loader',
+    templateUrl: './loader.component.html',
+    styleUrl: './loader.component.scss',
+    changeDetection: ChangeDetectionStrategy.Eager,
+    standalone: false
 })
 export class LoaderComponent implements OnChanges {
 

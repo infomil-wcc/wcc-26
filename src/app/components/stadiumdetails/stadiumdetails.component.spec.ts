@@ -14,6 +14,7 @@ describe('StadiumdetailsComponent', () => {
     
     fixture = TestBed.createComponent(StadiumdetailsComponent);
     component = fixture.componentInstance;
+    component.stadium = { id: 1, name: 'Test Stadium', city: 'Test City', image: 'test.jpg' } as any;
     fixture.detectChanges();
   });
 

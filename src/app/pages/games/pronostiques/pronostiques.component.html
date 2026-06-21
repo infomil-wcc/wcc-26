@@ -24,54 +24,64 @@
 </div>
 
 <div class="container pronostiquesMain">
-  <ng-container *ngIf="$today | async as today; else loader">
-    <div *ngIf="$groupedMatches | async as groupedMatches; else loader">
-      
-      <!-- Matchs à venir (activeMatches = true) -->
-      <ng-container *ngIf="activeMatches">
-        <ng-container *ngFor="let date of getDates(groupedMatches)">
-          <div class="notPlayed" *ngIf="!compareDates(today.dateTime, date)">
-            <h2 class="capitalize">{{ date | date: 'fullDate' }}</h2>
-            <div class="flex gap-2 mb-8 flex-wrap">
-              <div *ngFor="let match of groupedMatches[date]" class="col-12 p-0 flex-shrink-0 lg:col-4">
-                <app-match [match]="match" [isPronostiques]="true" [disabled]="!isLoggedIn" [dateTime]="today.dateTime" />
+  @if ($today | async; as today) {
+    @if ($groupedMatches | async; as groupedMatches) {
+      <div>
+        <!-- Matchs à venir (activeMatches = true) -->
+        @if (activeMatches) {
+          @for (date of getDates(groupedMatches); track date) {
+            @if (!compareDates(today.dateTime, date)) {
+              <div class="notPlayed">
+                <h2 class="capitalize">{{ date | date: 'fullDate' }}</h2>
+                <div class="flex gap-2 mb-8 flex-wrap">
+                  @for (match of groupedMatches[date]; track match) {
+                    <div class="col-12 p-0 flex-shrink-0 lg:col-4">
+                      <app-match [match]="match" [isPronostiques]="true" [disabled]="!isLoggedIn" [dateTime]="today.dateTime" />
+                    </div>
+                  }
+                </div>
               </div>
-            </div>
-          </div>
-        </ng-container>
-      </ng-container>
-
-      <!-- Matchs joués (activeMatches = false) -->
-      <ng-container *ngIf="!activeMatches">
-        <ng-container *ngFor="let date of getPlayedDates(groupedMatches)">
-          <div class="played" *ngIf="compareDates(today.dateTime, date)">
-            <h2 class="capitalize">{{ date | date: 'fullDate' }}</h2>
-            <div class="flex gap-2 mb-8 flex-wrap">
-              <div *ngFor="let match of groupedMatches[date]" class="col-12 p-0 flex-shrink-0 lg:col-4">
-                <app-match [match]="match" [isPronostiques]="true" [disabled]="!isLoggedIn" [dateTime]="today.dateTime" />
+            }
+          }
+        }
+        <!-- Matchs joués (activeMatches = false) -->
+        @if (!activeMatches) {
+          @for (date of getPlayedDates(groupedMatches); track date) {
+            @if (compareDates(today.dateTime, date)) {
+              <div class="played">
+                <h2 class="capitalize">{{ date | date: 'fullDate' }}</h2>
+                <div class="flex gap-2 mb-8 flex-wrap">
+                  @for (match of groupedMatches[date]; track match) {
+                    <div class="col-12 p-0 flex-shrink-0 lg:col-4">
+                      <app-match [match]="match" [isPronostiques]="true" [disabled]="!isLoggedIn" [dateTime]="today.dateTime" />
+                    </div>
+                  }
+                </div>
               </div>
-            </div>
-          </div>
-        </ng-container>
-      </ng-container>
-
-    </div>
-  </ng-container>
+            }
+          }
+        }
+      </div>
+    } @else {
+      <loader [showLoader]="true" />
+    }
+  } @else {
+    <loader [showLoader]="true" />
+  }
 </div>
 
-<ng-template #loader>
-  <loader [showLoader]="true" />
-</ng-template>
 
 <!-- Viewport Dock with Global Actions -->
-<div class="viewport-dock-container" *ngIf="draftsCount > 0">
-  <button class="btn-bulk-cancel" (click)="cancelAllDrafts()">
-    Réinitialiser
-    <span class="material-symbols-outlined ml-2">restart_alt</span>
-  </button>
-  <button class="btn-bulk-save" (click)="saveAllPredictions()" [disabled]="isSubmittingBulk">
-    <span class="material-symbols-outlined mr-2">save</span>
-    Sauvegarder ({{ draftsCount }})
-  </button>
-</div>
+@if (draftsCount > 0) {
+  <div class="viewport-dock-container">
+    <button class="btn-bulk-cancel" (click)="cancelAllDrafts()">
+      Réinitialiser
+      <span class="material-symbols-outlined ml-2">restart_alt</span>
+    </button>
+    <button class="btn-bulk-save" (click)="saveAllPredictions()" [disabled]="isSubmittingBulk">
+      <span class="material-symbols-outlined mr-2">save</span>
+      Sauvegarder ({{ draftsCount }})
+    </button>
+  </div>
+}
 

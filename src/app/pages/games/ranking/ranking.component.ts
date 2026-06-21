@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit, inject, ChangeDetectorRef } from '@angular/core';
+import { Component, OnDestroy, OnInit, inject, ChangeDetectorRef, ChangeDetectionStrategy } from '@angular/core';
 import { RankingcalculationService } from '../../../shared/services/core/rankingcalculation.service';
 import { Observable, Subscription } from 'rxjs';
 import { GlobaltimeService } from '../../../shared/services/core/globaltime.service';
@@ -7,9 +7,11 @@ import { BracketService } from '../../../shared/services/games/bracket.service';
 import { TeamsService } from '../../../shared/services/content/teams.service';
 
 @Component({
-  selector: 'app-ranking',
-  templateUrl: './ranking.component.html',
-  styleUrl: './ranking.component.scss'
+    selector: 'app-ranking',
+    templateUrl: './ranking.component.html',
+    styleUrl: './ranking.component.scss',
+    changeDetection: ChangeDetectionStrategy.Eager,
+    standalone: false
 })
 export class RankingComponent implements OnInit, OnDestroy {
 

@@ -1,12 +1,14 @@
-import { Component, Input, inject } from '@angular/core';
+import { Component, Input, inject, ChangeDetectionStrategy } from '@angular/core';
 import { TeamsService } from '../../services/content/teams.service';
 import { Observable } from 'rxjs';
 import { Teams } from '../../contracts/teams.contract';
 
 @Component({
-  selector: 'teamperformance',
-  templateUrl: './teamperformance.component.html',
-  styleUrl: './teamperformance.component.scss'
+    selector: 'teamperformance',
+    templateUrl: './teamperformance.component.html',
+    styleUrl: './teamperformance.component.scss',
+    changeDetection: ChangeDetectionStrategy.Eager,
+    standalone: false
 })
 export class TeamperformanceComponent {
 

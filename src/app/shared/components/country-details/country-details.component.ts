@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, ChangeDetectionStrategy } from '@angular/core';
 import { Observable } from 'rxjs';
 
 export interface Country {
@@ -35,9 +35,11 @@ export interface Country {
 }
 
 @Component({
-  selector: 'app-country-details',
-  templateUrl: './country-details.component.html',
-  styleUrl: './country-details.component.scss'
+    selector: 'app-country-details',
+    templateUrl: './country-details.component.html',
+    styleUrl: './country-details.component.scss',
+    changeDetection: ChangeDetectionStrategy.Eager,
+    standalone: false
 })
 export class CountryDetailsComponent {
 

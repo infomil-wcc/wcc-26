@@ -1,11 +1,13 @@
-import { Component, Input, OnInit, inject } from '@angular/core';
+import { Component, Input, OnInit, inject, ChangeDetectionStrategy } from '@angular/core';
 import { StateService, user } from '../../services/core/state.service';
 import { Observable, Subscription } from 'rxjs';
 
 @Component({
-  selector: 'cmp-header',
-  templateUrl: './header.component.html',
-  styleUrl: './header.component.scss'
+    selector: 'cmp-header',
+    templateUrl: './header.component.html',
+    styleUrl: './header.component.scss',
+    changeDetection: ChangeDetectionStrategy.Eager,
+    standalone: false
 })
 export class HeaderComponent implements OnInit{
 

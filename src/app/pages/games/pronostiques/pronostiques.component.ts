@@ -1,4 +1,4 @@
-import { Component, inject, ChangeDetectorRef } from '@angular/core';
+import { Component, inject, ChangeDetectorRef, ChangeDetectionStrategy } from '@angular/core';
 import { MatchesService } from '../../../shared/services/content/matches.service';
 import { Observable, forkJoin, of } from 'rxjs';
 import { Matches } from '../../../shared/contracts/matches.contract';
@@ -8,9 +8,11 @@ import { GlobaltimeService } from '../../../shared/services/core/globaltime.serv
 import { PredictionsService } from '../../../shared/services/games/predictions.service';
 
 @Component({
-  selector: 'app-pronostiques',
-  templateUrl: './pronostiques.component.html',
-  styleUrl: './pronostiques.component.scss'
+    selector: 'app-pronostiques',
+    templateUrl: './pronostiques.component.html',
+    styleUrl: './pronostiques.component.scss',
+    changeDetection: ChangeDetectionStrategy.Eager,
+    standalone: false
 })
 export class PronostiquesComponent {
 

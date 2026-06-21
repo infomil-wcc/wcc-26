@@ -1,4 +1,4 @@
-@import "./../../../../variables.scss";
+@use "./../../../../variables" as *;
 .dialog {
   top: 25%;
   z-index: 1500;

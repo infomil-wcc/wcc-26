@@ -8,27 +8,25 @@
 </div>
 
 <div class="container pt-4">
-  
-  <ng-container *ngIf="$today | async as today">
-    <div *ngIf="$groupedMatches | async as groupedMatches; else loader">
 
-      <ng-container *ngFor="let date of getDates(groupedMatches)">
-        <h3 class="capitalize">{{ date | date: 'fullDate' }}</h3>
-        
-        <div class="flex flex-wrap gap-2 mb-8">
-          <ng-container *ngFor="let match of groupedMatches[date]">
-            <div class="col-12 p-0 lg:col-4">
-              <app-match [match]="match" [dateTime]="today.dateTime" />
-            </div>
-          </ng-container>
-        </div>
-      </ng-container>
-
-    </div>
-  </ng-container>
+  @if ($today | async; as today) {
+    @if ($groupedMatches | async; as groupedMatches) {
+      <div>
+        @for (date of getDates(groupedMatches); track date) {
+          <h3 class="capitalize">{{ date | date: 'fullDate' }}</h3>
+          <div class="flex flex-wrap gap-2 mb-8">
+            @for (match of groupedMatches[date]; track match) {
+              <div class="col-12 p-0 lg:col-4">
+                <app-match [match]="match" [dateTime]="today.dateTime" />
+              </div>
+            }
+          </div>
+        }
+      </div>
+    } @else {
+      <loader [showLoader]="true" />
+    }
+  }
 
 </div>
 
-<ng-template #loader>
-  <loader [showLoader]="true" />
-</ng-template>

@@ -1,6 +1,8 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { StadiumsComponent } from './stadiums.component';
+import { BreadcrumpComponent } from '../../../shared/components/breadcrump/breadcrump.component';
+import { LoaderComponent } from '../../../shared/components/loader/loader.component';
 
 describe('StadiumsComponent', () => {
   let component: StadiumsComponent;
@@ -8,7 +10,7 @@ describe('StadiumsComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [StadiumsComponent]
+      declarations: [StadiumsComponent, BreadcrumpComponent, LoaderComponent]
     })
     .compileComponents();
     

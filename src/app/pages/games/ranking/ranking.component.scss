@@ -1,4 +1,4 @@
-@import "../../../../variables.scss";
+@use "../../../../variables" as *;
 
 // White background for the page as requested
 .leaderboard-page {

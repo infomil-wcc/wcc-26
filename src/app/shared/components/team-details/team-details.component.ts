@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, inject } from '@angular/core';
+import { Component, Input, OnInit, inject, ChangeDetectionStrategy } from '@angular/core';
 import { Teams, TeamResponse, teamsApiData } from '../../contracts/teams.contract';
 import { Matches } from '../../contracts/matches.contract';
 import { TeamsService } from '../../services/content/teams.service';
@@ -9,9 +9,11 @@ import { Country } from '../country-details/country-details.component';
 import { GlobaltimeService } from '../../services/core/globaltime.service';
 
 @Component({
-  selector: 'team-details',
-  templateUrl: './team-details.component.html',
-  styleUrl: './team-details.component.scss'
+    selector: 'team-details',
+    templateUrl: './team-details.component.html',
+    styleUrl: './team-details.component.scss',
+    changeDetection: ChangeDetectionStrategy.Eager,
+    standalone: false
 })
 export class TeamDetailsComponent implements OnInit {
 

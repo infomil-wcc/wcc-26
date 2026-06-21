@@ -1,41 +1,38 @@
-import { Injectable } from '@angular/core';
-import { HttpClient, HttpParams } from '@angular/common/http';
-import { Matches, matchesApiData } from '../../contracts/matches.contract';
+import { Injectable, inject } from '@angular/core';
+import { Matches } from '../../contracts/matches.contract';
 import { Observable, forkJoin, map } from 'rxjs';
-import { environment } from '../../../../environments/environment';
+import { MatchesApiService } from '../api/matches-api.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class MatchesService {
-
-  constructor(private http: HttpClient) { }
+  private matchesApiService = inject(MatchesApiService);
 
   getAllMatches(): Observable<Matches[]> {
-    return this.http.get<matchesApiData>(`${environment.apiBaseUrl}/items/matches`).pipe(
+    return this.matchesApiService.getMatches().pipe(
       map(response => response.data)
     );
   }
 
   getMatchesByGroup(groupName: string): Observable<Matches[]> {
-    return this.http.get<matchesApiData>(`${environment.apiBaseUrl}/items/matches?filter[group]=${groupName}`).pipe(
+    return this.matchesApiService.getMatches(`?filter[group]=${groupName}`).pipe(
       map(response => response.data)
     );
   }
 
   getMatchesByPhase(phase: string): Observable<Matches[]> {
-    return this.http.get<matchesApiData>(`${environment.apiBaseUrl}/items/matches?filter[phase]=${phase}`).pipe(
+    return this.matchesApiService.getMatches(`?filter[phase]=${phase}`).pipe(
       map(response => response.data)
     );
   }
 
   getMatchesByTeam(team: string): Observable<Matches[]> {
-
-    const teamA$ = this.http.get<matchesApiData>(`${environment.apiBaseUrl}/items/matches?filter[team_a]=${team}`).pipe(
+    const teamA$ = this.matchesApiService.getMatches(`?filter[team_a]=${team}`).pipe(
       map(response => response.data)
     );
 
-    const teamB$ = this.http.get<matchesApiData>(`${environment.apiBaseUrl}/items/matches?filter[team_b]=${team}`).pipe(
+    const teamB$ = this.matchesApiService.getMatches(`?filter[team_b]=${team}`).pipe(
       map(response => response.data)
     );
 
@@ -45,9 +42,8 @@ export class MatchesService {
   }
 
   getPlayedMatches(): Observable<Matches[]>{
-    return this.http.get<matchesApiData>(`${environment.apiBaseUrl}/items/matches?filter[fulltime_b][nnull]`).pipe(
+    return this.matchesApiService.getMatches('?filter[fulltime_b][nnull]').pipe(
       map(response => response.data)
     );
   }
 }
-

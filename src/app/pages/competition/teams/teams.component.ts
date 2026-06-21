@@ -1,4 +1,4 @@
-import { Component, Host, OnInit, Optional, inject } from '@angular/core';
+import { Component, Host, OnInit, Optional, inject, ChangeDetectionStrategy } from '@angular/core';
 import { StateService } from '../../../shared/services/core/state.service';
 import { TeamsService } from '../../../shared/services/content/teams.service';
 import { Observable, map } from 'rxjs';
@@ -7,9 +7,11 @@ import { breadCrump } from '../../../shared/components/breadcrump/breadcrump.com
 import { GlobaltimeService } from '../../../shared/services/core/globaltime.service';
 
 @Component({
-  selector: 'app-teams',
-  templateUrl: './teams.component.html',
-  styleUrl: './teams.component.scss'
+    selector: 'app-teams',
+    templateUrl: './teams.component.html',
+    styleUrl: './teams.component.scss',
+    changeDetection: ChangeDetectionStrategy.Eager,
+    standalone: false
 })
 
 export class TeamsComponent implements OnInit {

@@ -1,4 +1,5 @@
-@import "../../../../variables.scss";
+@use "sass:color";
+@use "../../../../variables" as *;
 
 .pronostiqueHeader {
   top: $pagesHeader;
@@ -20,23 +21,23 @@
 .btnFilter {
   padding: 0.45rem 1rem;
   background: $inputBorder;
-  color: darken($inputBorder, 40%);
+  color: color.adjust($inputBorder, $lightness: -40%);
   border-radius: 20px;
   font-size: 0.85rem;
 
   .material-symbols-outlined {
     font-size: 0.85rem;
-    color: darken($inputBorder, 40%);
+    color: color.adjust($inputBorder, $lightness: -40%);
     opacity: 0;
   }
 
   &.active {
     pointer-events: none;
     background: $yellow;
-    color: darken($yellow, 25%);
+    color: color.adjust($yellow, $lightness: -25%);
 
     .material-symbols-outlined {
-      color: darken($yellow, 25%);
+      color: color.adjust($yellow, $lightness: -25%);
       opacity: 1;
     }
   }
@@ -110,7 +111,7 @@
   }
 
   &:hover:not(:disabled) {
-    background: darken($green, 5%);
+    background: color.adjust($green, $lightness: -5%);
     transform: translateY(-3px);
     box-shadow: 0 15px 30px rgba(0, 168, 93, 0.45), 0 6px 15px rgba(0, 0, 0, 0.18);
   }
@@ -149,7 +150,7 @@
   }
 
   &:hover:not(:disabled) {
-    background: darken(#ffab91, 5%);
+    background: color.adjust(#ffab91, $lightness: -5%);
     transform: translateY(-3px);
     box-shadow: 0 15px 30px rgba(255, 171, 145, 0.5), 0 6px 15px rgba(0, 0, 0, 0.12);
   }

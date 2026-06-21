@@ -2,7 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable, from } from 'rxjs';
 import { map, groupBy, mergeMap, toArray, reduce } from 'rxjs/operators';
-import { CookieService } from 'ngx-cookie-service';
+import { CookieService } from './cookie.service';
 import { MatchesService } from '../content/matches.service';
 import { Matches } from '../../contracts/matches.contract';
 import { Pronostiques, pronostiquesApiData } from '../../contracts/pronostiques.contract';

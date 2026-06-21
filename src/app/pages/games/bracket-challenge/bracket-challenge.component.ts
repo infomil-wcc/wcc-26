@@ -1,12 +1,14 @@
-import { Component, inject, OnInit } from '@angular/core';
-import { CookieService } from 'ngx-cookie-service';
+import { Component, inject, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { CookieService } from '../../../shared/services/core/cookie.service';
 import { StateService } from '../../../shared/services/core/state.service';
 import { BracketService } from '../../../shared/services/games/bracket.service';
 
 @Component({
-  selector: 'app-bracket-challenge',
-  templateUrl: './bracket-challenge.component.html',
-  styleUrl: './bracket-challenge.component.scss'
+    selector: 'app-bracket-challenge',
+    templateUrl: './bracket-challenge.component.html',
+    styleUrl: './bracket-challenge.component.scss',
+    changeDetection: ChangeDetectionStrategy.Eager,
+    standalone: false
 })
 export class BracketChallengeComponent implements OnInit {
   private cookieService = inject(CookieService);

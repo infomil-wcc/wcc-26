@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable, BehaviorSubject, map, switchMap, tap, throwError } from 'rxjs';
-import { CookieService } from 'ngx-cookie-service';
+import { CookieService } from '../core/cookie.service';
 import { environment } from '../../../../environments/environment';
 import { Pronostiques } from '../../contracts/pronostiques.contract';
 

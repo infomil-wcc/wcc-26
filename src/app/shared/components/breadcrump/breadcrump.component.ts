@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, EventEmitter, Input, Output, ChangeDetectionStrategy } from '@angular/core';
 
 export interface breadCrump {
   label: string;
@@ -7,9 +7,11 @@ export interface breadCrump {
 }
 
 @Component({
-  selector: 'app-breadcrump',
-  templateUrl: './breadcrump.component.html',
-  styleUrl: './breadcrump.component.scss'
+    selector: 'app-breadcrump',
+    templateUrl: './breadcrump.component.html',
+    styleUrl: './breadcrump.component.scss',
+    changeDetection: ChangeDetectionStrategy.Eager,
+    standalone: false
 })
 
 export class BreadcrumpComponent {

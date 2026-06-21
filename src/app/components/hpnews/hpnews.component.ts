@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, ChangeDetectionStrategy } from '@angular/core';
 import { NewsService } from '../../shared/services/content/news.service';
 import { Observable, combineLatest, timer } from 'rxjs';
 import { map, switchMap } from 'rxjs/operators';
@@ -7,9 +7,11 @@ import { GlobaltimeService } from '../../shared/services/core/globaltime.service
 import { Matches } from '../../shared/contracts/matches.contract';
 
 @Component({
-  selector: 'app-hpnews',
-  templateUrl: './hpnews.component.html',
-  styleUrl: './hpnews.component.scss'
+    selector: 'app-hpnews',
+    templateUrl: './hpnews.component.html',
+    styleUrl: './hpnews.component.scss',
+    changeDetection: ChangeDetectionStrategy.Eager,
+    standalone: false
 })
 export class HpnewsComponent {
   private newsService = inject(NewsService);

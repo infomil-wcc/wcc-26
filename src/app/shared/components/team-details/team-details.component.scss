@@ -1,4 +1,4 @@
-@import "./../../../../variables.scss";
+@use "./../../../../variables" as *;
 
 .teamDetails {
   // width: calc(100% - 1rem);

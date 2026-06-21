@@ -1,11 +1,13 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, ChangeDetectionStrategy } from '@angular/core';
 import { RulesService } from '../../shared/services/content/rules.service';
 import { Observable, map } from 'rxjs';
 
 @Component({
-  selector: 'app-faq',
-  templateUrl: './faq.component.html',
-  styleUrl: './faq.component.scss'
+    selector: 'app-faq',
+    templateUrl: './faq.component.html',
+    styleUrl: './faq.component.scss',
+    changeDetection: ChangeDetectionStrategy.Eager,
+    standalone: false
 })
 export class FaqComponent {
   private rulesService = inject(RulesService);

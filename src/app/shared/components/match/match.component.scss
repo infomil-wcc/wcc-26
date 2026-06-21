@@ -1,4 +1,5 @@
-@import "../../../../variables.scss";
+@use "sass:color";
+@use "../../../../variables" as *;
 
 .match {
   background: #ffffff;
@@ -16,7 +17,7 @@
   &:hover {
     transform: translateY(-4px);
     box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.04);
-    border-color: darken(#e2e8f0, 8%);
+    border-color: color.adjust(#e2e8f0, $lightness: -8%);
   }
 
   &.donePronostique {
@@ -25,7 +26,7 @@
     background: linear-gradient(135deg, rgba($secondaryColor, 0.02) 0%, rgba($secondaryColor, 0.08) 100%);
 
     .match-header {
-      background: linear-gradient(135deg, $secondaryColor 0%, darken($secondaryColor, 8%) 100%);
+      background: linear-gradient(135deg, $secondaryColor 0%, color.adjust($secondaryColor, $lightness: -8%) 100%);
     }
 
     .match-body {
@@ -33,7 +34,7 @@
     }
 
     .match-footer {
-      background: linear-gradient(135deg, $secondaryColor 0%, darken($secondaryColor, 8%) 100%);
+      background: linear-gradient(135deg, $secondaryColor 0%, color.adjust($secondaryColor, $lightness: -8%) 100%);
     }
   }
 
@@ -378,7 +379,7 @@
       color: #ffffff;
       
       &:hover:not(:disabled) {
-        background: darken($primaryColor, 8%);
+        background: color.adjust($primaryColor, $lightness: -8%);
       }
     }
 
@@ -439,7 +440,7 @@
     justify-content: center;
 
     &:hover:not(:disabled) {
-      background: darken(#ffab91, 5%);
+      background: color.adjust(#ffab91, $lightness: -5%);
       transform: translateY(-2px);
       box-shadow: 0 6px 16px rgba(255, 171, 145, 0.45), 0 3px 6px rgba(0, 0, 0, 0.12);
     }
@@ -472,7 +473,7 @@
     justify-content: center;
 
     &:hover:not(:disabled) {
-      background: darken(#3f51b5, 5%);
+      background: color.adjust(#3f51b5, $lightness: -5%);
       transform: translateY(-2px);
       box-shadow: 0 6px 16px rgba(63, 81, 181, 0.4), 0 3px 6px rgba(0, 0, 0, 0.12);
     }
@@ -505,7 +506,7 @@
     justify-content: center;
 
     &:hover:not(:disabled) {
-      background: darken($green, 5%);
+      background: color.adjust($green, $lightness: -5%);
       transform: translateY(-2px);
       box-shadow: 0 6px 16px rgba(0, 168, 93, 0.45), 0 3px 6px rgba(0, 0, 0, 0.12);
     }

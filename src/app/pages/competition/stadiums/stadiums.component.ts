@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectionStrategy } from '@angular/core';
 import { breadCrump } from '../../../shared/components/breadcrump/breadcrump.component';
 import { Observable, map } from 'rxjs';
 import { StadiumsService } from '../../../shared/services/content/stadiums.service';
@@ -10,9 +10,11 @@ export interface Stadium {
   showDetails: boolean;
 }
 @Component({
-  selector: 'app-stadiums',
-  templateUrl: './stadiums.component.html',
-  styleUrl: './stadiums.component.scss'
+    selector: 'app-stadiums',
+    templateUrl: './stadiums.component.html',
+    styleUrl: './stadiums.component.scss',
+    changeDetection: ChangeDetectionStrategy.Eager,
+    standalone: false
 })
 export class StadiumsComponent implements OnInit {
 

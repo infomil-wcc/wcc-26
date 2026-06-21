@@ -1,14 +1,16 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, ChangeDetectionStrategy } from '@angular/core';
 import { TeamsService } from '../../shared/services/content/teams.service';
 import { Group, Teams } from '../../shared/contracts/teams.contract';
 import { Observable } from 'rxjs';
 import { HeaderComponent } from '../../shared/components/header/header.component';
-import { CookieService } from 'ngx-cookie-service';
+import { CookieService } from '../../shared/services/core/cookie.service';
 
 @Component({
-  selector: 'app-homepage',
-  templateUrl: './homepage.component.html',
-  styleUrl: './homepage.component.scss'
+    selector: 'app-homepage',
+    templateUrl: './homepage.component.html',
+    styleUrl: './homepage.component.scss',
+    changeDetection: ChangeDetectionStrategy.Eager,
+    standalone: false
 })
 export class HomepageComponent {
   private teamService = inject<TeamsService>(TeamsService);

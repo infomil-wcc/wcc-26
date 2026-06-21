@@ -1,9 +1,11 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, EventEmitter, Input, Output, ChangeDetectionStrategy } from '@angular/core';
 
 @Component({
-  selector: 'modal',
-  templateUrl: './modal.component.html',
-  styleUrl: './modal.component.scss'
+    selector: 'modal',
+    templateUrl: './modal.component.html',
+    styleUrl: './modal.component.scss',
+    changeDetection: ChangeDetectionStrategy.Eager,
+    standalone: false
 })
 
 

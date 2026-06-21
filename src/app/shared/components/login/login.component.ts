@@ -1,14 +1,16 @@
-import { Component, Input, SimpleChanges, inject } from '@angular/core';
+import { Component, Input, SimpleChanges, inject, ChangeDetectionStrategy } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { AuthService } from '../../services/core/auth.service';
-import { CookieService } from 'ngx-cookie-service';
+import { CookieService } from '../../services/core/cookie.service';
 import { StateService } from '../../services/core/state.service';
 import { MailService } from '../../services/core/mail.service';
 
 @Component({
-  selector: 'app-login',
-  templateUrl: './login.component.html',
-  styleUrl: './login.component.scss'
+    selector: 'app-login',
+    templateUrl: './login.component.html',
+    styleUrl: './login.component.scss',
+    changeDetection: ChangeDetectionStrategy.Eager,
+    standalone: false
 })
 export class LoginComponent {
 

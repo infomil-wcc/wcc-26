@@ -1,17 +1,19 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, Input, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { ActivatedRoute, NavigationStart, Router } from '@angular/router';
 import { StateService, AppState, user } from './shared/services/core/state.service';
 import { AuthService } from './shared/services/core/auth.service';
 import { TeamsService } from './shared/services/content/teams.service';
-import { CookieService } from 'ngx-cookie-service';
+import { CookieService } from './shared/services/core/cookie.service';
 import { Observable, catchError, throwError } from 'rxjs';
 import { TotalgoalsService } from './shared/services/core/totalgoals.service';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 
 @Component({
-  selector: 'app-root',
-  templateUrl: './app.component.html',
-  styleUrl: './app.component.scss'
+    selector: 'app-root',
+    templateUrl: './app.component.html',
+    styleUrl: './app.component.scss',
+    changeDetection: ChangeDetectionStrategy.Eager,
+    standalone: false
 })
 export class AppComponent implements OnInit {
 

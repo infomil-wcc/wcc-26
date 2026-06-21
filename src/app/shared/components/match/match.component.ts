@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, OnInit, OnDestroy, Output, inject } from '@angular/core';
+import { Component, EventEmitter, Input, OnInit, OnDestroy, Output, inject, ChangeDetectionStrategy } from '@angular/core';
 import { Matches } from '../../contracts/matches.contract';
 import { Observable } from 'rxjs';
 import { Player } from '../../contracts/teams.contract';
@@ -10,9 +10,11 @@ import { GlobaltimeService } from '../../services/core/globaltime.service';
 import { StadiumsService } from '../../services/content/stadiums.service';
 
 @Component({
-  selector: 'app-match',
-  templateUrl: './match.component.html',
-  styleUrl: './match.component.scss'
+    selector: 'app-match',
+    templateUrl: './match.component.html',
+    styleUrl: './match.component.scss',
+    changeDetection: ChangeDetectionStrategy.Eager,
+    standalone: false
 })
 export class MatchComponent implements OnInit, OnDestroy{
 

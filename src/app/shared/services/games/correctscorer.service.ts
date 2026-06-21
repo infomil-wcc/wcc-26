@@ -2,7 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable, map, switchMap, tap, throwError } from 'rxjs';
 import { environment } from '../../../../environments/environment';
-import { CookieService } from 'ngx-cookie-service';
+import { CookieService } from '../core/cookie.service';
 
 export interface BestPlayer {
   user: string | null;
