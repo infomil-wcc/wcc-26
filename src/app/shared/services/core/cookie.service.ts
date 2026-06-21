@@ -13,7 +13,7 @@ export class CookieService {
   get(name: string): string {
     if (this.check(name)) {
       name = encodeURIComponent(name);
-      const regexp = new RegExp('(?:^|;\\s*)' + name.replace(/[\-\.\+\*]/g, '\\$&') + '\\s*\\=\\s*([^;]*ExternalLink|)');
+      const regexp = new RegExp('(?:^|;\\s*)' + name.replace(/[\-\.\+\*]/g, '\\$&') + '\\s*\\=\\s*([^;]*)');
       const match = document.cookie.match(regexp);
       return match ? decodeURIComponent(match[1]) : '';
     }

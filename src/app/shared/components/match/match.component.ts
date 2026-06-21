@@ -95,8 +95,29 @@ export class MatchComponent implements OnInit, OnDestroy{
       this.closed = true;
 
       if(this.match.fulltime_a === null || this.match.fulltime_b === null) {
-        console.log('match finished but result not updated');
-        // this.predictionService.updateResults();
+        const matchTime = new Date(this.match.date).getTime();
+        const nowTime = this.today.getTime();
+
+        const completionTime = matchTime + 120 * 60 * 1000;
+        const thirtyMinsAfterTime = matchTime + 150 * 60 * 1000;
+
+        const isAtCompletion = nowTime >= completionTime && nowTime < completionTime + 5 * 60 * 1000;
+        const isAtThirtyMinsAfter = nowTime >= thirtyMinsAfterTime && nowTime < thirtyMinsAfterTime + 5 * 60 * 1000;
+
+        if (isAtCompletion || isAtThirtyMinsAfter) {
+          const storageKey = `sync_match_${this.match.id}_${isAtCompletion ? 'completion' : '30mins'}`;
+          if (!localStorage.getItem(storageKey)) {
+            localStorage.setItem(storageKey, 'true');
+            this.predictionService.updateResults().subscribe({
+              next: (res) => {
+                console.log(`Automatically updated results for match ${this.match.id}`, res);
+              },
+              error: (err) => {
+                console.error('Error auto-updating match results:', err);
+              }
+            });
+          }
+        }
       }
     }
 
@@ -295,5 +316,40 @@ export class MatchComponent implements OnInit, OnDestroy{
 
     updateCountdown();
     this.countdownIntervalId = setInterval(updateCountdown, 1000);
+  }
+
+  isOutcomeCorrect(): boolean {
+    if (!this.donePronostique || !this.match || this.match.fulltime_a === null || this.match.fulltime_b === null) {
+      return false;
+    }
+    return this.donePronostique.winner_draw === this.match.winner_draw;
+  }
+
+  isFulltimeCorrect(): boolean {
+    if (!this.donePronostique || !this.match || this.match.fulltime_a === null || this.match.fulltime_b === null) {
+      return false;
+    }
+    const predA = parseInt(this.donePronostique.fulltime_a, 10);
+    const predB = parseInt(this.donePronostique.fulltime_b, 10);
+    return predA === this.match.fulltime_a && predB === this.match.fulltime_b;
+  }
+
+  isHalftimeCorrect(): boolean {
+    if (!this.donePronostique || !this.match || this.match.halftime_a === null || this.match.halftime_b === null) {
+      return false;
+    }
+    const predA = parseInt(this.donePronostique.halftime_a, 10);
+    const predB = parseInt(this.donePronostique.halftime_b, 10);
+    return predA === this.match.halftime_a && predB === this.match.halftime_b;
+  }
+
+  isScorerCorrect(): boolean {
+    if (!this.donePronostique || !this.match || !this.match.scorers) {
+      return false;
+    }
+    const predScorer = this.donePronostique.scorer;
+    if (!predScorer || predScorer === '-') return false;
+    const scorersList = this.match.scorers.split(',').map((name: string) => name.trim().toLowerCase());
+    return scorersList.includes(predScorer.trim().toLowerCase());
   }
 }

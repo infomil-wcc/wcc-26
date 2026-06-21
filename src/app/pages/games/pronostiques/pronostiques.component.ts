@@ -9,6 +9,7 @@ import { PredictionsService } from '../../../shared/services/games/predictions.s
 import { NgClass, AsyncPipe, DatePipe } from '@angular/common';
 import { MatchComponent } from '../../../shared/components/match/match.component';
 import { LoaderComponent } from '../../../shared/components/loader/loader.component';
+import { tap } from 'rxjs/operators';
 
 @Component({
     selector: 'app-pronostiques',
@@ -25,10 +26,13 @@ export class PronostiquesComponent {
   private predictionService = inject(PredictionsService);
   private cdr = inject(ChangeDetectorRef);
   protected isLoggedIn: boolean = false;
-  protected $today!:Observable<any>;
+  protected $today!: Observable<any>;
   protected activeMatches: boolean = true;
   protected draftsCount: number = 0;
   protected isSubmittingBulk: boolean = false;
+  protected upcomingCount: number = 0;
+  protected playedCount: number = 0;
+  protected todayMatchCount: number = 0;
 
   $groupedMatches!: Observable<{ [key: string]: Matches[] }>;
   $playedMatches!: Observable<Matches[]>;
@@ -38,6 +42,16 @@ export class PronostiquesComponent {
     this.$today = this.globalTime.getMuTime();
 
     this.$groupedMatches = this.matchesService.getAllMatches().pipe(
+      tap(matches => {
+        const today = new Date();
+        const todayKey = today.toISOString().split('T')[0];
+        this.upcomingCount = matches.filter(m => new Date(m.date) >= today).length;
+        this.playedCount = matches.filter(m => m.fulltime_a !== null && m.fulltime_b !== null).length;
+        this.todayMatchCount = matches.filter(m => {
+          const d = m.date.split(' ')[0];
+          return d === todayKey && m.fulltime_a === null;
+        }).length;
+      }),
       map(matches => this.groupMatchesByDate(matches))
     );
 
@@ -56,23 +70,30 @@ export class PronostiquesComponent {
   }
 
   groupMatchesByDate(matches: Matches[]): { [key: string]: Matches[] } {
-    const now = new Date();
-    const daysFromNow = new Date();
-
-    // define here interval on which the matches should appear
-    daysFromNow.setDate(now.getDate() + 4);
-
+    // Group ALL matches by date (no cutoff) so both tabs can filter from one source
     return matches.reduce((groups, match) => {
-      const matchDate = new Date(match.date);
-      if (matchDate <= daysFromNow) {
-        const dateKey = match.date.split(' ')[0];
-        if (!groups[dateKey]) {
-          groups[dateKey] = [];
-        }
-        groups[dateKey].push(match);
+      const dateKey = match.date.split(' ')[0];
+      if (!groups[dateKey]) {
+        groups[dateKey] = [];
       }
+      groups[dateKey].push(match);
       return groups;
     }, {} as { [key: string]: Matches[] });
+  }
+
+  /** Returns true if a date group has at least one upcoming (unfinished) match */
+  hasUpcoming(matches: Matches[]): boolean {
+    return matches.some(m => m.fulltime_a === null && m.fulltime_b === null);
+  }
+
+  /** Returns true if a date group has at least one finished match */
+  hasPlayed(matches: Matches[]): boolean {
+    return matches.some(m => m.fulltime_a !== null && m.fulltime_b !== null);
+  }
+
+  /** Count unpredicted matches in a date group */
+  unpredictedCount(matches: Matches[]): number {
+    return matches.filter(m => m.fulltime_a === null && m.fulltime_b === null).length;
   }
 
   getDates(groupedMatches: { [key: string]: Matches[] }): string[] {

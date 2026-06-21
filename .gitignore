@@ -7,7 +7,8 @@ dist
 .vscode
 *.log
 *.tmp
-.angular/cache/*
-.angular/cache/18.2.21/euroapp/.tsbuildinfo
+.angular
 .env.local
 package-lock.json
+scratch
+coverage
