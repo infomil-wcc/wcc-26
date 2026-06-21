@@ -1,70 +1,384 @@
 @use "sass:color";
 @use "../../../../variables" as *;
 
+// ─── Header ──────────────────────────────────────────────────────────────────
+
 .pronostiqueHeader {
   top: $pagesHeader;
   z-index: 50;
 
-  @media screen and (max-width: 640px){
+  @media screen and (max-width: 640px) {
     top: 128px;
   }
 }
 
-.filter {
+// ─── Unified Header Bar ───────────────────────────────────────────────────────
+
+.header-bar {
   background: $darkSecondary;
+  padding: 0.55rem 0.75rem;
 }
 
-.playedFilter {
-  background: $secondaryColor;
+.header-bar-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
 }
 
-.btnFilter {
-  padding: 0.45rem 1rem;
-  background: $inputBorder;
-  color: color.adjust($inputBorder, $lightness: -40%);
-  border-radius: 20px;
-  font-size: 0.85rem;
+.header-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
 
-  .material-symbols-outlined {
-    font-size: 0.85rem;
-    color: color.adjust($inputBorder, $lightness: -40%);
-    opacity: 0;
+  .header-title-icon {
+    font-size: 1.3rem;
+    color: rgba(255, 255, 255, 0.85);
+    margin-right: 0;
+    font-variation-settings: 'FILL' 0, 'wght' 500, 'GRAD' 0, 'opsz' 48;
   }
 
-  &.active {
-    pointer-events: none;
-    background: $yellow;
-    color: color.adjust($yellow, $lightness: -25%);
+  .header-title-text {
+    font-family: UefaEuro;
+    font-size: 1rem;
+    font-weight: 700;
+    color: #ffffff;
+    white-space: nowrap;
+    letter-spacing: 0.3px;
+  }
+}
 
-    .material-symbols-outlined {
-      color: color.adjust($yellow, $lightness: -25%);
-      opacity: 1;
+// ─── Pill Tab Bar ─────────────────────────────────────────────────────────────
+
+.tab-group {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.tab-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0.4rem 1rem;
+  border-radius: 50px;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1.5px solid rgba(255, 255, 255, 0.18);
+  color: rgba(255, 255, 255, 0.75);
+  font-family: UefaEuro;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+  white-space: nowrap;
+
+  .tab-icon {
+    font-size: 1rem;
+    color: inherit;
+    margin-right: 0;
+  }
+
+  .tab-label {
+    font-size: 0.85rem;
+  }
+
+  &:hover:not(.tab-active) {
+    background: rgba(255, 255, 255, 0.22);
+    color: #ffffff;
+  }
+
+  &.tab-active {
+    background: #ffffff;
+    border-color: #ffffff;
+    color: $darkSecondary;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+    pointer-events: none;
+
+    .tab-icon {
+      color: $darkSecondary;
     }
   }
 }
 
-.pronostiquesMain {
-  padding-top: 128px;
-}
+.tab-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  border-radius: 10px;
+  font-size: 0.7rem;
+  font-weight: 800;
+  padding: 0 6px;
+  line-height: 1;
 
-// @media screen and (min-width: 576px){
-//   .filter {
-//     // margin-top: -1rem;
-//     // margin-left: -1.5rem;
-//     // width: calc(100% + 3rem) !important;
-//   }
+  &.tab-badge-upcoming {
+    background: $yellow;
+    color: color.adjust($yellow, $lightness: -35%);
+  }
 
-//   .playedFilter {
-//     // margin-left: -1.5rem;
-//     // width: calc(100% + 3rem) !important;
-//   }
-// }
+  &.tab-badge-played {
+    background: rgba(255, 255, 255, 0.25);
+    color: #ffffff;
 
-@media screen and (min-width: 991px){
-  .lg\:col-4 {
-    width: 32.8% !important;
+    .tab-active & {
+      background: rgba($darkSecondary, 0.12);
+      color: $darkSecondary;
+    }
   }
 }
+
+// ─── Main Content ─────────────────────────────────────────────────────────────
+
+.pronostiquesMain {
+  // Matches height of the global app header + our single unified bar
+  padding-top: 70px;
+
+  @media screen and (max-width: 640px) {
+    padding-top: 80px;
+  }
+}
+
+// ─── Today Urgency Banner ─────────────────────────────────────────────────────
+
+.today-banner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: linear-gradient(135deg, #fff8e1 0%, #fffde7 100%);
+  border: 1.5px solid #fdd835;
+  border-radius: 12px;
+  padding: 14px 18px;
+  margin-bottom: 20px;
+  margin-top: 12px;
+  box-shadow: 0 2px 12px rgba(253, 216, 53, 0.25);
+  animation: bannerSlide 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+
+  .today-banner-icon {
+    font-size: 1.75rem;
+    color: #f57f17;
+    margin-right: 0;
+    animation: pulseAlarm 1.8s ease-in-out infinite;
+    font-variation-settings: 'FILL' 1, 'wght' 600, 'GRAD' 0, 'opsz' 48;
+    flex-shrink: 0;
+  }
+
+  .today-banner-text {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+
+    strong {
+      font-family: UefaEuro;
+      font-size: 0.95rem;
+      color: #e65100;
+    }
+
+    span {
+      font-size: 0.78rem;
+      color: #795548;
+    }
+  }
+
+  // Green variant: all caught up
+  &.today-banner-done {
+    background: linear-gradient(135deg, #e8f5e9 0%, #f1f8f1 100%);
+    border-color: $secondaryColor;
+    box-shadow: 0 2px 12px rgba($secondaryColor, 0.2);
+
+    .today-banner-icon {
+      color: $secondaryColor;
+      animation: none; // no pulsing when all done
+      font-variation-settings: 'FILL' 1, 'wght' 600, 'GRAD' 0, 'opsz' 48;
+    }
+
+    .today-banner-text {
+      strong {
+        color: $darkSecondary;
+      }
+      span {
+        color: color.adjust($secondaryColor, $lightness: -15%);
+      }
+    }
+  }
+}
+
+@keyframes bannerSlide {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulseAlarm {
+  0%, 100% { transform: rotate(-10deg); }
+  50% { transform: rotate(10deg); }
+}
+
+// ─── Phase Section ────────────────────────────────────────────────────────────
+
+.phase-section {
+  margin-bottom: 2.75rem;
+}
+
+.phase-header {
+  background: var(--phase-color, #3b5bdb);
+  border-radius: 10px;
+  padding: 10px 16px;
+  margin-bottom: 16px;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.15);
+
+  .phase-header-inner {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .phase-icon {
+    font-size: 1.35rem;
+    color: rgba(255, 255, 255, 0.9);
+    margin-right: 0;
+    font-variation-settings: 'FILL' 1, 'wght' 500, 'GRAD' 0, 'opsz' 48;
+  }
+
+  .phase-label {
+    font-family: UefaEuro;
+    font-size: 1rem;
+    font-weight: 700;
+    color: #ffffff;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+}
+
+// ─── Date Group Sections ──────────────────────────────────────────────────────
+
+.matches-section {
+  padding-bottom: 100px; // room for the floating dock
+}
+
+.date-group {
+  margin-bottom: 2.25rem;
+}
+
+.date-header {
+  margin-bottom: 14px;
+
+  .date-header-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 6px;
+    gap: 10px;
+  }
+
+  .date-label {
+    font-family: UefaEuro;
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #1a202c;
+    letter-spacing: 0.3px;
+  }
+
+  .date-accent-line {
+    height: 3px;
+    border-radius: 2px;
+    background: linear-gradient(90deg, $secondaryColor 0%, rgba($secondaryColor, 0) 100%);
+  }
+
+  &.date-header-played {
+    .date-accent-line {
+      background: linear-gradient(90deg, #718096 0%, rgba(#718096, 0) 100%);
+    }
+  }
+}
+
+.match-count-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 10px;
+  border-radius: 20px;
+  background: rgba($secondaryColor, 0.1);
+  border: 1px solid rgba($secondaryColor, 0.2);
+  color: $darkSecondary;
+  font-size: 0.75rem;
+  font-weight: 700;
+  white-space: nowrap;
+
+  &.match-count-chip-played {
+    background: rgba(#718096, 0.1);
+    border-color: rgba(#718096, 0.2);
+    color: #4a5568;
+  }
+}
+
+// ─── Cards Grid ───────────────────────────────────────────────────────────────
+
+.cards-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.card-wrapper {
+  flex: 1 1 300px;
+  max-width: 400px;
+  min-width: 280px;
+
+  @media screen and (max-width: 640px) {
+    flex: 1 1 100%;
+    max-width: 100%;
+  }
+}
+
+// ─── Empty State ──────────────────────────────────────────────────────────────
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 56px 24px;
+  text-align: center;
+  color: #a0aec0;
+
+  .empty-icon {
+    font-size: 3.5rem;
+    color: #cbd5e0;
+    margin-bottom: 16px;
+    margin-right: 0;
+    font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 48;
+  }
+
+  h3 {
+    font-size: 1.15rem;
+    color: #4a5568;
+    margin: 0 0 8px;
+  }
+
+  p {
+    font-size: 0.9rem;
+    color: #a0aec0;
+    margin: 0;
+  }
+}
+
+// ─── Desktop responsive ───────────────────────────────────────────────────────
+
+@media screen and (min-width: 991px) {
+  .card-wrapper {
+    flex: 0 0 32%;
+    max-width: 400px;
+  }
+}
+
+// ─── Floating Bulk Save Dock ──────────────────────────────────────────────────
 
 .viewport-dock-container {
   position: fixed;
@@ -82,7 +396,7 @@
   box-sizing: border-box;
   gap: 16px;
 
-  @media screen and (max-width: 640px){
+  @media screen and (max-width: 640px) {
     flex-direction: column;
   }
 }

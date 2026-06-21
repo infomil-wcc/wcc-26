@@ -11,6 +11,16 @@ import { MatchComponent } from '../../../shared/components/match/match.component
 import { LoaderComponent } from '../../../shared/components/loader/loader.component';
 import { tap } from 'rxjs/operators';
 
+/** Tournament phase display config in bracket order */
+const PHASE_CONFIG: { key: string; label: string; icon: string; color: string }[] = [
+  { key: 'Group Stage',   label: 'Phase de groupes',  icon: 'groups',          color: '#3b5bdb' },
+  { key: 'Round of 32',  label: 'Huitièmes de finale', icon: 'filter_none',    color: '#7048e8' },
+  { key: 'Round of 16',  label: 'Seizièmes de finale', icon: 'filter_8',       color: '#9c36b5' },
+  { key: 'Quarter-finals', label: 'Quarts de finale', icon: 'emoji_events',    color: '#d6336c' },
+  { key: 'Semi-finals',  label: 'Demi-finales',        icon: 'military_tech',  color: '#f76707' },
+  { key: 'Final',        label: 'Finale',              icon: 'workspace_premium', color: '#f59f00' },
+];
+
 @Component({
     selector: 'app-pronostiques',
     templateUrl: './pronostiques.component.html',
@@ -32,7 +42,8 @@ export class PronostiquesComponent {
   protected isSubmittingBulk: boolean = false;
   protected upcomingCount: number = 0;
   protected playedCount: number = 0;
-  protected todayMatchCount: number = 0;
+  protected todayMatchCount: number = 0;   // unfinished matches today
+  protected todayTotalCount: number = 0;   // all matches today
 
   $groupedMatches!: Observable<{ [key: string]: Matches[] }>;
   $playedMatches!: Observable<Matches[]>;
@@ -47,10 +58,9 @@ export class PronostiquesComponent {
         const todayKey = today.toISOString().split('T')[0];
         this.upcomingCount = matches.filter(m => new Date(m.date) >= today).length;
         this.playedCount = matches.filter(m => m.fulltime_a !== null && m.fulltime_b !== null).length;
-        this.todayMatchCount = matches.filter(m => {
-          const d = m.date.split(' ')[0];
-          return d === todayKey && m.fulltime_a === null;
-        }).length;
+        const todayMatches = matches.filter(m => m.date.split(' ')[0] === todayKey);
+        this.todayTotalCount = todayMatches.length;
+        this.todayMatchCount = todayMatches.filter(m => m.fulltime_a === null).length;
       }),
       map(matches => this.groupMatchesByDate(matches))
     );
@@ -106,6 +116,35 @@ export class PronostiquesComponent {
 
   compareDates(date1: string, date2: string): boolean {
     return date1.slice(0,10) > date2;
+  }
+
+  // ── Phase grouping for the upcoming tab ──────────────────────────────────
+
+  /** Returns phases that have upcoming unfinished matches, in bracket order */
+  getUpcomingPhases(groupedMatches: { [key: string]: Matches[] }): typeof PHASE_CONFIG {
+    const allUpcoming = Object.values(groupedMatches).flat()
+      .filter(m => m.fulltime_a === null && m.fulltime_b === null);
+    const presentKeys = new Set(allUpcoming.map(m => m.phase));
+    return PHASE_CONFIG.filter(p => presentKeys.has(p.key));
+  }
+
+  /** Returns upcoming matches for a given phase, grouped by date (asc) */
+  getMatchesByPhaseAndDate(
+    groupedMatches: { [key: string]: Matches[] },
+    phaseKey: string
+  ): { date: string; matches: Matches[] }[] {
+    const byDate: { [date: string]: Matches[] } = {};
+    const dates = this.getDates(groupedMatches);
+    for (const date of dates) {
+      const filtered = (groupedMatches[date] || [])
+        .filter(m => m.phase === phaseKey && m.fulltime_a === null && m.fulltime_b === null);
+      if (filtered.length > 0) {
+        byDate[date] = filtered;
+      }
+    }
+    return Object.entries(byDate)
+      .map(([date, matches]) => ({ date, matches }))
+      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
   }
 
   saveAllPredictions(): void {
