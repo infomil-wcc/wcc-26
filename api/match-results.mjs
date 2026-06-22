@@ -97,7 +97,7 @@ export default async function handler(request, response) {
   try {
 
     // ALWAYS make the real Directus call to see what your database returns
-    const myMatchesRes = await fetch(`${process.env.DIRECTUS_URL}/items/matches?filter[fulltime][_eq]=false&fields=id,team_a,team_b,match_date,phase`, {
+    const myMatchesRes = await fetch(`${process.env.DIRECTUS_URL}/items/matches?filter[fulltime]=false&fields=id,team_a,team_b,date,phase`, {
       headers: { 'Authorization': `Bearer ${process.env.DIRECTUS_ADMIN_TOKEN}` }
     });
 
@@ -149,7 +149,7 @@ export default async function handler(request, response) {
 
       // Verify records with compound keys against API data
       const matchedRecord = internalMatches.find(m => {
-        const internalMatchDate = new Date(m.match_date).toISOString().split('T')[0];
+        const internalMatchDate = new Date(m.date).toISOString().split('T')[0];
         
         return m.team_a === dbHomeName && 
                m.team_b === dbAwayName && 
