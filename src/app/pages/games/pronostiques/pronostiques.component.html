@@ -151,14 +151,18 @@
     </div>
 
     <div class="cards-grid">
-      @for (match of groupedMatches[date]; track match) {
-      @if (match.fulltime_a !== null && match.fulltime_b !== null) {
+  @for (match of groupedMatches[date]; track match.id) {
+    @if (match.fulltime_a !== null && match.fulltime_b !== null) {
       <div class="card-wrapper">
-        <app-match [match]="match" [isPronostiques]="true" [disabled]="!isLoggedIn" [dateTime]="today.dateTime" />
+        <app-match 
+          [match]="match" 
+          [isPronostiques]="true" 
+          [disabled]="!isLoggedIn" 
+          [dateTime]="today.dateTime" />
       </div>
-      }
-      }
-    </div>
+    }
+  }
+</div>
 
   </div>
   }

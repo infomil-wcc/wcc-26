@@ -12,20 +12,20 @@ import { LoaderComponent } from '../../../shared/components/loader/loader.compon
 
 /** Tournament phase display config in bracket order */
 const PHASE_CONFIG: { key: string; label: string; icon: string; color: string }[] = [
-  { key: 'Group Stage',    label: 'Phase de groupes',    icon: 'groups',           color: '#3b5bdb' },
-  { key: 'Round of 32',   label: 'Seizièmes de finale',  icon: 'filter_none',       color: '#7048e8' },
-  { key: 'Round of 16',   label: 'Huitièmes de finale',  icon: 'filter_8',          color: '#9c36b5' },
-  { key: 'Quarter-finals',label: 'Quarts de finale',     icon: 'emoji_events',      color: '#d6336c' },
-  { key: 'Semi-finals',   label: 'Demi-finales',         icon: 'military_tech',     color: '#f76707' },
-  { key: 'Final',         label: 'Finale',               icon: 'workspace_premium', color: '#f59f00' },
+  { key: 'Group Stage', label: 'Phase de groupes', icon: 'groups', color: '#3b5bdb' },
+  { key: 'Round of 32', label: 'Seizièmes de finale', icon: 'filter_none', color: '#7048e8' },
+  { key: 'Round of 16', label: 'Huitièmes de finale', icon: 'filter_8', color: '#9c36b5' },
+  { key: 'Quarter-finals', label: 'Quarts de finale', icon: 'emoji_events', color: '#d6336c' },
+  { key: 'Semi-finals', label: 'Demi-finales', icon: 'military_tech', color: '#f76707' },
+  { key: 'Final', label: 'Finale', icon: 'workspace_premium', color: '#f59f00' },
 ];
 
 @Component({
-    selector: 'app-pronostiques',
-    templateUrl: './pronostiques.component.html',
-    styleUrl: './pronostiques.component.scss',
-    changeDetection: ChangeDetectionStrategy.OnPush,
-    imports: [NgClass, MatchComponent, LoaderComponent, AsyncPipe, DatePipe]
+  selector: 'app-pronostiques',
+  templateUrl: './pronostiques.component.html',
+  styleUrl: './pronostiques.component.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [NgClass, MatchComponent, LoaderComponent, AsyncPipe, DatePipe]
 })
 export class PronostiquesComponent {
 
@@ -51,13 +51,10 @@ export class PronostiquesComponent {
   $playedMatches!: Observable<Matches[]>;
 
   ngOnInit(): void {
-
     this.$today = this.globalTime.getMuTime();
 
-    // Share the core matches call to avoid duplicate network requests
-    const allMatches$ = this.matchesService.getAllMatches();
-
-    this.$groupedMatches = allMatches$.pipe(
+    // 1. Create a stream that fetches matches and side-loads prediction data globally
+    this.$groupedMatches = this.matchesService.getAllMatches().pipe(
       tap(matches => {
         const today = new Date();
         const todayKey = today.toISOString().split('T')[0];
@@ -69,7 +66,6 @@ export class PronostiquesComponent {
         this.todayPlayedCount = todayMatches.filter(m => m.fulltime_a !== null && m.fulltime_b !== null).length;
         this.todayMatchCount = todayMatches.filter(m => m.fulltime_a === null).length;
 
-        // Fetch user's predictions for today's unplayed matches (single bulk query)
         const unplayedToday = todayMatches.filter(m => m.fulltime_a === null);
         if (unplayedToday.length > 0 && this.isLoggedIn) {
           const ids = unplayedToday.map(m => m.id).join(',');
@@ -84,13 +80,12 @@ export class PronostiquesComponent {
           this.todayPredictedCount = 0;
         }
       }),
+      // Map matches to group them, ensuring they preserve all state properties
       map(matches => this.groupMatchesByDate(matches))
     );
 
-    // Filter to only pass matches that are officially completed (including today's finished matches)
-    this.$playedMatches = allMatches$.pipe(
-      map(matches => matches.filter(m => m.fulltime_a !== null && m.fulltime_b !== null))
-    );
+    // 2. Simply point playedMatches to the service stream if your template or other sections read from it
+    this.$playedMatches = this.matchesService.getAllMatches();
 
     this.stateService.userState.subscribe({
       next: (res) => {
@@ -142,13 +137,13 @@ export class PronostiquesComponent {
   }
 
   compareDates(date1: string, date2: string): boolean {
-    return date1.slice(0,10) > date2;
+    return date1.slice(0, 10) > date2;
   }
 
-/** Returns the count of officially finished matches for a specific date group */
-getPlayedCountForDate(matches: Matches[]): number {
-  return matches.filter(m => m.fulltime_a !== null && m.fulltime_b !== null).length;
-}
+  /** Returns the count of officially finished matches for a specific date group */
+  getPlayedCountForDate(matches: Matches[]): number {
+    return matches.filter(m => m.fulltime_a !== null && m.fulltime_b !== null).length;
+  }
 
   // ── Phase grouping for the upcoming tab ──────────────────────────────────
 
