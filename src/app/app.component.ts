@@ -26,6 +26,7 @@ import { QuizComponent } from './pages/games/quiz/quiz.component';
 import { RankingComponent } from './pages/games/ranking/ranking.component';
 import { FaqComponent } from './pages/faq/faq.component';
 import { GameRulesComponent } from './pages/game-rules/game-rules.component';
+import { GroupStandingsComponent } from './pages/competition/group-standings/group-standings.component';
 import { FooterComponent } from './shared/components/footer/footer.component';
 import { DialogComponent } from './shared/components/dialog/dialog.component';
 import { LoaderComponent } from './shared/components/loader/loader.component';
@@ -36,7 +37,7 @@ import { ModalComponent } from './shared/components/modal/modal.component';
     templateUrl: './app.component.html',
     styleUrl: './app.component.scss',
     changeDetection: ChangeDetectionStrategy.Eager,
-    imports: [LayoutComponent, NgSwitch, HeaderComponent, NgSwitchCase, HeroComponent, HpnewsComponent, HomepageComponent, ErrorComponent, GamesComponent, TeamsComponent, StadiumsComponent, StatisticsComponent, BestScorerComponent, PronostiquesComponent, BracketKnockoutComponent, BracketChallengeComponent, QuizComponent, RankingComponent, FaqComponent, GameRulesComponent, RouterOutlet, FooterComponent, DialogComponent, ReactiveFormsModule, LoaderComponent, ModalComponent]
+    imports: [LayoutComponent, NgSwitch, HeaderComponent, NgSwitchCase, HeroComponent, HpnewsComponent, HomepageComponent, ErrorComponent, GamesComponent, TeamsComponent, StadiumsComponent, StatisticsComponent, BestScorerComponent, PronostiquesComponent, BracketKnockoutComponent, BracketChallengeComponent, QuizComponent, RankingComponent, FaqComponent, GameRulesComponent, GroupStandingsComponent, RouterOutlet, FooterComponent, DialogComponent, ReactiveFormsModule, LoaderComponent, ModalComponent]
 })
 export class AppComponent implements OnInit {
 
@@ -150,6 +151,9 @@ export class AppComponent implements OnInit {
         break;
       case 'game-rules':
         this.page = 12;
+        break;
+      case 'les-groupes':
+        this.page = 14;
         break;
       case 'accueil':
         this.page = 0;

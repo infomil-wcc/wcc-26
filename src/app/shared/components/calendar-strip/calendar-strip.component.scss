@@ -1,0 +1,143 @@
+@use "../../../../variables" as *;
+
+.calendar-strip-wrapper {
+  padding: 0.75rem 0;
+  background: var(--calendar-strip-bg, #161b26);
+  border-top: 1px solid rgba(255, 255, 255, 0.07);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.container {
+  position: relative;
+  padding-left: 48px !important;
+  padding-right: 48px !important;
+}
+
+.nav-chevron {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: #ffffff;
+  cursor: pointer;
+  z-index: 10;
+  transition: all 0.2s ease;
+  backdrop-filter: blur(8px);
+  outline: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  span {
+    font-size: 1.35rem;
+  }
+
+  &:hover {
+    background: #ffffff;
+    color: #0d0d0c;
+    border-color: #ffffff;
+    box-shadow: 0 4px 12px rgba(255, 255, 255, 0.2);
+  }
+
+  &:active {
+    transform: translateY(-50%) scale(0.92);
+  }
+
+  &.chevron-left {
+    left: 6px;
+  }
+
+  &.chevron-right {
+    right: 6px;
+  }
+}
+
+.calendar-strip-scroll {
+  scrollbar-width: none; /* Hide scrollbar for Firefox */
+  -webkit-overflow-scrolling: touch; /* Smooth iOS momentum scroll */
+  
+  &::-webkit-scrollbar {
+    display: none; /* Hide scrollbar for Chrome/Safari */
+  }
+}
+
+.strip-date-card {
+  width: 62px;
+  height: 78px;
+  flex-shrink: 0;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  color: rgba(255, 255, 255, 0.8);
+  cursor: pointer;
+  outline: none;
+  user-select: none;
+  transition: all 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+  scroll-snap-align: start;
+
+  &.sticky-first-card {
+    position: sticky;
+    left: 0;
+    z-index: 5;
+    background: var(--calendar-strip-bg, #161b26);
+    box-shadow: 4px 0 10px rgba(0, 0, 0, 0.5);
+    border-right-color: rgba(255, 255, 255, 0.15);
+  }
+
+  .strip-day-name {
+    font-size: 0.62rem;
+    letter-spacing: 0.5px;
+    opacity: 0.6;
+    transition: opacity 0.2s ease;
+  }
+
+  .strip-day-num {
+    font-family: UefaEuro, sans-serif;
+    line-height: 1.1;
+  }
+
+  .strip-month {
+    font-size: 0.62rem;
+    letter-spacing: 0.5px;
+    opacity: 0.6;
+    transition: opacity 0.2s ease;
+  }
+
+  .strip-all-text {
+    font-size: 0.58rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    line-height: 1.3;
+    text-align: center;
+    padding: 0 4px;
+  }
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.16);
+    color: #ffffff;
+  }
+
+  &.active {
+    background: #ffffff;
+    border-color: #ffffff;
+    color: #0d0d0c;
+    box-shadow: 0 6px 16px rgba(255, 255, 255, 0.18);
+    transform: translateY(-2px);
+
+    .strip-day-name, .strip-month {
+      color: #0d0d0c;
+      opacity: 0.8;
+      font-weight: 700;
+    }
+  }
+
+  &:active {
+    transform: scale(0.95);
+  }
+}

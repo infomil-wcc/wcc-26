@@ -1,10 +1,11 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpHeaders } from '@angular/common/http';
-import { Observable, BehaviorSubject, map, throwError } from 'rxjs';
+import { Observable, BehaviorSubject, map, throwError, tap } from 'rxjs';
 import { CookieService } from '../core/cookie.service';
 import { Pronostiques } from '../../contracts/pronostiques.contract';
 import { PredictionsApiService } from '../api/predictions-api.service';
 import { MatchResultsApiService } from '../api/match-results-api.service';
+import { RankingcalculationService } from '../core/rankingcalculation.service';
 
 @Injectable({
   providedIn: 'root'
@@ -14,6 +15,7 @@ export class PredictionsService {
   private predictionsApiService = inject(PredictionsApiService);
   private matchResultsApiService = inject(MatchResultsApiService);
   private cookieService = inject(CookieService);
+  private rankingcalculationService = inject(RankingcalculationService);
 
   private draftsSubject = new BehaviorSubject<any[]>([]);
   drafts$ = this.draftsSubject.asObservable();
@@ -77,6 +79,10 @@ export class PredictionsService {
   }
 
   updateResults(): Observable<any> {
-    return this.matchResultsApiService.postMatchResults();
+    return this.matchResultsApiService.postMatchResults().pipe(
+      tap(() => {
+        this.rankingcalculationService.startCalcRanking();
+      })
+    );
   }
 }

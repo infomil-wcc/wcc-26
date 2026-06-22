@@ -133,32 +133,44 @@
 // ─── Main Content ─────────────────────────────────────────────────────────────
 
 .pronostiquesMain {
-  // Matches height of the global app header + our single unified bar
-  padding-top: 70px;
+  // Matches height of the global app header + our unified header bar + calendar strip
+  padding-top: 170px;
 
   @media screen and (max-width: 640px) {
-    padding-top: 80px;
+    padding-top: 220px;
   }
 }
 
-// ─── Today Urgency Banner ─────────────────────────────────────────────────────
+// ─── Today Urgency Banner (Floating & Closable) ───────────────────────────────
 
 .today-banner {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  max-width: 360px;
+  z-index: 101; 
+  margin: 0;
   display: flex;
   align-items: center;
   gap: 12px;
-  background: linear-gradient(135deg, #fff8e1 0%, #fffde7 100%);
+  background: linear-gradient(135deg, #2c1a04 0%, #170d02 100%);
   border: 1.5px solid #fdd835;
-  border-radius: 12px;
-  padding: 14px 18px;
-  margin-bottom: 20px;
-  margin-top: 12px;
-  box-shadow: 0 2px 12px rgba(253, 216, 53, 0.25);
-  animation: bannerSlide 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  border-radius: 16px;
+  padding: 16px 20px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), 0 2px 15px rgba(253, 216, 53, 0.2);
+  animation: bannerSlideIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  backdrop-filter: blur(8px);
+
+  @media screen and (max-width: 640px) {
+    left: 16px;
+    right: 16px;
+    bottom: 95px; /* Above the bulk save dock */
+    max-width: none;
+  }
 
   .today-banner-icon {
     font-size: 1.75rem;
-    color: #f57f17;
+    color: #fdd835;
     margin-right: 0;
     animation: pulseAlarm 1.8s ease-in-out infinite;
     font-variation-settings: 'FILL' 1, 'wght' 600, 'GRAD' 0, 'opsz' 48;
@@ -168,54 +180,89 @@
   .today-banner-text {
     display: flex;
     flex-direction: column;
-    gap: 1px;
+    gap: 2px;
+    flex-grow: 1;
 
     strong {
       font-family: UefaEuro;
-      font-size: 0.95rem;
-      color: #e65100;
+      font-size: 0.92rem;
+      color: #ffe082;
     }
 
     span {
-      font-size: 0.78rem;
-      color: #795548;
+      font-size: 0.76rem;
+      color: rgba(255, 255, 255, 0.7);
+    }
+  }
+
+  .banner-close-btn {
+    background: transparent;
+    border: none;
+    color: rgba(255, 255, 255, 0.45);
+    cursor: pointer;
+    padding: 6px;
+    margin-left: 8px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+    outline: none;
+
+    span {
+      font-size: 1.1rem;
+    }
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.1);
+      color: #ffffff;
     }
   }
 
   // Green variant: all matches today played
   &.today-banner-done {
-    background: linear-gradient(135deg, #e8f5e9 0%, #f1f8f1 100%);
-    border-color: $secondaryColor;
-    box-shadow: 0 2px 12px rgba($secondaryColor, 0.2);
+    background: linear-gradient(135deg, #0b2216 0%, #040e09 100%);
+    border-color: #10b981;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), 0 2px 15px rgba(16, 185, 129, 0.2);
 
     .today-banner-icon {
-      color: $secondaryColor;
+      color: #10b981;
       animation: none;
-      font-variation-settings: 'FILL' 1, 'wght' 600, 'GRAD' 0, 'opsz' 48;
     }
 
     .today-banner-text {
-      strong { color: $darkSecondary; }
-      span { color: color.adjust($secondaryColor, $lightness: -15%); }
+      strong { color: #a7f3d0; }
+      span { color: rgba(255, 255, 255, 0.7); }
     }
   }
 
   // Blue variant: all today matches predicted, waiting for kickoff
   &.today-banner-predicted {
-    background: linear-gradient(135deg, #e8eaf6 0%, #f3f4fd 100%);
+    background: linear-gradient(135deg, #0f172a 0%, #020617 100%);
     border-color: #3b5bdb;
-    box-shadow: 0 2px 12px rgba(59, 91, 219, 0.18);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), 0 2px 15px rgba(59, 91, 219, 0.2);
 
     .today-banner-icon {
       color: #3b5bdb;
       animation: none;
-      font-variation-settings: 'FILL' 1, 'wght' 600, 'GRAD' 0, 'opsz' 48;
     }
 
     .today-banner-text {
-      strong { color: #1a237e; }
-      span { color: #3949ab; }
+      strong { color: #c7d2fe; }
+      span { color: rgba(255, 255, 255, 0.7); }
     }
+  }
+}
+
+@keyframes bannerSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
   }
 }
 
@@ -341,6 +388,7 @@
 }
 
 .card-wrapper {
+  position: relative;
   flex: 1 1 300px;
   max-width: 400px;
   min-width: 280px;
@@ -348,6 +396,54 @@
   @media screen and (max-width: 640px) {
     flex: 1 1 100%;
     max-width: 100%;
+  }
+}
+
+.live-indicator {
+  position: absolute;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(239, 68, 68, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 3px 8px;
+  border-radius: 20px;
+  box-shadow: 0 2px 8px rgba(239, 68, 68, 0.4);
+  pointer-events: none;
+  
+  .live-text {
+    color: #ffffff;
+    font-size: 0.65rem;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+    font-family: UefaEuro, sans-serif;
+  }
+
+  .live-pulse {
+    width: 6px;
+    height: 6px;
+    background-color: #ffffff;
+    border-radius: 50%;
+    animation: blinkPulse 1.2s infinite ease-in-out;
+  }
+}
+
+@keyframes blinkPulse {
+  0% {
+    transform: scale(0.85);
+    opacity: 0.5;
+  }
+  50% {
+    transform: scale(1.2);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(0.85);
+    opacity: 0.5;
   }
 }
 
@@ -498,3 +594,50 @@
     opacity: 1;
   }
 }
+
+app-calendar-strip {
+  --calendar-strip-bg: #{$darkSecondary};
+}
+
+/* Modern Next Date Button */
+.btn-next-date {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+  padding: 0.75rem 1.75rem;
+  border-radius: 9999px;
+  font-size: 0.92rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  outline: none;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.25);
+  margin-bottom: 2rem;
+
+  span {
+    vertical-align: middle;
+  }
+
+  .material-symbols-outlined {
+    font-size: 1.2rem;
+    transition: transform 0.2s ease;
+  }
+
+  &:hover {
+    background: #ffffff;
+    color: #0d0d0c;
+    border-color: #ffffff;
+    box-shadow: 0 6px 20px rgba(255, 255, 255, 0.15);
+    transform: translateY(-2px);
+
+    .material-symbols-outlined {
+      transform: translateX(4px);
+    }
+  }
+
+  &:active {
+    transform: translateY(0) scale(0.98);
+  }
+}
+
+

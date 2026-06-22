@@ -52,6 +52,9 @@
     @defer (on idle) {
       <app-game-rules *ngSwitchCase="12" />
     }
+    @defer (on idle) {
+      <app-group-standings *ngSwitchCase="14" />
+    }
     <router-outlet></router-outlet>
   </ng-container>
 

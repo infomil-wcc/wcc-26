@@ -1,19 +1,5 @@
 import { handleCors } from './utils.mjs';
-
-// --- TEAM NAME MAPPING DICTIONARY ---
-// Add any mismatched external names here: "External Name": "Your DB Name"
-const teamNameMap = {
-  "South Korea": "Korea Republic",
-  "Czech Republic": "Czechia",
-  "United States": "USA",
-  "Curaçao": "Curacao",
-  "Turkey": "Türkiye",
-  "Cape Verde": "Cabo Verde",
-  "Democratic Republic of the Congo": "DR Congo",
-  // Add fallback mappings for safety
-  "South Africa": "South Africa",
-  "Bosnia-Herzegovina": "Bosnia and Herzegovina"
-};
+import { teamNameMap } from './mappings.mjs';
 
 /**
  * Helper function to clean and map team names
@@ -101,8 +87,9 @@ export default async function handler(request, response) {
 
   try {
     for (const extMatch of externalMatches) {
-      if (extMatch.status !== "FINISHED") {
-        continue; // Only sync completed matches
+      // Sync completed matches OR in-play/paused matches to capture halftime scores
+      if (extMatch.status !== "FINISHED" && extMatch.status !== "IN_PLAY" && extMatch.status !== "PAUSED") {
+        continue;
       }
 
       const normalizedHome = getNormalizedTeamName(extMatch.homeTeam?.name);
@@ -128,28 +115,33 @@ export default async function handler(request, response) {
       const homeScore = extMatch.score?.fullTime?.home;
       const awayScore = extMatch.score?.fullTime?.away;
 
-      if (homeScore === null || homeScore === undefined || awayScore === null || awayScore === undefined) {
-        continue;
+      const payload = {};
+
+      // Only sync full-time stats if finished
+      if (extMatch.status === "FINISHED" && homeScore !== null && homeScore !== undefined && awayScore !== null && awayScore !== undefined) {
+        const dbScoreA = isReversed ? awayScore : homeScore;
+        const dbScoreB = isReversed ? homeScore : awayScore;
+
+        let winnerDraw = null;
+        if (dbScoreA > dbScoreB) {
+          winnerDraw = dbMatch.team_a;
+        } else if (dbScoreB > dbScoreA) {
+          winnerDraw = dbMatch.team_b;
+        } else {
+          winnerDraw = "Draw";
+        }
+
+        const scorersList = (extMatch.goals || [])
+          .map(g => g.scorer?.name)
+          .filter(Boolean);
+        const scorers = scorersList.length > 0 ? scorersList.join(', ') : '';
+
+        payload.fulltime_a = dbScoreA;
+        payload.fulltime_b = dbScoreB;
+        payload.winner_draw = winnerDraw;
+        payload.fulltime = true;
+        payload.scorers = scorers;
       }
-
-      const dbScoreA = isReversed ? awayScore : homeScore;
-      const dbScoreB = isReversed ? homeScore : awayScore;
-
-      let winnerDraw = null;
-      if (dbScoreA > dbScoreB) {
-        winnerDraw = dbMatch.team_a;
-      } else if (dbScoreB > dbScoreA) {
-        winnerDraw = dbMatch.team_b;
-      } else {
-        winnerDraw = "Draw";
-      }
-
-      const payload = {
-        fulltime_a: dbScoreA,
-        fulltime_b: dbScoreB,
-        winner_draw: winnerDraw,
-        fulltime: true
-      };
 
       // Extract halftime scores if available
       const htHome = extMatch.score?.halfTime?.home;
@@ -158,6 +150,11 @@ export default async function handler(request, response) {
         payload.halftime_a = isReversed ? htAway : htHome;
         payload.halftime_b = isReversed ? htHome : htAway;
         payload.halftime = true;
+      }
+
+      // If there's nothing new to update, skip it
+      if (Object.keys(payload).length === 0) {
+        continue;
       }
 
       // Send update payload to Directus match item

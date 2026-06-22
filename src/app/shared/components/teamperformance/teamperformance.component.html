@@ -1,30 +1,8 @@
-@if ($Teams | async; as teams) {
-  <div class="grid justify-content-evenly gap-1">
-    @for (team of teams; track team) {
-      <div class="col p-0">
-        <div class="marking" [ngClass]="{'win': team.forme1 ==='W', 'draw' :  team.forme1 ==='D', 'loose' :  team.forme1 ==='L'}">
-          {{ team.forme1 }}
-        </div>
-      </div>
-      <div class="col p-0">
-        <div class="marking" [ngClass]="{'win': team.forme2 ==='W', 'draw' :  team.forme2 ==='D', 'loose' :  team.forme2 ==='L'}">
-          {{ team.forme2 }}
-        </div>
-      </div>
-      <div class="col p-0">
-        <div class="marking" [ngClass]="{'win': team.forme3 ==='W', 'draw' :  team.forme3 ==='D', 'loose' :  team.forme3 ==='L'}">
-          {{ team.forme3 }}
-        </div>
-      </div>
-      <div class="col p-0">
-        <div class="marking" [ngClass]="{'win': team.forme4 ==='W', 'draw' :  team.forme4 ==='D', 'loose' :  team.forme4 ==='L'}">
-          {{ team.forme4 }}
-        </div>
-      </div>
-      <div class="col p-0">
-        <div class="marking" [ngClass]="{'win': team.forme5 ==='W', 'draw' :  team.forme5 ==='D', 'loose' :  team.forme5 ==='L'}">
-          {{ team.forme5 }}
-        </div>
+@if ($form | async; as form) {
+  <div class="form-dots">
+    @for (slot of form; track $index) {
+      <div class="marking" [class.win]="slot.result === 'W'" [class.draw]="slot.result === 'D'" [class.loose]="slot.result === 'L'" [class.empty]="!slot.result" [title]="slot.result || 'Non joué'">
+        {{ slot.result }}
       </div>
     }
   </div>

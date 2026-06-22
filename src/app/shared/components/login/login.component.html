@@ -21,7 +21,7 @@
         Authentification</h3>
         <p>Veuillez saisir vos identifiants pour participer aux différents jeux proposés</p>
         <div class="input mt-4">
-          <input tabindex="1" type="email" #email value="" autocomplete="off" placeholder="Veuillez renseigner votre email @infomil.mu" formControlName="email" />
+          <input tabindex="1" type="email" #email value="" autocomplete="off" placeholder="Veuillez renseigner votre email @infomil.mu" formControlName="email" (input)="onEmailInput('login')" (blur)="autocompleteEmail('login')" />
           <label>EMAIL (&#64;infomil.mu)</label>
           @if (loginForm.get('email')?.invalid && loginForm.get('email')?.touched) {
             <span class="error mt-2 mb-2">
@@ -73,7 +73,7 @@
       Créer mon compte</h3>
       <p>Veuillez insérer les informations ci-dessous</p>
       <div class="input mt-4">
-        <input tabindex="1" type="email" #emailReg placeholder="Adresse mail &#64;infomil.mu" autocomplete="off" formControlName="email" />
+        <input tabindex="1" type="email" #emailReg placeholder="Adresse mail &#64;infomil.mu" autocomplete="off" formControlName="email" (input)="onEmailInput('register')" (blur)="autocompleteEmail('register')" />
         <label>*Email (&#64;infomil.mu)</label>
         @if (registerForm.get('email')?.invalid && registerForm.get('email')?.touched) {
           <span class="error mt-2 mb-2">

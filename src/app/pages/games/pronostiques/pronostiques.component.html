@@ -10,7 +10,7 @@
       <div class="tab-group">
 
         <button class="tab-btn" id="tab-upcoming" [ngClass]="{'tab-active': activeMatches}"
-          (click)="activeMatches = true">
+          (click)="setActiveTab(true)">
           <span class="material-symbols-outlined tab-icon">pending_actions</span>
           <span class="tab-label">À venir</span>
           @if (upcomingCount > 0) {
@@ -19,7 +19,7 @@
         </button>
 
         <button class="tab-btn" id="tab-played" [ngClass]="{'tab-active': !activeMatches}"
-          (click)="activeMatches = false">
+          (click)="setActiveTab(false)">
           <span class="material-symbols-outlined tab-icon">history</span>
           <span class="tab-label">Joués</span>
           @if (playedCount > 0) {
@@ -30,6 +30,13 @@
       </div>
     </div>
   </div>
+
+  <!-- Scrollable Modern Date Strip -->
+  <app-calendar-strip 
+    [matchDates]="$matchDates | async" 
+    [filterDate]="filterDate" 
+    (dateChange)="selectDate($event)">
+  </app-calendar-strip>
 </div>
 
 
@@ -38,34 +45,45 @@
   @if ($today | async; as today) {
     @if ($groupedMatches | async; as groupedMatches) {
 
-      @if (activeMatches && todayPlayedCount === todayTotalCount && todayTotalCount > 0) {
-      <div class="today-banner today-banner-done">
-        <span class="material-symbols-outlined today-banner-icon">check_circle</span>
-        <div class="today-banner-text">
-          <strong>Les matchs du jour sont terminés !</strong>
-          <span>Consultez les résultats dans l'onglet « Joués ».</span>
+      @if (showTodayBanner) {
+        @if (activeMatches && todayPlayedCount === todayTotalCount && todayTotalCount > 0) {
+        <div class="today-banner today-banner-done">
+          <span class="material-symbols-outlined today-banner-icon">check_circle</span>
+          <div class="today-banner-text">
+            <strong>Les matchs du jour sont terminés !</strong>
+            <span>Consultez les résultats dans l'onglet « Joués ».</span>
+          </div>
+          <button type="button" class="banner-close-btn flex align-items-center justify-content-center" (click)="dismissTodayBanner()" title="Fermer">
+            <span class="material-symbols-outlined">close</span>
+          </button>
         </div>
-      </div>
-      }
+        }
 
-      @if (activeMatches && todayMatchCount > 0 && todayPredictedCount >= todayMatchCount) {
-      <div class="today-banner today-banner-predicted">
-        <span class="material-symbols-outlined today-banner-icon">sports_score</span>
-        <div class="today-banner-text">
-          <strong>{{ todayMatchCount }} match{{ todayMatchCount > 1 ? 's' : '' }} aujourd'hui</strong>
-          <span>Vos pronostics sont soumis. En attente du coup d'envoi !</span>
+        @if (activeMatches && todayMatchCount > 0 && todayPredictedCount >= todayMatchCount) {
+        <div class="today-banner today-banner-predicted">
+          <span class="material-symbols-outlined today-banner-icon">sports_score</span>
+          <div class="today-banner-text">
+            <strong>{{ todayMatchCount }} match{{ todayMatchCount > 1 ? 's' : '' }} aujourd'hui</strong>
+            <span>Vos pronostics sont soumis. En attente du coup d'envoi !</span>
+          </div>
+          <button type="button" class="banner-close-btn flex align-items-center justify-content-center" (click)="dismissTodayBanner()" title="Fermer">
+            <span class="material-symbols-outlined">close</span>
+          </button>
         </div>
-      </div>
-      }
+        }
 
-      @if (activeMatches && todayMatchCount > 0 && todayPredictedCount < todayMatchCount) { 
-      <div class="today-banner">
-        <span class="material-symbols-outlined today-banner-icon">alarm</span>
-        <div class="today-banner-text">
-          <strong>{{ todayMatchCount }} match{{ todayMatchCount > 1 ? 's' : '' }} aujourd'hui !</strong>
-          <span>Ne manquez pas vos pronostics du jour.</span>
+        @if (activeMatches && todayMatchCount > 0 && todayPredictedCount < todayMatchCount) { 
+        <div class="today-banner">
+          <span class="material-symbols-outlined today-banner-icon">alarm</span>
+          <div class="today-banner-text">
+            <strong>{{ todayMatchCount }} match{{ todayMatchCount > 1 ? 's' : '' }} aujourd'hui !</strong>
+            <span>Ne manquez pas vos pronostics du jour.</span>
+          </div>
+          <button type="button" class="banner-close-btn flex align-items-center justify-content-center" (click)="dismissTodayBanner()" title="Fermer">
+            <span class="material-symbols-outlined">close</span>
+          </button>
         </div>
-      </div>
+        }
       }
 
       @if (activeMatches) {
@@ -97,7 +115,13 @@
 
           <div class="cards-grid">
             @for (match of dateGroup.matches; track match.id) {
-            <div class="card-wrapper">
+            <div class="card-wrapper" [class.live-match]="isLive(match, today.dateTime)">
+              @if (isLive(match, today.dateTime)) {
+                <div class="live-indicator">
+                  <span class="live-pulse"></span>
+                  <span class="live-text">EN DIRECT</span>
+                </div>
+              }
               <app-match [match]="match" [isPronostiques]="true" [disabled]="!isLoggedIn" [dateTime]="today.dateTime" />
             </div>
             }
@@ -107,6 +131,16 @@
           }
 
         </div>
+        }
+        @if ($matchDates | async; as matchDates) {
+          @if (getNextDate(matchDates); as nextDate) {
+            <div class="flex justify-content-center mt-4 mb-8">
+              <button type="button" class="btn-next-date flex align-items-center gap-2" (click)="selectDate(nextDate)">
+                <span>Date suivante : {{ nextDate | date: 'EEEE d MMMM' }}</span>
+                <span class="material-symbols-outlined">arrow_forward</span>
+              </button>
+            </div>
+          }
         }
 
         @if (upcomingCount === 0) {
@@ -137,16 +171,24 @@
               </div>
 
               <div class="cards-grid">
-                @for (match of groupedMatches[date]; track match.id) {
-                  @if (match.fulltime_a !== null && match.fulltime_b !== null) {
-                    <div class="card-wrapper">
-                      <app-match [match]="match" [isPronostiques]="true" [disabled]="!isLoggedIn" [dateTime]="today.dateTime" />
-                    </div>
-                  }
+                @for (match of getSortedPlayedMatchesForDate(groupedMatches[date]); track match.id) {
+                  <div class="card-wrapper">
+                    <app-match [match]="match" [isPronostiques]="true" [disabled]="!isLoggedIn" [dateTime]="today.dateTime" />
+                  </div>
                 }
               </div>
 
             </div>
+          }
+          @if ($matchDates | async; as matchDates) {
+            @if (getNextDate(matchDates); as nextDate) {
+              <div class="flex justify-content-center mt-4 mb-8">
+                <button type="button" class="btn-next-date flex align-items-center gap-2" (click)="selectDate(nextDate)">
+                  <span>Date suivante : {{ nextDate | date: 'EEEE d MMMM' }}</span>
+                  <span class="material-symbols-outlined">arrow_forward</span>
+                </button>
+              </div>
+            }
           }
 
           @if (playedCount === 0) {
@@ -173,10 +215,10 @@
     }
 
   } @else {
-    <loader />
+    <loader [showLoader]="true" />
   }
 } @else {
-  <loader />
+  <loader [showLoader]="true" />
 }
 
 </div>

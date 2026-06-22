@@ -60,6 +60,28 @@ export class LoginComponent {
 
   }
 
+  protected onEmailInput(type: 'login' | 'register'): void {
+    const form = type === 'login' ? this.loginForm : this.registerForm;
+    const emailControl = form.get('email');
+    if (emailControl && emailControl.value) {
+      const value = emailControl.value;
+      if (value.endsWith('@')) {
+        emailControl.setValue(value + 'infomil.mu');
+      }
+    }
+  }
+
+  protected autocompleteEmail(type: 'login' | 'register'): void {
+    const form = type === 'login' ? this.loginForm : this.registerForm;
+    const emailControl = form.get('email');
+    if (emailControl && emailControl.value) {
+      const value = emailControl.value.trim();
+      if (value && !value.includes('@')) {
+        emailControl.setValue(value + '@infomil.mu');
+      }
+    }
+  }
+
   protected verifyLogin(login: string, pass: string):void {
     this.loginLoader = true;
 

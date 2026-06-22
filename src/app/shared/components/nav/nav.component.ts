@@ -49,6 +49,11 @@ export class NavComponent implements OnInit, OnDestroy {
             "label": "Les stades",
             "route": "les-stades",
             "active": false
+          },
+          {
+            "label": "Les groupes",
+            "route": "les-groupes",
+            "active": false
           }
         ]
       },

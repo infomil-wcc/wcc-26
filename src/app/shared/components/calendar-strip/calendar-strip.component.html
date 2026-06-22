@@ -1,0 +1,35 @@
+@if (matchDates && matchDates.length > 0) {
+  <div class="calendar-strip-wrapper w-full">
+    <div class="container position-relative px-4">
+      <button type="button" class="nav-chevron chevron-left flex align-items-center justify-content-center" (click)="scrollStrip(stripScroll, -220)" title="Défiler à gauche">
+        <span class="material-symbols-outlined">chevron_left</span>
+      </button>
+
+      <div class="calendar-strip-scroll flex gap-2 overflow-x-auto pb-1" #stripScroll>
+        <button 
+          type="button"
+          class="strip-date-card sticky-first-card flex flex-column align-items-center justify-content-center"
+          [class.active]="!filterDate"
+          (click)="selectDate(null)">
+          <span class="strip-all-text">Toutes les dates</span>
+        </button>
+        
+        @for (date of matchDates; track date) {
+          <button 
+            type="button"
+            class="strip-date-card flex flex-column align-items-center justify-content-center"
+            [class.active]="filterDate === date"
+            (click)="selectDate(date)">
+            <span class="strip-day-name text-xs opacity-60 uppercase font-semibold">{{ date | date: 'EEE' }}</span>
+            <span class="strip-day-num font-bold text-lg my-0.5">{{ date | date: 'd' }}</span>
+            <span class="strip-month text-xs opacity-60 uppercase font-semibold">{{ date | date: 'MMM' }}</span>
+          </button>
+        }
+      </div>
+
+      <button type="button" class="nav-chevron chevron-right flex align-items-center justify-content-center" (click)="scrollStrip(stripScroll, 220)" title="Défiler à droite">
+        <span class="material-symbols-outlined">chevron_right</span>
+      </button>
+    </div>
+  </div>
+}

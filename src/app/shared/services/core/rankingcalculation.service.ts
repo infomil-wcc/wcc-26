@@ -6,7 +6,6 @@ import { CookieService } from './cookie.service';
 import { MatchesService } from '../content/matches.service';
 import { Matches } from '../../contracts/matches.contract';
 import { Pronostiques, pronostiquesApiData } from '../../contracts/pronostiques.contract';
-import { PredictionsService } from '../games/predictions.service';
 import { AuthService } from './auth.service';
 import { PronostiquesRankingsApiService } from '../api/pronostiques-rankings-api.service';
 import { BracketRankingsApiService } from '../api/bracket-rankings-api.service';
@@ -42,7 +41,6 @@ export class RankingcalculationService {
   private predictionsApiService = inject(PredictionsApiService);
   private cookieService = inject(CookieService);
   private matchService = inject(MatchesService);
-  private predictionService = inject(PredictionsService);
   private authService = inject(AuthService);
   private rankingToken!: string;
   private $pronostiques!: Observable<any>;
