@@ -12,7 +12,7 @@ import { LoaderComponent } from '../../../shared/components/loader/loader.compon
 
 /** Tournament phase display config in bracket order */
 const PHASE_CONFIG: { key: string; label: string; icon: string; color: string }[] = [
-  { key: 'Group Stage',    label: 'Phase de groupes',    icon: 'groups',            color: '#3b5bdb' },
+  { key: 'Group Stage',    label: 'Phase de groupes',    icon: 'groups',           color: '#3b5bdb' },
   { key: 'Round of 32',   label: 'Seizièmes de finale',  icon: 'filter_none',       color: '#7048e8' },
   { key: 'Round of 16',   label: 'Huitièmes de finale',  icon: 'filter_8',          color: '#9c36b5' },
   { key: 'Quarter-finals',label: 'Quarts de finale',     icon: 'emoji_events',      color: '#d6336c' },
@@ -24,7 +24,7 @@ const PHASE_CONFIG: { key: string; label: string; icon: string; color: string }[
     selector: 'app-pronostiques',
     templateUrl: './pronostiques.component.html',
     styleUrl: './pronostiques.component.scss',
-    changeDetection: ChangeDetectionStrategy.Eager,
+    changeDetection: ChangeDetectionStrategy.OnPush,
     imports: [NgClass, MatchComponent, LoaderComponent, AsyncPipe, DatePipe]
 })
 export class PronostiquesComponent {
@@ -54,7 +54,10 @@ export class PronostiquesComponent {
 
     this.$today = this.globalTime.getMuTime();
 
-    this.$groupedMatches = this.matchesService.getAllMatches().pipe(
+    // Share the core matches call to avoid duplicate network requests
+    const allMatches$ = this.matchesService.getAllMatches();
+
+    this.$groupedMatches = allMatches$.pipe(
       tap(matches => {
         const today = new Date();
         const todayKey = today.toISOString().split('T')[0];
@@ -84,7 +87,10 @@ export class PronostiquesComponent {
       map(matches => this.groupMatchesByDate(matches))
     );
 
-    this.$playedMatches = this.matchesService.getAllMatches();
+    // Filter to only pass matches that are officially completed (including today's finished matches)
+    this.$playedMatches = allMatches$.pipe(
+      map(matches => matches.filter(m => m.fulltime_a !== null && m.fulltime_b !== null))
+    );
 
     this.stateService.userState.subscribe({
       next: (res) => {
@@ -99,7 +105,6 @@ export class PronostiquesComponent {
   }
 
   groupMatchesByDate(matches: Matches[]): { [key: string]: Matches[] } {
-    // Group ALL matches by date (no cutoff) so both tabs can filter from one source
     return matches.reduce((groups, match) => {
       const dateKey = match.date.split(' ')[0];
       if (!groups[dateKey]) {
@@ -129,8 +134,11 @@ export class PronostiquesComponent {
     return Object.keys(groupedMatches).sort((a, b) => new Date(a).getTime() - new Date(b).getTime());
   }
 
+  // Updated to ensure today's date shows up if it contains played matches
   getPlayedDates(groupedMatches: { [key: string]: Matches[] }): string[] {
-    return Object.keys(groupedMatches).sort((a, b) => new Date(b).getTime() - new Date(a).getTime());
+    return Object.keys(groupedMatches)
+      .filter(date => this.hasPlayed(groupedMatches[date]))
+      .sort((a, b) => new Date(b).getTime() - new Date(a).getTime());
   }
 
   compareDates(date1: string, date2: string): boolean {
