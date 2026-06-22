@@ -23,7 +23,7 @@ const PHASE_CONFIG: { key: string; label: string; icon: string; color: string }[
     selector: 'app-pronostiques',
     templateUrl: './pronostiques.component.html',
     styleUrl: './pronostiques.component.scss',
-    changeDetection: ChangeDetectionStrategy.OnPush, // Fixed compilation error
+    changeDetection: ChangeDetectionStrategy.Eager,
     imports: [NgClass, MatchComponent, LoaderComponent, AsyncPipe, DatePipe]
 })
 export class PronostiquesComponent {
