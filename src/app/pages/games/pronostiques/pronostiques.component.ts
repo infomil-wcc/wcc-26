@@ -10,22 +10,21 @@ import { NgClass, AsyncPipe, DatePipe } from '@angular/common';
 import { MatchComponent } from '../../../shared/components/match/match.component';
 import { LoaderComponent } from '../../../shared/components/loader/loader.component';
 
-/** Tournament phase display config in bracket order */
 const PHASE_CONFIG: { key: string; label: string; icon: string; color: string }[] = [
-  { key: 'Group Stage', label: 'Phase de groupes', icon: 'groups', color: '#3b5bdb' },
-  { key: 'Round of 32', label: 'Seizièmes de finale', icon: 'filter_none', color: '#7048e8' },
-  { key: 'Round of 16', label: 'Huitièmes de finale', icon: 'filter_8', color: '#9c36b5' },
-  { key: 'Quarter-finals', label: 'Quarts de finale', icon: 'emoji_events', color: '#d6336c' },
-  { key: 'Semi-finals', label: 'Demi-finales', icon: 'military_tech', color: '#f76707' },
-  { key: 'Final', label: 'Finale', icon: 'workspace_premium', color: '#f59f00' },
+  { key: 'Group Stage',    label: 'Phase de groupes',    icon: 'groups',           color: '#3b5bdb' },
+  { key: 'Round of 32',   label: 'Seizièmes de finale',  icon: 'filter_none',       color: '#7048e8' },
+  { key: 'Round of 16',   label: 'Huitièmes de finale',  icon: 'filter_8',          color: '#9c36b5' },
+  { key: 'Quarter-finals',label: 'Quarts de finale',     icon: 'emoji_events',      color: '#d6336c' },
+  { key: 'Semi-finals',   label: 'Demi-finales',         icon: 'military_tech',     color: '#f76707' },
+  { key: 'Final',         label: 'Finale',               icon: 'workspace_premium', color: '#f59f00' },
 ];
 
 @Component({
-  selector: 'app-pronostiques',
-  templateUrl: './pronostiques.component.html',
-  styleUrl: './pronostiques.component.scss',
-  changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [NgClass, MatchComponent, LoaderComponent, AsyncPipe, DatePipe]
+    selector: 'app-pronostiques',
+    templateUrl: './pronostiques.component.html',
+    styleUrl: './pronostiques.component.scss',
+    changeDetection: ChangeDetectionStrategy.OnPush, // Fixed compilation error
+    imports: [NgClass, MatchComponent, LoaderComponent, AsyncPipe, DatePipe]
 })
 export class PronostiquesComponent {
 
@@ -42,10 +41,10 @@ export class PronostiquesComponent {
   protected isSubmittingBulk: boolean = false;
   protected upcomingCount: number = 0;
   protected playedCount: number = 0;
-  protected todayMatchCount: number = 0;     // today's unplayed matches
-  protected todayTotalCount: number = 0;     // all matches today
-  protected todayPlayedCount: number = 0;    // today's matches with official results
-  protected todayPredictedCount: number = 0; // today's unplayed matches with user prediction
+  protected todayMatchCount: number = 0;     
+  protected todayTotalCount: number = 0;     
+  protected todayPlayedCount: number = 0;    
+  protected todayPredictedCount: number = 0; 
 
   $groupedMatches!: Observable<{ [key: string]: Matches[] }>;
   $playedMatches!: Observable<Matches[]>;
@@ -53,12 +52,11 @@ export class PronostiquesComponent {
   ngOnInit(): void {
     this.$today = this.globalTime.getMuTime();
 
-    // 1. Create a stream that fetches matches and side-loads prediction data globally
     this.$groupedMatches = this.matchesService.getAllMatches().pipe(
       tap(matches => {
         const today = new Date();
         const todayKey = today.toISOString().split('T')[0];
-        this.upcomingCount = matches.filter(m => new Date(m.date) >= today).length;
+        this.upcomingCount = matches.filter(m => m.fulltime_a === null && m.fulltime_b === null).length;
         this.playedCount = matches.filter(m => m.fulltime_a !== null && m.fulltime_b !== null).length;
 
         const todayMatches = matches.filter(m => m.date.split(' ')[0] === todayKey);
@@ -80,11 +78,10 @@ export class PronostiquesComponent {
           this.todayPredictedCount = 0;
         }
       }),
-      // Map matches to group them, ensuring they preserve all state properties
       map(matches => this.groupMatchesByDate(matches))
     );
 
-    // 2. Simply point playedMatches to the service stream if your template or other sections read from it
+    // Kept exactly as your original code to preserve predictions mapping inside <app-match>
     this.$playedMatches = this.matchesService.getAllMatches();
 
     this.stateService.userState.subscribe({
@@ -110,17 +107,14 @@ export class PronostiquesComponent {
     }, {} as { [key: string]: Matches[] });
   }
 
-  /** Returns true if a date group has at least one upcoming (unfinished) match */
   hasUpcoming(matches: Matches[]): boolean {
     return matches.some(m => m.fulltime_a === null && m.fulltime_b === null);
   }
 
-  /** Returns true if a date group has at least one finished match */
   hasPlayed(matches: Matches[]): boolean {
     return matches.some(m => m.fulltime_a !== null && m.fulltime_b !== null);
   }
 
-  /** Count unpredicted matches in a date group */
   unpredictedCount(matches: Matches[]): number {
     return matches.filter(m => m.fulltime_a === null && m.fulltime_b === null).length;
   }
@@ -129,25 +123,21 @@ export class PronostiquesComponent {
     return Object.keys(groupedMatches).sort((a, b) => new Date(a).getTime() - new Date(b).getTime());
   }
 
-  // Updated to ensure today's date shows up if it contains played matches
+  // Updated to include today if any match has been played, without breaking object schemas
   getPlayedDates(groupedMatches: { [key: string]: Matches[] }): string[] {
     return Object.keys(groupedMatches)
       .filter(date => this.hasPlayed(groupedMatches[date]))
       .sort((a, b) => new Date(b).getTime() - new Date(a).getTime());
   }
 
-  compareDates(date1: string, date2: string): boolean {
-    return date1.slice(0, 10) > date2;
-  }
-
-  /** Returns the count of officially finished matches for a specific date group */
   getPlayedCountForDate(matches: Matches[]): number {
     return matches.filter(m => m.fulltime_a !== null && m.fulltime_b !== null).length;
   }
 
-  // ── Phase grouping for the upcoming tab ──────────────────────────────────
+  compareDates(date1: string, date2: string): boolean {
+    return date1.slice(0,10) > date2;
+  }
 
-  /** Returns phases that have upcoming unfinished matches, in bracket order */
   getUpcomingPhases(groupedMatches: { [key: string]: Matches[] }): typeof PHASE_CONFIG {
     const allUpcoming = Object.values(groupedMatches).flat()
       .filter(m => m.fulltime_a === null && m.fulltime_b === null);
@@ -155,7 +145,6 @@ export class PronostiquesComponent {
     return PHASE_CONFIG.filter(p => presentKeys.has(p.key));
   }
 
-  /** Returns upcoming matches for a given phase, grouped by date (asc) */
   getMatchesByPhaseAndDate(
     groupedMatches: { [key: string]: Matches[] },
     phaseKey: string

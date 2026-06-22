@@ -141,7 +141,6 @@
     <div class="date-header date-header-played">
       <div class="date-header-content">
         <span class="date-label capitalize">{{ date | date: 'EEEE d MMMM yyyy' }}</span>
-
         <span class="match-count-chip match-count-chip-played">
           {{ getPlayedCountForDate(groupedMatches[date]) }} match{{ getPlayedCountForDate(groupedMatches[date]) > 1 ?
           's' : '' }}
@@ -151,18 +150,14 @@
     </div>
 
     <div class="cards-grid">
-  @for (match of groupedMatches[date]; track match.id) {
-    @if (match.fulltime_a !== null && match.fulltime_b !== null) {
+      @for (match of groupedMatches[date]; track match) {
+      @if (match.fulltime_a !== null && match.fulltime_b !== null) {
       <div class="card-wrapper">
-        <app-match 
-          [match]="match" 
-          [isPronostiques]="true" 
-          [disabled]="!isLoggedIn" 
-          [dateTime]="today.dateTime" />
+        <app-match [match]="match" [isPronostiques]="true" [disabled]="!isLoggedIn" [dateTime]="today.dateTime" />
       </div>
-    }
-  }
-</div>
+      }
+      }
+    </div>
 
   </div>
   }
