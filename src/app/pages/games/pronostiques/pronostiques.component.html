@@ -3,36 +3,28 @@
   <div class="header-bar w-full">
     <div class="container header-bar-inner">
 
-      <!-- Left: page title -->
       <div class="header-title">
         <span class="material-symbols-outlined header-title-icon">sports_esports</span>
         <span class="header-title-text">Pronostic des matchs</span>
       </div>
 
-      <!-- Right: pill tab switcher -->
       <div class="tab-group">
 
-        <button
-          class="tab-btn"
-          id="tab-upcoming"
-          [ngClass]="{'tab-active': activeMatches}"
+        <button class="tab-btn" id="tab-upcoming" [ngClass]="{'tab-active': activeMatches}"
           (click)="activeMatches = true">
           <span class="material-symbols-outlined tab-icon">pending_actions</span>
           <span class="tab-label">À venir</span>
           @if (upcomingCount > 0) {
-            <span class="tab-badge tab-badge-upcoming">{{ upcomingCount }}</span>
+          <span class="tab-badge tab-badge-upcoming">{{ upcomingCount }}</span>
           }
         </button>
 
-        <button
-          class="tab-btn"
-          id="tab-played"
-          [ngClass]="{'tab-active': !activeMatches}"
+        <button class="tab-btn" id="tab-played" [ngClass]="{'tab-active': !activeMatches}"
           (click)="activeMatches = false">
           <span class="material-symbols-outlined tab-icon">history</span>
           <span class="tab-label">Joués</span>
-          @if (playedCount > 0) {
-            <span class="tab-badge tab-badge-played">{{ playedCount }}</span>
+          @if (todayPlayedCount > 0) {
+          <span class="tab-badge tab-badge-played">{{ todayPlayedCount }}</span>
           }
         </button>
 
