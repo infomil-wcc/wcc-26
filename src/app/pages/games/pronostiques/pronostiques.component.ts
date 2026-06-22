@@ -145,6 +145,11 @@ export class PronostiquesComponent {
     return date1.slice(0,10) > date2;
   }
 
+/** Returns the count of officially finished matches for a specific date group */
+getPlayedCountForDate(matches: Matches[]): number {
+  return matches.filter(m => m.fulltime_a !== null && m.fulltime_b !== null).length;
+}
+
   // ── Phase grouping for the upcoming tab ──────────────────────────────────
 
   /** Returns phases that have upcoming unfinished matches, in bracket order */
