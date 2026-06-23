@@ -58,6 +58,7 @@ export default async function handler(request, response) {
     if (!afRes.ok) throw new Error(`API-Football failed with status: ${afRes.status}`);
     
     const afData = await afRes.json();
+    log(`[API RESPONSE] Matches list endpoint response data:`, afData);
     const externalFixtures = afData.response || [];
     const finishedStatus = ['FT', 'AET', 'PEN'];
     const finishedFixtures = externalFixtures.filter(f => finishedStatus.includes(f.fixture?.status?.short));
@@ -177,6 +178,7 @@ export default async function handler(request, response) {
     if (!detailedRes.ok) throw new Error(`API-Football detailed query failed with status: ${detailedRes.status}`);
     
     const detailedData = await detailedRes.json();
+    log(`[API RESPONSE] Detailed fixtures endpoint response data:`, detailedData);
     const detailedFixtures = detailedData.response || [];
 
     const itemsToPatch = [];
