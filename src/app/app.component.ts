@@ -31,6 +31,7 @@ import { FooterComponent } from './shared/components/footer/footer.component';
 import { DialogComponent } from './shared/components/dialog/dialog.component';
 import { LoaderComponent } from './shared/components/loader/loader.component';
 import { ModalComponent } from './shared/components/modal/modal.component';
+import { PredictionsService } from './shared/services/games/predictions.service';
 
 @Component({
     selector: 'app-root',
@@ -59,7 +60,8 @@ export class AppComponent implements OnInit {
     private authService: AuthService,
     private totalgoalsService: TotalgoalsService,
     private cookieService: CookieService,
-    private formBuilder: FormBuilder
+    private formBuilder: FormBuilder,
+    private predictionsService: PredictionsService
   ){
     router.events.forEach((event) => {
       if(event instanceof NavigationStart) {
@@ -88,6 +90,11 @@ export class AppComponent implements OnInit {
       }
     });
 
+    // Auto-update match results and live statuses when site loads
+    this.predictionsService.updateResults().subscribe({
+      next: (res) => console.log('Automatic live results sync response:', res),
+      error: (err) => console.error('Automatic live results sync failed:', err)
+    });
   }
 
   handleAlreadylogged(): void {

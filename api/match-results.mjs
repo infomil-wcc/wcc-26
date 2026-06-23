@@ -1,13 +1,67 @@
 import { handleCors } from './utils.mjs';
 import { teamNameMap } from './mappings.mjs';
 
-/**
- * Helper function to clean and map team names
- */
 function getNormalizedTeamName(externalName) {
   if (!externalName) return null;
   const trimmedName = externalName.trim();
   return teamNameMap[trimmedName] || trimmedName;
+}
+
+function parseScorersString(scorersStr, teamName) {
+  if (!scorersStr || scorersStr === 'null' || scorersStr === '') return [];
+  let cleanStr = scorersStr.replace(/[“”]/g, '"');
+  
+  let arr = [];
+  try {
+    const parsed = JSON.parse(cleanStr);
+    if (Array.isArray(parsed)) {
+      arr = parsed;
+    } else {
+      const matches = cleanStr.match(/"([^"\\]*(?:\\.[^"\\]*)*)"/g);
+      if (matches) {
+        arr = matches.map(m => m.replace(/^"|"$/g, ''));
+      }
+    }
+  } catch (e) {
+    const matches = cleanStr.match(/"([^"\\]*(?:\\.[^"\\]*)*)"/g);
+    if (matches) {
+      arr = matches.map(m => m.replace(/^"|"$/g, ''));
+    }
+  }
+
+  const events = [];
+  for (const goalStr of arr) {
+    const regex = /^(.*?)\s+(\d+)'?(?:\+(\d+))?'?\s*(\((?:OG|p|CSC|PEN)\)|\[(?:OG|p|CSC|PEN)\])?$/i;
+    const match = goalStr.trim().match(regex);
+    if (match) {
+      const playerName = match[1].trim();
+      const elapsed = parseInt(match[2], 10);
+      const extra = match[3] ? parseInt(match[3], 10) : null;
+      let detail = 'Normal Goal';
+      if (match[4]) {
+        const detailLower = match[4].toLowerCase();
+        if (detailLower.includes('og') || detailLower.includes('csc')) {
+          detail = 'Own Goal';
+        } else if (detailLower.includes('p') || detailLower.includes('pen')) {
+          detail = 'Penalty';
+        }
+      }
+      events.push({
+        time: { elapsed, extra },
+        team: { name: teamName },
+        player: { name: playerName },
+        detail
+      });
+    } else {
+      events.push({
+        time: { elapsed: 0, extra: null },
+        team: { name: teamName },
+        player: { name: goalStr.trim() },
+        detail: 'Normal Goal'
+      });
+    }
+  }
+  return events;
 }
 
 export default async function handler(request, response) {
@@ -28,6 +82,51 @@ export default async function handler(request, response) {
 
   if (!apiKey) {
     return response.status(500).json({ error: "Missing FOOTBALL_DATA_API_KEY environment variable." });
+  }
+
+  const nowTime = new Date().getTime();
+  const nowIso = new Date().toISOString();
+
+  // 1. Fetch started but unfinished matches from Directus (highly selective query)
+  let dbMatches = [];
+  try {
+    const dbRes = await fetch(`${directusUrl}/items/matches?filter[date][_lte]=${nowIso}&filter[fulltime][_neq]=true`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${adminToken}`
+      }
+    });
+
+    if (dbRes.ok) {
+      const dbData = await dbRes.json();
+      dbMatches = dbData.data || [];
+    }
+  } catch (dbError) {
+    console.error("Database Error fetching matches from Directus:", dbError.message);
+  }
+
+  // 2. Fetch live match_status entries from Directus (highly selective query)
+  let dbMatchStatuses = [];
+  try {
+    const statusRes = await fetch(`${directusUrl}/items/match_status?filter[status][_eq]=live`, {
+      headers: { 'Authorization': `Bearer ${adminToken}` }
+    });
+    if (statusRes.ok) {
+      const statusData = await statusRes.json();
+      dbMatchStatuses = statusData.data || [];
+    }
+  } catch (e) {
+    console.error("Failed to fetch match_status:", e.message);
+  }
+
+  // Early Exit: if no matches have started and no match statuses are active, skip external calls and updates
+  if (dbMatches.length === 0 && dbMatchStatuses.length === 0) {
+    return response.status(200).json({
+      success: true,
+      message: "No started or live matches require syncing.",
+      updates: [],
+      formUpdates: []
+    });
   }
 
   let externalMatches = [];
@@ -57,128 +156,133 @@ export default async function handler(request, response) {
     });
   }
 
-  // Fetch all matches from Directus to do mapping
-  let dbMatches = [];
+  // Fetch games from worldcup26.ir (for rich scorer details)
+  let wcMatches = [];
   try {
-    const dbRes = await fetch(`${directusUrl}/items/matches?limit=-1`, {
-      method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${adminToken}`
-      }
-    });
-
-    if (!dbRes.ok) {
-      throw new Error(`Directus match fetch failed with HTTP status ${dbRes.status}`);
+    const wcRes = await fetch('https://worldcup26.ir/get/games');
+    if (wcRes.ok) {
+      const wcData = await wcRes.json();
+      wcMatches = wcData.games || [];
     }
-
-    const dbData = await dbRes.json();
-    dbMatches = dbData.data || [];
-  } catch (dbError) {
-    console.error("Database Error fetching matches from Directus:", dbError.message);
-    return response.status(500).json({
-      success: false,
-      error: "Failed to retrieve local matches from Directus database.",
-      details: dbError.message
-    });
+  } catch (wcError) {
+    console.error("Error fetching from worldcup26.ir:", wcError.message);
   }
+
+  // Evaluate started matches and insert rows in match_status
+  for (const dbMatch of dbMatches) {
+    const matchTime = new Date(dbMatch.date).getTime();
+    const hasStarted = nowTime >= matchTime;
+
+    if (hasStarted && !dbMatch.fulltime) {
+      const existingStatus = dbMatchStatuses.find(s => parseInt(s.match_id, 10) === parseInt(dbMatch.id, 10));
+      if (!existingStatus) {
+        try {
+          const insertRes = await fetch(`${directusUrl}/items/match_status`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${adminToken}`
+            },
+            body: JSON.stringify({
+              match_id: parseInt(dbMatch.id, 10),
+              status: 'live',
+              started_at: dbMatch.date
+            })
+          });
+          if (insertRes.ok) {
+            const insertData = await insertRes.json();
+            dbMatchStatuses.push(insertData.data);
+            console.log(`Inserted live status row for match ID ${dbMatch.id}`);
+          }
+        } catch (err) {
+          console.error(`Failed to insert match_status for match ID ${dbMatch.id}:`, err.message);
+        }
+      }
+    }
+  }
+
+  // Identify target match IDs to update
+  const liveMatchIds = dbMatchStatuses
+    .filter(s => s.status === 'live')
+    .map(s => parseInt(s.match_id, 10));
 
   // Map and update matches
   const results = [];
 
   try {
-    for (const extMatch of externalMatches) {
-      // Sync completed matches OR in-play/paused matches to capture halftime scores
-      if (extMatch.status !== "FINISHED" && extMatch.status !== "IN_PLAY" && extMatch.status !== "PAUSED") {
+    for (const dbMatch of dbMatches) {
+      const matchIdNum = parseInt(dbMatch.id, 10);
+      
+      // Update ONLY match IDs that are currently marked "live"
+      if (!liveMatchIds.includes(matchIdNum)) {
         continue;
       }
 
-      const normalizedHome = getNormalizedTeamName(extMatch.homeTeam?.name);
-      const normalizedAway = getNormalizedTeamName(extMatch.awayTeam?.name);
+      // Find corresponding football-data match
+      const fdMatch = externalMatches.find(m => {
+        const home = getNormalizedTeamName(m.homeTeam?.name);
+        const away = getNormalizedTeamName(m.awayTeam?.name);
+        return (dbMatch.team_a === home && dbMatch.team_b === away) ||
+               (dbMatch.team_a === away && dbMatch.team_b === home);
+      });
 
-      if (!normalizedHome || !normalizedAway) {
-        continue;
-      }
+      if (!fdMatch) continue;
 
-      // Find the corresponding Directus match by comparing normalized team names (allowing reversed home/away slots)
-      const dbMatch = dbMatches.find(m => 
-        (m.team_a === normalizedHome && m.team_b === normalizedAway) ||
-        (m.team_a === normalizedAway && m.team_b === normalizedHome)
-      );
+      // Find corresponding worldcup26.ir game
+      const wcMatch = wcMatches.find(m => {
+        if (parseInt(dbMatch.id, 10) === parseInt(m.id, 10)) return true;
+        const home = getNormalizedTeamName(m.home_team_name_en);
+        const away = getNormalizedTeamName(m.away_team_name_en);
+        return (dbMatch.team_a === home && dbMatch.team_b === away) ||
+               (dbMatch.team_a === away && dbMatch.team_b === home);
+      });
 
-      if (!dbMatch) {
-        console.warn(`No match found in DB for external match: ${normalizedHome} vs ${normalizedAway}`);
-        continue;
-      }
+      const isReversed = (dbMatch.team_a === getNormalizedTeamName(fdMatch.awayTeam?.name));
+      const homeScore = fdMatch.score?.fullTime?.home;
+      const awayScore = fdMatch.score?.fullTime?.away;
+      const dbScoreA = isReversed ? (awayScore !== null ? Number(awayScore) : null) : (homeScore !== null ? Number(homeScore) : null);
+      const dbScoreB = isReversed ? (homeScore !== null ? Number(homeScore) : null) : (awayScore !== null ? Number(awayScore) : null);
 
-      // Determine home/away scores mapping based on whether the team positions are reversed
-      const isReversed = (dbMatch.team_a === normalizedAway);
-      const homeScore = extMatch.score?.fullTime?.home;
-      const awayScore = extMatch.score?.fullTime?.away;
+      const htHome = fdMatch.score?.halfTime?.home;
+      const htAway = fdMatch.score?.halfTime?.away;
+      const targetHtA = (htHome !== null && htHome !== undefined && htAway !== null && htAway !== undefined) ? (isReversed ? Number(htAway) : Number(htHome)) : null;
+      const targetHtB = (htHome !== null && htHome !== undefined && htAway !== null && htAway !== undefined) ? (isReversed ? Number(htHome) : Number(htAway)) : null;
 
-      const payload = {};
-
-      // Only sync full-time stats if finished
-      if (extMatch.status === "FINISHED" && homeScore !== null && homeScore !== undefined && awayScore !== null && awayScore !== undefined) {
-        const dbScoreA = isReversed ? awayScore : homeScore;
-        const dbScoreB = isReversed ? homeScore : awayScore;
-
-        let winnerDraw = null;
-        if (dbScoreA > dbScoreB) {
-          winnerDraw = dbMatch.team_a;
-        } else if (dbScoreB > dbScoreA) {
-          winnerDraw = dbMatch.team_b;
-        } else {
-          winnerDraw = "Draw";
-        }
-
-        let scorers = '';
-        const scorersList = (extMatch.goals || [])
-          .map(g => g.scorer?.name)
-          .filter(Boolean);
+      // Parse scorers from worldcup26.ir if found
+      let scorers = [];
+      if (wcMatch) {
+        const homeGoals = parseScorersString(wcMatch.home_scorers, getNormalizedTeamName(wcMatch.home_team_name_en));
+        const awayGoals = parseScorersString(wcMatch.away_scorers, getNormalizedTeamName(wcMatch.away_team_name_en));
+        const combinedGoals = [...homeGoals, ...awayGoals];
         
-        if (scorersList.length > 0) {
-          scorers = scorersList.join(', ');
-        } else {
-          try {
-            const detailRes = await fetch(`https://api.football-data.org/v4/matches/${extMatch.id}`, {
-              headers: { 'X-Auth-Token': apiKey }
-            });
-            if (detailRes.ok) {
-              const detailData = await detailRes.json();
-              const detailScorers = (detailData.goals || [])
-                .map(g => g.scorer?.name)
-                .filter(Boolean);
-              if (detailScorers.length > 0) {
-                scorers = detailScorers.join(', ');
-              }
-            }
-          } catch (e) {
-            console.error(`Failed to fetch match details for scorers of match ${extMatch.id}:`, e.message);
+        combinedGoals.sort((a, b) => {
+          if (a.time.elapsed !== b.time.elapsed) {
+            return a.time.elapsed - b.time.elapsed;
           }
-        }
+          return (a.time.extra || 0) - (b.time.extra || 0);
+        });
+        
+        scorers = combinedGoals;
+      }
 
-        payload.fulltime_a = dbScoreA;
-        payload.fulltime_b = dbScoreB;
-        payload.winner_draw = winnerDraw;
+      const isFinished = fdMatch.status === "FINISHED";
+      const payload = {
+        fulltime_a: dbScoreA,
+        fulltime_b: dbScoreB,
+        halftime_a: targetHtA,
+        halftime_b: targetHtB,
+        scorers: scorers
+      };
+
+      if (isFinished) {
         payload.fulltime = true;
-        payload.scorers = scorers;
+        let winnerDraw = "Draw";
+        if (dbScoreA > dbScoreB) winnerDraw = dbMatch.team_a;
+        else if (dbScoreB > dbScoreA) winnerDraw = dbMatch.team_b;
+        payload.winner_draw = winnerDraw;
       }
 
-      // Extract halftime scores if available
-      const htHome = extMatch.score?.halfTime?.home;
-      const htAway = extMatch.score?.halfTime?.away;
-      if (htHome !== null && htHome !== undefined && htAway !== null && htAway !== undefined) {
-        payload.halftime_a = isReversed ? htAway : htHome;
-        payload.halftime_b = isReversed ? htHome : htAway;
-        payload.halftime = true;
-      }
-
-      // If there's nothing new to update, skip it
-      if (Object.keys(payload).length === 0) {
-        continue;
-      }
-
-      // Send update payload to Directus match item
+      // Update match record in Directus
       const directusResponse = await fetch(`${directusUrl}/items/matches/${dbMatch.id}`, {
         method: 'PATCH',
         headers: {
@@ -194,6 +298,56 @@ export default async function handler(request, response) {
         status: "Updated",
         success: directusResponse.ok
       });
+
+      // Update status in match_status table if finished or elapsed 180 mins
+      const statusObj = dbMatchStatuses.find(s => parseInt(s.match_id, 10) === matchIdNum);
+      if (statusObj) {
+        const matchStartedAt = new Date(statusObj.started_at || dbMatch.date).getTime();
+        const elapsedMinutes = (new Date().getTime() - matchStartedAt) / (60 * 1000);
+
+        if (elapsedMinutes >= 180 || isFinished || payload.fulltime) {
+          try {
+            await fetch(`${directusUrl}/items/match_status/${statusObj.id}`, {
+              method: 'PATCH',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${adminToken}`
+              },
+              body: JSON.stringify({
+                status: 'finished'
+              })
+            });
+            console.log(`Updated status to finished for match ID ${dbMatch.id}`);
+          } catch (err) {
+            console.error(`Failed to update match_status for match ID ${dbMatch.id}:`, err.message);
+          }
+      }
+    }
+
+    // If any matches were updated, delete pronostiques_rankings to force recalculation
+    if (results.length > 0) {
+      try {
+        const rankRes = await fetch(`${directusUrl}/items/pronostiques_rankings?limit=-1`, {
+          headers: { 'Authorization': `Bearer ${adminToken}` }
+        });
+        if (rankRes.ok) {
+          const rankData = await rankRes.json();
+          const ids = (rankData.data || []).map(r => r.id);
+          if (ids.length > 0) {
+            await fetch(`${directusUrl}/items/pronostiques_rankings`, {
+              method: 'DELETE',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${adminToken}`
+              },
+              body: JSON.stringify(ids)
+            });
+            console.log(`Successfully deleted ${ids.length} pronostiques_rankings records to force leaderboard recalculation.`);
+          }
+        }
+      } catch (err) {
+        console.error("Failed to clear pronostiques_rankings:", err.message);
+      }
     }
 
   } catch (error) {
@@ -204,7 +358,6 @@ export default async function handler(request, response) {
   // ── Phase 2: Update team form (forme1–forme5) ──────────────────────────
   const formUpdates = [];
   try {
-    // Fetch all teams from Directus (we need id + name)
     const teamsRes = await fetch(`${directusUrl}/items/teams?limit=-1&fields=id,name`, {
       method: 'GET',
       headers: { 'Authorization': `Bearer ${adminToken}` }
@@ -217,19 +370,16 @@ export default async function handler(request, response) {
     const teamsData = await teamsRes.json();
     const dbTeams = teamsData.data || [];
 
-    // Build a map: normalizedTeamName -> { id }
     const teamMap = {};
     for (const t of dbTeams) {
       teamMap[t.name] = t;
     }
 
-    // Collect finished matches sorted chronologically (oldest first)
     const finishedMatches = externalMatches
       .filter(m => m.status === "FINISHED")
       .sort((a, b) => new Date(a.utcDate) - new Date(b.utcDate));
 
-    // Build per-team list of outcomes in chronological order
-    const teamOutcomes = {}; // teamName -> ['W','D','L', ...]
+    const teamOutcomes = {};
 
     for (const m of finishedMatches) {
       const homeScore = m.score?.fullTime?.home;
@@ -258,7 +408,6 @@ export default async function handler(request, response) {
       teamOutcomes[awayName].push(awayOutcome);
     }
 
-    // For each team with outcomes, PATCH forme1–forme5 (most recent last → forme5 is newest)
     for (const [teamName, outcomes] of Object.entries(teamOutcomes)) {
       const dbTeam = teamMap[teamName];
       if (!dbTeam) {
@@ -266,7 +415,6 @@ export default async function handler(request, response) {
         continue;
       }
 
-      // Take last 5 results; pad with empty string if fewer than 5 games played
       const last5 = outcomes.slice(-5);
       while (last5.length < 5) last5.unshift('');
 
@@ -297,7 +445,6 @@ export default async function handler(request, response) {
 
   } catch (formError) {
     console.error("Team Form Update Error:", formError.message);
-    // Non-fatal: still return match results even if form update fails
     return response.status(200).json({
       success: true,
       message: `Synchronisation effectuée. ${results.length} matchs mis à jour. Erreur lors de la mise à jour de la forme des équipes.`,
@@ -309,7 +456,7 @@ export default async function handler(request, response) {
 
   return response.status(200).json({
     success: true,
-    message: `Synchronisation football-data effectuée. ${results.length} matchs terminés mis à jour. ${formUpdates.length} équipes mises à jour.`,
+    message: `Synchronisation football-data effectuée. ${results.length} matchs terminés/en direct mis à jour. ${formUpdates.length} équipes mises à jour.`,
     updates: results,
     formUpdates
   });

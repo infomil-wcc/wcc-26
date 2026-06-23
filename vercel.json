@@ -19,14 +19,14 @@
     }
   ],
   "functions": {
-    "api/catch-up-matches.mjs": {
+    "api/match-results.mjs": {
       "maxDuration": 60
     }
   },
   "crons": [
     {
-      "path": "/api/catch-up-matches",
-      "schedule": "0 5 * * *"
+      "path": "/api/match-results",
+      "schedule": "0 12 * * *"
     }
   ]
 }
