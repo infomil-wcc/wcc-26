@@ -8,9 +8,11 @@
 }
 
 .container {
+  display: flex;
+  align-items: center;
   position: relative;
-  padding-left: 48px !important;
-  padding-right: 48px !important;
+  width: 100%;
+  padding: 0 48px !important; 
 }
 
 .nav-chevron {
@@ -57,6 +59,12 @@
 }
 
 .calendar-strip-scroll {
+  display: flex;          /* Ensure it behaves as a flexbox container */
+  justify-content: center; /* Pushes the group of cards cleanly to the center of the bar */
+  gap: 0.5rem;
+  flex-grow: 1;
+  width: 100%; 
+  min-width: 0;
   scrollbar-width: none; /* Hide scrollbar for Firefox */
   -webkit-overflow-scrolling: touch; /* Smooth iOS momentum scroll */
   
@@ -66,9 +74,10 @@
 }
 
 .strip-date-card {
-  width: 62px;
+  /* Allows cards to expand dynamically while locking a sensible max-width */
+  flex: 1 1 80px; 
+  max-width: 140px; 
   height: 78px;
-  flex-shrink: 0;
   background: rgba(255, 255, 255, 0.03);
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 12px;
