@@ -496,9 +496,9 @@ export class MatchComponent implements OnInit, OnDestroy {
       }
       timeStr += "'";
       if (e.detail === 'Penalty') {
-        timeStr += '[P]';
+        timeStr += '<sup>[PEN]</sup>';
       } else if (e.detail === 'Own Goal') {
-        timeStr += '[OG]';
+        timeStr += '<sup>[OG]</sup>';
       }
       
       if (!groups[name]) {

@@ -230,11 +230,7 @@
             }
           </div>
         }
-        @if (closed && !pronostiqueDone) {
-          <div class="jeuFermer flex justify-content-center h-full align-items-center mt-4 mb-2">
-            <h3 class="text-center text-sm font-semibold text-gray-500 m-0">Pronostic clos</h3>
-          </div>
-        }
+
         @if (pronostiqueDone) {
           <div class="pronostiqueDone flex flex-column align-items-center mt-2"
                [ngClass]="(match.fulltime_a !== null && match.fulltime_b !== null) ? (isOutcomeCorrect() ? 'bg-success-box' : 'bg-danger-box') : ''">
@@ -316,10 +312,17 @@
           <span class="team-name">{{ match.team_a | slice:0:3 | uppercase }}</span>
         </div>
 
-        <div class="score-pill flex align-items-center justify-content-center">
-          <span class="score">{{ match.fulltime_a }}</span>
-          <span class="divider">|</span>
-          <span class="score">{{ match.fulltime_b }}</span>
+        <div class="flex flex-column align-items-center justify-content-center">
+          <div class="score-pill flex align-items-center justify-content-center">
+            <span class="score">{{ match.fulltime_a }}</span>
+            <span class="divider">|</span>
+            <span class="score">{{ match.fulltime_b }}</span>
+          </div>
+          @if (match.halftime_a !== null && match.halftime_b !== null) {
+            <span class="halftime-score-pill text-xs font-semibold px-2 py-0.5 rounded text-gray-400" style="font-size: 0.62rem; margin-top: 4px; letter-spacing: 0.5px; opacity: 0.85; border: 1px solid rgba(255,255,255,0.06); background: rgba(0,0,0,0.15);">
+              HT: {{ match.halftime_a }} - {{ match.halftime_b }}
+            </span>
+          }
         </div>
 
         <div class="team-info right flex align-items-center justify-content-start gap-2">
@@ -327,37 +330,39 @@
           <span class="flag-wrapper" [ngStyle]="{'background-image': match.team_b ? 'url(' + teamBFlag + ')'  : 'url(assets/flags/unknown.png)'}"></span>
         </div>
       </div>
-      @if (match.scorers) {
-        @if (isScorersJson) {
-          <div class="scorers-split-grid" style="display: grid; grid-template-columns: 1fr 1fr; background: #202734; border-top: 1px solid rgba(255, 255, 255, 0.05); padding: 8px 12px; font-size: 0.72rem; color: #a0aec0; min-height: 64px;">
-            <!-- Team A Scorers (Left Column) -->
-            <div class="text-left" style="border-right: 1px solid rgba(255, 255, 255, 0.05); padding-right: 8px;">
-              @for (scorer of teamAScorersGrouped; track scorer.name) {
-                <div style="margin-bottom: 2px; display: flex; align-items: center; gap: 4px; justify-content: flex-start;">
-                  <span class="material-symbols-outlined" style="font-size: 0.8rem; color: #8a99ad;">sports_soccer</span>
-                  <span style="font-weight: 700; color: #e2e8f0;">{{ scorer.name }}</span>
-                  <span style="color: #a0aec0;">({{ scorer.times }})</span>
-                </div>
-              }
+      
+      <div class="scorers-split-grid" style="display: grid; grid-template-columns: 1fr 1fr; background: #202734; border-top: 1px solid rgba(255, 255, 255, 0.05); padding: 8px 12px; font-size: 0.72rem; color: #a0aec0; min-height: 64px;">
+        <!-- Team A Scorers (Left Column) -->
+        <div class="text-left" style="border-right: 1px solid rgba(255, 255, 255, 0.05); padding-right: 8px;">
+          @if (isScorersJson) {
+            @for (scorer of teamAScorersGrouped; track scorer.name) {
+              <div style="margin-bottom: 2px; display: flex; align-items: center; gap: 4px; justify-content: flex-start;">
+                <span class="material-symbols-outlined" style="font-size: 0.8rem; color: #8a99ad;">sports_soccer</span>
+                <span style="font-weight: 700; color: #e2e8f0;">{{ scorer.name }}</span>
+                <span style="color: #a0aec0;" [innerHTML]="scorer.times"></span>
+              </div>
+            }
+          } @else if (match.scorers && !isScorersJson) {
+            <div style="display: flex; align-items: center; gap: 4px; justify-content: flex-start;">
+              <span class="material-symbols-outlined" style="font-size: 0.8rem; color: #ffeb3b;">sports_soccer</span>
+              <span class="align-middle" style="color: #e2e8f0; font-style: italic;">{{ match.scorers }}</span>
             </div>
-            <!-- Team B Scorers (Right Column) -->
-            <div class="text-right" style="padding-left: 8px;">
-              @for (scorer of teamBScorersGrouped; track scorer.name) {
-                <div style="margin-bottom: 2px; display: flex; align-items: center; gap: 4px; justify-content: flex-end;">
-                  <span style="font-weight: 700; color: #e2e8f0;">{{ scorer.name }}</span>
-                  <span style="color: #a0aec0;">({{ scorer.times }})</span>
-                  <span class="material-symbols-outlined" style="font-size: 0.8rem; color: #8a99ad;">sports_soccer</span>
-                </div>
-              }
-            </div>
-          </div>
-        } @else {
-          <div class="official-scorers text-center text-xs font-semibold py-2 px-3 text-gray-300 italic flex align-items-center justify-content-center gap-1" style="background: #202734; border-top: 1px solid rgba(255, 255, 255, 0.05);">
-            <span class="material-symbols-outlined align-middle" style="font-size: 0.95rem; color: #ffeb3b;">sports_soccer</span>
-            <span class="align-middle">{{ match.scorers }}</span>
-          </div>
-        }
-      }
+          }
+        </div>
+        <!-- Team B Scorers (Right Column) -->
+        <div class="text-right" style="padding-left: 8px;">
+          @if (isScorersJson) {
+            @for (scorer of teamBScorersGrouped; track scorer.name) {
+              <div style="margin-bottom: 2px; display: flex; align-items: center; gap: 4px; justify-content: flex-end;">
+                <span style="font-weight: 700; color: #e2e8f0;">{{ scorer.name }}</span>
+                <span style="color: #a0aec0;" [innerHTML]="scorer.times"></span>
+                <span class="material-symbols-outlined" style="font-size: 0.8rem; color: #8a99ad;">sports_soccer</span>
+              </div>
+            }
+          }
+        </div>
+      </div>
+      
       <div class="stripe-bar"></div>
     </div>
   }
