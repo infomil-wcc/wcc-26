@@ -231,41 +231,8 @@
           </div>
         }
         @if (closed && !pronostiqueDone) {
-          <div class="jeuFermer flex flex-column align-items-center justify-content-center mt-4 w-full">
-            @if (match.scorers) {
-              <span class="label text-xs uppercase font-semibold text-center mb-2" style="letter-spacing: 1.5px; font-size: 0.75rem; color: #718096; display: block; width: 100%;">Buteurs officiels</span>
-              @if (isScorersJson) {
-                <div class="scorers-split-grid w-full" style="display: grid; grid-template-columns: 1fr 1fr; background: rgba(0, 0, 0, 0.02); border-top: 1px solid rgba(0, 0, 0, 0.05); border-bottom: 1px solid rgba(0, 0, 0, 0.05); padding: 8px 12px; font-size: 0.72rem; color: #4a5568;">
-                  <!-- Team A Scorers (Left Column) -->
-                  <div class="text-left" style="border-right: 1px solid rgba(0, 0, 0, 0.05); padding-right: 8px;">
-                    @for (scorer of teamAScorersGrouped; track scorer.name) {
-                      <div style="margin-bottom: 2px; display: flex; align-items: center; gap: 4px; justify-content: flex-start;">
-                        <span class="material-symbols-outlined" style="font-size: 0.8rem; color: #718096;">sports_soccer</span>
-                        <span style="font-weight: 700; color: #2d3748;">{{ scorer.name }}</span>
-                        <span style="color: #718096;">({{ scorer.times }})</span>
-                      </div>
-                    }
-                  </div>
-                  <!-- Team B Scorers (Right Column) -->
-                  <div class="text-right" style="padding-left: 8px;">
-                    @for (scorer of teamBScorersGrouped; track scorer.name) {
-                      <div style="margin-bottom: 2px; display: flex; align-items: center; gap: 4px; justify-content: flex-end;">
-                        <span style="font-weight: 700; color: #2d3748;">{{ scorer.name }}</span>
-                        <span style="color: #718096;">({{ scorer.times }})</span>
-                        <span class="material-symbols-outlined" style="font-size: 0.8rem; color: #718096;">sports_soccer</span>
-                      </div>
-                    }
-                  </div>
-                </div>
-              } @else {
-                <div class="official-scorers text-center text-xs font-semibold py-2 px-3 text-gray-700 italic flex align-items-center justify-content-center gap-1">
-                  <span class="material-symbols-outlined align-middle" style="font-size: 0.95rem; color: #b45309;">sports_soccer</span>
-                  <span class="align-middle">{{ match.scorers }}</span>
-                </div>
-              }
-            } @else {
-              <h3 class="text-center text-sm font-semibold text-gray-500 m-0">Pronostic clos</h3>
-            }
+          <div class="jeuFermer flex justify-content-center h-full align-items-center mt-4 mb-2">
+            <h3 class="text-center text-sm font-semibold text-gray-500 m-0">Pronostic clos</h3>
           </div>
         }
         @if (pronostiqueDone) {
@@ -362,7 +329,7 @@
       </div>
       @if (match.scorers) {
         @if (isScorersJson) {
-          <div class="scorers-split-grid" style="display: grid; grid-template-columns: 1fr 1fr; background: #202734; border-top: 1px solid rgba(255, 255, 255, 0.05); padding: 8px 12px; font-size: 0.72rem; color: #a0aec0;">
+          <div class="scorers-split-grid" style="display: grid; grid-template-columns: 1fr 1fr; background: #202734; border-top: 1px solid rgba(255, 255, 255, 0.05); padding: 8px 12px; font-size: 0.72rem; color: #a0aec0; min-height: 64px;">
             <!-- Team A Scorers (Left Column) -->
             <div class="text-left" style="border-right: 1px solid rgba(255, 255, 255, 0.05); padding-right: 8px;">
               @for (scorer of teamAScorersGrouped; track scorer.name) {
