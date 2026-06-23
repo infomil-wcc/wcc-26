@@ -7,6 +7,12 @@
           <span class="material-symbols-outlined">sports_esports</span>
           IML FOOT CHALLENGE LEADERBOARD
         </h1>
+        @if (latestRank) {
+          <div class="text-white-alpha-70 text-xs mt-1 font-semibold flex align-items-center gap-1">
+            <span class="material-symbols-outlined" style="font-size: 0.95rem; margin-right: 2px; vertical-align: middle;">update</span>
+            <span>Mise à jour le {{ latestRank.modified_on | date: 'd MMMM yyyy à HH:mm' }}</span>
+          </div>
+        }
       </div>
     </div>
   </div>

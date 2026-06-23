@@ -295,12 +295,35 @@ export class RankingcalculationService {
         })
       };
 
-      this.pronostiquesRankingsApiService.createRankings(rankingData, httpOptions).subscribe({
-        next: (response)=>{
-          console.log(response);
+      this.pronostiquesRankingsApiService.getRankings('', httpOptions).subscribe({
+        next: (response) => {
+          const list = response?.data || response || [];
+          if (list.length > 0) {
+            const targetId = list[0].id;
+            this.pronostiquesRankingsApiService.updateRankings(targetId, rankingData, httpOptions).subscribe({
+              next: (res) => console.log('Ranking updated successfully:', res),
+              error: (err) => console.error('Error updating ranking:', err)
+            });
+
+            // Delete extra entries to keep only one line in the table
+            for (let i = 1; i < list.length; i++) {
+              this.pronostiquesRankingsApiService.deleteRankings(list[i].id, httpOptions).subscribe({
+                next: () => console.log(`Deleted extra ranking: ${list[i].id}`),
+                error: (err) => console.error(`Error deleting extra ranking: ${list[i].id}`, err)
+              });
+            }
+          } else {
+            this.pronostiquesRankingsApiService.createRankings(rankingData, httpOptions).subscribe({
+              next: (res) => console.log('Ranking created successfully:', res),
+              error: (err) => console.error('Error creating ranking:', err)
+            });
+          }
         },
-        error: (error)=>{
-          throw (error.msg)
+        error: (error) => {
+          this.pronostiquesRankingsApiService.createRankings(rankingData, httpOptions).subscribe({
+            next: (res) => console.log('Ranking created on fallback:', res),
+            error: (err) => console.error(err)
+          });
         }
       });
     }

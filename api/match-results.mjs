@@ -131,10 +131,31 @@ export default async function handler(request, response) {
           winnerDraw = "Draw";
         }
 
+        let scorers = '';
         const scorersList = (extMatch.goals || [])
           .map(g => g.scorer?.name)
           .filter(Boolean);
-        const scorers = scorersList.length > 0 ? scorersList.join(', ') : '';
+        
+        if (scorersList.length > 0) {
+          scorers = scorersList.join(', ');
+        } else {
+          try {
+            const detailRes = await fetch(`https://api.football-data.org/v4/matches/${extMatch.id}`, {
+              headers: { 'X-Auth-Token': apiKey }
+            });
+            if (detailRes.ok) {
+              const detailData = await detailRes.json();
+              const detailScorers = (detailData.goals || [])
+                .map(g => g.scorer?.name)
+                .filter(Boolean);
+              if (detailScorers.length > 0) {
+                scorers = detailScorers.join(', ');
+              }
+            }
+          } catch (e) {
+            console.error(`Failed to fetch match details for scorers of match ${extMatch.id}:`, e.message);
+          }
+        }
 
         payload.fulltime_a = dbScoreA;
         payload.fulltime_b = dbScoreB;

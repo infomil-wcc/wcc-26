@@ -184,12 +184,13 @@ export class PronostiquesComponent implements OnInit {
     return Object.keys(groupedMatches).sort((a, b) => new Date(a).getTime() - new Date(b).getTime());
   }
 
-  // Updated to include today if any match has been played, without breaking object schemas
   isLive(match: Matches, currentMuTimeStr: string): boolean {
     const now = new Date(currentMuTimeStr.slice(0, -6));
     const matchDate = new Date(match.date);
-    const isFinished = match.fulltime_a !== null && match.fulltime_b !== null;
-    return now >= matchDate && !isFinished;
+    const isFinished = (match.fulltime_a !== null && match.fulltime_b !== null) || match.fulltime === true;
+    const timeDiffMs = now.getTime() - matchDate.getTime();
+    const timeDiffMins = timeDiffMs / (1000 * 60);
+    return timeDiffMins >= 0 && timeDiffMins < 150 && !isFinished;
   }
 
   getSortedPlayedMatchesForDate(matches: Matches[]): Matches[] {

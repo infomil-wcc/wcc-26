@@ -16,4 +16,12 @@ export class PronostiquesRankingsApiService {
   createRankings(data: any, options?: any): Observable<any> {
     return this.http.post<any>(`${environment.apiBaseUrl}/items/pronostiques_rankings`, data, options);
   }
+
+  updateRankings(id: number, data: any, options?: any): Observable<any> {
+    return this.http.patch<any>(`${environment.apiBaseUrl}/items/pronostiques_rankings/${id}`, data, options);
+  }
+
+  deleteRankings(id: number, options?: any): Observable<any> {
+    return this.http.delete<any>(`${environment.apiBaseUrl}/items/pronostiques_rankings/${id}`, options);
+  }
 }

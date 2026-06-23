@@ -11,3 +11,5 @@ dist
 .env.local
 scratch
 coverage
+.vercel
+.env*
