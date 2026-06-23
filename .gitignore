@@ -11,3 +11,6 @@ dist
 .angular/cache/18.2.21/euroapp/.tsbuildinfo
 .env.local
 package-lock.json
+.env.production.local
+scratch
+.vercel
