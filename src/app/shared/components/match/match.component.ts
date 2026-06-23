@@ -425,13 +425,55 @@ export class MatchComponent implements OnInit, OnDestroy {
     return predA === this.match.halftime_a && predB === this.match.halftime_b;
   }
 
+  get parsedScorersEvents(): any[] {
+    if (!this.match || !this.match.scorers) return [];
+    const val = this.match.scorers;
+    if (Array.isArray(val)) return val;
+    if (typeof val === 'string') {
+      const trimmed = val.trim();
+      if (trimmed.startsWith('[') && trimmed.endsWith(']')) {
+        try {
+          return JSON.parse(trimmed);
+        } catch (e) {
+          return [];
+        }
+      }
+    }
+    return [];
+  }
+
+  get isScorersJson(): boolean {
+    return this.parsedScorersEvents.length > 0;
+  }
+
   isScorerCorrect(): boolean {
     if (!this.donePronostique || !this.match || !this.match.scorers) {
       return false;
     }
     const predScorer = this.donePronostique.scorer;
     if (!predScorer || predScorer === '-') return false;
-    const scorersList = this.match.scorers.split(',').map((name: string) => name.trim().toLowerCase());
-    return scorersList.includes(predScorer.trim().toLowerCase());
+
+    let scorersList: string[] = [];
+    const scorersVal = this.match.scorers;
+    if (Array.isArray(scorersVal)) {
+      scorersList = scorersVal.map(e => e.player?.name || e.scorer?.name).filter(Boolean);
+    } else if (typeof scorersVal === 'string') {
+      const trimmed = scorersVal.trim();
+      if (trimmed.startsWith('[') && trimmed.endsWith(']')) {
+        try {
+          const parsed = JSON.parse(trimmed);
+          if (Array.isArray(parsed)) {
+            scorersList = parsed.map(e => e.player?.name || e.scorer?.name).filter(Boolean);
+          }
+        } catch (e) {
+          scorersList = trimmed.split(',').map(name => name.trim());
+        }
+      } else {
+        scorersList = trimmed.split(',').map(name => name.trim());
+      }
+    }
+
+    const lowerScorers = scorersList.map(name => name.toLowerCase());
+    return lowerScorers.includes(predScorer.trim().toLowerCase());
   }
 }

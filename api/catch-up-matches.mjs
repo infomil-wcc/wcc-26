@@ -170,13 +170,24 @@ export default async function handler(request, response) {
     for (const item of batch) {
       const detailedFixture = detailedFixtures.find(f => f.fixture?.id === item.extFixtureId);
       
-      let scorers = '';
+      let scorers = '[]';
       if (detailedFixture) {
-        const scorersList = (detailedFixture.events || [])
+        const goalEvents = (detailedFixture.events || [])
           .filter(e => e.type === 'Goal')
-          .map(e => e.player?.name)
-          .filter(Boolean);
-        scorers = scorersList.length > 0 ? scorersList.join(', ') : '';
+          .map(e => ({
+            time: {
+              elapsed: e.time?.elapsed,
+              extra: e.time?.extra || null
+            },
+            team: {
+              name: e.team?.name
+            },
+            player: {
+              name: e.player?.name
+            },
+            detail: e.detail
+          }));
+        scorers = JSON.stringify(goalEvents);
       }
 
       itemsToPatch.push({
@@ -191,7 +202,7 @@ export default async function handler(request, response) {
         scorers: scorers
       });
 
-      log(`[STAGING] Staged Match ID ${item.dbMatch.id} (${item.dbMatch.team_a} vs ${item.dbMatch.team_b}) with scorers: "${scorers}"`);
+      log(`[STAGING] Staged Match ID ${item.dbMatch.id} (${item.dbMatch.team_a} vs ${item.dbMatch.team_b}) with scorers JSON: ${scorers}`);
     }
 
     // 5. Batch Patch Directus inside one combined query

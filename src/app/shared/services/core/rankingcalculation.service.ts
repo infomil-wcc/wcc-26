@@ -255,8 +255,26 @@ export class RankingcalculationService {
     // }
   }
 
-  private returnScorersObj(scorersList: string){
-    return scorersList.split(',').map(name => name.trim());
+  private returnScorersObj(scorersVal: any): string[] {
+    if (!scorersVal) return [];
+    if (Array.isArray(scorersVal)) {
+      return scorersVal.map(e => e.player?.name || e.scorer?.name).filter(Boolean);
+    }
+    if (typeof scorersVal === 'string') {
+      const trimmed = scorersVal.trim();
+      if (trimmed.startsWith('[') && trimmed.endsWith(']')) {
+        try {
+          const parsed = JSON.parse(trimmed);
+          if (Array.isArray(parsed)) {
+            return parsed.map(e => e.player?.name || e.scorer?.name).filter(Boolean);
+          }
+        } catch (e) {
+          // Fall back to split if JSON parse fails
+        }
+      }
+      return trimmed.split(',').map(name => name.trim());
+    }
+    return [];
   }
 
   private updateRanking(rankingObj: any[]): void {

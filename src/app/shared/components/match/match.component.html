@@ -328,9 +328,24 @@
         </div>
       </div>
       @if (match.scorers) {
-        <div class="official-scorers text-center text-xs font-semibold py-2 px-3 text-gray-300 italic flex align-items-center justify-content-center gap-1" style="background: #202734; border-top: 1px solid rgba(255, 255, 255, 0.05);">
-          <span class="material-symbols-outlined align-middle" style="font-size: 0.95rem; color: #ffeb3b;">sports_soccer</span>
-          <span class="align-middle">{{ match.scorers }}</span>
+        <div class="official-scorers text-center text-xs font-semibold py-2 px-3 text-gray-300 flex flex-wrap align-items-center justify-content-center gap-2" style="background: #202734; border-top: 1px solid rgba(255, 255, 255, 0.05);">
+          @if (isScorersJson) {
+            @for (event of parsedScorersEvents; track event.time.elapsed + '-' + event.player.name) {
+              <div class="scorer-event-tag flex align-items-center gap-1 px-2 py-0.5 rounded text-gray-200" style="background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1);">
+                <span class="material-symbols-outlined" style="font-size: 0.85rem; color: #ffeb3b; vertical-align: middle;">sports_soccer</span>
+                <span style="vertical-align: middle;">{{ event.player.name }} ({{ event.time.elapsed }}'@if(event.time.extra){+{{event.time.extra}}})</span>
+                @if (event.detail === 'Penalty') {
+                  <span class="text-xs text-yellow-500 font-bold" title="Pénalty">(P)</span>
+                }
+                @if (event.detail === 'Own Goal') {
+                  <span class="text-xs text-red-500 font-bold" title="But contre son camp">(CSC)</span>
+                }
+              </div>
+            }
+          } @else {
+            <span class="material-symbols-outlined align-middle" style="font-size: 0.95rem; color: #ffeb3b;">sports_soccer</span>
+            <span class="align-middle">{{ match.scorers }}</span>
+          }
         </div>
       }
       <div class="stripe-bar"></div>
