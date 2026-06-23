@@ -90,10 +90,15 @@ export default async function handler(request, response) {
   const queryIdParam = request.query?.id || request.query?.matchId;
   const queryId = queryIdParam ? parseInt(queryIdParam, 10) : null;
 
-  // 1. Fetch match_status entries from Directus that are NOT finished (selective query)
+  // 1. Fetch match_status entries from Directus
+  //    When queryId is set: fetch ANY status for that specific match (so we know the current state)
+  //    Otherwise: fetch all non-finished entries
   let dbMatchStatuses = [];
   try {
-    const statusRes = await fetch(`${directusUrl}/items/match_status?filter[status][_neq]=finished`, {
+    const statusFilter = queryId !== null
+      ? `?filter[match_id][_eq]=${queryId}`
+      : `?filter[status][_neq]=finished`;
+    const statusRes = await fetch(`${directusUrl}/items/match_status${statusFilter}`, {
       headers: { 'Authorization': `Bearer ${adminToken}` }
     });
     if (statusRes.ok) {
@@ -104,12 +109,9 @@ export default async function handler(request, response) {
     console.error("Failed to fetch match_status:", e.message);
   }
 
-  // If queryId is passed, filter down dbMatchStatuses to only look for this match
-  if (queryId !== null) {
-    dbMatchStatuses = dbMatchStatuses.filter(s => parseInt(s.match_id, 10) === queryId);
-  }
-
-  const liveMatchIds = dbMatchStatuses.map(s => parseInt(s.match_id, 10));
+  const liveMatchIds = dbMatchStatuses
+    .filter(s => s.status !== 'finished')
+    .map(s => parseInt(s.match_id, 10));
 
   // 2. Fetch started but unfinished matches from Directus OR matches present in the active liveMatchIds
   let dbMatches = [];
@@ -228,9 +230,10 @@ export default async function handler(request, response) {
   try {
     for (const dbMatch of dbMatches) {
       const matchIdNum = parseInt(dbMatch.id, 10);
-      
-      // Update ONLY match IDs that are currently marked "live"
-      if (!activeLiveMatchIds.includes(matchIdNum)) {
+
+      // When a specific queryId is set, always sync that match.
+      // Otherwise only update matches that are currently marked "live".
+      if (queryId === null && !activeLiveMatchIds.includes(matchIdNum)) {
         continue;
       }
 
@@ -286,18 +289,8 @@ export default async function handler(request, response) {
         match_id: parseInt(dbMatch.id, 10),
         fulltime_a: dbScoreA,
         fulltime_b: dbScoreB,
-        halftime_a: targetHtA,
-        halftime_b: targetHtB,
         scorers: scorers
       };
-
-      if (isFinished) {
-        payload.fulltime = true;
-        let winnerDraw = "Draw";
-        if (dbScoreA > dbScoreB) winnerDraw = dbMatch.team_a;
-        else if (dbScoreB > dbScoreA) winnerDraw = dbMatch.team_b;
-        payload.winner_draw = winnerDraw;
-      }
 
       // Update match record in Directus
       const directusResponse = await fetch(`${directusUrl}/items/matches/${dbMatch.id}`, {
@@ -317,11 +310,15 @@ export default async function handler(request, response) {
       });
 
       const statusObj = dbMatchStatuses.find(s => parseInt(s.match_id, 10) === matchIdNum);
+
       if (statusObj) {
+        // Update existing match_status row
         const matchStartedAt = new Date(statusObj.started_at || dbMatch.date).getTime();
         const elapsedMinutes = (new Date().getTime() - matchStartedAt) / (60 * 1000);
-
-        if (elapsedMinutes >= 180 || isFinished || payload.fulltime) {
+        const shouldFinish = elapsedMinutes >= 180 || isFinished || payload.fulltime;
+        // When queryId is set: always update the status record (set to finished if warranted, otherwise keep as live)
+        const newStatus = shouldFinish ? 'finished' : (queryId !== null ? 'live' : statusObj.status);
+        if (shouldFinish || queryId !== null) {
           try {
             await fetch(`${directusUrl}/items/match_status/${statusObj.id}`, {
               method: 'PATCH',
@@ -329,14 +326,32 @@ export default async function handler(request, response) {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${adminToken}`
               },
-              body: JSON.stringify({
-                status: 'finished'
-              })
+              body: JSON.stringify({ status: newStatus })
             });
-            console.log(`Updated status to finished for match ID ${dbMatch.id}`);
+            console.log(`Updated match_status to '${newStatus}' for match ID ${dbMatch.id}`);
           } catch (err) {
             console.error(`Failed to update match_status for match ID ${dbMatch.id}:`, err.message);
           }
+        }
+      } else if (queryId !== null) {
+        // No match_status row exists yet — create one now
+        const newStatus = (isFinished || payload.fulltime) ? 'finished' : 'live';
+        try {
+          await fetch(`${directusUrl}/items/match_status`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${adminToken}`
+            },
+            body: JSON.stringify({
+              match_id: matchIdNum,
+              status: newStatus,
+              started_at: dbMatch.date
+            })
+          });
+          console.log(`Created match_status '${newStatus}' for match ID ${dbMatch.id}`);
+        } catch (err) {
+          console.error(`Failed to create match_status for match ID ${dbMatch.id}:`, err.message);
         }
       }
     }
