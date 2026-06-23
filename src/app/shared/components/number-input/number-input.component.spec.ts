@@ -1,6 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { NumberInputComponent } from './number-input.component';
+import { FormsModule } from '@angular/forms';
 
 describe('NumberInputComponent', () => {
   let component: NumberInputComponent;
@@ -8,8 +9,8 @@ describe('NumberInputComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [NumberInputComponent]
-    })
+    imports: [FormsModule, NumberInputComponent]
+})
     .compileComponents();
     
     fixture = TestBed.createComponent(NumberInputComponent);

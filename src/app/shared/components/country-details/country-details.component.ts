@@ -1,5 +1,7 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, ChangeDetectionStrategy } from '@angular/core';
 import { Observable } from 'rxjs';
+import { LoaderComponent } from '../loader/loader.component';
+import { AsyncPipe } from '@angular/common';
 
 export interface Country {
   name: string;
@@ -35,9 +37,11 @@ export interface Country {
 }
 
 @Component({
-  selector: 'app-country-details',
-  templateUrl: './country-details.component.html',
-  styleUrl: './country-details.component.scss'
+    selector: 'app-country-details',
+    templateUrl: './country-details.component.html',
+    styleUrl: './country-details.component.scss',
+    changeDetection: ChangeDetectionStrategy.Eager,
+    imports: [LoaderComponent, AsyncPipe]
 })
 export class CountryDetailsComponent {
 

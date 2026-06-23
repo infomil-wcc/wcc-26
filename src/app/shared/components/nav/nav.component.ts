@@ -1,6 +1,7 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectionStrategy } from '@angular/core';
 import { StateService, AppState } from '../../services/core/state.service';
 import { Subscription } from 'rxjs';
+import { NgClass } from '@angular/common';
 
 interface NavigationItem {
   label: string;
@@ -10,9 +11,11 @@ interface NavigationItem {
 }
 
 @Component({
-  selector: 'cmp-nav',
-  templateUrl: './nav.component.html',
-  styleUrls: ['./nav.component.scss']
+    selector: 'cmp-nav',
+    templateUrl: './nav.component.html',
+    styleUrls: ['./nav.component.scss'],
+    changeDetection: ChangeDetectionStrategy.Eager,
+    imports: [NgClass]
 })
 export class NavComponent implements OnInit, OnDestroy {
 
@@ -45,6 +48,11 @@ export class NavComponent implements OnInit, OnDestroy {
           {
             "label": "Les stades",
             "route": "les-stades",
+            "active": false
+          },
+          {
+            "label": "Les groupes",
+            "route": "les-groupes",
             "active": false
           }
         ]

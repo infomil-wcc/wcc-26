@@ -1,9 +1,10 @@
-import { Component } from '@angular/core';
+import { Component, ChangeDetectionStrategy } from '@angular/core';
 
 @Component({
-  selector: 'app-error',
-  templateUrl: './error.component.html',
-  styleUrl: './error.component.scss'
+    selector: 'app-error',
+    templateUrl: './error.component.html',
+    styleUrl: './error.component.scss',
+    changeDetection: ChangeDetectionStrategy.Eager
 })
 export class ErrorComponent {
 

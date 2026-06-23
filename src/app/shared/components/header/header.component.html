@@ -1,48 +1,38 @@
-<ng-container *ngIf="$userState | async as userState;">
-<div class="subHeader pt-2 pb-2 pl-3 pr-3 sm:pr-4 sm:pl-4">
-  <div class="container h-full flex justify-content-between align-items-center">
-    <span class="teaser text-xs flex align-items-center">
-      <span class="material-symbols-outlined text-lg mr-1">
-        sports_esports
-      </span> <span class="desktop">IML FOOT CHALLENGE</span><span class="mobile">IML FC</span> - FIFA WORLD CUP 2026™</span>
-
-
-
-        <ng-container *ngIf="userState.email; else login">
-          <div class="flex align-items-center">
-            <div class="loggedInUser pb-1">{{ userState.last_name }}</div>
-            <span class="ml-2 mr-2 pb-1">|</span>
-            <button class="logOut" title="Se deconnecter" (click)="logout()">
-              <span class="material-symbols-outlined mr-1">logout</span>
+@if ($userState | async; as userState;) {
+  <div class="subHeader pt-2 pb-2 pl-3 pr-3 sm:pr-4 sm:pl-4">
+    <div class="container h-full flex justify-content-between align-items-center">
+      <span class="teaser text-xs flex align-items-center">
+        <span class="material-symbols-outlined text-lg mr-1">
+          sports_esports
+          </span> <span class="desktop">IML FOOT CHALLENGE</span><span class="mobile">IML FC</span> - FIFA WORLD CUP 2026™</span>
+          @if (userState.email) {
+            <div class="flex align-items-center">
+              <div class="loggedInUser pb-1">{{ userState.last_name }}</div>
+              <span class="ml-2 mr-2 pb-1">|</span>
+              <button class="logOut" title="Se deconnecter" (click)="logout()">
+                <span class="material-symbols-outlined mr-1">logout</span>
+              </button>
+            </div>
+          } @else {
+            <button class="btnLogin" (click)="showLoginModal()">
+              <span class="material-symbols-outlined mr-0 text-xl">account_circle</span>
+            </button>
+          }
+        </div>
+      </div>
+      <div class="headerNav relative pt-3 pb-3 pl-3 pr-3 shadow-1 sm:pr-4 sm:pl-4 sm:pt-4 sm:pb-3">
+        <div class="container  flex justify-content-between align-items-center">
+          <div class="headerLogo h-full">
+            <button class="" title="IML Football Challenge" (click)="loadHomepage()">
+              <img src="assets/logo-wcc-26.png" alt="" />
             </button>
           </div>
-        </ng-container>
-
-        <ng-template #login>
-          <button class="btnLogin" (click)="showLoginModal()">
-            <span class="material-symbols-outlined mr-0 text-xl">account_circle</span>
-          </button>
-        </ng-template>
-
-
-  </div>
-</div>
-
-<div class="headerNav relative pt-3 pb-3 pl-3 pr-3 shadow-1 sm:pr-4 sm:pl-4 sm:pt-4 sm:pb-3">
-  <div class="container  flex justify-content-between align-items-center">
-    <div class="headerLogo h-full">
-      <button class="" title="IML Football Challenge" (click)="loadHomepage()">
-        <img src="assets/logo-wcc-26.png" alt="" />
-      </button>
-    </div>
-
-    <cmp-nav />
-  </div>
-</div>
-
-<modal [(showModal)]="showLogin" [modalSize]="'md'" *ngIf="!userState.email">
-  <app-login></app-login>
-</modal>
-
-
-</ng-container>
+          <cmp-nav />
+        </div>
+      </div>
+      @if (!userState.email) {
+        <modal [(showModal)]="showLogin" [modalSize]="'md'">
+          <app-login></app-login>
+        </modal>
+      }
+    }

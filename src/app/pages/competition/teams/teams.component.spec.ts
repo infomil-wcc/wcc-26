@@ -1,6 +1,8 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { TeamsComponent } from './teams.component';
+import { BreadcrumpComponent } from '../../../shared/components/breadcrump/breadcrump.component';
+import { LoaderComponent } from '../../../shared/components/loader/loader.component';
 
 describe('TeamsComponent', () => {
   let component: TeamsComponent;
@@ -8,8 +10,8 @@ describe('TeamsComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [TeamsComponent]
-    })
+    imports: [TeamsComponent, BreadcrumpComponent, LoaderComponent]
+})
     .compileComponents();
     
     fixture = TestBed.createComponent(TeamsComponent);

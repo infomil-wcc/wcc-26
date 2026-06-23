@@ -1,16 +1,21 @@
-<div class="dialog fixed border-round-lg overflow-hidden left-0 right-0 ml-auto mr-auto w-10 min-h-3 shadow-1 lg:w-5" *ngIf="showDialog">
-  <div class="dialogHeader p-2 pl-3 flex justify-content-between sm:p-3">
-    <span class="dialogTitle flex align-items-center font-bold"> {{ dialogTitle }}</span>
-    <button class="closeDialog p-1 border-round-xl flex align-items-center justify-content-center" (click)="closeDialog()" *ngIf="allowClose">
-      <span class="material-symbols-outlined text-base text-white mr-0">
-        close
-        </span>
-    </button>
+@if (showDialog) {
+  <div class="dialog fixed border-round-lg overflow-hidden left-0 right-0 ml-auto mr-auto w-10 min-h-3 shadow-1 lg:w-5">
+    <div class="dialogHeader p-2 pl-3 flex justify-content-between sm:p-3">
+      <span class="dialogTitle flex align-items-center font-bold"> {{ dialogTitle }}</span>
+      @if (allowClose) {
+        <button class="closeDialog p-1 border-round-xl flex align-items-center justify-content-center" (click)="closeDialog()">
+          <span class="material-symbols-outlined text-base text-white mr-0">
+            close
+          </span>
+        </button>
+      }
+    </div>
+    <div class="dialogContent bg-white p-3 text-base sm:p-4">
+      <ng-content></ng-content>
+    </div>
   </div>
+}
 
-  <div class="dialogContent bg-white p-3 text-base sm:p-4">
-    <ng-content></ng-content>
-  </div>
-</div>
-
-<div *ngIf="withOverlay && showDialog" class="overlay"></div>
+@if (withOverlay && showDialog) {
+  <div class="overlay"></div>
+}

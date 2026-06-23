@@ -1,9 +1,10 @@
-import { Component } from '@angular/core';
+import { Component, ChangeDetectionStrategy } from '@angular/core';
 
 @Component({
-  selector: 'cmp-footer',
-  templateUrl: './footer.component.html',
-  styleUrl: './footer.component.scss'
+    selector: 'cmp-footer',
+    templateUrl: './footer.component.html',
+    styleUrl: './footer.component.scss',
+    changeDetection: ChangeDetectionStrategy.Eager
 })
 export class FooterComponent {
 

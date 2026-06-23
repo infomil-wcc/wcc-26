@@ -18,13 +18,12 @@ describe('BracketPredictorComponent', () => {
     };
 
     await TestBed.configureTestingModule({
-      declarations: [BracketPredictorComponent],
-      imports: [DragDropModule, HttpClientTestingModule],
-      providers: [
+    imports: [DragDropModule, HttpClientTestingModule, BracketPredictorComponent],
+    providers: [
         { provide: TeamsService, useValue: mockTeamsService }
-      ],
-      schemas: [CUSTOM_ELEMENTS_SCHEMA]
-    })
+    ],
+    schemas: [CUSTOM_ELEMENTS_SCHEMA]
+})
     .compileComponents();
 
     fixture = TestBed.createComponent(BracketPredictorComponent);

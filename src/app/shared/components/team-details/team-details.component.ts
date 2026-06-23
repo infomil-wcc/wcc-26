@@ -1,17 +1,24 @@
-import { Component, Input, OnInit, inject } from '@angular/core';
+import { Component, Input, OnInit, inject, ChangeDetectionStrategy } from '@angular/core';
 import { Teams, TeamResponse, teamsApiData } from '../../contracts/teams.contract';
 import { Matches } from '../../contracts/matches.contract';
 import { TeamsService } from '../../services/content/teams.service';
 import { MatchesService } from '../../services/content/matches.service';
 import { Observable } from 'rxjs';
 import { map, tap } from 'rxjs/operators';
-import { Country } from '../country-details/country-details.component';
+import { Country, CountryDetailsComponent } from '../country-details/country-details.component';
 import { GlobaltimeService } from '../../services/core/globaltime.service';
+import { TabcontentComponent, TabContentDirective } from '../tabcontent/tabcontent.component';
+import { MatchComponent } from '../match/match.component';
+import { LoaderComponent } from '../loader/loader.component';
+import { AsyncPipe, UpperCasePipe } from '@angular/common';
+import { HyphernatePipe } from '../../pipe/hyphernate.pipe';
 
 @Component({
-  selector: 'team-details',
-  templateUrl: './team-details.component.html',
-  styleUrl: './team-details.component.scss'
+    selector: 'team-details',
+    templateUrl: './team-details.component.html',
+    styleUrl: './team-details.component.scss',
+    changeDetection: ChangeDetectionStrategy.Eager,
+    imports: [TabcontentComponent, TabContentDirective, CountryDetailsComponent, MatchComponent, LoaderComponent, AsyncPipe, UpperCasePipe, HyphernatePipe]
 })
 export class TeamDetailsComponent implements OnInit {
 

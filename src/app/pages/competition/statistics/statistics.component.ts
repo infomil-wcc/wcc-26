@@ -1,10 +1,13 @@
-import { Component } from '@angular/core';
+import { Component, ChangeDetectionStrategy } from '@angular/core';
 import { Matches } from '../../../shared/contracts/matches.contract';
+import { MatchComponent } from '../../../shared/components/match/match.component';
 
 @Component({
-  selector: 'app-statistics',
-  templateUrl: './statistics.component.html',
-  styleUrl: './statistics.component.scss'
+    selector: 'app-statistics',
+    imports: [MatchComponent],
+    templateUrl: './statistics.component.html',
+    styleUrl: './statistics.component.scss',
+    changeDetection: ChangeDetectionStrategy.Eager
 })
 export class StatisticsComponent {
 

@@ -1,4 +1,5 @@
-@import "../../../../variables.scss";
+@use "sass:color";
+@use "../../../../variables" as *;
 
 $bg-stadium-dark: #0f172a; 
 $card-white: #ffffff;
@@ -288,7 +289,7 @@ $line-connector-color: #94a3b8; // Tree connector layout lines color
   z-index: 100;
 
   &:hover {
-    background-color: darken($fifa-orange, 10%);
+    background-color: color.adjust($fifa-orange, $lightness: -10%);
     transform: translateY(-2px);
     box-shadow: 0 12px 20px rgba(0, 0, 0, 0.4);
   }
@@ -379,7 +380,7 @@ $line-connector-color: #94a3b8; // Tree connector layout lines color
 
     &:hover {
       background-color: #1d4ed8;
-      border-color: lighten($fifa-gold, 15%);
+      border-color: color.adjust($fifa-gold, $lightness: 15%);
     }
   }
 

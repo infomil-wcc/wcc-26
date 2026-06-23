@@ -1,6 +1,8 @@
-import { Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Observable, map, switchMap, tap } from 'rxjs';
+import { Injectable, inject } from '@angular/core';
+import { HttpHeaders } from '@angular/common/http';
+import { Observable, switchMap, tap } from 'rxjs';
+import { MailApiService } from '../api/mail-api.service';
+import { AuthApiService } from '../api/auth-api.service';
 
 export interface MailRecipient {
   name: string;
@@ -17,16 +19,15 @@ export interface MailRequest {
   providedIn: 'root'
 })
 export class MailService {
-
-  private mailApi = 'https://euro.omediainteractive.net/imleuro/mail';
+  private mailApiService = inject(MailApiService);
+  private authApiService = inject(AuthApiService);
 
   private sudo = {
     'email': 'infomil.foot@gmail.com',
     'password': '1nf0m1l2024'
-  }
+  };
 
   private token: string = '';
-  private prodUrl: string = 'https://euro.omediainteractive.net/imleuro';
 
   private httpOptions = {
     headers: new HttpHeaders({
@@ -34,15 +35,12 @@ export class MailService {
     })
   };
 
-  constructor(private http: HttpClient) {}
-
   sendConfirmationEmail(
     name: string,
     email: string,
     tokenNumber: string
   ): Observable<any> {
-    return this.http.post<any>(
-      `${this.prodUrl}/auth/authenticate`,
+    return this.authApiService.authenticate(
       this.sudo,
       this.httpOptions
     ).pipe(
@@ -70,7 +68,7 @@ export class MailService {
           `
         };
 
-        return this.http.post(this.mailApi, payload, { headers });
+        return this.mailApiService.sendMail(payload, { headers });
       })
     );
   }

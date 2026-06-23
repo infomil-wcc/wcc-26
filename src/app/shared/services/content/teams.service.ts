@@ -1,15 +1,18 @@
-import { Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Teams, TeamResponse, playersApiData, teamsApiData, Group, GroupApiData, Player } from '../../contracts/teams.contract';
+import { Injectable, inject } from '@angular/core';
+import { HttpHeaders } from '@angular/common/http';
+import { Teams, Group } from '../../contracts/teams.contract';
 import { Observable, map } from 'rxjs';
-import { environment } from '../../../../environments/environment';
+import { TeamsApiService } from '../api/teams-api.service';
+import { GroupsApiService } from '../api/groups-api.service';
+import { SquadsApiService } from '../api/squads-api.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class TeamsService {
-
-  constructor(private http: HttpClient) { }
+  private teamsApiService = inject(TeamsApiService);
+  private groupsApiService = inject(GroupsApiService);
+  private squadsApiService = inject(SquadsApiService);
 
   private httpOptions = {
     headers: new HttpHeaders({
@@ -18,43 +21,42 @@ export class TeamsService {
   };
 
   getAllTeams(): Observable<Teams[]> {
-    return this.http.get<teamsApiData>(`${environment.apiBaseUrl}/items/teams`).pipe(
+    return this.teamsApiService.getTeams().pipe(
       map(response => response.data)
     );
   }
 
   getTeamByGroup(groupId: string): Observable<Teams[]> {
-    return this.http.get<teamsApiData>(`${environment.apiBaseUrl}/items/teams?filter[group]=${groupId}`).pipe(
+    return this.teamsApiService.getTeams(`?filter[group]=${groupId}`).pipe(
       map(response => response.data)
     );
   }
 
   getPlayersByTeamName(teamName: string): Observable<any> {
-    return this.http.get(`${environment.apiUrl}/squads?country=${teamName}`);
+    return this.squadsApiService.getPlayersByCountry(teamName).pipe(
+      map(response => response[0])
+    );
   }
 
   getTeamByName(teamName: string): Observable<Teams[]> {
-    return this.http.get<any>(`${environment.apiBaseUrl}/items/teams?filter[name]=${teamName}`).pipe(
+    return this.teamsApiService.getTeams(`?filter[name]=${teamName}`).pipe(
       map(response => response.data)
     );
   }
 
   getGroups(): Observable<Group[]> {
-    return this.http.get<GroupApiData>(`${environment.apiBaseUrl}/items/group`).pipe(
+    return this.groupsApiService.getGroups().pipe(
       map(response => response.data)
-    )
+    );
   }
 
   getFlags(): Observable<any> {
-    return this.http.get<any>(`${environment.apiBaseUrl}/items/teams?fields=flag_url,name,iso`).pipe(
+    return this.teamsApiService.getTeams('?fields=flag_url,name,iso').pipe(
       map(response => response.data)
     );
   }
 
   getTeamsInfo(teamisoname: string): any {
-    // if using proxy
-    return this.http.get<any[]>(`${environment.apiUrl}/teams?iso=${teamisoname}`, this.httpOptions);
-    // if using direct API call
-    // return this.http.get<any[]>(`https://wcc-26-app.vercel.app/api/teams?iso=${teamisoname}`, this.httpOptions);
+    return this.teamsApiService.getTeamsInfo(teamisoname, this.httpOptions);
   }
 }

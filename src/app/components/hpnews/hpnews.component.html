@@ -1,28 +1,35 @@
 <div class="container h-full flex align-items-center flex-column gap-2 pl-3 pr-3 pt-3 pb-3 lg:pt-0 lg:pb-0 lg:flex-row lg:justify-content-between lg:pl-0 lg:pr-0">
-  
+
   <div class="newsPane newsPaneBlur newsMain col-12 p-0 overflow-hidden">
     <div class="picture overflow-hidden">
       <div class="container pt-4">
-        <ng-container *ngIf="$today | async as today">
-          <div *ngIf="$filteredMatches | async as matches; else loader">
-            <div class="slider-viewport">
-              <div class="slider-track" [style.transform]="'translateX(-' + ((($currentSlideIndex | async) ?? 0) * 100) + '%)'">
-                <div *ngFor="let match of matches" class="slide-item">
-                    <app-match [match]="match" [dateTime]="today.dateTime" />
-                    <div *ngIf="isFuturMatch(match, today.dateTime)" class="title pl-5 pr-5 text-white text-sm mt-3 md:text-2xl md:mt-1">
-                      <span class="hurry-up-text" *ngIf="isUpcomingMatch(match, matches, today.dateTime)">Prochain match :</span>
-                      {{ match.date | date: 'EEEE d MMMM yyyy | HH:mm' }}
+        @if ($today | async; as today) {
+          @if ($filteredMatches | async; as matches) {
+            <div>
+              <div class="slider-viewport">
+                <div class="slider-track" [style.transform]="'translateX(-' + ((($currentSlideIndex | async) ?? 0) * 100) + '%)'">
+                  @for (match of matches; track match) {
+                    <div class="slide-item">
+                      <app-match [match]="match" [dateTime]="today.dateTime" />
+                      @if (isFuturMatch(match, today.dateTime)) {
+                        <div class="title pl-5 pr-5 text-white text-sm mt-3 md:text-2xl md:mt-1">
+                          @if (isUpcomingMatch(match, matches, today.dateTime)) {
+                            <span class="hurry-up-text">Prochain match :</span>
+                          }
+                          {{ match.date | date: 'EEEE d MMMM yyyy | HH:mm' }}
+                        </div>
+                      }
                     </div>
+                  }
                 </div>
               </div>
             </div>
-          </div>
-        </ng-container>
+          } @else {
+            <loader [showLoader]="true" />
+          }
+        }
       </div>
 
-      <ng-template #loader>
-        <loader [showLoader]="true" />
-      </ng-template>
     </div>
   </div>
 
@@ -30,40 +37,38 @@
     <h2 class="text-white text-sm mt-0 pb-2 md:text-2xl">Les News</h2>
 
     <div class="newsRotatorContainer relative">
-      <ng-container *ngIf="$newsData | async as news">
-
-        <ng-container *ngFor="let chunk of newsChunks(news, 3); let i = index">
-          <div class="newsRow news-{{i}}" *ngIf="currentPage === i">
-            <div class="newsInfoContainer">
-              <ng-container *ngFor="let item of chunk">
-                <div class="newsInfo flex align-items-center gap-3 mb-2" (click)="handleNewsOpen(item)">
-                  <div class="newsInfoPic overflow-hidden">
-                    <img src="{{ item.imgThumnails[2].url }}" alt="les stades" class="w-full h-full" />
+      @if ($newsData | async; as news) {
+        @for (chunk of newsChunks(news, 3); track chunk; let i = $index) {
+          @if (currentPage === i) {
+            <div class="newsRow news-{{i}}">
+              <div class="newsInfoContainer">
+                @for (item of chunk; track item) {
+                  <div class="newsInfo flex align-items-center gap-3 mb-2" (click)="handleNewsOpen(item)">
+                    <div class="newsInfoPic overflow-hidden">
+                      <img src="{{ item.imgThumnails[2].url }}" alt="les stades" class="w-full h-full" />
+                    </div>
+                    <div class="newsInfoText w-full">
+                      <h4 class="text-white text-md line-height-2 m-0 font-normal p-2">{{ item.title }}</h4>
+                    </div>
                   </div>
-                  <div class="newsInfoText w-full">
-                    <h4 class="text-white text-md line-height-2 m-0 font-normal p-2">{{ item.title }}</h4>
-                  </div>
-                </div>
-              </ng-container>
-              
+                }
+              </div>
             </div>
-          </div>
-        </ng-container>
-
+          }
+        }
         <div class="desktop pagination flex justify-content-between w-full absolute pb-2 bottom-0 ">
           <button [disabled]="currentPage < 1" (click)="previousPage()">
             <span class="material-symbols-outlined">
               arrow_circle_left
-              </span>
+            </span>
           </button>
           <button [disabled]="currentPage > news.length / 3 - 2" (click)="nextPage()">
             <span class="material-symbols-outlined mr-0">
               arrow_circle_right
-              </span>
+            </span>
           </button>
         </div>
-
-      </ng-container>
+      }
     </div>
 
   </div>

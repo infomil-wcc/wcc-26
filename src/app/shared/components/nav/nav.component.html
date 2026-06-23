@@ -3,30 +3,25 @@
 </button>
 
 <nav class="flex lg:align-items-center lg:h-full" [ngClass]="{'showMenu': showMenu}">
-  <ng-container *ngIf="navList.length > 0">
-    <ng-container *ngFor="let list of navList; index as i; last as isLast">
-
-      <ng-container *ngIf="!list.sub; else subButton">
+  @if (navList.length > 0) {
+    @for (list of navList; track list; let i = $index; let isLast = $last) {
+      @if (!list.sub) {
         <button [ngClass]="{'mr-0': isLast && !list.sub, 'lg:mr-4': !isLast && !list.sub, 'active' : list.active }" class="menuBtn lg:ml-4 lg:text-base" [title]="list.label" (click)="navTo(list.route, list.label)">
           {{ list.label }}
         </button>
-      </ng-container>
-
-      <ng-template #subButton>
+      } @else {
         <button [ngClass]="{'mr-0': isLast && !list.sub, 'lg:mr-4': !isLast && !list.sub, 'active' : list.active }" class="menuBtn subMenu lg:ml-4 lg:text-base" [title]="list.label"> {{ list.label }}
           <span class="material-symbols-outlined ml-2 text-primary text-xs iconExpand">expand_more</span>
           <div class="sub">
-            <ng-container *ngFor="let subitem of list.sub">
+            @for (subitem of list.sub; track subitem) {
               <button [ngClass]="{'active': subitem.active}" class="text-base" [title]="subitem.label" (click)="navTo(subitem.route, subitem.label)"> {{ subitem.label }}</button>
-            </ng-container>
+            }
           </div>
         </button>
-
-        <ng-container *ngFor="let subitem of list.sub">
+        @for (subitem of list.sub; track subitem) {
           <button [ngClass]="{'active': subitem.active}" class="text-base mobileSub" [title]="subitem.label" (click)="navTo(subitem.route, subitem.label)"> {{ subitem.label }}</button>
-        </ng-container>
-      </ng-template>
-
-    </ng-container>
-  </ng-container>
+        }
+      }
+    }
+  }
 </nav>

@@ -1,0 +1,459 @@
+.tactical-lineup-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  color: #fff;
+  font-family: 'Outfit', 'Inter', sans-serif;
+  background: #111b21;
+  border-radius: 16px;
+  padding: 1rem;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+}
+
+.teams-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  margin-bottom: 1.5rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+
+  .team-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    &.home-title {
+      text-align: left;
+      justify-content: flex-start;
+      color: #3b5bdb;
+    }
+    &.away-title {
+      text-align: right;
+      justify-content: flex-end;
+      color: #f76707;
+    }
+  }
+
+  .header-flag {
+    width: 24px;
+    height: 16px;
+    border-radius: 4px;
+    object-fit: cover;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+  }
+
+  .vs-badge {
+    background: rgba(255, 255, 255, 0.1);
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 800;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+  }
+}
+
+/* Pitch styles */
+.pitch {
+  position: relative;
+  width: 100%;
+  max-width: 420px;
+  height: 680px;
+  background: radial-gradient(circle, #2e7d32 30%, #1b5e20 100%);
+  border: 3px solid rgba(255, 255, 255, 0.6);
+  border-radius: 12px;
+  overflow: hidden;
+  padding: 15px 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  box-shadow: inset 0 0 40px rgba(0, 0, 0, 0.3);
+}
+
+.court-team-bar {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  z-index: 10;
+  background: rgba(0, 0, 0, 0.55);
+  padding: 4px 8px;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  pointer-events: none;
+
+  .court-flag {
+    width: 18px;
+    height: 12px;
+    border-radius: 2px;
+    object-fit: cover;
+  }
+
+  .court-team-name {
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #ffffff;
+  }
+
+  &.court-top-bar {
+    top: 8px;
+    left: 8px;
+  }
+  &.court-bottom-bar {
+    bottom: 8px;
+    left: 8px;
+  }
+}
+
+.pitch-lines {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+
+  .penalty-area {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 60%;
+    height: 18%;
+    border: 3px solid rgba(255, 255, 255, 0.4);
+
+    &.top {
+      top: -3px;
+      border-top: none;
+    }
+    &.bottom {
+      bottom: -3px;
+      border-bottom: none;
+    }
+  }
+
+  .halfway-line {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: rgba(255, 255, 255, 0.4);
+    transform: translateY(-50%);
+
+    .center-circle {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 80px;
+      height: 80px;
+      border: 3px solid rgba(255, 255, 255, 0.4);
+      border-radius: 50%;
+      transform: translate(-50%, -50%);
+    }
+  }
+}
+
+.team-half {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  height: 48%;
+  z-index: 2;
+  position: relative;
+
+  .formation-label {
+    position: absolute;
+    right: 8px;
+    background: rgba(0, 0, 0, 0.7);
+    color: #ffd600;
+    font-size: 0.7rem;
+    font-weight: 800;
+    padding: 2px 6px;
+    border-radius: 4px;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    z-index: 10;
+    letter-spacing: 0.5px;
+    pointer-events: none;
+
+    &.home-formation {
+      top: 4px;
+    }
+
+    &.away-formation {
+      bottom: 4px;
+    }
+  }
+
+  &.home-half {
+    flex-direction: column;
+  }
+  &.away-half {
+    flex-direction: column;
+  }
+}
+
+.pitch-row {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  width: 100%;
+}
+
+.player-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: pointer;
+  transition: transform 0.2s ease, filter 0.2s ease;
+  width: 70px;
+
+  &:hover {
+    transform: scale(1.1);
+    filter: brightness(1.2);
+  }
+
+  .jersey-wrapper {
+    position: relative;
+    width: 42px;
+    height: 42px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    filter: drop-shadow(0 3px 5px rgba(0, 0, 0, 0.3));
+
+    .jersey-svg {
+      width: 100%;
+      height: 100%;
+      
+      .jersey-sleeve {
+        fill: var(--secondary-color, #ffffff);
+        transition: fill 0.3s ease;
+      }
+      
+      .jersey-body {
+        fill: var(--primary-color, #ffffff);
+        transition: fill 0.3s ease;
+      }
+      
+      .jersey-collar {
+        fill: none;
+        stroke: var(--secondary-color, #ffffff);
+        stroke-width: 3px;
+      }
+    }
+
+    .position-label {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -35%);
+      font-size: 0.65rem;
+      font-weight: 800;
+      color: #ffffff;
+      text-shadow: 0 1px 2px rgba(0,0,0,0.8);
+      pointer-events: none;
+      user-select: none;
+    }
+
+    /* Team Specific Jersey Colors */
+    &.shirt-gk {
+      .jersey-sleeve, .jersey-body { fill: #1e3c72; }
+      .jersey-collar { fill: #ffeb3b; }
+    }
+
+    &.shirt-brazil {
+      .jersey-sleeve, .jersey-body { fill: #ffdc02; }
+      .jersey-collar { fill: #00a85d; }
+      .position-label {
+        color: #002c13;
+        text-shadow: none;
+      }
+    }
+
+    &.shirt-scotland {
+      .jersey-sleeve, .jersey-body { fill: #0c2340; }
+      .jersey-collar { fill: #ffffff; }
+    }
+
+    &.shirt-argentina {
+      .jersey-sleeve, .jersey-body { fill: #74acdf; }
+      .jersey-collar { fill: #ffffff; }
+    }
+
+    &.shirt-spain {
+      .jersey-sleeve, .jersey-body { fill: #e4010b; }
+      .jersey-collar { fill: #ffd600; }
+    }
+
+    &.shirt-austria {
+      .jersey-sleeve, .jersey-body { fill: #e4010b; }
+      .jersey-collar { fill: #ffffff; }
+    }
+
+    &.shirt-home-default {
+      .jersey-sleeve, .jersey-body { fill: #3b5bdb; }
+      .jersey-collar { fill: #ffffff; }
+    }
+
+    &.shirt-away-default {
+      .jersey-sleeve, .jersey-body { fill: #f76707; }
+      .jersey-collar { fill: #ffffff; }
+    }
+  }
+
+  .player-name {
+    font-size: 0.65rem;
+    font-weight: 600;
+    text-align: center;
+    margin-top: 4px;
+    background: rgba(0, 0, 0, 0.6);
+    padding: 2px 6px;
+    border-radius: 10px;
+    width: max-content;
+    white-space: nowrap;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+  }
+}
+
+/* Bench Section Styles */
+.bench-section {
+  width: 100%;
+  margin-top: 1.5rem;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 1rem;
+
+  .bench-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 1rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    color: #adb5bd;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    padding-bottom: 0.5rem;
+  }
+}
+
+.bench-grids {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+}
+
+.bench-column {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+
+  .bench-team-name {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.6);
+    text-transform: uppercase;
+    margin-bottom: 0.25rem;
+  }
+
+  .bench-list {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    max-height: 180px;
+    overflow-y: auto;
+    padding-right: 4px;
+
+    &::-webkit-scrollbar {
+      width: 4px;
+    }
+    &::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 4px;
+    }
+  }
+}
+
+.bench-player-row {
+  display: flex;
+  align-items: center;
+  padding: 6px 8px;
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  font-size: 0.75rem;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.12);
+  }
+
+  .bench-shirt {
+    width: 20px;
+    font-weight: 700;
+    color: #f5af19;
+  }
+
+  .bench-name {
+    flex: 1;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .bench-pos {
+    font-size: 0.65rem;
+    background: rgba(255, 255, 255, 0.1);
+    padding: 1px 4px;
+    border-radius: 4px;
+    color: #ced4da;
+  }
+}
+
+/* Mobile & Small screens adaptation */
+@media (max-width: 480px) {
+  .tactical-lineup-container {
+    padding: 0.75rem;
+  }
+
+  .teams-header {
+    margin-bottom: 1rem;
+    .team-title {
+      font-size: 0.9rem;
+    }
+  }
+
+  .player-card {
+    width: 55px;
+    .jersey-wrapper {
+      width: 32px;
+      height: 32px;
+      .position-label {
+        font-size: 0.55rem;
+      }
+    }
+    .player-name {
+      font-size: 0.55rem;
+      padding: 1px 4px;
+    }
+  }
+
+  .pitch {
+    height: 560px; /* Reduced height on mobile to fit nicely within standard modals */
+  }
+
+  .bench-grids {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+}

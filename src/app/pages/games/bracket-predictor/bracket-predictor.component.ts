@@ -1,7 +1,8 @@
-import { Component, inject, OnInit, Output, EventEmitter } from '@angular/core';
+import { Component, inject, OnInit, Output, EventEmitter, ChangeDetectionStrategy } from '@angular/core';
 import { TeamsService } from '../../../shared/services/content/teams.service';
 import { forkJoin } from 'rxjs';
-import { CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
+import { CdkDragDrop, moveItemInArray, CdkDropList, CdkDrag, CdkDragHandle, CdkDragPlaceholder } from '@angular/cdk/drag-drop';
+import { NgClass, NgStyle } from '@angular/common';
 
 interface PredictorTeam {
   name: string;
@@ -17,9 +18,11 @@ interface PredictorGroup {
 }
 
 @Component({
-  selector: 'app-bracket-predictor',
-  templateUrl: './bracket-predictor.component.html',
-  styleUrl: './bracket-predictor.component.scss'
+    selector: 'app-bracket-predictor',
+    templateUrl: './bracket-predictor.component.html',
+    styleUrl: './bracket-predictor.component.scss',
+    changeDetection: ChangeDetectionStrategy.Eager,
+    imports: [NgClass, NgStyle, CdkDropList, CdkDrag, CdkDragHandle, CdkDragPlaceholder]
 })
 export class BracketPredictorComponent implements OnInit {
   private teamService = inject(TeamsService);
