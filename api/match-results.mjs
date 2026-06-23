@@ -99,8 +99,8 @@ export default async function handler(request, response) {
   let _statusRaw = '';
   try {
     const statusFilter = queryId !== null
-      ? `?filter[match_id][_eq]=${queryId}`
-      : `?filter[status][_neq]=finished`;
+      ? `?filter[match_id][eq]=${queryId}`
+      : `?filter[status][neq]=finished`;
     _statusUrl = `${directusUrl}/items/match_status${statusFilter}`;
     const statusRes = await fetch(_statusUrl, {
       headers: { 'Authorization': `Bearer ${adminToken}` }
@@ -125,11 +125,11 @@ export default async function handler(request, response) {
   let _matchesHttpStatus = null;
   let _matchesRaw = '';
   try {
-    let matchesQuery = `?filter[_or][0][date][_lte]=${nowIso}&filter[_or][0][fulltime][_neq]=true`;
+    let matchesQuery = `?filter[or][0][date][lte]=${nowIso}&filter[or][0][fulltime][neq]=true`;
     if (queryId !== null) {
-      matchesQuery = `?filter[id][_eq]=${queryId}`;
+      matchesQuery = `?filter[id][eq]=${queryId}`;
     } else if (liveMatchIds.length > 0) {
-      matchesQuery += `&filter[_or][1][id][_in]=${liveMatchIds.join(',')}`;
+      matchesQuery += `&filter[or][1][id][in]=${liveMatchIds.join(',')}`;
     }
     _matchesUrl = `${directusUrl}/items/matches${matchesQuery}`;
     const dbRes = await fetch(_matchesUrl, {
