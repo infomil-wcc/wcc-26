@@ -1,3 +1,4 @@
+@use "sass:color";
 $fifa-orange: #f97316;
 
 // Conteneur principal de l'application (Thème Blanc Unifié)
@@ -464,7 +465,7 @@ $fifa-orange: #f97316;
   z-index: 100;
 
   &:hover:not(:disabled) {
-    background-color: darken($fifa-orange, 10%);
+    background-color: color.adjust($fifa-orange, $lightness: -10%);
     transform: translateY(-2px);
     box-shadow: 0 12px 20px rgba(0, 0, 0, 0.4);
   }

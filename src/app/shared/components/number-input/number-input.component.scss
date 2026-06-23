@@ -1,23 +1,89 @@
-@import "./../../../../variables.scss";
+@use "sass:color";
+@use "./../../../../variables" as *;
 
-.inputNumber input {
-  width: 100%;
-  text-align: center;
-  font-size: 1.5rem;
+/* Hide default spin buttons / arrows */
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type=number] {
+  -moz-appearance: textfield;
+}
+
+.inputNumber {
+  width: 48px;
+  
+  input {
+    width: 100%;
+    text-align: center;
+    font-size: 1.35rem;
+    font-weight: 700;
+    color: #0f172a;
+    border: 1.5px solid #cbd5e0;
+    border-radius: 10px;
+    background: #ffffff;
+    padding: 0.35rem 0;
+    outline: none;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    box-sizing: border-box;
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.05);
+
+    &:focus {
+      border-color: $primaryColor;
+      box-shadow: 0 0 0 3px rgba($primaryColor, 0.12), inset 0 1px 2px rgba(0, 0, 0, 0.05);
+      background: #ffffff;
+    }
+
+    &:disabled {
+      background: #f1f5f9;
+      color: #94a3b8;
+      border-color: #e2e8f0;
+      box-shadow: none;
+      cursor: not-allowed;
+    }
+  }
 }
 
 .btnNumber {
-  background: $primaryColor;
-  width: 1.85rem;
-  height: 1.85rem;
-  border-radius: 100%;
+  background: rgba($primaryColor, 0.08);
+  color: $primaryColor;
+  width: 2.15rem;
+  height: 2.15rem;
+  border-radius: 50%;
+  border: 1px solid rgba($primaryColor, 0.15);
+  padding: 0;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 
   span {
-    font-size: 1.15rem;
+    font-size: 1.25rem;
     margin: 0;
+    font-weight: 700;
+  }
+
+  &:hover:not(:disabled) {
+    background: $primaryColor;
+    color: #ffffff;
+    border-color: $primaryColor;
+    transform: scale(1.08);
+    box-shadow: 0 4px 10px rgba($primaryColor, 0.25);
+  }
+
+  &:active:not(:disabled) {
+    transform: scale(0.94);
+  }
+
+  &:disabled {
+    background: #e2e8f0;
+    color: #94a3b8;
+    border-color: #e2e8f0;
+    cursor: not-allowed;
+    opacity: 0.6;
   }
 }

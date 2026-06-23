@@ -1,13 +1,16 @@
-import { Component, OnInit } from '@angular/core';
-import { CommonModule, KeyValue } from '@angular/common';
+import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { CommonModule, KeyValue, NgClass, DatePipe, KeyValuePipe } from '@angular/common';
 import { ApiResponse, GameElement } from '../../shared/contracts/game-rules.contract';
 import { GameRulesService } from '../../shared/services/content/game-rules.service';
 import { Observable } from 'rxjs';
+import { LoaderComponent } from '../../shared/components/loader/loader.component';
 
 @Component({
-  selector: 'app-game-rules',
-  templateUrl: './game-rules.component.html',
-  styleUrls: ['./game-rules.component.scss']
+    selector: 'app-game-rules',
+    templateUrl: './game-rules.component.html',
+    styleUrls: ['./game-rules.component.scss'],
+    changeDetection: ChangeDetectionStrategy.Eager,
+    imports: [NgClass, LoaderComponent, DatePipe, KeyValuePipe]
 })
 export class GameRulesComponent implements OnInit {
   
@@ -69,7 +72,6 @@ export class GameRulesComponent implements OnInit {
   // Custom comparison function for KeyValue pipe to sort bracket phases
   public bracketOrder = (a: KeyValue<string, number>, b: KeyValue<string, number>): number => {
    const order = [
-    'phase_groupe',
     '16eme_de_finale',
     '8eme_de_finale',
     'quart_de_finale',

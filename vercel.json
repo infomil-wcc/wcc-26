@@ -10,8 +10,23 @@
       "handle": "filesystem"
     },
     {
+      "src": "/api/(.*)",
+      "dest": "/api/$1"
+    },
+    {
       "src": "/(.*)",
       "dest": "/index.html"
+    }
+  ],
+  "functions": {
+    "api/catch-up-matches.mjs": {
+      "maxDuration": 60
+    }
+  },
+  "crons": [
+    {
+      "path": "/api/catch-up-matches",
+      "schedule": "0 5 * * *"
     }
   ]
 }

@@ -1,31 +1,38 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, EventEmitter, Input, Output, ChangeDetectionStrategy } from '@angular/core';
+import { ReactiveFormsModule, FormsModule } from '@angular/forms';
 
 @Component({
-  selector: 'app-number-input',
-  templateUrl: './number-input.component.html',
-  styleUrl: './number-input.component.scss'
+    selector: 'app-number-input',
+    templateUrl: './number-input.component.html',
+    styleUrl: './number-input.component.scss',
+    changeDetection: ChangeDetectionStrategy.Eager,
+    imports: [ReactiveFormsModule, FormsModule]
 })
 export class NumberInputComponent {
 
-  @Input() num!: number;
+  @Input() num: any = null;
   @Input() disabled: boolean = false;
-  @Output() numChange = new EventEmitter<number>();
+  @Output() numChange = new EventEmitter<any>();
 
   increment() {
-    if (this.num < 99) {
+    if (this.num === null || this.num === undefined) {
+      this.num = 0;
+    } else if (this.num < 99) {
       this.num++;
-      this.numChange.emit(this.num);
     }
+    this.numChange.emit(this.num);
   }
 
   decrement() {
-    if (this.num > 0) {
+    if (this.num === null || this.num === undefined) {
+      this.num = 0;
+    } else if (this.num > 0) {
       this.num--;
-      this.numChange.emit(this.num);
     }
+    this.numChange.emit(this.num);
   }
 
-  onchange(num: number){
+  onchange(num: number | null) {
     this.numChange.emit(num);
   }
 }

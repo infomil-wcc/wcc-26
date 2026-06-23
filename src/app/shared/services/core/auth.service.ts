@@ -1,15 +1,17 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { CookieService } from 'ngx-cookie-service';
-import { environment } from '../../../../environments/environment';
+import { CookieService } from './cookie.service';
+import { AuthApiService } from '../api/auth-api.service';
+import { UsersApiService } from '../api/users-api.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class AuthService {
 
-  private httpClient = inject(HttpClient);
+  private authApiService = inject(AuthApiService);
+  private usersApiService = inject(UsersApiService);
   private cookieService = inject(CookieService);
 
   private httpOptions = {
@@ -20,7 +22,7 @@ export class AuthService {
 
   trylogin(login: string, pass: string): Observable<any> {
     let loginDetails = {'email': login, 'password': pass, "mode": "jwt"};
-    return this.httpClient.post<any>(`${environment.apiBaseUrl}/auth/authenticate`, loginDetails, this.httpOptions);
+    return this.authApiService.authenticate(loginDetails, this.httpOptions);
   }
 
   tryCreateUser(login: string, trigramme: string, pass: string): Observable<any> {
@@ -31,17 +33,17 @@ export class AuthService {
       last_name: trigramme,
     };
 
-    return this.httpClient.post<any>(`${environment.apiUrl}/users`, loginDetails, this.httpOptions);
+    return this.usersApiService.createUser(loginDetails, this.httpOptions);
   }
 
   tryRefreshToken(token: string){
     let refreshdetails = {'token': token}
-    return this.httpClient.post(`${environment.apiBaseUrl}/auth/refresh`, refreshdetails, this.httpOptions);
+    return this.authApiService.refresh(refreshdetails, this.httpOptions);
   }
 
   refreshToken(token: string){
     let refreshdetails = {'token': token}
-    this.httpClient.post(`${environment.apiBaseUrl}/auth/refresh`, refreshdetails, this.httpOptions)
+    this.authApiService.refresh(refreshdetails, this.httpOptions)
       .subscribe(res => {
         let results = res as any;
         this.setTokenCookie(results.data.token);
@@ -63,11 +65,11 @@ export class AuthService {
   }
 
   getUsers(token:  string){
-    return this.httpClient.get(`${environment.apiBaseUrl}/users?access_token=${token}`);
+    return this.usersApiService.getUsersFromBaseUrl(token);
   }
 
   getUserInfos(id: string, token: string){
-    return this.httpClient.get(`${environment.apiBaseUrl}/users/${id}?access_token=${token}`);
+    return this.usersApiService.getUserInfo(id, token);
   }
 
   deleteCookies(){

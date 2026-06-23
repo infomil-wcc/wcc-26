@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { CookieService } from 'ngx-cookie-service';
+import { CookieService } from './cookie.service';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { AuthService } from './auth.service';
 

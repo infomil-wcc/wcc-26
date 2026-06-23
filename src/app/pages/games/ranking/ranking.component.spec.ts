@@ -1,6 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { RankingComponent } from './ranking.component';
+import { LoaderComponent } from '../../../shared/components/loader/loader.component';
 
 describe('RankingComponent', () => {
   let component: RankingComponent;
@@ -8,8 +9,8 @@ describe('RankingComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [RankingComponent]
-    })
+    imports: [RankingComponent, LoaderComponent]
+})
     .compileComponents();
     
     fixture = TestBed.createComponent(RankingComponent);

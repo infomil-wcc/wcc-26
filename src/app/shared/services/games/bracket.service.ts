@@ -1,17 +1,16 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Observable, map, switchMap, tap, throwError } from 'rxjs';
-import { CookieService } from 'ngx-cookie-service';
-import { environment } from '../../../../environments/environment';
+import { HttpHeaders } from '@angular/common/http';
+import { Observable, map, throwError } from 'rxjs';
+import { CookieService } from '../core/cookie.service';
+import { BracketApiService } from '../api/bracket-api.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class BracketService {
 
-  private httpClient = inject(HttpClient);
+  private bracketApiService = inject(BracketApiService);
   private cookieService = inject(CookieService);
-  private prodUrl: string = environment.apiBaseUrl;
 
   getUserBracket(user: string | null): Observable<any> {
     let token = this.cookieService.get('currentToken');
@@ -23,7 +22,7 @@ export class BracketService {
           'Authorization': `Bearer ${token}`
         })
       };
-      return this.httpClient.get<any>(`${this.prodUrl}/items/bracket?filter[user]=${user}`, httpOptions).pipe(
+      return this.bracketApiService.getBrackets(`?filter[user]=${user}`, httpOptions).pipe(
         map(response => response.data)
       );
     } else {
@@ -32,7 +31,7 @@ export class BracketService {
   }
 
   getBrackets(): Observable<any> {
-      return this.httpClient.get<any>(`${this.prodUrl}/items/bracket`).pipe(
+      return this.bracketApiService.getBrackets().pipe(
       map(response => response.data)
     );
   }
@@ -47,7 +46,7 @@ export class BracketService {
           'Authorization': `Bearer ${token}`
         })
       };
-      return this.httpClient.post(`${this.prodUrl}/items/bracket`, bracket, httpOptions);
+      return this.bracketApiService.createBracket(bracket, httpOptions);
     } else {
       return throwError('No token found');
     }
@@ -63,7 +62,7 @@ export class BracketService {
         })
       };
 
-      return this.httpClient.delete(`${this.prodUrl}/items/bracket/${id}`, httpOptions);
+      return this.bracketApiService.deleteBracket(id, httpOptions);
     } else {
       return throwError('No token found');
     }

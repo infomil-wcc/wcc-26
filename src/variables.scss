@@ -1,3 +1,4 @@
+@use "sass:color";
 $gray :#dbe8f1;
 $red:	#e4010b;
 $blue:	#004ea0;
@@ -8,10 +9,10 @@ $inputBorder: #d4d4d4;
 
 $primaryColor: #222;
 $secondaryColor: #00a85d;
-$lightPrimary: lighten($primaryColor, 10%);
-$lightSecondary: lighten($secondaryColor, 10%);
-$darkPrimary: darken($primaryColor, 20%);
-$darkSecondary: darken($secondaryColor, 20%);
+$lightPrimary: color.adjust($primaryColor, $lightness: 10%);
+$lightSecondary: color.adjust($secondaryColor, $lightness: 10%);
+$darkPrimary: color.adjust($primaryColor, $lightness: -20%);
+$darkSecondary: color.adjust($secondaryColor, $lightness: -20%);
 $goldColor: $yellow;
 $aqua: $blue;
 $mint: #9DF7E5;
