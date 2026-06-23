@@ -7,63 +7,76 @@ function getNormalizedTeamName(externalName) {
   return teamNameMap[trimmedName] || trimmedName;
 }
 
-const delay = ms => new Promise(res => setTimeout(res, ms));
-
 export default async function handler(request, response) {
+  const executionLogs = [];
+  
+  const log = (message, data = null) => {
+    const formatted = data ? `${message} ${typeof data === 'object' ? JSON.stringify(data, null, 2) : data}` : message;
+    executionLogs.push(formatted);
+    console.log(formatted);
+  };
+
+  // Extract starting ID from query string parameter
+  const startIdParam = request.query?.startId;
+  const startId = startIdParam ? parseInt(startIdParam, 10) : 0;
+
+  log(`[INFO] Batch catch-up script initiated via ${request.method} request. Starting at Directus ID: ${startId}`);
+  
   if (handleCors(request, response)) return;
 
   if (request.method !== 'POST' && request.method !== 'GET') {
-    return response.status(405).json({ error: 'Method Not Allowed' });
+    return response.status(405).json({ error: 'Method Not Allowed', logs: executionLogs });
   }
 
   process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 
-  let directusUrl = process.env.DIRECTUS_URL;
-  if (!directusUrl || directusUrl === 'undefined') {
-    directusUrl = 'https://euro.omediainteractive.net/imleuro';
-  }
+  let directusUrl = process.env.DIRECTUS_URL || 'https://euro.omediainteractive.net/imleuro';
   const adminToken = process.env.DIRECTUS_ADMIN_TOKEN;
   const apiKey = process.env.FOOTBALL_DATA_API_KEY;
 
-  if (!adminToken) {
-    return response.status(500).json({ error: "Missing DIRECTUS_ADMIN_TOKEN environment variable." });
-  }
-  if (!apiKey) {
-    return response.status(500).json({ error: "Missing FOOTBALL_DATA_API_KEY environment variable." });
+  if (!adminToken || !apiKey) {
+    log("[ERROR] Missing required environment variables (DIRECTUS_ADMIN_TOKEN or FOOTBALL_DATA_API_KEY).");
+    return response.status(500).json({ error: "Missing required environment variables.", logs: executionLogs });
   }
 
   try {
-    // 1. Fetch matches from football-data (counts as 1 API call)
-    const fdRes = await fetch('https://api.football-data.org/v4/competitions/WC/matches', {
-      headers: { 'X-Auth-Token': apiKey }
-    });
-    if (!fdRes.ok) {
-      throw new Error(`Football-Data API failed: ${fdRes.status}`);
-    }
+    // 1. Fetch matches from football-data
+    const fdEndpoint = 'https://api.football-data.org/v4/competitions/WC/matches';
+    log(`[API CALL] Fetching external matches list from: ${fdEndpoint}`);
+    const fdRes = await fetch(fdEndpoint, { headers: { 'X-Auth-Token': apiKey } });
+    if (!fdRes.ok) throw new Error(`Football-Data API failed with status: ${fdRes.status}`);
+    
     const fdData = await fdRes.json();
-    const externalMatches = fdData.matches || [];
+    const finishedMatches = (fdData.matches || []).filter(m => m.status === 'FINISHED');
+    log(`[INFO] Retrieved ${finishedMatches.length} finished matches from Football-Data.`);
 
     // 2. Fetch matches from Directus
-    const dbRes = await fetch(`${directusUrl}/items/matches?limit=-1`, {
-      headers: { 'Authorization': `Bearer ${adminToken}` }
-    });
-    if (!dbRes.ok) {
-      throw new Error(`Directus failed to fetch matches: ${dbRes.status}`);
-    }
+    const dbEndpoint = `${directusUrl}/items/matches?limit=-1`;
+    log(`[DB CALL] Fetching database records from: ${dbEndpoint}`);
+    const dbRes = await fetch(dbEndpoint, { headers: { 'Authorization': `Bearer ${adminToken}` } });
+    if (!dbRes.ok) throw new Error(`Directus failed to fetch matches with status: ${dbRes.status}`);
+    
     const dbData = await dbRes.json();
-    const dbMatches = dbData.data || [];
-
-    const finishedMatches = externalMatches.filter(m => m.status === 'FINISHED');
+    let dbMatches = dbData.data || [];
+    
+    // Sort items numerically by ID
     dbMatches.sort((a, b) => parseInt(a.id) - parseInt(b.id));
 
-    const results = [];
-    let apiCallsCount = 1; // 1 call already made for matches list
+    // Filter using query string parameters
+    if (startId > 0) {
+      const totalBefore = dbMatches.length;
+      dbMatches = dbMatches.filter(match => parseInt(match.id, 10) >= startId);
+      log(`[FILTER] Filtered out ${totalBefore - dbMatches.length} matches where ID < ${startId}.`);
+    }
+    log(`[INFO] Evaluating ${dbMatches.length} matching rows from Directus.`);
+
+    // 3. Process matches (Strict limit: Cap at 8 total API calls)
+    const itemsToPatch = [];
+    let apiCallsCount = 1; // 1 call already used for the initial matches list
 
     for (const dbMatch of dbMatches) {
-      // Limit to 8 detailed queries per execution to avoid Vercel timeouts (60s limit)
-      // and ensure total API calls to football-data (including the list call) do not exceed 9 calls in 60s
-      if (apiCallsCount >= 9) {
-        console.log("Reached rate limit threshold of 9 API calls per execution. Stopping here.");
+      if (apiCallsCount >= 8) {
+        log(`[NOTICE] Total Football-Data API calls reached safe threshold limit of ${apiCallsCount}. Stopping evaluation loop.`);
         break;
       }
 
@@ -77,89 +90,121 @@ export default async function handler(request, response) {
       if (!extMatch) continue;
 
       const isReversed = (dbMatch.team_a === getNormalizedTeamName(extMatch.awayTeam?.name));
+      
+      // Keep score parsed values explicit as clear Numeric Data types
       const homeScore = extMatch.score?.fullTime?.home;
       const awayScore = extMatch.score?.fullTime?.away;
-      
-      const dbScoreA = isReversed ? awayScore : homeScore;
-      const dbScoreB = isReversed ? homeScore : awayScore;
+      const dbScoreA = isReversed ? (awayScore !== null ? Number(awayScore) : null) : (homeScore !== null ? Number(homeScore) : null);
+      const dbScoreB = isReversed ? (homeScore !== null ? Number(homeScore) : null) : (awayScore !== null ? Number(awayScore) : null);
 
-      let winnerDraw = "Draw";
-      if (dbScoreA > dbScoreB) {
-        winnerDraw = dbMatch.team_a;
-      } else if (dbScoreB > dbScoreA) {
-        winnerDraw = dbMatch.team_b;
+      const htHome = extMatch.score?.halfTime?.home;
+      const htAway = extMatch.score?.halfTime?.away;
+      const targetHtA = (htHome !== null && htHome !== undefined && htAway !== null && htAway !== undefined) ? (isReversed ? Number(htAway) : Number(htHome)) : null;
+      const targetHtB = (htHome !== null && htHome !== undefined && htAway !== null && htAway !== undefined) ? (isReversed ? Number(htHome) : Number(htAway)) : null;
+
+      // Check if scorers field is already populated with data
+      let hasScorersPopulated = false;
+      if (dbMatch.scorers) {
+        if (Array.isArray(dbMatch.scorers) && dbMatch.scorers.length > 0) {
+          hasScorersPopulated = true;
+        } else if (typeof dbMatch.scorers === 'string' && dbMatch.scorers.trim() !== '' && dbMatch.scorers !== 'null' && dbMatch.scorers !== '[]') {
+          hasScorersPopulated = true;
+        }
       }
 
-      // Needs update check
-      const needsUpdate = 
-        dbMatch.fulltime_a !== dbScoreA ||
-        dbMatch.fulltime_b !== dbScoreB ||
-        dbMatch.winner_draw !== winnerDraw ||
-        !dbMatch.scorers || dbMatch.scorers === 'null';
+      // Verify if record is fully identical and synchronized
+      if (
+        dbMatch.fulltime_a === dbScoreA && 
+        dbMatch.fulltime_b === dbScoreB && 
+        dbMatch.halftime_a === targetHtA && 
+        dbMatch.halftime_b === targetHtB && 
+        hasScorersPopulated
+      ) {
+        continue;
+      }
 
-      if (!needsUpdate) continue;
+      let winnerDraw = "Draw";
+      if (dbScoreA > dbScoreB) winnerDraw = dbMatch.team_a;
+      else if (dbScoreB > dbScoreA) winnerDraw = dbMatch.team_b;
 
-      // Rate Limit: 6.8 seconds delay between calls to guarantee not calling more than 9 times in 60s
-      console.log(`Waiting 6.8 seconds before fetching scorers for Match ${dbMatch.id}...`);
-      await delay(6800);
+      log(`[STAGING] Resolving details for Match ID ${dbMatch.id} (${dbMatch.team_a} vs ${dbMatch.team_b})...`);
 
-      let scorers = '';
+      let goalsPayload = []; // Initialized as a native array instead of a string stringified representation
+      const detailUrl = `https://api.football-data.org/v4/matches/${extMatch.id}`;
+      
       try {
-        const detailRes = await fetch(`https://api.football-data.org/v4/matches/${extMatch.id}`, {
-          headers: { 'X-Auth-Token': apiKey }
+        log(`[API CALL ${apiCallsCount + 1}] Querying match details endpoint: ${detailUrl}`);
+        const detailRes = await fetch(detailUrl, { 
+          headers: { 'X-Auth-Token': apiKey, 'X-Unfold-Goals': 'true' } 
         });
         apiCallsCount++;
 
         if (detailRes.ok) {
           const detailData = await detailRes.json();
-          const scorersList = (detailData.goals || [])
-            .map(g => g.scorer?.name)
-            .filter(Boolean);
-          scorers = scorersList.length > 0 ? scorersList.join(', ') : '';
+          goalsPayload = detailData.goals || [];
+          log(` -> Match ${dbMatch.id}: Staged full raw JSON description containing ${goalsPayload.length} goal nodes.`);
+        } else {
+          log(` -> [ERROR] Subresource detail retrieval failed. Status code: ${detailRes.status}`);
+          continue; 
         }
       } catch (err) {
-        console.error(`Scorers fetch error for Match ${dbMatch.id}:`, err.message);
+        log(` -> [EXCEPT] Error fetching details: ${err.message}`);
+        continue;
       }
 
-      const payload = {
-        fulltime_a: dbScoreA,
-        fulltime_b: dbScoreB,
-        winner_draw: winnerDraw,
-        scorers: scorers
-      };
-
-      const htHome = extMatch.score?.halfTime?.home;
-      const htAway = extMatch.score?.halfTime?.away;
-      if (htHome !== null && htHome !== undefined && htAway !== null && htAway !== undefined) {
-        payload.halftime_a = isReversed ? htAway : htHome;
-        payload.halftime_b = isReversed ? htHome : htAway;
-      }
-
-      const patchRes = await fetch(`${directusUrl}/items/matches/${dbMatch.id}`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${adminToken}`
-        },
-        body: JSON.stringify(payload)
-      });
-
-      results.push({
+      itemsToPatch.push({
         id: dbMatch.id,
-        teams: `${dbMatch.team_a} vs ${dbMatch.team_b}`,
-        success: patchRes.ok
+        fulltime_a: dbScoreA, 
+        fulltime_b: dbScoreB, 
+        winner_draw: winnerDraw,
+        halftime_a: targetHtA, 
+        halftime_b: targetHtB, 
+        scorers: goalsPayload // Passed as a functional native array object structure to fulfill Directus validation
       });
     }
 
+    if (itemsToPatch.length === 0) {
+      log("[COMPLETE] Verified all scanned items. Zero updates required.");
+      return response.status(200).json({ 
+        success: true, 
+        message: "No entries needed syncing.", 
+        apiCallsMade: apiCallsCount,
+        updatesProcessed: 0, 
+        logs: executionLogs 
+      });
+    }
+
+    // 4. Batch Patch Directus inside one combined query
+    const collectionUrl = `${directusUrl}/items/matches`;
+    log(`\n[DB BATCH PATCH] Issuing single call to: ${collectionUrl}`);
+    log(`[DB BATCH PAYLOAD] Array contents structured for payload:`, itemsToPatch);
+
+    const batchRes = await fetch(collectionUrl, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${adminToken}`
+      },
+      body: JSON.stringify(itemsToPatch)
+    });
+
+    log(`[DB RESPONSE] Single Batch patch execution success state: ${batchRes.ok}`);
+    
+    if (!batchRes.ok) {
+      const errorText = await batchRes.text();
+      log(`[DB ERROR DETAILS] Directus payload rejection: ${errorText}`);
+    }
+
     return response.status(200).json({
-      success: true,
-      message: `Completed sync step. Updated ${results.length} matches.`,
+      success: batchRes.ok,
+      message: `Completed processing step starting from ID ${startId}. Handled updates for ${itemsToPatch.length} rows inside a single query.`,
       apiCallsMade: apiCallsCount,
-      updates: results
+      updatesProcessed: itemsToPatch.length,
+      logs: executionLogs
     });
 
   } catch (error) {
-    console.error("Catch-up API error:", error);
-    return response.status(500).json({ error: error.message });
+    log(`[CRITICAL ERROR] Pipeline execution stopped unexpected: ${error.message}`);
+    return response.status(500).json({ error: error.message, logs: executionLogs });
   }
 }
