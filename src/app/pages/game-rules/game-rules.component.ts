@@ -72,7 +72,6 @@ export class GameRulesComponent implements OnInit {
   // Custom comparison function for KeyValue pipe to sort bracket phases
   public bracketOrder = (a: KeyValue<string, number>, b: KeyValue<string, number>): number => {
    const order = [
-    'phase_groupe',
     '16eme_de_finale',
     '8eme_de_finale',
     'quart_de_finale',
