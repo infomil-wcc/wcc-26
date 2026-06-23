@@ -312,15 +312,15 @@
           <span class="team-name">{{ match.team_a | slice:0:3 | uppercase }}</span>
         </div>
 
-        <div class="flex flex-column align-items-center justify-content-center">
+        <div class="score-pill-container">
           <div class="score-pill flex align-items-center justify-content-center">
             <span class="score">{{ match.fulltime_a }}</span>
             <span class="divider">|</span>
             <span class="score">{{ match.fulltime_b }}</span>
           </div>
           @if (match.halftime_a !== null && match.halftime_b !== null) {
-            <span class="halftime-score-pill text-xs font-semibold px-2 py-0.5 rounded text-gray-400" style="font-size: 0.62rem; margin-top: 4px; letter-spacing: 0.5px; opacity: 0.85; border: 1px solid rgba(255,255,255,0.06); background: rgba(0,0,0,0.15);">
-              HT: {{ match.halftime_a }} - {{ match.halftime_b }}
+            <span class="halftime-score-pill">
+              HT : {{ match.halftime_a }} - {{ match.halftime_b }}
             </span>
           }
         </div>

@@ -31,7 +31,7 @@ function parseScorersString(scorersStr, teamName) {
 
   const events = [];
   for (const goalStr of arr) {
-    const regex = /^(.*?)\s+(\d+)(?:\+(\d+))?'\s*(\((?:OG|p|CSC)\))?$/i;
+    const regex = /^(.*?)\s+(\d+)'?(?:\+(\d+))?'?\s*(\((?:OG|p|CSC|PEN)\)|\[(?:OG|p|CSC|PEN)\])?$/i;
     const match = goalStr.trim().match(regex);
     if (match) {
       const playerName = match[1].trim();
@@ -42,7 +42,7 @@ function parseScorersString(scorersStr, teamName) {
         const detailLower = match[4].toLowerCase();
         if (detailLower.includes('og') || detailLower.includes('csc')) {
           detail = 'Own Goal';
-        } else if (detailLower.includes('p')) {
+        } else if (detailLower.includes('p') || detailLower.includes('pen')) {
           detail = 'Penalty';
         }
       }
@@ -77,7 +77,11 @@ export default async function handler(request, response) {
   const startIdParam = request.query?.startId;
   const startId = startIdParam ? parseInt(startIdParam, 10) : 0;
 
-  log(`[INFO] Batch catch-up script initiated via ${request.method} request. Starting at Directus ID: ${startId}`);
+  // Extract single match ID from query string parameter
+  const matchIdParam = request.query?.matchId || request.query?.id;
+  const matchId = matchIdParam ? parseInt(matchIdParam, 10) : null;
+
+  log(`[INFO] Batch catch-up script initiated via ${request.method} request. Starting at Directus ID: ${startId}, Match ID filter: ${matchId || 'None'}`);
   
   if (handleCors(request, response)) return;
 
@@ -140,7 +144,10 @@ export default async function handler(request, response) {
     dbMatches.sort((a, b) => parseInt(a.id) - parseInt(b.id));
 
     // Filter using query string parameters
-    if (startId > 0) {
+    if (matchId !== null) {
+      dbMatches = dbMatches.filter(match => parseInt(match.id, 10) === matchId);
+      log(`[FILTER] Filtering for single match ID: ${matchId}. Remaining matches: ${dbMatches.length}`);
+    } else if (startId > 0) {
       const totalBefore = dbMatches.length;
       dbMatches = dbMatches.filter(match => parseInt(match.id, 10) >= startId);
       log(`[FILTER] Filtered out ${totalBefore - dbMatches.length} matches where ID < ${startId}.`);

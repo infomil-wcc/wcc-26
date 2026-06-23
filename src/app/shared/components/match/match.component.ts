@@ -428,18 +428,49 @@ export class MatchComponent implements OnInit, OnDestroy {
   get parsedScorersEvents(): any[] {
     if (!this.match || !this.match.scorers) return [];
     const val = this.match.scorers;
-    if (Array.isArray(val)) return val;
-    if (typeof val === 'string') {
+    let list: any[] = [];
+    if (Array.isArray(val)) {
+      list = val;
+    } else if (typeof val === 'string') {
       const trimmed = val.trim();
       if (trimmed.startsWith('[') && trimmed.endsWith(']')) {
         try {
-          return JSON.parse(trimmed);
+          list = JSON.parse(trimmed);
         } catch (e) {
-          return [];
+          list = [];
         }
       }
     }
-    return [];
+    
+    // Normalize / Clean on the fly to support formats like "K. Havertz 45'+5'(p)"
+    return list.map(e => {
+      let name = e.player?.name || 'Unknown';
+      let elapsed = e.time?.elapsed ?? 0;
+      let extra = e.time?.extra ?? null;
+      let detail = e.detail || 'Normal Goal';
+
+      const regex = /^(.*?)\s+(\d+)'?(?:\+(\d+))?'?\s*(\((?:OG|p|CSC|PEN)\)|\[(?:OG|p|CSC|PEN)\])?$/i;
+      const match = name.trim().match(regex);
+      if (match) {
+        name = match[1].trim();
+        elapsed = parseInt(match[2], 10);
+        extra = match[3] ? parseInt(match[3], 10) : null;
+        if (match[4]) {
+          const detailLower = match[4].toLowerCase();
+          if (detailLower.includes('og') || detailLower.includes('csc')) {
+            detail = 'Own Goal';
+          } else if (detailLower.includes('p') || detailLower.includes('pen')) {
+            detail = 'Penalty';
+          }
+        }
+      }
+      return {
+        ...e,
+        player: { ...e.player, name },
+        time: { elapsed, extra },
+        detail
+      };
+    });
   }
 
   get isScorersJson(): boolean {
@@ -456,14 +487,34 @@ export class MatchComponent implements OnInit, OnDestroy {
     let scorersList: string[] = [];
     const scorersVal = this.match.scorers;
     if (Array.isArray(scorersVal)) {
-      scorersList = scorersVal.map(e => e.player?.name || e.scorer?.name).filter(Boolean);
+      scorersList = scorersVal.map(e => {
+        let name = e.player?.name || e.scorer?.name;
+        if (name) {
+          const regex = /^(.*?)\s+(\d+)'?(?:\+(\d+))?'?\s*(\((?:OG|p|CSC|PEN)\)|\[(?:OG|p|CSC|PEN)\])?$/i;
+          const match = name.trim().match(regex);
+          if (match) {
+            name = match[1].trim();
+          }
+        }
+        return name;
+      }).filter(Boolean);
     } else if (typeof scorersVal === 'string') {
       const trimmed = scorersVal.trim();
       if (trimmed.startsWith('[') && trimmed.endsWith(']')) {
         try {
           const parsed = JSON.parse(trimmed);
           if (Array.isArray(parsed)) {
-            scorersList = parsed.map(e => e.player?.name || e.scorer?.name).filter(Boolean);
+            scorersList = parsed.map(e => {
+              let name = e.player?.name || e.scorer?.name;
+              if (name) {
+                const regex = /^(.*?)\s+(\d+)'?(?:\+(\d+))?'?\s*(\((?:OG|p|CSC|PEN)\)|\[(?:OG|p|CSC|PEN)\])?$/i;
+                const match = name.trim().match(regex);
+                if (match) {
+                  name = match[1].trim();
+                }
+              }
+              return name;
+            }).filter(Boolean);
           }
         } catch (e) {
           scorersList = trimmed.split(',').map(name => name.trim());
@@ -496,9 +547,9 @@ export class MatchComponent implements OnInit, OnDestroy {
       }
       timeStr += "'";
       if (e.detail === 'Penalty') {
-        timeStr += '<sup>[PEN]</sup>';
+        timeStr += ' <sup>[PEN]</sup>';
       } else if (e.detail === 'Own Goal') {
-        timeStr += '<sup>[OG]</sup>';
+        timeStr += ' <sup>[OG]</sup>';
       }
       
       if (!groups[name]) {
@@ -509,7 +560,7 @@ export class MatchComponent implements OnInit, OnDestroy {
 
     return Object.keys(groups).map(name => ({
       name,
-      times: groups[name].join(', ')
+      times: `(${groups[name].join(', ')})`
     }));
   }
 

@@ -1146,26 +1146,59 @@
     }
   }
 
+  .score-pill-container {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+
   .score-pill {
     background: #3be2c0; // beautiful cyan
-    border-radius: 8px;
-    padding: 2px 12px;
+    border-radius: 12px; // rounder corners matching the mockup
+    padding: 4px 18px;
     margin: 0 8px;
-    height: 32px;
-    color: #000000;
-    font-size: 1.25rem;
+    height: 40px; // larger height
+    color: #333333; // dark text matching mockup
+    font-size: 1.6rem; // larger score
     font-weight: 900;
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
     display: inline-flex;
     align-items: center;
-    gap: 6px;
+    gap: 8px;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+    position: relative;
+
+    .score {
+      line-height: 1;
+    }
 
     .divider {
-      opacity: 0.35;
+      opacity: 0.3;
       font-weight: 300;
-      font-size: 1.2rem;
+      font-size: 1.5rem;
     }
+  }
+
+  .halftime-score-pill {
+    position: absolute;
+    bottom: -11px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(29, 78, 216, 0.75); // semi-transparent royal blue color from the uploaded image
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 4px;
+    padding: 1px 8px;
+    font-size: 0.65rem;
+    font-weight: 800;
+    color: #ffffff; // white text for high contrast on blue background
+    font-family: 'Inter', system-ui, -apple-system, sans-serif; // same font as fulltime score
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.12);
+    white-space: nowrap;
+    z-index: 10;
+    letter-spacing: 0.5px;
+    line-height: 1.2;
   }
 
   .stripe-bar {
