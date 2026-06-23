@@ -135,7 +135,6 @@ export default async function handler(request, response) {
       if (htHome !== null && htHome !== undefined && htAway !== null && htAway !== undefined) {
         payload.halftime_a = isReversed ? htAway : htHome;
         payload.halftime_b = isReversed ? htHome : htAway;
-        payload.halftime = true;
       }
 
       const patchRes = await fetch(`${directusUrl}/items/matches/${dbMatch.id}`, {
