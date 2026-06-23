@@ -95,7 +95,6 @@ export default async function handler(request, response) {
         dbMatch.fulltime_a !== dbScoreA ||
         dbMatch.fulltime_b !== dbScoreB ||
         dbMatch.winner_draw !== winnerDraw ||
-        dbMatch.fulltime !== true ||
         !dbMatch.scorers || dbMatch.scorers === 'null';
 
       if (!needsUpdate) continue;
@@ -126,7 +125,6 @@ export default async function handler(request, response) {
         fulltime_a: dbScoreA,
         fulltime_b: dbScoreB,
         winner_draw: winnerDraw,
-        fulltime: true,
         scorers: scorers
       };
 
