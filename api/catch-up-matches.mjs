@@ -134,16 +134,21 @@ export default async function handler(request, response) {
     
     let rawGoalsDataString = '';
     const detailUrl = `https://api.football-data.org/v4/matches/${correspondingExtMatch.id}`;
-    log(`[API CALL] Requesting match details from: ${detailUrl}`);
+    log(`[API CALL] Requesting match details from: ${detailUrl} with X-Unfold-Goals configuration`);
     
-    const detailRes = await fetch(detailUrl, { headers: { 'X-Auth-Token': apiKey } });
+    const detailRes = await fetch(detailUrl, { 
+      headers: { 
+        'X-Auth-Token': apiKey,
+        'X-Unfold-Goals': 'true' // Added unfolding custom header configuration parameter here
+      } 
+    });
+    
     if (detailRes.ok) {
       const detailData = await detailRes.json();
       const goalsArray = detailData.goals || [];
       
       if (goalsArray.length > 0) {
         log(`[SUCCESS] Captured ${goalsArray.length} goal events from the API. Storing data into the scorers field.`);
-        // Store all the raw goal/scorer data directly as a stringified payload
         rawGoalsDataString = JSON.stringify(goalsArray);
       } else {
         log(`[NOTICE] Goals array data captured successfully but it returned empty (0 goals / 0-0 match).`);
