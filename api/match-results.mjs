@@ -87,6 +87,9 @@ export default async function handler(request, response) {
   const nowTime = new Date().getTime();
   const nowIso = new Date().toISOString();
 
+  const queryIdParam = request.query?.id || request.query?.matchId;
+  const queryId = queryIdParam ? parseInt(queryIdParam, 10) : null;
+
   // 1. Fetch match_status entries from Directus that are NOT finished (selective query)
   let dbMatchStatuses = [];
   try {
@@ -101,13 +104,20 @@ export default async function handler(request, response) {
     console.error("Failed to fetch match_status:", e.message);
   }
 
+  // If queryId is passed, filter down dbMatchStatuses to only look for this match
+  if (queryId !== null) {
+    dbMatchStatuses = dbMatchStatuses.filter(s => parseInt(s.match_id, 10) === queryId);
+  }
+
   const liveMatchIds = dbMatchStatuses.map(s => parseInt(s.match_id, 10));
 
   // 2. Fetch started but unfinished matches from Directus OR matches present in the active liveMatchIds
   let dbMatches = [];
   try {
     let matchesQuery = `?filter[_or][0][date][_lte]=${nowIso}&filter[_or][0][fulltime][_neq]=true`;
-    if (liveMatchIds.length > 0) {
+    if (queryId !== null) {
+      matchesQuery = `?filter[id][_eq]=${queryId}`;
+    } else if (liveMatchIds.length > 0) {
       matchesQuery += `&filter[_or][1][id][_in]=${liveMatchIds.join(',')}`;
     }
     const dbRes = await fetch(`${directusUrl}/items/matches${matchesQuery}`, {
