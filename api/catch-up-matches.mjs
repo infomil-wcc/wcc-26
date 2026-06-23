@@ -8,21 +8,19 @@ function getNormalizedTeamName(externalName) {
 }
 
 export default async function handler(request, response) {
-  // Array to collect all log statements during this execution
   const executionLogs = [];
   
   const log = (message, data = null) => {
     const formatted = data ? `${message} ${typeof data === 'object' ? JSON.stringify(data, null, 2) : data}` : message;
     executionLogs.push(formatted);
-    console.log(formatted); // Keep native logging active for Vercel Log dashboard
+    console.log(formatted);
   };
 
-  log(`[INFO] Catch-up script initiated via ${request.method} request.`);
+  log(`[INFO] Batch catch-up script initiated via ${request.method} request.`);
   
   if (handleCors(request, response)) return;
 
   if (request.method !== 'POST' && request.method !== 'GET') {
-    log(`[WARN] Method ${request.method} not allowed.`);
     return response.status(405).json({ error: 'Method Not Allowed', logs: executionLogs });
   }
 
@@ -40,11 +38,9 @@ export default async function handler(request, response) {
   try {
     // 1. Fetch matches from football-data
     const fdEndpoint = 'https://api.football-data.org/v4/competitions/WC/matches';
-    log(`[API CALL] Fetching external matches from: ${fdEndpoint}`);
+    log(`[API CALL] Fetching external matches list from: ${fdEndpoint}`);
     const fdRes = await fetch(fdEndpoint, { headers: { 'X-Auth-Token': apiKey } });
-    if (!fdRes.ok) {
-      throw new Error(`Football-Data API failed with status: ${fdRes.status}`);
-    }
+    if (!fdRes.ok) throw new Error(`Football-Data API failed with status: ${fdRes.status}`);
     
     const fdData = await fdRes.json();
     const finishedMatches = (fdData.matches || []).filter(m => m.status === 'FINISHED');
@@ -54,21 +50,22 @@ export default async function handler(request, response) {
     const dbEndpoint = `${directusUrl}/items/matches?limit=-1`;
     log(`[DB CALL] Fetching database records from: ${dbEndpoint}`);
     const dbRes = await fetch(dbEndpoint, { headers: { 'Authorization': `Bearer ${adminToken}` } });
-    if (!dbRes.ok) {
-      throw new Error(`Directus failed to fetch matches with status: ${dbRes.status}`);
-    }
+    if (!dbRes.ok) throw new Error(`Directus failed to fetch matches with status: ${dbRes.status}`);
     
     const dbData = await dbRes.json();
     const dbMatches = dbData.data || [];
-    dbMatches.sort((a, b) => parseInt(a.id) - parseInt(b.id));
     log(`[INFO] Retrieved ${dbMatches.length} matches from Directus.`);
 
-    // 3. Find the FIRST match that actually needs an update
-    let matchToUpdate = null;
-    let correspondingExtMatch = null;
-    let targetPayload = null;
+    // 3. Collect up to 8 matches that actually need verification/updates in this cron cycle
+    const itemsToPatch = [];
+    let apiCallsCount = 1;
 
     for (const dbMatch of dbMatches) {
+      if (apiCallsCount >= 9) {
+        log("[NOTICE] Subresource details threshold limit (8 detailed matches) reached. Packing collected payloads into single request.");
+        break;
+      }
+
       const extMatch = finishedMatches.find(m => {
         const home = getNormalizedTeamName(m.homeTeam?.name);
         const away = getNormalizedTeamName(m.awayTeam?.name);
@@ -89,9 +86,9 @@ export default async function handler(request, response) {
       const targetHtA = (htHome !== null && htHome !== undefined && htAway !== null && htAway !== undefined) ? (isReversed ? htAway : htHome) : null;
       const targetHtB = (htHome !== null && htHome !== undefined && htAway !== null && htAway !== undefined) ? (isReversed ? htHome : htAway) : null;
 
-      const hasScorersPopulated = dbMatch.scorers && dbMatch.scorers !== 'null' && dbMatch.scorers.trim() !== '';
+      const hasScorersPopulated = dbMatch.scorers && dbMatch.scorers !== 'null' && dbMatch.scorers.trim() !== '' && dbMatch.scorers.trim() !== '[]';
 
-      // Skip fully synced matches
+      // Verify if fully identical, skip if so
       if (
         dbMatch.fulltime_a === dbScoreA && 
         dbMatch.fulltime_b === dbScoreB && 
@@ -102,96 +99,83 @@ export default async function handler(request, response) {
         continue;
       }
 
-      // Found a match requiring work
+      // Found a candidate requiring updates
       let winnerDraw = "Draw";
       if (dbScoreA > dbScoreB) winnerDraw = dbMatch.team_a;
       else if (dbScoreB > dbScoreA) winnerDraw = dbMatch.team_b;
 
-      matchToUpdate = dbMatch;
-      correspondingExtMatch = extMatch;
-      targetPayload = {
+      log(`[STAGING] Resolving details for Match ID ${dbMatch.id} (${dbMatch.team_a} vs ${dbMatch.team_b})...`);
+
+      // Fetch specific scorers details concurrently/sequentially (No delay needed, execution will finish cleanly)
+      let rawGoalsDataString = '[]';
+      const detailUrl = `https://api.football-data.org/v4/matches/${extMatch.id}`;
+      
+      try {
+        const detailRes = await fetch(detailUrl, { 
+          headers: { 'X-Auth-Token': apiKey, 'X-Unfold-Goals': 'true' } 
+        });
+        apiCallsCount++;
+
+        if (detailRes.ok) {
+          const detailData = await detailRes.json();
+          const goalsArray = detailData.goals || [];
+          rawGoalsDataString = JSON.stringify(goalsArray);
+          log(` -> Match ${dbMatch.id}: Staged ${goalsArray.length} goal events.`);
+        } else {
+          log(` -> [ERROR] Subresource details status code: ${detailRes.status}`);
+        }
+      } catch (err) {
+        log(` -> [EXCEPT] Failed fetching detail metrics: ${err.message}`);
+      }
+
+      // Build target object containing fields + identifier key
+      itemsToPatch.push({
+        id: dbMatch.id, // Primary Key
         fulltime_a: dbScoreA,
         fulltime_b: dbScoreB,
         winner_draw: winnerDraw,
         halftime_a: targetHtA,
-        halftime_b: targetHtB
-      };
-      break; 
-    }
-
-    // Case: Everything up to date
-    if (!matchToUpdate) {
-      log("[COMPLETE] All matches are fully synchronized. Nothing to update.");
-      return response.status(200).json({ 
-        success: true, 
-        message: "All matches up to date. No updates needed.",
-        logs: executionLogs
+        halftime_b: targetHtB,
+        scorers: rawGoalsDataString
       });
     }
 
-    // 4. Update the single match found
-    log(`[PROCESSING] Syncing Match ID ${matchToUpdate.id}: ${matchToUpdate.team_a} vs ${matchToUpdate.team_b}`);
-    
-    let rawGoalsDataString = '';
-    const detailUrl = `https://api.football-data.org/v4/matches/${correspondingExtMatch.id}`;
-    log(`[API CALL] Requesting match details from: ${detailUrl} with X-Unfold-Goals configuration`);
-    
-    const detailRes = await fetch(detailUrl, { 
-      headers: { 
-        'X-Auth-Token': apiKey,
-        'X-Unfold-Goals': 'true' // Added unfolding custom header configuration parameter here
-      } 
-    });
-    
-    if (detailRes.ok) {
-      const detailData = await detailRes.json();
-      const goalsArray = detailData.goals || [];
-      
-      if (goalsArray.length > 0) {
-        log(`[SUCCESS] Captured ${goalsArray.length} goal events from the API. Storing data into the scorers field.`);
-        rawGoalsDataString = JSON.stringify(goalsArray);
-      } else {
-        log(`[NOTICE] Goals array data captured successfully but it returned empty (0 goals / 0-0 match).`);
-        rawGoalsDataString = '[]';
-      }
-    } else {
-      log(`[ERROR] Failed fetching match goals details. Status code: ${detailRes.status}`);
+    if (itemsToPatch.length === 0) {
+      log("[COMPLETE] Everything completely verified. Zero updates needed.");
+      return response.status(200).json({ success: true, message: "All items perfectly synced.", updatesProcessed: 0, logs: executionLogs });
     }
 
-    targetPayload.scorers = rawGoalsDataString;
+    // 4. Fire Single Batch Patch request to Directus
+    const collectionUrl = `${directusUrl}/items/matches`;
+    log(`\n[DB BATCH PATCH] Issuing single call to: ${collectionUrl}`);
+    log(`[DB BATCH PAYLOAD] Array contents structured for payload:`, itemsToPatch);
 
-    // 5. Patch Directus
-    const patchUrl = `${directusUrl}/items/matches/${matchToUpdate.id}`;
-    log(`[DB PATCH] Patch URL: ${patchUrl}`);
-    log(`[DB PAYLOAD] Data to patch:`, targetPayload);
-
-    const patchRes = await fetch(patchUrl, {
+    const batchRes = await fetch(collectionUrl, {
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${adminToken}`
       },
-      body: JSON.stringify(targetPayload)
+      body: JSON.stringify(itemsToPatch) // Directus accepts a root level array of objects for multi-updates
     });
 
-    log(`[DB RESPONSE] Match ID ${matchToUpdate.id} Patch Success Status: ${patchRes.ok}`);
+    log(`[DB RESPONSE] Single Batch patch execution success state: ${batchRes.ok}`);
+    
+    if(!batchRes.ok) {
+      const errorText = await batchRes.text();
+      log(`[DB ERROR DETAILS] Directus payload rejection: ${errorText}`);
+    }
 
     return response.status(200).json({
-      success: true,
-      message: `Successfully synced Match ID ${matchToUpdate.id}.`,
-      updated: { 
-        id: matchToUpdate.id, 
-        teams: `${matchToUpdate.team_a} vs ${matchToUpdate.team_b}`, 
-        success: patchRes.ok 
-      },
+      success: batchRes.ok,
+      message: `Completed processing execution step. Handled batch updates for ${itemsToPatch.length} matching rows inside single query.`,
+      apiCallsMade: apiCallsCount,
+      updatesProcessed: itemsToPatch.length,
       logs: executionLogs
     });
 
   } catch (error) {
-    log(`[CRITICAL ERROR] Execution failed: ${error.message}`);
-    return response.status(500).json({ 
-      error: error.message, 
-      logs: executionLogs 
-    });
+    log(`[CRITICAL ERROR] Pipeline execution stopped unexpected: ${error.message}`);
+    return response.status(500).json({ error: error.message, logs: executionLogs });
   }
 }
