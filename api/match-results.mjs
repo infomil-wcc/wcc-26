@@ -94,15 +94,21 @@ export default async function handler(request, response) {
   //    When queryId is set: fetch ANY status for that specific match (so we know the current state)
   //    Otherwise: fetch all non-finished entries
   let dbMatchStatuses = [];
+  let _statusUrl = '';
+  let _statusHttpStatus = null;
+  let _statusRaw = '';
   try {
     const statusFilter = queryId !== null
       ? `?filter[match_id][_eq]=${queryId}`
       : `?filter[status][_neq]=finished`;
-    const statusRes = await fetch(`${directusUrl}/items/match_status${statusFilter}`, {
+    _statusUrl = `${directusUrl}/items/match_status${statusFilter}`;
+    const statusRes = await fetch(_statusUrl, {
       headers: { 'Authorization': `Bearer ${adminToken}` }
     });
+    _statusHttpStatus = statusRes.status;
+    _statusRaw = await statusRes.text();
     if (statusRes.ok) {
-      const statusData = await statusRes.json();
+      const statusData = JSON.parse(_statusRaw);
       dbMatchStatuses = statusData.data || [];
     }
   } catch (e) {
@@ -115,6 +121,9 @@ export default async function handler(request, response) {
 
   // 2. Fetch started but unfinished matches from Directus OR matches present in the active liveMatchIds
   let dbMatches = [];
+  let _matchesUrl = '';
+  let _matchesHttpStatus = null;
+  let _matchesRaw = '';
   try {
     let matchesQuery = `?filter[_or][0][date][_lte]=${nowIso}&filter[_or][0][fulltime][_neq]=true`;
     if (queryId !== null) {
@@ -122,15 +131,17 @@ export default async function handler(request, response) {
     } else if (liveMatchIds.length > 0) {
       matchesQuery += `&filter[_or][1][id][_in]=${liveMatchIds.join(',')}`;
     }
-    const dbRes = await fetch(`${directusUrl}/items/matches${matchesQuery}`, {
+    _matchesUrl = `${directusUrl}/items/matches${matchesQuery}`;
+    const dbRes = await fetch(_matchesUrl, {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${adminToken}`
       }
     });
-
+    _matchesHttpStatus = dbRes.status;
+    _matchesRaw = await dbRes.text();
     if (dbRes.ok) {
-      const dbData = await dbRes.json();
+      const dbData = JSON.parse(_matchesRaw);
       dbMatches = dbData.data || [];
     }
   } catch (dbError) {
@@ -139,6 +150,21 @@ export default async function handler(request, response) {
 
   // Early Exit: if no matches have started and no match statuses are active, skip external calls and updates
   if (dbMatches.length === 0 && dbMatchStatuses.length === 0) {
+    // When queryId is set, return a diagnostic response instead of a silent no-op
+    if (queryId !== null) {
+      return response.status(200).json({
+        success: false,
+        message: `No match or status found in Directus for id=${queryId}. Check the diagnostic info below.`,
+        diagnostic: {
+          matchesUrl: _matchesUrl,
+          matchesHttpStatus: _matchesHttpStatus,
+          matchesBody: (() => { try { return JSON.parse(_matchesRaw); } catch { return _matchesRaw; } })(),
+          statusUrl: _statusUrl,
+          statusHttpStatus: _statusHttpStatus,
+          statusBody: (() => { try { return JSON.parse(_statusRaw); } catch { return _statusRaw; } })()
+        }
+      });
+    }
     return response.status(200).json({
       success: true,
       message: "No started or live matches require syncing.",
