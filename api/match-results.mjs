@@ -299,7 +299,6 @@ export default async function handler(request, response) {
         success: directusResponse.ok
       });
 
-      // Update status in match_status table if finished or elapsed 180 mins
       const statusObj = dbMatchStatuses.find(s => parseInt(s.match_id, 10) === matchIdNum);
       if (statusObj) {
         const matchStartedAt = new Date(statusObj.started_at || dbMatch.date).getTime();
@@ -321,6 +320,7 @@ export default async function handler(request, response) {
           } catch (err) {
             console.error(`Failed to update match_status for match ID ${dbMatch.id}:`, err.message);
           }
+        }
       }
     }
 
