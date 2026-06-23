@@ -40,7 +40,7 @@ export default async function handler(request, response) {
   }
 
   try {
-    // 1. Fetch matches from football-data
+    // 1. Fetch matches from football-data (This provides EVERYTHING we need, including goal metadata)
     const fdEndpoint = 'https://api.football-data.org/v4/competitions/WC/matches';
     log(`[API CALL] Fetching external matches list from: ${fdEndpoint}`);
     const fdRes = await fetch(fdEndpoint, { headers: { 'X-Auth-Token': apiKey } });
@@ -70,16 +70,10 @@ export default async function handler(request, response) {
     }
     log(`[INFO] Evaluating ${dbMatches.length} matching rows from Directus.`);
 
-    // 3. Process matches (Strict limit: Cap at 8 total API calls)
+    // 3. Process matches in memory without loops making downstream API requests
     const itemsToPatch = [];
-    let apiCallsCount = 1; // 1 call already used for the initial matches list
 
     for (const dbMatch of dbMatches) {
-      if (apiCallsCount >= 8) {
-        log(`[NOTICE] Total Football-Data API calls reached safe threshold limit of ${apiCallsCount}. Stopping evaluation loop.`);
-        break;
-      }
-
       const extMatch = finishedMatches.find(m => {
         const home = getNormalizedTeamName(m.homeTeam?.name);
         const away = getNormalizedTeamName(m.awayTeam?.name);
@@ -91,7 +85,6 @@ export default async function handler(request, response) {
 
       const isReversed = (dbMatch.team_a === getNormalizedTeamName(extMatch.awayTeam?.name));
       
-      // Keep score parsed values explicit as clear Numeric Data types
       const homeScore = extMatch.score?.fullTime?.home;
       const awayScore = extMatch.score?.fullTime?.away;
       const dbScoreA = isReversed ? (awayScore !== null ? Number(awayScore) : null) : (homeScore !== null ? Number(homeScore) : null);
@@ -102,7 +95,10 @@ export default async function handler(request, response) {
       const targetHtA = (htHome !== null && htHome !== undefined && htAway !== null && htAway !== undefined) ? (isReversed ? Number(htAway) : Number(htHome)) : null;
       const targetHtB = (htHome !== null && htHome !== undefined && htAway !== null && htAway !== undefined) ? (isReversed ? Number(htHome) : Number(htAway)) : null;
 
-      // Check if scorers field is already populated with data
+      // Extract the goals array straight out of the parent object map
+      const goalsPayload = extMatch.goals || [];
+
+      // Check if scorers field is already populated with data matching our structured criteria
       let hasScorersPopulated = false;
       if (dbMatch.scorers) {
         if (Array.isArray(dbMatch.scorers) && dbMatch.scorers.length > 0) {
@@ -127,30 +123,7 @@ export default async function handler(request, response) {
       if (dbScoreA > dbScoreB) winnerDraw = dbMatch.team_a;
       else if (dbScoreB > dbScoreA) winnerDraw = dbMatch.team_b;
 
-      log(`[STAGING] Resolving details for Match ID ${dbMatch.id} (${dbMatch.team_a} vs ${dbMatch.team_b})...`);
-
-      let goalsPayload = []; // Initialized as a native array instead of a string stringified representation
-      const detailUrl = `https://api.football-data.org/v4/matches/${extMatch.id}`;
-      
-      try {
-        log(`[API CALL ${apiCallsCount + 1}] Querying match details endpoint: ${detailUrl}`);
-        const detailRes = await fetch(detailUrl, { 
-          headers: { 'X-Auth-Token': apiKey, 'X-Unfold-Goals': 'true' } 
-        });
-        apiCallsCount++;
-
-        if (detailRes.ok) {
-          const detailData = await detailRes.json();
-          goalsPayload = detailData.goals || [];
-          log(` -> Match ${dbMatch.id}: Staged full raw JSON description containing ${goalsPayload.length} goal nodes.`);
-        } else {
-          log(` -> [ERROR] Subresource detail retrieval failed. Status code: ${detailRes.status}`);
-          continue; 
-        }
-      } catch (err) {
-        log(` -> [EXCEPT] Error fetching details: ${err.message}`);
-        continue;
-      }
+      log(`[STAGING] Match ID ${dbMatch.id} (${dbMatch.team_a} vs ${dbMatch.team_b}): Staged ${goalsPayload.length} goal nodes extracted from root list.`);
 
       itemsToPatch.push({
         id: dbMatch.id,
@@ -159,7 +132,7 @@ export default async function handler(request, response) {
         winner_draw: winnerDraw,
         halftime_a: targetHtA, 
         halftime_b: targetHtB, 
-        scorers: goalsPayload // Passed as a functional native array object structure to fulfill Directus validation
+        scorers: goalsPayload // Extracted cleanly without any secondary network dependencies!
       });
     }
 
@@ -168,7 +141,7 @@ export default async function handler(request, response) {
       return response.status(200).json({ 
         success: true, 
         message: "No entries needed syncing.", 
-        apiCallsMade: apiCallsCount,
+        apiCallsMade: 1,
         updatesProcessed: 0, 
         logs: executionLogs 
       });
@@ -198,7 +171,7 @@ export default async function handler(request, response) {
     return response.status(200).json({
       success: batchRes.ok,
       message: `Completed processing step starting from ID ${startId}. Handled updates for ${itemsToPatch.length} rows inside a single query.`,
-      apiCallsMade: apiCallsCount,
+      apiCallsMade: 1,
       updatesProcessed: itemsToPatch.length,
       logs: executionLogs
     });
