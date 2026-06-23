@@ -59,9 +59,9 @@ export class PronostiquesComponent implements OnInit {
   ngOnInit(): void {
     this.$today = this.globalTime.getMuTime();
 
-    // Helper function to only allow "Group Stage" matches
-    const isGroupPhase = (match: Matches) => {
-      return match.phase === 'Group Stage';
+    // Helper function to only allow "published" matches
+    const isDraft = (match: Matches) => {
+      return match.status === 'draft';
     };
 
     this.$matchDates = combineLatest([
@@ -73,8 +73,8 @@ export class PronostiquesComponent implements OnInit {
         const now = new Date(today.dateTime.slice(0, -6));
         const filtered = matches.filter(match => {
 
-          // --- FILTER BY PHASE ---
-          if (!isGroupPhase(match)) return false;
+          // --- FILTER BY STATUS ---
+          if (isDraft(match)) return false;
 
           const isFinished = match.fulltime_a !== null && match.fulltime_b !== null;
           const matchDate = new Date(match.date);
@@ -134,8 +134,8 @@ export class PronostiquesComponent implements OnInit {
         // --- FILTER MATCHES HERE ---
         let filtered = matches.filter(match => {
 
-          // 1. Restrict to Group Stage only
-          if (!isGroupPhase(match)) return false;
+          // 1. Restrict to published only
+          if (isDraft(match)) return false;
 
           // 2. Filter by Active Tab using your class variable (this.activeMatches)
           const isFinished = match.fulltime_a !== null && match.fulltime_b !== null;
