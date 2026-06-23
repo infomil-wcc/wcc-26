@@ -476,4 +476,48 @@ export class MatchComponent implements OnInit, OnDestroy {
     const lowerScorers = scorersList.map(name => name.toLowerCase());
     return lowerScorers.includes(predScorer.trim().toLowerCase());
   }
+
+  getGroupedScorers(teamName: string): any[] {
+    if (!this.match || !this.match.scorers) return [];
+    const events = this.parsedScorersEvents;
+    if (events.length === 0) return [];
+    
+    const teamEvents = events.filter(e => {
+      const eventTeam = e.team?.name;
+      return eventTeam && eventTeam.trim().toLowerCase() === teamName.trim().toLowerCase();
+    });
+
+    const groups: { [name: string]: string[] } = {};
+    for (const e of teamEvents) {
+      const name = e.player?.name || 'Unknown';
+      let timeStr = `${e.time.elapsed}`;
+      if (e.time.extra) {
+        timeStr += `+${e.time.extra}`;
+      }
+      timeStr += "'";
+      if (e.detail === 'Penalty') {
+        timeStr += '[P]';
+      } else if (e.detail === 'Own Goal') {
+        timeStr += '[OG]';
+      }
+      
+      if (!groups[name]) {
+        groups[name] = [];
+      }
+      groups[name].push(timeStr);
+    }
+
+    return Object.keys(groups).map(name => ({
+      name,
+      times: groups[name].join(', ')
+    }));
+  }
+
+  get teamAScorersGrouped(): any[] {
+    return this.getGroupedScorers(this.match.team_a);
+  }
+
+  get teamBScorersGrouped(): any[] {
+    return this.getGroupedScorers(this.match.team_b);
+  }
 }
