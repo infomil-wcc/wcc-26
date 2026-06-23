@@ -238,8 +238,6 @@ export default async function handler(request, response) {
         winner_draw: winnerDraw,
         halftime_a: targetHtA, 
         halftime_b: targetHtB,
-        fulltime: true,
-        halftime: (targetHtA !== null && targetHtB !== null),
         scorers: scorers
       });
 

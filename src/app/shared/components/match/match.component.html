@@ -231,8 +231,24 @@
           </div>
         }
         @if (closed && !pronostiqueDone) {
-          <div class="jeuFermer flex justify-content-center h-full align-items-center mt-4">
-            <h3 class="text-center text-sm font-semibold">Pronostic clos</h3>
+          <div class="jeuFermer flex flex-column align-items-center justify-content-center mt-4">
+            @if (match.scorers) {
+              <span class="label text-xs uppercase font-semibold text-center mb-1" style="letter-spacing: 1.5px; font-size: 0.75rem; color: #718096; display: block; width: 100%;">Buteurs officiels</span>
+              <div class="flex flex-wrap align-items-center justify-content-center gap-2 mt-1 px-3">
+                @if (isScorersJson) {
+                  @for (event of parsedScorersEvents; track event.time.elapsed + '-' + event.player.name) {
+                    <div class="scorer-event-tag flex align-items-center gap-1 px-2 py-0.5 rounded text-gray-700" style="background: rgba(0, 0, 0, 0.05); border: 1px solid rgba(0, 0, 0, 0.1);">
+                      <span class="material-symbols-outlined" style="font-size: 0.85rem; color: #b45309; vertical-align: middle;">sports_soccer</span>
+                      <span style="vertical-align: middle; font-size: 0.75rem; font-weight: 600;">{{ event.player.name }} ({{ event.time.elapsed }}'@if(event.time.extra){+{{event.time.extra}}})</span>
+                    </div>
+                  }
+                } @else {
+                  <span class="text-xs font-semibold text-gray-700">{{ match.scorers }}</span>
+                }
+              </div>
+            } @else {
+              <h3 class="text-center text-sm font-semibold text-gray-500 m-0">Pronostic clos</h3>
+            }
           </div>
         }
         @if (pronostiqueDone) {
