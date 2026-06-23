@@ -32,23 +32,36 @@ export default async function handler(request, response) {
 
   let directusUrl = process.env.DIRECTUS_URL || 'https://euro.omediainteractive.net/imleuro';
   const adminToken = process.env.DIRECTUS_ADMIN_TOKEN;
-  const apiKey = process.env.FOOTBALL_DATA_API_KEY;
+  const apiFootballKey = process.env.API_FOOTBALL_KEY;
 
-  if (!adminToken || !apiKey) {
-    log("[ERROR] Missing required environment variables (DIRECTUS_ADMIN_TOKEN or FOOTBALL_DATA_API_KEY).");
-    return response.status(500).json({ error: "Missing required environment variables.", logs: executionLogs });
+  if (!adminToken) {
+    log("[ERROR] Missing required environment variable DIRECTUS_ADMIN_TOKEN.");
+    return response.status(500).json({ error: "Missing DIRECTUS_ADMIN_TOKEN environment variable.", logs: executionLogs });
+  }
+
+  if (!apiFootballKey) {
+    log("[ERROR] Missing required environment variable API_FOOTBALL_KEY.");
+    return response.status(500).json({ error: "Missing API_FOOTBALL_KEY environment variable.", logs: executionLogs });
   }
 
   try {
-    // 1. Fetch matches from football-data (This provides EVERYTHING we need, including goal metadata)
-    const fdEndpoint = 'https://api.football-data.org/v4/competitions/WC/matches';
-    log(`[API CALL] Fetching external matches list from: ${fdEndpoint}`);
-    const fdRes = await fetch(fdEndpoint, { headers: { 'X-Auth-Token': apiKey } });
-    if (!fdRes.ok) throw new Error(`Football-Data API failed with status: ${fdRes.status}`);
+    // 1. Fetch matches from api-football.com (League ID 1 = World Cup, Season 2026)
+    const afEndpoint = 'https://v3.football.api-sports.io/fixtures?league=1&season=2026';
+    log(`[API CALL] Fetching external matches list from: ${afEndpoint}`);
     
-    const fdData = await fdRes.json();
-    const finishedMatches = (fdData.matches || []).filter(m => m.status === 'FINISHED');
-    log(`[INFO] Retrieved ${finishedMatches.length} finished matches from Football-Data.`);
+    const afRes = await fetch(afEndpoint, {
+      headers: {
+        'x-apisports-key': apiFootballKey
+      }
+    });
+    
+    if (!afRes.ok) throw new Error(`API-Football failed with status: ${afRes.status}`);
+    
+    const afData = await afRes.json();
+    const externalFixtures = afData.response || [];
+    const finishedStatus = ['FT', 'AET', 'PEN'];
+    const finishedFixtures = externalFixtures.filter(f => finishedStatus.includes(f.fixture?.status?.short));
+    log(`[INFO] Retrieved ${finishedFixtures.length} finished fixtures from API-Football.`);
 
     // 2. Fetch matches from Directus
     const dbEndpoint = `${directusUrl}/items/matches?limit=-1`;
@@ -70,51 +83,39 @@ export default async function handler(request, response) {
     }
     log(`[INFO] Evaluating ${dbMatches.length} matching rows from Directus.`);
 
-    // 3. Process matches in memory without loops making downstream API requests
-    const itemsToPatch = [];
+    // 3. Find matches that need updates
+    const matchesToUpdate = [];
 
     for (const dbMatch of dbMatches) {
-      const extMatch = finishedMatches.find(m => {
-        const home = getNormalizedTeamName(m.homeTeam?.name);
-        const away = getNormalizedTeamName(m.awayTeam?.name);
+      const extMatch = finishedFixtures.find(f => {
+        const home = getNormalizedTeamName(f.teams?.home?.name);
+        const away = getNormalizedTeamName(f.teams?.away?.name);
         return (dbMatch.team_a === home && dbMatch.team_b === away) ||
                (dbMatch.team_a === away && dbMatch.team_b === home);
       });
 
       if (!extMatch) continue;
 
-      const isReversed = (dbMatch.team_a === getNormalizedTeamName(extMatch.awayTeam?.name));
+      const isReversed = (dbMatch.team_a === getNormalizedTeamName(extMatch.teams?.away?.name));
       
-      const homeScore = extMatch.score?.fullTime?.home;
-      const awayScore = extMatch.score?.fullTime?.away;
+      const homeScore = extMatch.goals?.home;
+      const awayScore = extMatch.goals?.away;
       const dbScoreA = isReversed ? (awayScore !== null ? Number(awayScore) : null) : (homeScore !== null ? Number(homeScore) : null);
       const dbScoreB = isReversed ? (homeScore !== null ? Number(homeScore) : null) : (awayScore !== null ? Number(awayScore) : null);
 
-      const htHome = extMatch.score?.halfTime?.home;
-      const htAway = extMatch.score?.halfTime?.away;
+      const htHome = extMatch.score?.halftime?.home;
+      const htAway = extMatch.score?.halftime?.away;
       const targetHtA = (htHome !== null && htHome !== undefined && htAway !== null && htAway !== undefined) ? (isReversed ? Number(htAway) : Number(htHome)) : null;
       const targetHtB = (htHome !== null && htHome !== undefined && htAway !== null && htAway !== undefined) ? (isReversed ? Number(htHome) : Number(htAway)) : null;
 
-      // Extract the goals array straight out of the parent object map
-      const goalsPayload = extMatch.goals || [];
-
-      // Check if scorers field is already populated with data matching our structured criteria
-      let hasScorersPopulated = false;
-      if (dbMatch.scorers) {
-        if (Array.isArray(dbMatch.scorers) && dbMatch.scorers.length > 0) {
-          hasScorersPopulated = true;
-        } else if (typeof dbMatch.scorers === 'string' && dbMatch.scorers.trim() !== '' && dbMatch.scorers !== 'null' && dbMatch.scorers !== '[]') {
-          hasScorersPopulated = true;
-        }
-      }
-
       // Verify if record is fully identical and synchronized
+      const isScorersEmpty = !dbMatch.scorers || dbMatch.scorers === 'null' || dbMatch.scorers === '';
       if (
         dbMatch.fulltime_a === dbScoreA && 
         dbMatch.fulltime_b === dbScoreB && 
         dbMatch.halftime_a === targetHtA && 
         dbMatch.halftime_b === targetHtB && 
-        hasScorersPopulated
+        !isScorersEmpty
       ) {
         continue;
       }
@@ -123,20 +124,18 @@ export default async function handler(request, response) {
       if (dbScoreA > dbScoreB) winnerDraw = dbMatch.team_a;
       else if (dbScoreB > dbScoreA) winnerDraw = dbMatch.team_b;
 
-      log(`[STAGING] Match ID ${dbMatch.id} (${dbMatch.team_a} vs ${dbMatch.team_b}): Staged ${goalsPayload.length} goal nodes extracted from root list.`);
-
-      itemsToPatch.push({
-        id: dbMatch.id,
-        fulltime_a: dbScoreA, 
-        fulltime_b: dbScoreB, 
-        winner_draw: winnerDraw,
-        halftime_a: targetHtA, 
-        halftime_b: targetHtB, 
-        scorers: goalsPayload // Extracted cleanly without any secondary network dependencies!
+      matchesToUpdate.push({
+        dbMatch,
+        extFixtureId: extMatch.fixture?.id,
+        dbScoreA,
+        dbScoreB,
+        winnerDraw,
+        targetHtA,
+        targetHtB
       });
     }
 
-    if (itemsToPatch.length === 0) {
+    if (matchesToUpdate.length === 0) {
       log("[COMPLETE] Verified all scanned items. Zero updates required.");
       return response.status(200).json({ 
         success: true, 
@@ -147,7 +146,55 @@ export default async function handler(request, response) {
       });
     }
 
-    // 4. Batch Patch Directus inside one combined query
+    // 4. Batch query detailed events for fixtures needing update (optimized to max 10 to save api calls)
+    const batch = matchesToUpdate.slice(0, 10);
+    log(`[INFO] Found ${matchesToUpdate.length} matches needing updates. Fetching details for batch of ${batch.length} matches.`);
+
+    const idsStr = batch.map(item => item.extFixtureId).join('-');
+    const detailedEndpoint = `https://v3.football.api-sports.io/fixtures?ids=${idsStr}`;
+    log(`[API CALL] Fetching detailed event data from: ${detailedEndpoint}`);
+    
+    const detailedRes = await fetch(detailedEndpoint, {
+      headers: {
+        'x-apisports-key': apiFootballKey
+      }
+    });
+
+    if (!detailedRes.ok) throw new Error(`API-Football detailed query failed with status: ${detailedRes.status}`);
+    
+    const detailedData = await detailedRes.json();
+    const detailedFixtures = detailedData.response || [];
+
+    const itemsToPatch = [];
+
+    for (const item of batch) {
+      const detailedFixture = detailedFixtures.find(f => f.fixture?.id === item.extFixtureId);
+      
+      let scorers = '';
+      if (detailedFixture) {
+        const scorersList = (detailedFixture.events || [])
+          .filter(e => e.type === 'Goal')
+          .map(e => e.player?.name)
+          .filter(Boolean);
+        scorers = scorersList.length > 0 ? scorersList.join(', ') : '';
+      }
+
+      itemsToPatch.push({
+        id: item.dbMatch.id,
+        fulltime_a: item.dbScoreA, 
+        fulltime_b: item.dbScoreB, 
+        winner_draw: item.winnerDraw,
+        halftime_a: item.targetHtA, 
+        halftime_b: item.targetHtB,
+        fulltime: true,
+        halftime: (item.targetHtA !== null && item.targetHtB !== null),
+        scorers: scorers
+      });
+
+      log(`[STAGING] Staged Match ID ${item.dbMatch.id} (${item.dbMatch.team_a} vs ${item.dbMatch.team_b}) with scorers: "${scorers}"`);
+    }
+
+    // 5. Batch Patch Directus inside one combined query
     const collectionUrl = `${directusUrl}/items/matches`;
     log(`\n[DB BATCH PATCH] Issuing single call to: ${collectionUrl}`);
     log(`[DB BATCH PAYLOAD] Array contents structured for payload:`, itemsToPatch);
@@ -171,7 +218,7 @@ export default async function handler(request, response) {
     return response.status(200).json({
       success: batchRes.ok,
       message: `Completed processing step starting from ID ${startId}. Handled updates for ${itemsToPatch.length} rows inside a single query.`,
-      apiCallsMade: 1,
+      apiCallsMade: 2,
       updatesProcessed: itemsToPatch.length,
       logs: executionLogs
     });
