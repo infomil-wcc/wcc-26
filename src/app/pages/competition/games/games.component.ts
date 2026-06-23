@@ -34,6 +34,11 @@ export class GamesComponent implements OnInit {
   ngOnInit(): void {
     this.$today = this.globalTime.getMuTime();
 
+    // Helper function to only allow "Group Stage" matches
+    const isGroupPhase = (match: Matches) => {
+      return match.phase === 'Group Stage';
+    };
+
     this.$matchDates = combineLatest([
       this.matchesService.getAllMatches(),
       this.$today,
@@ -42,6 +47,10 @@ export class GamesComponent implements OnInit {
       map(([matches, today, tab]) => {
         const now = new Date(today.dateTime.slice(0, -6));
         const filtered = matches.filter(match => {
+
+          // --- FILTER BY PHASE ---
+          if (!isGroupPhase(match)) return false;
+
           const matchDate = new Date(match.date);
           const isFinished = match.fulltime_a !== null && match.fulltime_b !== null;
           const hasStarted = now >= matchDate;
@@ -72,6 +81,10 @@ export class GamesComponent implements OnInit {
         const now = new Date(today.dateTime.slice(0, -6));
         
         const filtered = matches.filter(match => {
+
+          // --- FILTER BY PHASE ---
+          if (!isGroupPhase(match)) return false;
+
           // If a date filter is selected, check if it matches the match date (YYYY-MM-DD format)
           if (filterDate) {
             const matchDay = match.date.split(' ')[0];
