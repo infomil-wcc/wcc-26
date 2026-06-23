@@ -12,20 +12,20 @@ import { LoaderComponent } from '../../../shared/components/loader/loader.compon
 import { CalendarStripComponent } from '../../../shared/components/calendar-strip/calendar-strip.component';
 
 const PHASE_CONFIG: { key: string; label: string; icon: string; color: string }[] = [
-  { key: 'Group Stage',    label: 'Phase de groupes',    icon: 'groups',           color: '#3b5bdb' },
-  { key: 'Round of 32',   label: 'Seizièmes de finale',  icon: 'filter_none',       color: '#7048e8' },
-  { key: 'Round of 16',   label: 'Huitièmes de finale',  icon: 'filter_8',          color: '#9c36b5' },
-  { key: 'Quarter-finals',label: 'Quarts de finale',     icon: 'emoji_events',      color: '#d6336c' },
-  { key: 'Semi-finals',   label: 'Demi-finales',         icon: 'military_tech',     color: '#f76707' },
-  { key: 'Final',         label: 'Finale',               icon: 'workspace_premium', color: '#f59f00' },
+  { key: 'Group Stage', label: 'Phase de groupes', icon: 'groups', color: '#3b5bdb' },
+  { key: 'Round of 32', label: 'Seizièmes de finale', icon: 'filter_none', color: '#7048e8' },
+  { key: 'Round of 16', label: 'Huitièmes de finale', icon: 'filter_8', color: '#9c36b5' },
+  { key: 'Quarter-finals', label: 'Quarts de finale', icon: 'emoji_events', color: '#d6336c' },
+  { key: 'Semi-finals', label: 'Demi-finales', icon: 'military_tech', color: '#f76707' },
+  { key: 'Final', label: 'Finale', icon: 'workspace_premium', color: '#f59f00' },
 ];
 
 @Component({
-    selector: 'app-pronostiques',
-    templateUrl: './pronostiques.component.html',
-    styleUrl: './pronostiques.component.scss',
-    changeDetection: ChangeDetectionStrategy.Eager,
-    imports: [NgClass, MatchComponent, LoaderComponent, AsyncPipe, DatePipe, CalendarStripComponent]
+  selector: 'app-pronostiques',
+  templateUrl: './pronostiques.component.html',
+  styleUrl: './pronostiques.component.scss',
+  changeDetection: ChangeDetectionStrategy.Eager,
+  imports: [NgClass, MatchComponent, LoaderComponent, AsyncPipe, DatePipe, CalendarStripComponent]
 })
 export class PronostiquesComponent implements OnInit {
 
@@ -42,11 +42,11 @@ export class PronostiquesComponent implements OnInit {
   protected isSubmittingBulk: boolean = false;
   protected upcomingCount: number = 0;
   protected playedCount: number = 0;
-  protected todayMatchCount: number = 0;     
-  protected todayTotalCount: number = 0;     
-  protected todayPlayedCount: number = 0;    
-  protected todayPredictedCount: number = 0; 
-  
+  protected todayMatchCount: number = 0;
+  protected todayTotalCount: number = 0;
+  protected todayPlayedCount: number = 0;
+  protected todayPredictedCount: number = 0;
+
   protected showTodayBanner: boolean = true;
   protected filterDate: string | null = null;
   protected filterDate$ = new BehaviorSubject<string | null>(null);
@@ -59,6 +59,11 @@ export class PronostiquesComponent implements OnInit {
   ngOnInit(): void {
     this.$today = this.globalTime.getMuTime();
 
+    // Helper function to only allow "Group Stage" matches
+    const isGroupPhase = (match: Matches) => {
+      return match.phase === 'Group Stage';
+    };
+
     this.$matchDates = combineLatest([
       this.matchesService.getAllMatches(),
       this.$today,
@@ -67,6 +72,10 @@ export class PronostiquesComponent implements OnInit {
       map(([matches, today, upcoming]) => {
         const now = new Date(today.dateTime.slice(0, -6));
         const filtered = matches.filter(match => {
+
+          // --- FILTER BY PHASE ---
+          if (!isGroupPhase(match)) return false;
+
           const isFinished = match.fulltime_a !== null && match.fulltime_b !== null;
           const matchDate = new Date(match.date);
           const hasStarted = now >= matchDate;
@@ -120,9 +129,29 @@ export class PronostiquesComponent implements OnInit {
       }),
       map(([matches, today, filterDate]) => {
         this.filterDate = filterDate;
-        let filtered = matches;
+        const now = new Date(today.dateTime.slice(0, -6));
+
+        // --- FILTER MATCHES HERE ---
+        let filtered = matches.filter(match => {
+
+          // 1. Restrict to Group Stage only
+          if (!isGroupPhase(match)) return false;
+
+          // 2. Filter by Active Tab using your class variable (this.activeMatches)
+          const isFinished = match.fulltime_a !== null && match.fulltime_b !== null;
+          const matchDate = new Date(match.date);
+          const hasStarted = now >= matchDate;
+
+          if (this.activeMatches) {
+            return !isFinished && !hasStarted; // Upcoming matches
+          } else {
+            return isFinished; // Played matches
+          }
+        });
+
+        // 3. Apply calendar date filter if one is selected
         if (filterDate) {
-          filtered = matches.filter(m => m.date.split(' ')[0] === filterDate);
+          filtered = filtered.filter(m => m.date.split(' ')[0] === filterDate);
         }
         return this.groupMatchesByDate(filtered);
       })
@@ -210,7 +239,7 @@ export class PronostiquesComponent implements OnInit {
   }
 
   compareDates(date1: string, date2: string): boolean {
-    return date1.slice(0,10) > date2;
+    return date1.slice(0, 10) > date2;
   }
 
   getUpcomingPhases(groupedMatches: { [key: string]: Matches[] }): typeof PHASE_CONFIG {
