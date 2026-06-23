@@ -267,7 +267,7 @@ export default async function handler(request, response) {
 
       const isFinished = fdMatch.status === "FINISHED";
       const payload = {
-        match_id: fdMatch.id,
+        match_id: parseInt(dbMatch.id, 10),
         fulltime_a: dbScoreA,
         fulltime_b: dbScoreB,
         halftime_a: targetHtA,
