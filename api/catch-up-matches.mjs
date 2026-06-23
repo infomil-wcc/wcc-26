@@ -16,7 +16,7 @@ export default async function handler(request, response) {
     console.log(formatted);
   };
 
-  // Extract starting ID from query string parameter (defaults to 0 if not provided)
+  // Extract starting ID from query string parameter
   const startIdParam = request.query?.startId;
   const startId = startIdParam ? parseInt(startIdParam, 10) : 0;
 
@@ -62,22 +62,21 @@ export default async function handler(request, response) {
     // Sort items numerically by ID
     dbMatches.sort((a, b) => parseInt(a.id) - parseInt(b.id));
 
-    // Filter using query string parameters: Only process matches greater than or equal to startId
+    // Filter using query string parameters
     if (startId > 0) {
       const totalBefore = dbMatches.length;
       dbMatches = dbMatches.filter(match => parseInt(match.id, 10) >= startId);
-      log(`[FILTER] Query string applied. Filtered out ${totalBefore - dbMatches.length} matches where ID < ${startId}.`);
+      log(`[FILTER] Filtered out ${totalBefore - dbMatches.length} matches where ID < ${startId}.`);
     }
     log(`[INFO] Evaluating ${dbMatches.length} matching rows from Directus.`);
 
-    // 3. Process matches (Strict limit: Cap external detail requests at 7, total API calls will not exceed 8)
+    // 3. Process matches (Strict limit: Cap at 8 total API calls)
     const itemsToPatch = [];
     let apiCallsCount = 1; // 1 call already used for the initial matches list
 
     for (const dbMatch of dbMatches) {
-      // Hard stop threshold: 8 total calls (1 list call + 7 detail calls) to strictly respect the limit
       if (apiCallsCount >= 8) {
-        log(`[NOTICE] Total Football-Data API calls reached standard threshold limit of ${apiCallsCount}. Stopping loop to stay clear of limits.`);
+        log(`[NOTICE] Total Football-Data API calls reached safe threshold limit of ${apiCallsCount}. Stopping evaluation loop.`);
         break;
       }
 
@@ -91,31 +90,32 @@ export default async function handler(request, response) {
       if (!extMatch) continue;
 
       const isReversed = (dbMatch.team_a === getNormalizedTeamName(extMatch.awayTeam?.name));
+      
+      // Keep score parsed values explicit as clear Numeric Data types
       const homeScore = extMatch.score?.fullTime?.home;
       const awayScore = extMatch.score?.fullTime?.away;
-      const dbScoreA = isReversed ? awayScore : homeScore;
-      const dbScoreB = isReversed ? homeScore : awayScore;
+      const dbScoreA = isReversed ? (awayScore !== null ? Number(awayScore) : null) : (homeScore !== null ? Number(homeScore) : null);
+      const dbScoreB = isReversed ? (homeScore !== null ? Number(homeScore) : null) : (awayScore !== null ? Number(awayScore) : null);
 
       const htHome = extMatch.score?.halfTime?.home;
       const htAway = extMatch.score?.halfTime?.away;
-      const targetHtA = (htHome !== null && htHome !== undefined && htAway !== null && htAway !== undefined) ? (isReversed ? htAway : htHome) : null;
-      const targetHtB = (htHome !== null && htHome !== undefined && htAway !== null && htAway !== undefined) ? (isReversed ? htHome : htAway) : null;
+      const targetHtA = (htHome !== null && htHome !== undefined && htAway !== null && htAway !== undefined) ? (isReversed ? Number(htAway) : Number(htHome)) : null;
+      const targetHtB = (htHome !== null && htHome !== undefined && htAway !== null && htAway !== undefined) ? (isReversed ? Number(htHome) : Number(htAway)) : null;
 
-      // Check if scorers field is already valid JSON data
+      // Check if scorers field is already a valid JSON data structure string
       let hasScorersPopulated = false;
       try {
         if (dbMatch.scorers && dbMatch.scorers !== 'null' && dbMatch.scorers.trim() !== '') {
           const parsed = JSON.parse(dbMatch.scorers);
-          if (Array.isArray(parsed) && parsed.length >= 0) {
+          if (Array.isArray(parsed)) {
             hasScorersPopulated = true;
           }
         }
       } catch (e) {
-        // Not valid JSON string format, needs update logic below
         hasScorersPopulated = false;
       }
 
-      // Verify if record is fully synchronized
+      // Verify if record is fully identical and synchronized
       if (
         dbMatch.fulltime_a === dbScoreA && 
         dbMatch.fulltime_b === dbScoreB && 
@@ -145,13 +145,11 @@ export default async function handler(request, response) {
         if (detailRes.ok) {
           const detailData = await detailRes.json();
           const goalsArray = detailData.goals || [];
-          
-          // Confirms full goal details stay preserved inside a structured JSON configuration string
           rawGoalsDataString = JSON.stringify(goalsArray);
           log(` -> Match ${dbMatch.id}: Staged full raw JSON description containing ${goalsArray.length} goal nodes.`);
         } else {
           log(` -> [ERROR] Subresource detail retrieval failed. Status code: ${detailRes.status}`);
-          continue; // Skip staging this match if endpoint fails
+          continue; 
         }
       } catch (err) {
         log(` -> [EXCEPT] Error fetching details: ${err.message}`);
@@ -160,12 +158,12 @@ export default async function handler(request, response) {
 
       itemsToPatch.push({
         id: dbMatch.id,
-        fulltime_a: dbScoreA,
-        fulltime_b: dbScoreB,
+        fulltime_a: dbScoreA, // Stays numeric
+        fulltime_b: dbScoreB, // Stays numeric
         winner_draw: winnerDraw,
-        halftime_a: targetHtA,
-        halftime_b: targetHtB,
-        scorers: rawGoalsDataString // Stored directly as valid raw JSON string format data
+        halftime_a: targetHtA, // Stays numeric
+        halftime_b: targetHtB, // Stays numeric
+        scorers: rawGoalsDataString // The ONLY stringified JSON field
       });
     }
 
@@ -191,7 +189,7 @@ export default async function handler(request, response) {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${adminToken}`
       },
-      body: JSON.stringify(itemsToPatch) // Directus handles mass payload mappings through unified arrays
+      body: JSON.stringify(itemsToPatch)
     });
 
     log(`[DB RESPONSE] Single Batch patch execution success state: ${batchRes.ok}`);
