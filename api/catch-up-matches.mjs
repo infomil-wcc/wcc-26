@@ -102,17 +102,14 @@ export default async function handler(request, response) {
       const targetHtA = (htHome !== null && htHome !== undefined && htAway !== null && htAway !== undefined) ? (isReversed ? Number(htAway) : Number(htHome)) : null;
       const targetHtB = (htHome !== null && htHome !== undefined && htAway !== null && htAway !== undefined) ? (isReversed ? Number(htHome) : Number(htAway)) : null;
 
-      // Check if scorers field is already a valid JSON data structure string
+      // Check if scorers field is already populated with data
       let hasScorersPopulated = false;
-      try {
-        if (dbMatch.scorers && dbMatch.scorers !== 'null' && dbMatch.scorers.trim() !== '') {
-          const parsed = JSON.parse(dbMatch.scorers);
-          if (Array.isArray(parsed)) {
-            hasScorersPopulated = true;
-          }
+      if (dbMatch.scorers) {
+        if (Array.isArray(dbMatch.scorers) && dbMatch.scorers.length > 0) {
+          hasScorersPopulated = true;
+        } else if (typeof dbMatch.scorers === 'string' && dbMatch.scorers.trim() !== '' && dbMatch.scorers !== 'null' && dbMatch.scorers !== '[]') {
+          hasScorersPopulated = true;
         }
-      } catch (e) {
-        hasScorersPopulated = false;
       }
 
       // Verify if record is fully identical and synchronized
@@ -132,7 +129,7 @@ export default async function handler(request, response) {
 
       log(`[STAGING] Resolving details for Match ID ${dbMatch.id} (${dbMatch.team_a} vs ${dbMatch.team_b})...`);
 
-      let rawGoalsDataString = '[]';
+      let goalsPayload = []; // Initialized as a native array instead of a string stringified representation
       const detailUrl = `https://api.football-data.org/v4/matches/${extMatch.id}`;
       
       try {
@@ -144,9 +141,8 @@ export default async function handler(request, response) {
 
         if (detailRes.ok) {
           const detailData = await detailRes.json();
-          const goalsArray = detailData.goals || [];
-          rawGoalsDataString = JSON.stringify(goalsArray);
-          log(` -> Match ${dbMatch.id}: Staged full raw JSON description containing ${goalsArray.length} goal nodes.`);
+          goalsPayload = detailData.goals || [];
+          log(` -> Match ${dbMatch.id}: Staged full raw JSON description containing ${goalsPayload.length} goal nodes.`);
         } else {
           log(` -> [ERROR] Subresource detail retrieval failed. Status code: ${detailRes.status}`);
           continue; 
@@ -158,12 +154,12 @@ export default async function handler(request, response) {
 
       itemsToPatch.push({
         id: dbMatch.id,
-        fulltime_a: dbScoreA, // Stays numeric
-        fulltime_b: dbScoreB, // Stays numeric
+        fulltime_a: dbScoreA, 
+        fulltime_b: dbScoreB, 
         winner_draw: winnerDraw,
-        halftime_a: targetHtA, // Stays numeric
-        halftime_b: targetHtB, // Stays numeric
-        scorers: rawGoalsDataString // The ONLY stringified JSON field
+        halftime_a: targetHtA, 
+        halftime_b: targetHtB, 
+        scorers: goalsPayload // Passed as a functional native array object structure to fulfill Directus validation
       });
     }
 
