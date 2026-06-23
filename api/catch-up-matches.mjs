@@ -109,7 +109,21 @@ export default async function handler(request, response) {
       const targetHtB = (htHome !== null && htHome !== undefined && htAway !== null && htAway !== undefined) ? (isReversed ? Number(htHome) : Number(htAway)) : null;
 
       // Verify if record is fully identical and synchronized
-      const isScorersEmpty = !dbMatch.scorers || dbMatch.scorers === 'null' || dbMatch.scorers === '';
+      let isScorersEmpty = !dbMatch.scorers || dbMatch.scorers === 'null' || dbMatch.scorers === '';
+      if (!isScorersEmpty) {
+        if (typeof dbMatch.scorers === 'object') {
+          if (Array.isArray(dbMatch.scorers)) {
+            isScorersEmpty = dbMatch.scorers.length === 0;
+          } else {
+            isScorersEmpty = Object.keys(dbMatch.scorers).length === 0;
+          }
+        } else if (typeof dbMatch.scorers === 'string') {
+          const trimmed = dbMatch.scorers.trim();
+          if (trimmed === '[]' || trimmed === '{}' || trimmed === 'null') {
+            isScorersEmpty = true;
+          }
+        }
+      }
       if (
         dbMatch.fulltime_a === dbScoreA && 
         dbMatch.fulltime_b === dbScoreB && 
