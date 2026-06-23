@@ -183,7 +183,7 @@ export default async function handler(request, response) {
       const targetHtB = (htHome !== null && htHome !== undefined && htAway !== null && htAway !== undefined) ? (isReversed ? Number(htHome) : Number(htAway)) : null;
 
       // Parse scorers from worldcup26.ir if found
-      let scorers = '[]';
+      let scorers = [];
       if (wcMatch) {
         const homeGoals = parseScorersString(wcMatch.home_scorers, getNormalizedTeamName(wcMatch.home_team_name_en));
         const awayGoals = parseScorersString(wcMatch.away_scorers, getNormalizedTeamName(wcMatch.away_team_name_en));
@@ -197,7 +197,7 @@ export default async function handler(request, response) {
           return (a.time.extra || 0) - (b.time.extra || 0);
         });
         
-        scorers = JSON.stringify(combinedGoals);
+        scorers = combinedGoals;
       }
 
       // Verify if record is fully identical and synchronized
@@ -243,7 +243,7 @@ export default async function handler(request, response) {
         scorers: scorers
       });
 
-      log(`[STAGING] Match ID ${dbMatch.id} (${dbMatch.team_a} vs ${dbMatch.team_b}) scores: ${dbScoreA}-${dbScoreB}, scorers JSON: ${scorers}`);
+      log(`[STAGING] Match ID ${dbMatch.id} (${dbMatch.team_a} vs ${dbMatch.team_b}) scores: ${dbScoreA}-${dbScoreB}, scorers JSON: ${JSON.stringify(scorers)}`);
     }
 
     if (itemsToPatch.length === 0) {
