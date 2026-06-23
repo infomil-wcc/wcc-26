@@ -312,7 +312,6 @@ export default async function handler(request, response) {
 
       const isFinished = fdMatch.status === "FINISHED";
       const payload = {
-        match_id: parseInt(dbMatch.id, 10),
         fulltime_a: dbScoreA,
         fulltime_b: dbScoreB,
         scorers: scorers
@@ -328,11 +327,23 @@ export default async function handler(request, response) {
         body: JSON.stringify(payload)
       });
 
+      let directusError = null;
+      if (!directusResponse.ok) {
+        try {
+          const errText = await directusResponse.text();
+          directusError = JSON.parse(errText);
+        } catch {
+          directusError = `HTTP ${directusResponse.status}`;
+        }
+        console.error(`Directus PATCH failed for match ${dbMatch.id}:`, directusError);
+      }
+
       results.push({
         id: dbMatch.id,
         teams: `${dbMatch.team_a} vs ${dbMatch.team_b}`,
         status: "Updated",
-        success: directusResponse.ok
+        success: directusResponse.ok,
+        ...(directusError ? { error: directusError } : {})
       });
 
       const statusObj = dbMatchStatuses.find(s => parseInt(s.match_id, 10) === matchIdNum);
