@@ -528,6 +528,44 @@ export class MatchComponent implements OnInit, OnDestroy {
     return lowerScorers.includes(predScorer.trim().toLowerCase());
   }
 
+  /**
+   * Points earned by the logged-in user for this specific match.
+   * Uses the same phase-based rules as RankingcalculationService.calcResult().
+   * Returns null when the match is not yet finished or no prediction was made.
+   */
+  get matchPoints(): number | null {
+    if (!this.donePronostique || !this.match ||
+        this.match.fulltime_a === null || this.match.fulltime_b === null) {
+      return null;
+    }
+    const game = this.match;
+    let points = 0;
+    const winnerPts  = Number(game.winner_point)  || 0;
+    const fulltimePts = Number(game.fulltime_point) || 0;
+    const halftimePts = Number(game.halftime_point) || 0;
+    const scorerPts   = Number(game.scorer_point)   || 0;
+
+    if (game.phase === 'Group Stage') {
+      if (this.isOutcomeCorrect()) points += winnerPts;
+      // Only the first match (id === '1') rewards exact fulltime score
+      if (game.id === '1' && this.isFulltimeCorrect()) points += fulltimePts;
+    }
+
+    if (game.phase === 'Round of 16') {
+      if (this.isOutcomeCorrect()) points += winnerPts;
+      if (this.isFulltimeCorrect())  points += fulltimePts;
+    }
+
+    if (['Quarter-finals', 'Semi-finals', 'Final'].includes(game.phase)) {
+      if (this.isOutcomeCorrect())  points += winnerPts;
+      if (this.isFulltimeCorrect()) points += fulltimePts;
+      if (this.isHalftimeCorrect()) points += halftimePts;
+      if (this.isScorerCorrect())   points += scorerPts;
+    }
+
+    return points;
+  }
+
   getGroupedScorers(teamName: string): any[] {
     if (!this.match || !this.match.scorers) return [];
     const events = this.parsedScorersEvents;

@@ -4,8 +4,8 @@
     <div class="match-bg-overlay" [ngStyle]="{'background-image': 'url(' + stadiumImageUrl + ')'}"></div>
   }
 
-  <!-- Lock Overlay when saved in database -->
-  @if (isPronostiques && isSavedInApi) {
+  <!-- Lock overlay: only shown when pronostic is saved but match is not yet played -->
+  @if (isPronostiques && isSavedInApi && (match.fulltime_a === null || match.fulltime_b === null)) {
     <div class="lock-overlay">
       <span class="material-symbols-outlined lock-icon">lock</span>
     </div>
@@ -127,8 +127,13 @@
                 </div>
               }
             } @else {
-              <!-- Show predicted scores inline in the center of the flags as styled boxes -->
-              @if (match.fulltime && (match.phase !== 'Group Stage' && match.phase !== 'Round of 32')) {
+              <!-- Closed: show points WordArt in VS slot if match is played with a prediction -->
+              @if (isSavedInApi && match.fulltime_a !== null && match.fulltime_b !== null && matchPoints !== null) {
+                <div class="points-overlay" [ngClass]="{'points-zero': matchPoints === 0}">
+                  <span class="points-value">{{ matchPoints > 0 ? '+' + matchPoints : matchPoints }}</span>
+                  <span class="points-unit">pts</span>
+                </div>
+              } @else if (match.fulltime && (match.phase !== 'Group Stage' && match.phase !== 'Round of 32')) {
                 <div class="flex align-items-center gap-2 font-bold text-xl predicted-scores">
                   <span class="score-box">{{ donePronostique.fulltime_a }}</span>
                   <span class="score-box">{{ donePronostique.fulltime_b }}</span>

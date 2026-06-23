@@ -669,4 +669,78 @@ app-calendar-strip {
   }
 }
 
+// ─── Floating Total Points Badge ──────────────────────────────────────────────
 
+.floating-pts-dock {
+  position: fixed;
+  bottom: 24px;
+  right: 16px;
+  z-index: 99998;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: linear-gradient(135deg, #1a1f2e 0%, #0f172a 100%);
+  border: 1px solid rgba(245, 158, 11, 0.35);
+  border-radius: 16px;
+  padding: 10px 14px;
+  box-shadow:
+    0 4px 20px rgba(0, 0, 0, 0.4),
+    0 0 0 1px rgba(245, 158, 11, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  animation: floatingPtsSlideIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
+  cursor: default;
+  user-select: none;
+  min-width: 110px;
+
+  @media screen and (max-width: 640px) {
+    bottom: 80px;
+    right: 12px;
+    padding: 8px 12px;
+    border-radius: 14px;
+  }
+
+  .floating-pts-icon {
+    font-size: 1.5rem;
+    color: #f59e0b;
+    font-variation-settings: 'FILL' 1, 'wght' 600, 'GRAD' 0, 'opsz' 48;
+    flex-shrink: 0;
+    line-height: 1;
+  }
+
+  .floating-pts-content {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+  }
+
+  .floating-pts-label {
+    font-size: 0.62rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: rgba(245, 158, 11, 0.75);
+    line-height: 1;
+  }
+
+  .floating-pts-value {
+    font-size: 1.15rem;
+    font-weight: 800;
+    color: #f8fafc;
+    line-height: 1.1;
+    letter-spacing: -0.3px;
+
+    small {
+      font-size: 0.65rem;
+      font-weight: 600;
+      color: rgba(248, 250, 252, 0.55);
+      letter-spacing: 0.5px;
+      margin-left: 2px;
+      text-transform: uppercase;
+    }
+  }
+}
+
+@keyframes floatingPtsSlideIn {
+  0%   { transform: translateX(60px); opacity: 0; }
+  100% { transform: translateX(0);    opacity: 1; }
+}

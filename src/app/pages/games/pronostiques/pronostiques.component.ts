@@ -2,7 +2,7 @@ import { Component, inject, ChangeDetectorRef, ChangeDetectionStrategy, OnInit }
 import { MatchesService } from '../../../shared/services/content/matches.service';
 import { Observable, forkJoin, of, BehaviorSubject, combineLatest } from 'rxjs';
 import { Matches } from '../../../shared/contracts/matches.contract';
-import { map, catchError, tap } from 'rxjs/operators';
+import { map, catchError, tap, switchMap } from 'rxjs/operators';
 import { StateService } from '../../../shared/services/core/state.service';
 import { GlobaltimeService } from '../../../shared/services/core/globaltime.service';
 import { PredictionsService } from '../../../shared/services/games/predictions.service';
@@ -55,6 +55,7 @@ export class PronostiquesComponent implements OnInit {
 
   $groupedMatches!: Observable<{ [key: string]: Matches[] }>;
   $playedMatches!: Observable<Matches[]>;
+  totalPoints$!: Observable<{ value: number } | null>;
 
   ngOnInit(): void {
     this.$today = this.globalTime.getMuTime();
@@ -165,6 +166,35 @@ export class PronostiquesComponent implements OnInit {
         this.isLoggedIn = !!res.id;
       }
     });
+
+    // ── Total points across all played matches for the logged-in user ────────
+    this.totalPoints$ = this.stateService.userState.pipe(
+      switchMap(user => {
+        if (!user?.id) return of(null);
+        return this.matchesService.getAllMatches().pipe(
+          switchMap(matches => {
+            const played = matches.filter(
+              (m: Matches) => m.fulltime_a !== null && m.fulltime_b !== null
+            );
+            if (played.length === 0) return of({ value: 0 });
+            const ids = played.map((m: Matches) => m.id).join(',');
+            return this.predictionService.getMyPredictions(`[in]=${ids}`).pipe(
+              map((preds: any[]) => {
+                let total = 0;
+                for (const pred of preds) {
+                  const match = played.find(
+                    (m: Matches) => String(m.id) === String(pred.game_id)
+                  );
+                  if (match) total += this.calcMatchPoints(match, pred);
+                }
+                return { value: total };
+              }),
+              catchError(() => of({ value: 0 }))
+            );
+          })
+        );
+      })
+    );
 
     this.predictionService.drafts$.subscribe(drafts => {
       this.draftsCount = drafts.length;
@@ -309,5 +339,79 @@ export class PronostiquesComponent implements OnInit {
       return dates[idx + 1];
     }
     return null;
+  }
+
+  // ── Per-match point calculation (mirrors RankingcalculationService.calcResult) ──
+  private calcMatchPoints(match: Matches, prono: any): number {
+    if (match.fulltime_a === null || match.fulltime_b === null) return 0;
+
+    let points = 0;
+    const winnerPts   = Number(match.winner_point)   || 0;
+    const fulltimePts = Number(match.fulltime_point)  || 0;
+    const halftimePts = Number(match.halftime_point)  || 0;
+    const scorerPts   = Number(match.scorer_point)    || 0;
+
+    const outcomeCorrect = prono.winner_draw === match.winner_draw;
+    const ftA = parseInt(prono.fulltime_a, 10);
+    const ftB = parseInt(prono.fulltime_b, 10);
+    const fulltimeCorrect = ftA === (match.fulltime_a as number) &&
+                            ftB === (match.fulltime_b as number);
+
+    if (match.phase === 'Group Stage') {
+      if (outcomeCorrect) points += winnerPts;
+      if (String(match.id) === '1' && fulltimeCorrect) points += fulltimePts;
+    }
+
+    if (match.phase === 'Round of 16') {
+      if (outcomeCorrect) points += winnerPts;
+      if (fulltimeCorrect) points += fulltimePts;
+    }
+
+    if (['Quarter-finals', 'Semi-finals', 'Final'].includes(match.phase)) {
+      if (outcomeCorrect)  points += winnerPts;
+      if (fulltimeCorrect) points += fulltimePts;
+
+      if (match.halftime_a !== null && match.halftime_b !== null) {
+        const htA = parseInt(prono.halftime_a, 10);
+        const htB = parseInt(prono.halftime_b, 10);
+        if (htA === (match.halftime_a as number) &&
+            htB === (match.halftime_b as number)) {
+          points += halftimePts;
+        }
+      }
+
+      if (prono.scorer && prono.scorer !== '-' && match.scorers) {
+        const names = this.extractScorerNames(match.scorers);
+        if (names.includes(prono.scorer.trim().toLowerCase())) points += scorerPts;
+      }
+    }
+
+    return points;
+  }
+
+  private extractScorerNames(scorersVal: any): string[] {
+    if (!scorersVal) return [];
+    let names: string[] = [];
+    if (Array.isArray(scorersVal)) {
+      names = scorersVal
+        .map((e: any) => e.player?.name || e.scorer?.name)
+        .filter(Boolean);
+    } else if (typeof scorersVal === 'string') {
+      const trimmed = scorersVal.trim();
+      if (trimmed.startsWith('[') && trimmed.endsWith(']')) {
+        try {
+          const parsed = JSON.parse(trimmed);
+          if (Array.isArray(parsed)) {
+            names = parsed
+              .map((e: any) => e.player?.name || e.scorer?.name)
+              .filter(Boolean);
+          }
+        } catch { /* fall through */ }
+      }
+      if (names.length === 0) {
+        names = trimmed.split(',').map((n: string) => n.trim()).filter(Boolean);
+      }
+    }
+    return names.map((n: string) => n.toLowerCase().trim());
   }
 }
