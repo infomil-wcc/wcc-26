@@ -87,10 +87,30 @@ export default async function handler(request, response) {
   const nowTime = new Date().getTime();
   const nowIso = new Date().toISOString();
 
-  // 1. Fetch started but unfinished matches from Directus (highly selective query)
+  // 1. Fetch match_status entries from Directus that are NOT finished (selective query)
+  let dbMatchStatuses = [];
+  try {
+    const statusRes = await fetch(`${directusUrl}/items/match_status?filter[status][_neq]=finished`, {
+      headers: { 'Authorization': `Bearer ${adminToken}` }
+    });
+    if (statusRes.ok) {
+      const statusData = await statusRes.json();
+      dbMatchStatuses = statusData.data || [];
+    }
+  } catch (e) {
+    console.error("Failed to fetch match_status:", e.message);
+  }
+
+  const liveMatchIds = dbMatchStatuses.map(s => parseInt(s.match_id, 10));
+
+  // 2. Fetch started but unfinished matches from Directus OR matches present in the active liveMatchIds
   let dbMatches = [];
   try {
-    const dbRes = await fetch(`${directusUrl}/items/matches?filter[date][_lte]=${nowIso}&filter[fulltime][_neq]=true`, {
+    let matchesQuery = `?filter[_or][0][date][_lte]=${nowIso}&filter[_or][0][fulltime][_neq]=true`;
+    if (liveMatchIds.length > 0) {
+      matchesQuery += `&filter[_or][1][id][_in]=${liveMatchIds.join(',')}`;
+    }
+    const dbRes = await fetch(`${directusUrl}/items/matches${matchesQuery}`, {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${adminToken}`
@@ -103,20 +123,6 @@ export default async function handler(request, response) {
     }
   } catch (dbError) {
     console.error("Database Error fetching matches from Directus:", dbError.message);
-  }
-
-  // 2. Fetch live match_status entries from Directus (highly selective query)
-  let dbMatchStatuses = [];
-  try {
-    const statusRes = await fetch(`${directusUrl}/items/match_status?filter[status][_eq]=live`, {
-      headers: { 'Authorization': `Bearer ${adminToken}` }
-    });
-    if (statusRes.ok) {
-      const statusData = await statusRes.json();
-      dbMatchStatuses = statusData.data || [];
-    }
-  } catch (e) {
-    console.error("Failed to fetch match_status:", e.message);
   }
 
   // Early Exit: if no matches have started and no match statuses are active, skip external calls and updates
@@ -202,8 +208,8 @@ export default async function handler(request, response) {
   }
 
   // Identify target match IDs to update
-  const liveMatchIds = dbMatchStatuses
-    .filter(s => s.status === 'live')
+  const activeLiveMatchIds = dbMatchStatuses
+    .filter(s => s.status !== 'finished')
     .map(s => parseInt(s.match_id, 10));
 
   // Map and update matches
@@ -214,7 +220,7 @@ export default async function handler(request, response) {
       const matchIdNum = parseInt(dbMatch.id, 10);
       
       // Update ONLY match IDs that are currently marked "live"
-      if (!liveMatchIds.includes(matchIdNum)) {
+      if (!activeLiveMatchIds.includes(matchIdNum)) {
         continue;
       }
 
