@@ -19,8 +19,17 @@
 
       <div class="tab-group">
 
-        <button class="tab-btn" id="tab-upcoming" [ngClass]="{'tab-active': activeMatches}"
-          (click)="setActiveTab(true)">
+        <button class="tab-btn flex align-items-center gap-2" id="tab-live" [ngClass]="{'tab-active': activeTab === 'live'}"
+          (click)="setActiveTab('live')">
+          <span class="live-dot"></span>
+          <span class="tab-label">Direct</span>
+          @if (liveCount > 0) {
+          <span class="tab-badge tab-badge-upcoming">{{ liveCount }}</span>
+          }
+        </button>
+
+        <button class="tab-btn" id="tab-upcoming" [ngClass]="{'tab-active': activeTab === 'upcoming'}"
+          (click)="setActiveTab('upcoming')">
           <span class="material-symbols-outlined tab-icon">pending_actions</span>
           <span class="tab-label">À venir</span>
           @if (upcomingCount > 0) {
@@ -28,8 +37,8 @@
           }
         </button>
 
-        <button class="tab-btn" id="tab-played" [ngClass]="{'tab-active': !activeMatches}"
-          (click)="setActiveTab(false)">
+        <button class="tab-btn" id="tab-played" [ngClass]="{'tab-active': activeTab === 'played'}"
+          (click)="setActiveTab('played')">
           <span class="material-symbols-outlined tab-icon">history</span>
           <span class="tab-label">Joués</span>
           @if (playedCount > 0) {
@@ -153,7 +162,13 @@
           }
         }
 
-        @if (upcomingCount === 0) {
+        @if (activeTab === 'live' && liveCount === 0) {
+        <div class="empty-state">
+          <span class="material-symbols-outlined empty-icon">sports_soccer</span>
+          <h3>Aucun match en direct</h3>
+          <p>Aucun match n'est en cours de lecture pour le moment.</p>
+        </div>
+        } @else if (activeTab === 'upcoming' && upcomingCount === 0) {
         <div class="empty-state">
           <span class="material-symbols-outlined empty-icon">check_circle</span>
           <h3>Tous les pronostics sont faits !</h3>

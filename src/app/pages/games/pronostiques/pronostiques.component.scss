@@ -133,6 +133,12 @@
     .tab-icon {
       color: $darkSecondary;
     }
+
+    .live-dot {
+      background-color: #ef4444;
+      box-shadow: 0 0 0 rgba(239, 68, 68, 0.7);
+      animation: pulse-dark 1.5s infinite;
+    }
   }
 }
 
@@ -778,3 +784,40 @@ app-calendar-strip {
   0%   { transform: translateX(60px); opacity: 0; }
   100% { transform: translateX(0);    opacity: 1; }
 }
+
+/* Pulsing Live Dot */
+.live-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: #ef4444;
+  display: inline-block;
+  box-shadow: 0 0 0 rgba(239, 68, 68, 0.7);
+  animation: pulse-light 1.5s infinite;
+  transition: background-color 0.25s ease;
+}
+
+@keyframes pulse-light {
+  0% {
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
+  }
+  70% {
+    box-shadow: 0 0 0 6px rgba(239, 68, 68, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
+  }
+}
+
+@keyframes pulse-dark {
+  0% {
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.9);
+  }
+  70% {
+    box-shadow: 0 0 0 6px rgba(239, 68, 68, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
+  }
+}
+

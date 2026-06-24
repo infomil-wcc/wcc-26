@@ -39,9 +39,10 @@ export class PronostiquesComponent implements OnInit {
 
   protected isLoggedIn: boolean = false;
   protected $today!: Observable<any>;
-  protected activeMatches: boolean = true;
+  protected activeTab: 'live' | 'upcoming' | 'played' = 'upcoming';
   protected draftsCount: number = 0;
   protected isSubmittingBulk: boolean = false;
+  protected liveCount: number = 0;
   protected upcomingCount: number = 0;
   protected playedCount: number = 0;
   protected todayMatchCount: number = 0;
@@ -52,12 +53,16 @@ export class PronostiquesComponent implements OnInit {
   protected showTodayBanner: boolean = true;
   protected filterDate: string | null = null;
   protected filterDate$ = new BehaviorSubject<string | null>(null);
-  protected activeMatches$ = new BehaviorSubject<boolean>(true);
+  protected activeTab$ = new BehaviorSubject<'live' | 'upcoming' | 'played'>('upcoming');
   protected $matchDates!: Observable<string[]>;
 
   $groupedMatches!: Observable<{ [key: string]: Matches[] }>;
   $playedMatches!: Observable<Matches[]>;
   totalPoints$!: Observable<{ value: number } | null>;
+
+  get activeMatches(): boolean {
+    return this.activeTab === 'upcoming' || this.activeTab === 'live';
+  }
 
   ngOnInit(): void {
     this.$today = this.globalTime.getMuTime();
@@ -70,9 +75,9 @@ export class PronostiquesComponent implements OnInit {
     this.$matchDates = combineLatest([
       this.matchesService.getAllMatches(),
       this.$today,
-      this.activeMatches$
+      this.activeTab$
     ]).pipe(
-      map(([matches, today, upcoming]) => {
+      map(([matches, today, tab]) => {
         const now = new Date(today.dateTime.slice(0, -6));
         const filtered = matches.filter(match => {
 
@@ -83,19 +88,21 @@ export class PronostiquesComponent implements OnInit {
           const matchDate = new Date(match.date);
           const hasStarted = now >= matchDate;
 
-          if (upcoming) {
-            return !isFinished && !hasStarted;
+          if (tab === 'live') {
+            return hasStarted && !isFinished;
+          } else if (tab === 'upcoming') {
+            return !hasStarted && !isFinished;
           } else {
             return isFinished;
           }
         });
 
         const dates = filtered.map(m => m.date.split(' ')[0]);
-        // Sort ascending (earliest first) for upcoming, descending (newest first) for played
+        // Sort ascending (earliest first) for upcoming/live, descending (newest first) for played
         return Array.from(new Set(dates)).sort((a, b) => {
           const timeA = new Date(a).getTime();
           const timeB = new Date(b).getTime();
-          return upcoming ? timeA - timeB : timeB - timeA;
+          return tab === 'played' ? timeB - timeA : timeA - timeB;
         });
       })
     );
@@ -105,13 +112,24 @@ export class PronostiquesComponent implements OnInit {
       this.$today,
       this.filterDate$
     ]).pipe(
-      tap(([matches]) => {
+      tap(([matches, today]) => {
         Promise.resolve().then(() => {
-          const today = new Date();
-          const todayKey = today.toISOString().split('T')[0];
-          this.upcomingCount = matches.filter(m => m.fulltime_a === null && m.fulltime_b === null).length;
+          const now = new Date(today.dateTime.slice(0, -6));
+          this.liveCount = matches.filter(m => {
+            const isFinished = m.fulltime_a !== null && m.fulltime_b !== null;
+            const matchDate = new Date(m.date);
+            const hasStarted = now >= matchDate;
+            return hasStarted && !isFinished;
+          }).length;
+          this.upcomingCount = matches.filter(m => {
+            const isFinished = m.fulltime_a !== null && m.fulltime_b !== null;
+            const matchDate = new Date(m.date);
+            const hasStarted = now >= matchDate;
+            return !hasStarted && !isFinished;
+          }).length;
           this.playedCount = matches.filter(m => m.fulltime_a !== null && m.fulltime_b !== null).length;
 
+          const todayKey = today.dateTime.split('T')[0];
           const todayMatches = matches.filter(m => m.date.split(' ')[0] === todayKey);
           this.todayTotalCount = todayMatches.length;
           this.todayPlayedCount = todayMatches.filter(m => m.fulltime_a !== null && m.fulltime_b !== null).length;
@@ -143,15 +161,17 @@ export class PronostiquesComponent implements OnInit {
           // 1. Restrict to published only
           if (isDraft(match)) return false;
 
-          // 2. Filter by Active Tab using your class variable (this.activeMatches)
+          // 2. Filter by Active Tab
           const isFinished = match.fulltime_a !== null && match.fulltime_b !== null;
           const matchDate = new Date(match.date);
           const hasStarted = now >= matchDate;
 
-          if (this.activeMatches) {
-            return !isFinished && !hasStarted; // Upcoming matches
+          if (this.activeTab === 'live') {
+            return hasStarted && !isFinished;
+          } else if (this.activeTab === 'upcoming') {
+            return !hasStarted && !isFinished;
           } else {
-            return isFinished; // Played matches
+            return isFinished;
           }
         });
 
@@ -195,10 +215,10 @@ export class PronostiquesComponent implements OnInit {
     });
   }
 
-  setActiveTab(upcoming: boolean): void {
-    this.activeMatches = upcoming;
+  setActiveTab(tab: 'live' | 'upcoming' | 'played'): void {
+    this.activeTab = tab;
     this.filterDate$.next(null);
-    this.activeMatches$.next(upcoming);
+    this.activeTab$.next(tab);
   }
 
   selectDate(date: string | null): void {
