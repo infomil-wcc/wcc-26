@@ -79,7 +79,17 @@ export class PredictionsService {
   }
 
   updateResults(): Observable<any> {
-    return this.matchResultsApiService.postMatchResults().pipe(
+    let token = this.cookieService.get('currentToken');
+    let httpOptions = {};
+    if (token) {
+      httpOptions = {
+        headers: new HttpHeaders({
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        })
+      };
+    }
+    return this.matchResultsApiService.postMatchResults(httpOptions).pipe(
       tap(() => {
         this.rankingcalculationService.startCalcRanking();
       })
