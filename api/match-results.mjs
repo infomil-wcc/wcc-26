@@ -1,13 +1,57 @@
 import { handleCors } from './utils.mjs';
 import { teamNameMap } from './mappings.mjs';
 
-function getNormalizedTeamName(externalName) {
+// --- TOURNAMENT PHASE MAPPING ---
+const phaseMap = {
+  "group": "Group Stage",
+  "group_stage": "Group Stage",
+  "r32": "Round of 32",
+  "last_32": "Round of 32",
+  "r16": "Round of 16",
+  "last_16": "Round of 16",
+  "qf": "Quarter-finals",
+  "quarter_finals": "Quarter-finals",
+  "sf": "Semi-finals",
+  "semi_finals": "Semi-finals",
+  "third": "Third Place",
+  "third_place": "Third Place",
+  "final": "Final"
+};
+
+export function getNormalizedTeamName(externalName) {
   if (!externalName) return null;
   const trimmedName = externalName.trim();
   return teamNameMap[trimmedName] || trimmedName;
 }
 
-function parseScorersString(scorersStr, teamName) {
+export function getNormalizedPhase(apiType) {
+  if (!apiType) return null;
+  const lowerType = apiType.toLowerCase().trim();
+  return phaseMap[lowerType] || lowerType;
+}
+
+export function getDbMatchUtcTime(dbDateStr) {
+  if (!dbDateStr) return 0;
+  // dbDateStr is e.g. "2026-06-14 08:00:00" in Mauritius timezone (+04:00)
+  const isoStr = dbDateStr.trim().replace(' ', 'T') + '+04:00';
+  return new Date(isoStr).getTime();
+}
+
+export function getFdMatchUtcTime(utcDateStr) {
+  if (!utcDateStr) return 0;
+  return new Date(utcDateStr).getTime();
+}
+
+export function getWcGameApproxUtcTime(localDateStr) {
+  if (!localDateStr) return 0;
+  // localDateStr is e.g. "06/13/2026 21:00"
+  const [datePart, timePart] = localDateStr.split(' ');
+  const [month, day, year] = datePart.split('/');
+  const isoStr = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}T${timePart || '00:00'}:00Z`;
+  return new Date(isoStr).getTime();
+}
+
+export function parseScorersString(scorersStr, teamName) {
   if (!scorersStr || scorersStr === 'null' || scorersStr === '') return [];
   let cleanStr = scorersStr.replace(/[“”]/g, '"');
   
@@ -31,6 +75,11 @@ function parseScorersString(scorersStr, teamName) {
 
   const events = [];
   for (const goalStr of arr) {
+    // If it's already an object (e.g. parsed from existing array in db/elsewhere), keep it
+    if (typeof goalStr === 'object' && goalStr !== null) {
+      events.push(goalStr);
+      continue;
+    }
     const regex = /^(.*?)\s+(\d+)'?(?:\+(\d+))?'?\s*(\((?:OG|p|CSC|PEN)\)|\[(?:OG|p|CSC|PEN)\])?$/i;
     const match = goalStr.trim().match(regex);
     if (match) {
@@ -145,6 +194,55 @@ export default async function handler(request, response) {
     if (statusRes.ok) {
       const statusData = await statusRes.json();
       dbMatchStatuses = statusData.data || [];
+
+      // Try to schedule pending matches on QStash
+      const pendingStatuses = dbMatchStatuses.filter(s => s.status === 'pending');
+      const qstashToken = process.env.QSTASH_TOKEN;
+      if (pendingStatuses.length > 0 && qstashToken && qstashToken !== 'undefined') {
+        try {
+          const { Client } = await import("@upstash/qstash");
+          const qstashClient = new Client({ token: qstashToken });
+          const protocol = request.headers['x-forwarded-proto'] || 'https';
+          const host = request.headers.host || request.headers['x-forwarded-host'];
+          if (host) {
+            const targetUrl = `${protocol}://${host}/api/match-scheduler`;
+            for (const statusObj of pendingStatuses) {
+              const matchId = statusObj.match_id;
+              const startTimeMs = getDbMatchUtcTime(statusObj.start_time);
+              if (!startTimeMs) continue;
+
+              // 1. live: at startTime
+              const liveTimeSec = Math.floor(startTimeMs / 1000);
+              await qstashClient.publishJSON({
+                url: targetUrl,
+                body: { matchId, action: 'live' },
+                notBefore: liveTimeSec,
+                deduplicationId: `match-live-${matchId}`
+              }).catch(err => console.error(`QStash live fail for match ${matchId}:`, err.message));
+
+              // 2. halftime: 60 minutes after start
+              const htTimeSec = Math.floor((startTimeMs + 60 * 60 * 1000) / 1000);
+              await qstashClient.publishJSON({
+                url: targetUrl,
+                body: { matchId, action: 'halftime' },
+                notBefore: htTimeSec,
+                deduplicationId: `match-halftime-${matchId}`
+              }).catch(err => console.error(`QStash halftime fail for match ${matchId}:`, err.message));
+
+              // 3. fulltime: 295 minutes after start (105m duration + 190m delay)
+              const ftTimeSec = Math.floor((startTimeMs + 295 * 60 * 1000) / 1000);
+              await qstashClient.publishJSON({
+                url: targetUrl,
+                body: { matchId, action: 'fulltime' },
+                notBefore: ftTimeSec,
+                deduplicationId: `match-fulltime-${matchId}`
+              }).catch(err => console.error(`QStash fulltime fail for match ${matchId}:`, err.message));
+            }
+          }
+        } catch (qstashErr) {
+          console.error("Failed to initialize QStash scheduling:", qstashErr.message);
+        }
+      }
     }
   } catch (e) {
     console.error("Failed to fetch match_status:", e.message);
@@ -198,25 +296,80 @@ export default async function handler(request, response) {
     return response.status(503).json({ success: false, error: "External API unreachable." });
   }
 
+  let wcGames = [];
+  try {
+    const wcRes = await fetch('https://worldcup26.ir/get/games', {
+      method: 'GET',
+      headers: {
+        'accept': 'application/json',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+      }
+    });
+    if (wcRes.ok) {
+      const data = await wcRes.json();
+      wcGames = data.games || [];
+    }
+  } catch (wcError) {
+    console.error("Failed to fetch worldcup26.ir games:", wcError.message);
+  }
+
   const results = [];
   let calculationLogs = [];
 
   try {
     for (const dbMatch of dbMatches) {
+      const dbUtcTime = getDbMatchUtcTime(dbMatch.date);
+
       const fdMatch = externalMatches.find(m => {
         const home = getNormalizedTeamName(m.homeTeam?.name);
         const away = getNormalizedTeamName(m.awayTeam?.name);
-        return (dbMatch.team_a === home && dbMatch.team_b === away) ||
-               (dbMatch.team_a === away && dbMatch.team_b === home);
+        const namesMatch = (dbMatch.team_a === home && dbMatch.team_b === away) ||
+                           (dbMatch.team_a === away && dbMatch.team_b === home);
+        if (!namesMatch) return false;
+
+        const dbPhase = dbMatch.phase;
+        const fdPhase = getNormalizedPhase(m.stage);
+        if (dbPhase && fdPhase && dbPhase !== fdPhase) return false;
+
+        const fdUtcTime = getFdMatchUtcTime(m.utcDate);
+        if (dbUtcTime && fdUtcTime && Math.abs(dbUtcTime - fdUtcTime) > 30 * 60 * 60 * 1000) {
+          return false;
+        }
+
+        return true;
       });
 
       if (!fdMatch) continue;
+
+      const wcGame = wcGames.find(g => {
+        const home = getNormalizedTeamName(g.home_team_name_en);
+        const away = getNormalizedTeamName(g.away_team_name_en);
+        const namesMatch = (dbMatch.team_a === home && dbMatch.team_b === away) ||
+                           (dbMatch.team_a === away && dbMatch.team_b === home);
+        if (!namesMatch) return false;
+
+        const dbPhase = dbMatch.phase;
+        const wcPhase = getNormalizedPhase(g.type);
+        if (dbPhase && wcPhase && dbPhase !== wcPhase) return false;
+
+        const wcUtcTime = getWcGameApproxUtcTime(g.local_date);
+        if (dbUtcTime && wcUtcTime && Math.abs(dbUtcTime - wcUtcTime) > 30 * 60 * 60 * 1000) {
+          return false;
+        }
+
+        return true;
+      });
 
       const isReversed = (dbMatch.team_a === getNormalizedTeamName(fdMatch.awayTeam?.name));
       const homeScore = fdMatch.score?.fullTime?.home;
       const awayScore = fdMatch.score?.fullTime?.away;
       const dbScoreA = isReversed ? (awayScore !== null ? Number(awayScore) : null) : (homeScore !== null ? Number(homeScore) : null);
       const dbScoreB = isReversed ? (homeScore !== null ? Number(homeScore) : null) : (awayScore !== null ? Number(awayScore) : null);
+
+      const htHome = fdMatch.score?.halfTime?.home;
+      const htAway = fdMatch.score?.halfTime?.away;
+      const dbHalftimeA = isReversed ? (htAway !== null ? Number(htAway) : null) : (htHome !== null ? Number(htHome) : null);
+      const dbHalftimeB = isReversed ? (htHome !== null ? Number(htHome) : null) : (htAway !== null ? Number(htAway) : null);
 
       let winner_draw = null;
       if (dbScoreA !== null && dbScoreB !== null) {
@@ -230,6 +383,18 @@ export default async function handler(request, response) {
         fulltime_b: dbScoreB,
         winner_draw: winner_draw
       };
+
+      if (dbHalftimeA !== null && dbHalftimeB !== null) {
+        payload.halftime_a = dbHalftimeA;
+        payload.halftime_b = dbHalftimeB;
+      }
+
+      if (wcGame) {
+        const homeScorers = parseScorersString(wcGame.home_scorers, getNormalizedTeamName(wcGame.home_team_name_en));
+        const awayScorers = parseScorersString(wcGame.away_scorers, getNormalizedTeamName(wcGame.away_team_name_en));
+        const combinedScorers = [...homeScorers, ...awayScorers];
+        payload.scorers = combinedScorers;
+      }
 
       const directusResponse = await fetch(`${directusUrl}/items/matches/${dbMatch.id}`, {
         method: 'PATCH',
@@ -264,7 +429,7 @@ export default async function handler(request, response) {
   });
 }
 
-async function recalculateRankings(directusUrl, adminToken, specificUser = null, loggedInUser = null, isExplicitOverride = false) {
+export async function recalculateRankings(directusUrl, adminToken, specificUser = null, loggedInUser = null, isExplicitOverride = false) {
   const apiLogs = [];
   try {
     const headers = { 'Authorization': `Bearer ${adminToken}` };
