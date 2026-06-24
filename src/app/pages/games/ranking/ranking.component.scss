@@ -13,7 +13,7 @@
 // Docked Header styling (matching pronostiques header and color scheme)
 .ranking-header {
   top: $pagesHeader;
-  z-index: 50;
+  z-index: 52;
   height: 64px;
 
   .header-filter {
@@ -232,7 +232,7 @@
   width: 100%;
   position: sticky;
   top: $pagesHeader + 64px; // Sticks below the docked header (128px + 64px)
-  z-index: 49;
+  z-index: 51;
   background: #ffffff; // Blends with white page background when sticky
   border-bottom: 2px solid #e2e8f0;
   padding: 0;
@@ -385,5 +385,86 @@
       color: #ffffff;
       font-weight: 800;
     }
+
+    &.pinned-user-row {
+      position: relative;
+      background: linear-gradient(135deg, #4f46e5 0%, #1e1b4b 100%) !important; // Indigo/dark purple gradient for logged in user
+      border: 2.5px solid #ffd700 !important;
+      border-bottom: 2.5px solid #ffd700 !important;
+      box-shadow: 0 10px 25px rgba(255, 215, 0, 0.35);
+      animation: pinned-pulse 2s infinite alternate;
+      margin-top: 8px;
+      margin-bottom: 8px;
+
+      // Wider and bigger styles
+      padding: 0.95rem 1.25rem !important; // Larger padding to feel bigger
+      margin-left: -12px !important; // Pull outward to make it wider than the card list
+      margin-right: -12px !important;
+      width: calc(100% + 24px) !important;
+      border-radius: 14px;
+      transition: top 0.2s ease, bottom 0.2s ease, transform 0.2s ease;
+
+      .row-rank {
+        font-size: 1.05rem !important;
+        color: #ffd700 !important; // Highlight rank with gold color
+      }
+
+      .row-avatar {
+        width: 48px !important;
+        height: 48px !important;
+        border-color: rgba(255, 215, 0, 0.5) !important;
+      }
+
+      .row-username {
+        font-size: 1.15rem !important;
+      }
+
+      .row-pts {
+        font-size: 1.25rem !important;
+        text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+      }
+
+      &:hover {
+        background: linear-gradient(135deg, #4338ca 0%, #17153b 100%) !important;
+      }
+
+      &.pinned-to-top {
+        position: sticky;
+        top: 272px !important; // Stick below header and tabs on desktop
+        bottom: auto !important;
+        z-index: 49; // Placed above table header (48) but below tabs (51)
+        background: rgba(30, 27, 75, 0.65) !important; // Semi-transparent navy/indigo
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 2.5px solid rgba(255, 215, 0, 0.85) !important;
+        box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.35);
+
+        @media screen and (max-width: 640px) {
+          top: 254px !important; // Stick below header and tabs on mobile
+        }
+
+        &:hover {
+          background: rgba(30, 27, 75, 0.8) !important;
+        }
+      }
+
+      &.pinned-to-bottom {
+        position: sticky;
+        bottom: 16px !important; // Stick above the bottom page edge
+        top: auto !important;
+        z-index: 49;
+      }
+    }
+  }
+}
+
+@keyframes pinned-pulse {
+  0% {
+    box-shadow: 0 6px 15px rgba(255, 215, 0, 0.2);
+    transform: scale(1);
+  }
+  100% {
+    box-shadow: 0 8px 25px rgba(255, 215, 0, 0.4);
+    transform: scale(1.01);
   }
 }

@@ -118,8 +118,13 @@
           </div>
           <div class="table-body flex flex-column gap-2">
             @for (player of remainingPlayers; track player; let i = $index) {
+              @if (shouldPinCurrentUser && (player.key || player.user || '').toLowerCase().trim() === currentUserTrigramme.toLowerCase().trim()) {
+                <div class="row-sentinel" style="height: 0; margin: 0; padding: 0; visibility: hidden; pointer-events: none;"></div>
+              }
               <div class="table-row flex justify-content-between align-items-center px-3 py-2.5"
-                >
+                [class.pinned-user-row]="shouldPinCurrentUser && (player.key || player.user || '').toLowerCase().trim() === currentUserTrigramme.toLowerCase().trim()"
+                [class.pinned-to-top]="shouldPinCurrentUser && pinPosition === 'top' && (player.key || player.user || '').toLowerCase().trim() === currentUserTrigramme.toLowerCase().trim()"
+                [class.pinned-to-bottom]="shouldPinCurrentUser && pinPosition === 'bottom' && (player.key || player.user || '').toLowerCase().trim() === currentUserTrigramme.toLowerCase().trim()">
                 <div class="flex align-items-center gap-3">
                   <span class="row-rank text-sm font-bold text-white-alpha-70">{{ player.rank }}</span>
                   <div class="row-avatar flex align-items-center justify-content-center">

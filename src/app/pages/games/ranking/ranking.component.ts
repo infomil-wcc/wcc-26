@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit, inject, ChangeDetectorRef, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnDestroy, OnInit, inject, ChangeDetectorRef, ChangeDetectionStrategy, HostListener } from '@angular/core';
 import { RankingcalculationService } from '../../../shared/services/core/rankingcalculation.service';
 import { Observable, Subscription } from 'rxjs';
 import { GlobaltimeService } from '../../../shared/services/core/globaltime.service';
@@ -8,6 +8,7 @@ import { TeamsService } from '../../../shared/services/content/teams.service';
 import { NgClass, UpperCasePipe, DatePipe } from '@angular/common';
 import { LoaderComponent } from '../../../shared/components/loader/loader.component';
 import { RankingsService } from '../../../shared/services/content/rankings.service';
+import { StateService } from '../../../shared/services/core/state.service';
 
 @Component({
   selector: 'app-ranking',
@@ -20,6 +21,7 @@ export class RankingComponent implements OnInit, OnDestroy {
 
   private rankCalcService = inject(RankingcalculationService);
   private rankingsService = inject(RankingsService);
+  private stateService = inject(StateService);
   private globalTime = inject(GlobaltimeService);
   private http = inject(HttpClient);
   private bracketService = inject(BracketService);
@@ -35,11 +37,22 @@ export class RankingComponent implements OnInit, OnDestroy {
   protected activeTab: 'prediction' | 'bracket' = 'prediction';
   protected userChampions: { [username: string]: string } = {};
   protected flags: any[] = [];
+  protected currentUserTrigramme: string = '';
+  protected pinPosition: 'top' | 'bottom' | null = 'bottom';
 
   private ranksSub!: Subscription;
   private bracketSub!: Subscription;
   private flagsSub!: Subscription;
+  private userSub!: Subscription;
   ngOnInit():void {
+    this.userSub = this.stateService.userState.subscribe({
+      next: (user) => {
+        this.currentUserTrigramme = user.last_name || '';
+        this.cdr.detectChanges();
+        setTimeout(() => this.checkMyRowPosition(), 100);
+      }
+    });
+
     this.$ranks = this.rankingsService.getPronosticsRankings();
     this.$bracketRanks = this.rankingsService.getBracketRankings();
 
@@ -62,6 +75,7 @@ export class RankingComponent implements OnInit, OnDestroy {
           this.showLoader = false;
         }
         this.cdr.detectChanges();
+        setTimeout(() => this.checkMyRowPosition(), 100);
       }
     });
 
@@ -164,9 +178,31 @@ export class RankingComponent implements OnInit, OnDestroy {
     return rank1Count === 1 && rank2Count === 1 && rank3Count === 1;
   }
 
+  get shouldPinCurrentUser(): boolean {
+    if (!this.currentUserTrigramme) return false;
+    const list = this.activeList;
+    if (list.length === 0) return false;
+
+    // Check if the current user is in the active list
+    const userIndex = list.findIndex(player => {
+      const name = (player.key || player.user || '').toLowerCase().trim();
+      return name === this.currentUserTrigramme.toLowerCase().trim();
+    });
+
+    if (userIndex === -1) return false;
+
+    // "Do not do this if the podium is visible and and that I am on the podium"
+    if (this.showPodium && userIndex < 3) {
+      return false;
+    }
+
+    return true;
+  }
+
   switchTab(tab: 'prediction' | 'bracket'): void {
     this.activeTab = tab;
     this.cdr.detectChanges();
+    setTimeout(() => this.checkMyRowPosition(), 100);
   }
 
   updateRanks(): void {
@@ -180,9 +216,47 @@ export class RankingComponent implements OnInit, OnDestroy {
     return `${year}-${month}-${day}`;
   }
 
+  @HostListener('window:scroll', [])
+  onWindowScroll() {
+    this.checkMyRowPosition();
+  }
+
+  checkMyRowPosition() {
+    if (!this.shouldPinCurrentUser) {
+      this.pinPosition = null;
+      return;
+    }
+
+    const sentinelEl = document.querySelector('.row-sentinel');
+    if (!sentinelEl) {
+      this.pinPosition = 'bottom';
+      return;
+    }
+
+    const rect = sentinelEl.getBoundingClientRect();
+    const viewportHeight = window.innerHeight;
+
+    // Sticky header and tabs stick to the top.
+    // Desktop: header + tabs ends at 260px. Sticky top at 272px.
+    // Mobile: header + tabs ends at 242px. Sticky top at 254px.
+    const isMobile = window.innerWidth <= 640;
+    const topBoundary = isMobile ? 254 : 272;
+    const bottomBoundary = viewportHeight - 100;
+
+    if (rect.top < topBoundary) {
+      this.pinPosition = 'top';
+    } else if (rect.bottom > bottomBoundary) {
+      this.pinPosition = 'bottom';
+    } else {
+      this.pinPosition = null;
+    }
+    this.cdr.detectChanges();
+  }
+
   ngOnDestroy(): void {
     if (this.ranksSub) this.ranksSub.unsubscribe();
     if (this.bracketSub) this.bracketSub.unsubscribe();
     if (this.flagsSub) this.flagsSub.unsubscribe();
+    if (this.userSub) this.userSub.unsubscribe();
   }
 }
