@@ -80,13 +80,13 @@ export default async function handler(request, response) {
   const adminToken = process.env.DIRECTUS_ADMIN_TOKEN;
   const apiKey = process.env.FOOTBALL_DATA_API_KEY;
 
-  // --- NEW CODE: Check for ?calc=1 query parameter ---
   if (request.query?.calc === '1') {
     try {
-      await recalculateRankings(directusUrl, adminToken);
+      const debugLogs = await recalculateRankings(directusUrl, adminToken);
       return response.status(200).json({
         success: true,
-        message: "Recalculation of predictions for all users completed successfully via manual trigger."
+        message: "Recalculation of predictions for all users completed successfully via manual trigger.",
+        calculationLogs: debugLogs
       });
     } catch (calcError) {
       return response.status(500).json({
@@ -96,7 +96,6 @@ export default async function handler(request, response) {
       });
     }
   }
-  // ----------------------------------------------------
 
   if (!apiKey) {
     return response.status(500).json({ error: "Missing FOOTBALL_DATA_API_KEY environment variable." });
@@ -105,18 +104,19 @@ export default async function handler(request, response) {
   const nowTime = new Date().getTime();
   const nowIso = new Date().toISOString();
 
+  const forceAllMatches = request.query?.allmatches !== undefined;
   const queryIdParam = request.query?.id || request.query?.matchId;
   const queryId = queryIdParam ? parseInt(queryIdParam, 10) : null;
 
-  // 1. Fetch match_status entries from Directus
   let dbMatchStatuses = [];
   let _statusUrl = '';
   let _statusHttpStatus = null;
   let _statusRaw = '';
   try {
-    const statusFilter = queryId !== null
-      ? `?filter[match_id][eq]=${queryId}`
-      : `?filter[status][neq]=finished`;
+    const statusFilter = forceAllMatches 
+      ? `?limit=-1`
+      : (queryId !== null ? `?filter[match_id][eq]=${queryId}` : `?filter[status][neq]=finished`);
+      
     _statusUrl = `${directusUrl}/items/match_status${statusFilter}`;
     const statusRes = await fetch(_statusUrl, {
       headers: { 'Authorization': `Bearer ${adminToken}` }
@@ -135,18 +135,23 @@ export default async function handler(request, response) {
     .filter(s => s.status !== 'finished')
     .map(s => parseInt(s.match_id, 10));
 
-  // 2. Fetch started but unfinished matches from Directus OR matches present in the active liveMatchIds
   let dbMatches = [];
   let _matchesUrl = '';
   let _matchesHttpStatus = null;
   let _matchesRaw = '';
   try {
-    let matchesQuery = `?filter[or][0][date][lte]=${nowIso}&filter[or][0][fulltime][neq]=true`;
-    if (queryId !== null) {
+    let matchesQuery = '';
+    if (forceAllMatches) {
+      matchesQuery = `?limit=-1`;
+    } else if (queryId !== null) {
       matchesQuery = `?filter[id][eq]=${queryId}`;
-    } else if (liveMatchIds.length > 0) {
-      matchesQuery += `&filter[or][1][id][in]=${liveMatchIds.join(',')}`;
+    } else {
+      matchesQuery = `?filter[or][0][date][lte]=${nowIso}&filter[or][0][fulltime][neq]=true`;
+      if (liveMatchIds.length > 0) {
+        matchesQuery += `&filter[or][1][id][in]=${liveMatchIds.join(',')}`;
+      }
     }
+
     _matchesUrl = `${directusUrl}/items/matches${matchesQuery}`;
     const dbRes = await fetch(_matchesUrl, {
       method: 'GET',
@@ -164,7 +169,6 @@ export default async function handler(request, response) {
     console.error("Database Error fetching matches from Directus:", dbError.message);
   }
 
-  // Early Exit: if no matches have started and no match statuses are active, skip external calls and updates
   if (dbMatches.length === 0 && dbMatchStatuses.length === 0) {
     if (queryId !== null) {
       return response.status(200).json({
@@ -190,7 +194,6 @@ export default async function handler(request, response) {
 
   let externalMatches = [];
 
-  // Fetch from football-data.org API
   try {
     const apiRes = await fetch('https://api.football-data.org/v4/competitions/WC/matches', {
       method: 'GET',
@@ -215,7 +218,6 @@ export default async function handler(request, response) {
     });
   }
 
-  // Fetch games from worldcup26.ir (for rich scorer details)
   let wcMatches = [];
   try {
     const wcRes = await fetch('https://worldcup26.ir/get/games');
@@ -227,52 +229,52 @@ export default async function handler(request, response) {
     console.error("Error fetching from worldcup26.ir:", wcError.message);
   }
 
-  // Evaluate started matches and insert rows in match_status
-  for (const dbMatch of dbMatches) {
-    const matchTime = new Date(dbMatch.date).getTime();
-    const hasStarted = nowTime >= matchTime;
+  if (!forceAllMatches) {
+    for (const dbMatch of dbMatches) {
+      const matchTime = new Date(dbMatch.date).getTime();
+      const hasStarted = nowTime >= matchTime;
 
-    if (hasStarted && !dbMatch.fulltime) {
-      const existingStatus = dbMatchStatuses.find(s => parseInt(s.match_id, 10) === parseInt(dbMatch.id, 10));
-      if (!existingStatus) {
-        try {
-          const insertRes = await fetch(`${directusUrl}/items/match_status`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${adminToken}`
-            },
-            body: JSON.stringify({
-              match_id: parseInt(dbMatch.id, 10),
-              status: 'live',
-              started_at: dbMatch.date
-            })
-          });
-          if (insertRes.ok) {
-            const insertData = await insertRes.json();
-            dbMatchStatuses.push(insertData.data);
-            console.log(`Inserted live status row for match ID ${dbMatch.id}`);
+      if (hasStarted && !dbMatch.fulltime) {
+        const existingStatus = dbMatchStatuses.find(s => parseInt(s.match_id, 10) === parseInt(dbMatch.id, 10));
+        if (!existingStatus) {
+          try {
+            const insertRes = await fetch(`${directusUrl}/items/match_status`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${adminToken}`
+              },
+              body: JSON.stringify({
+                match_id: parseInt(dbMatch.id, 10),
+                status: 'live',
+                started_at: dbMatch.date
+              })
+            });
+            if (insertRes.ok) {
+              const insertData = await insertRes.json();
+              dbMatchStatuses.push(insertData.data);
+              console.log(`Inserted live status row for match ID ${dbMatch.id}`);
+            }
+          } catch (err) {
+            console.error(`Failed to insert match_status for match ID ${dbMatch.id}:`, err.message);
           }
-        } catch (err) {
-          console.error(`Failed to insert match_status for match ID ${dbMatch.id}:`, err.message);
         }
       }
     }
   }
 
-  // Identify target match IDs to update
   const activeLiveMatchIds = dbMatchStatuses
     .filter(s => s.status !== 'finished')
     .map(s => parseInt(s.match_id, 10));
 
-  // Map and update matches
   const results = [];
+  let calculationLogs = [];
 
   try {
     for (const dbMatch of dbMatches) {
       const matchIdNum = parseInt(dbMatch.id, 10);
 
-      if (queryId === null && !activeLiveMatchIds.includes(matchIdNum)) {
+      if (!forceAllMatches && queryId === null && !activeLiveMatchIds.includes(matchIdNum)) {
         continue;
       }
 
@@ -298,11 +300,6 @@ export default async function handler(request, response) {
       const awayScore = fdMatch.score?.fullTime?.away;
       const dbScoreA = isReversed ? (awayScore !== null ? Number(awayScore) : null) : (homeScore !== null ? Number(homeScore) : null);
       const dbScoreB = isReversed ? (homeScore !== null ? Number(homeScore) : null) : (awayScore !== null ? Number(awayScore) : null);
-
-      const htHome = fdMatch.score?.halfTime?.home;
-      const htAway = fdMatch.score?.halfTime?.away;
-      const targetHtA = (htHome !== null && htHome !== undefined && htAway !== null && htAway !== undefined) ? (isReversed ? Number(htAway) : Number(htHome)) : null;
-      const targetHtB = (htHome !== null && htHome !== undefined && htAway !== null && htAway !== undefined) ? (isReversed ? Number(htHome) : Number(htAway)) : null;
 
       let scorers = [];
       if (wcMatch) {
@@ -372,9 +369,10 @@ export default async function handler(request, response) {
       if (statusObj) {
         const matchStartedAt = new Date(statusObj.started_at || dbMatch.date).getTime();
         const elapsedMinutes = (new Date().getTime() - matchStartedAt) / (60 * 1000);
-        const shouldFinish = elapsedMinutes >= 180 || isFinished || payload.fulltime;
-        const newStatus = shouldFinish ? 'finished' : (queryId !== null ? 'live' : statusObj.status);
-        if (shouldFinish || queryId !== null) {
+        const shouldFinish = elapsedMinutes >= 180 || isFinished;
+        const newStatus = shouldFinish ? 'finished' : (queryId !== null || forceAllMatches ? 'live' : statusObj.status);
+        
+        if (shouldFinish || queryId !== null || forceAllMatches) {
           try {
             await fetch(`${directusUrl}/items/match_status/${statusObj.id}`, {
               method: 'PATCH',
@@ -384,13 +382,12 @@ export default async function handler(request, response) {
               },
               body: JSON.stringify({ status: newStatus })
             });
-            console.log(`Updated match_status to '${newStatus}' for match ID ${dbMatch.id}`);
           } catch (err) {
             console.error(`Failed to update match_status for match ID ${dbMatch.id}:`, err.message);
           }
         }
-      } else if (queryId !== null) {
-        const newStatus = (isFinished || payload.fulltime) ? 'finished' : 'live';
+      } else if (queryId !== null || (forceAllMatches && isFinished)) {
+        const newStatus = isFinished ? 'finished' : 'live';
         try {
           await fetch(`${directusUrl}/items/match_status`, {
             method: 'POST',
@@ -404,7 +401,6 @@ export default async function handler(request, response) {
               started_at: dbMatch.date
             })
           });
-          console.log(`Created match_status '${newStatus}' for match ID ${dbMatch.id}`);
         } catch (err) {
           console.error(`Failed to create match_status for match ID ${dbMatch.id}:`, err.message);
         }
@@ -412,7 +408,7 @@ export default async function handler(request, response) {
     }
 
     if (results.length > 0) {
-      await recalculateRankings(directusUrl, adminToken);
+      calculationLogs = await recalculateRankings(directusUrl, adminToken);
     }
 
   } catch (error) {
@@ -422,12 +418,14 @@ export default async function handler(request, response) {
 
   return response.status(200).json({
     success: true,
-    message: `Synchronisation effectuée. ${results.length} match(s) mis à jour.`,
-    updates: results
+    message: `Synchronisation complète effectuée. ${results.length} match(s) traités.`,
+    updates: results,
+    calculationLogs: calculationLogs
   });
 }
 
 async function recalculateRankings(directusUrl, adminToken) {
+  const apiLogs = []; // Array to capture the required logging output
   try {
     console.log("Recalculating rankings...");
     const headers = { 'Authorization': `Bearer ${adminToken}` };
@@ -473,7 +471,16 @@ async function recalculateRankings(directusUrl, adminToken) {
       for (const prono of userPredictions[username]) {
         const game = playedMatches.find(m => String(m.id) === String(prono.game_id));
         if (game) {
-          totalPoints += calcResultForRanking(game, prono);
+          const pts = calcResultForRanking(game, prono);
+          totalPoints += pts;
+          
+          const logMsg = `User: ${username} | Match ID: ${game.id} (${game.phase}) | Earned: ${pts} pts`;
+          console.log(logMsg);
+          apiLogs.push(logMsg);
+        } else {
+          const warnMsg = `⚠️ Prediction ${prono.id} has no matching played game for game_id: ${prono.game_id}`;
+          console.log(warnMsg);
+          apiLogs.push(warnMsg);
         }
       }
 
@@ -542,9 +549,10 @@ async function recalculateRankings(directusUrl, adminToken) {
     }
 
     console.log("Rankings recalculated successfully!");
+    return apiLogs;
   } catch (err) {
     console.error("Error during ranking recalculation:", err);
-    throw err; // Propagate the error so the query handler can report it.
+    throw err;
   }
 }
 
