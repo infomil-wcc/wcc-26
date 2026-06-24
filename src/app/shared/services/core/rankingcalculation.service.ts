@@ -178,15 +178,10 @@ export class RankingcalculationService {
   }
 
   private calcResult(gameId: any, pronostique: any, results: any): number {
-
-
-
-    let gameIndex = parseInt(pronostique.game_id) - 1;
+    let game = results.find((m: any) => String(m.id) === String(pronostique.game_id));
     let finalPoint: number = 0;
 
-    if (results[gameIndex]) {
-      let game = results[gameIndex];
-
+    if (game) {
       let winner_point = game.winner_point;
       let halftime_point = game.halftime_point;
       let fulltime_point = game.fulltime_point;
@@ -210,8 +205,8 @@ export class RankingcalculationService {
         this.logPoint(finalPoint, pronostique);
       }
 
-      // Round of 16
-      if (game.phase === 'Round of 16') {
+      // Round of 32 & Round of 16
+      if (game.phase === 'Round of 32' || game.phase === 'Round of 16') {
         let winnerPoint;
         let fulltimePoint;
         (game.winner_draw === winner_draw) ? winnerPoint = winner_point : winnerPoint = 0;
@@ -221,10 +216,8 @@ export class RankingcalculationService {
         this.logPoint(finalPoint, pronostique);
       }
 
-      // Quarter finals
-      if (game.phase === 'Quarter-finals' || game.phase === 'Semi-finals' || game.phase === 'Final') {
-
-
+      // Quarter-finals, Semi-finals, Third Place, Final
+      if (['Quarter-finals', 'Semi-finals', 'Third Place', 'Final'].includes(game.phase)) {
         let winnerPoint;
         let fulltimePoint;
         let halftimePoint;

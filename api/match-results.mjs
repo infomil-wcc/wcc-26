@@ -575,15 +575,15 @@ function calcResultForRanking(game, pronostique) {
     finalPoint += point;
   }
 
-  // Round of 16
-  if (game.phase === 'Round of 16') {
+  // Round of 32 & Round of 16
+  if (game.phase === 'Round of 32' || game.phase === 'Round of 16') {
     let winnerPoint = (game.winner_draw === winner_draw) ? winner_point : 0;
     let fulltimePoint = (parseInt(game.fulltime_a) === parseInt(fulltime_a) && parseInt(game.fulltime_b) === parseInt(fulltime_b)) ? fulltime_point : 0;
     finalPoint += winnerPoint + fulltimePoint;
   }
 
-  // Quarter finals, Semis, Final
-  if (['Quarter-finals', 'Semi-finals', 'Final'].includes(game.phase)) {
+  // Quarter-finals, Semi-finals, Third Place, Final
+  if (['Quarter-finals', 'Semi-finals', 'Third Place', 'Final'].includes(game.phase)) {
     let winnerPoint = (game.winner_draw === winner_draw) ? winner_point : 0;
     let fulltimePoint = (parseInt(game.fulltime_a) === parseInt(fulltime_a) && parseInt(game.fulltime_b) === parseInt(fulltime_b)) ? fulltime_point : 0;
     let halftimePoint = (parseInt(game.halftime_a) === parseInt(halftime_a) && parseInt(game.halftime_b) === parseInt(halftime_b)) ? halftime_point : 0;

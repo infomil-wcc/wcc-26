@@ -551,12 +551,12 @@ export class MatchComponent implements OnInit, OnDestroy {
       if (game.id === '1' && this.isFulltimeCorrect()) points += fulltimePts;
     }
 
-    if (game.phase === 'Round of 16') {
+    if (game.phase === 'Round of 32' || game.phase === 'Round of 16') {
       if (this.isOutcomeCorrect()) points += winnerPts;
       if (this.isFulltimeCorrect())  points += fulltimePts;
     }
 
-    if (['Quarter-finals', 'Semi-finals', 'Final'].includes(game.phase)) {
+    if (['Quarter-finals', 'Semi-finals', 'Third Place', 'Final'].includes(game.phase)) {
       if (this.isOutcomeCorrect())  points += winnerPts;
       if (this.isFulltimeCorrect()) points += fulltimePts;
       if (this.isHalftimeCorrect()) points += halftimePts;
