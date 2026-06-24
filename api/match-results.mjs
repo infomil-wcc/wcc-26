@@ -80,9 +80,14 @@ export default async function handler(request, response) {
   const adminToken = process.env.DIRECTUS_ADMIN_TOKEN;
   const apiKey = process.env.FOOTBALL_DATA_API_KEY;
 
-  // --- NEW/UPDATED PARAMETER CHECKS ---
-  const targetUser = request.query?.points ? request.query.points.replace(/['"]/g, '').trim() : null;
-  const shouldCalcAll = request.query?.calc === '1';
+  // --- UPDATED PARAMETER HANDLING FOR ?points=all ---
+  let targetUser = request.query?.points ? request.query.points.replace(/['"]/g, '').trim() : null;
+  const shouldCalcAll = request.query?.calc === '1' || targetUser === 'all';
+
+  // If explicitly tracking "all", nullify targetUser so the recalculation operates globally
+  if (targetUser === 'all') {
+    targetUser = null;
+  }
 
   if (shouldCalcAll || targetUser) {
     try {
@@ -102,7 +107,7 @@ export default async function handler(request, response) {
       });
     }
   }
-  // -------------------------------------
+  // --------------------------------------------------
 
   if (!apiKey) {
     return response.status(500).json({ error: "Missing FOOTBALL_DATA_API_KEY environment variable." });
@@ -441,7 +446,6 @@ async function recalculateRankings(directusUrl, adminToken, specificUser = null)
     const matchesData = await matchesRes.json();
     const matches = matchesData.data || [];
 
-    // Filter predictions endpoint: if specificUser is provided, query only their records to optimize processing
     const pronoFilter = specificUser ? `&filter[user][eq]=${specificUser}` : "";
     const predictionsRes = await fetch(`${directusUrl}/items/pronostiques?limit=-1${pronoFilter}`, { headers });
     const predictionsData = await predictionsRes.json();
@@ -500,9 +504,7 @@ async function recalculateRankings(directusUrl, adminToken, specificUser = null)
       });
     }
 
-    // Handle structural integration or dynamic rank shifting
     if (specificUser) {
-      // For a single user recalculation, update/inject their standalone calculated score into the current ranking topology
       const dynamicRankings = [...existingRankings];
       const calculatedUser = rankingObj.find(u => u.key === specificUser);
       
@@ -526,7 +528,6 @@ async function recalculateRankings(directusUrl, adminToken, specificUser = null)
         }
       });
     } else {
-      // Global rank assignment across all users
       rankingObj.sort((a, b) => b.point - a.point || a.key.localeCompare(b.key));
       let rank = 1;
       rankingObj.forEach((obj, index) => {
@@ -537,7 +538,6 @@ async function recalculateRankings(directusUrl, adminToken, specificUser = null)
       });
     }
 
-    // Persist modifications to Directus collections
     for (const player of rankingObj) {
       const rankingRow = {
         key: player.key,
@@ -569,7 +569,6 @@ async function recalculateRankings(directusUrl, adminToken, specificUser = null)
       }
     }
 
-    // Perform validation and cleanup tasks across unreferenced rows if calculating a full update
     if (!specificUser) {
       for (const existingItem of existingRankings) {
         const stillActive = rankingObj.some(player => player.key === existingItem.key);
