@@ -74,29 +74,26 @@ export default async function handler(request, response) {
   process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 
   let directusUrl = process.env.DIRECTUS_URL;
-  if (!directUrl || directusUrl === 'undefined') {
-    directusUrl = 'https://euro.omediaininteractive.net/imleuro';
+  if (!directusUrl || directusUrl === 'undefined') {
+    directusUrl = 'https://euro.omediainteractive.net/imleuro';
   }
   const adminToken = process.env.DIRECTUS_ADMIN_TOKEN;
   const apiKey = process.env.FOOTBALL_DATA_API_KEY;
 
-  // --- UPDATED PARAMETER HANDLING FOR ?points=all ---
-  let targetUser = request.query?.points ? request.query.points.replace(/['"]/g, '').trim() : null;
+  // Safe query extraction fallback
+  const queryData = request.query || {};
+  let targetUser = queryData.points ? queryData.points.replace(/['"]/g, '').trim() : null;
   const isExplicitOverride = targetUser !== null; 
-  const shouldCalcAll = request.query?.calc === '1' || targetUser === 'all';
-
-  // If explicitly tracking "all", nullify targetUser so the recalculation operates globally
-  if (targetUser === 'all') {
-    targetUser = null;
-  }
+  const shouldCalcAll = queryData.calc === '1' || targetUser === 'all';
 
   if (targetUser === 'all') {
     targetUser = null; 
   }
 
-  // Auth Context Resolution
-  const authHeader = request.headers?.authorization || '';
-  let loggedInUser = request.headers?.['x-user-id'] || request.headers?.['x-authenticated-user'] || null;
+  // FIXED: Bulletproof fallback headers wrapper object to stop Vercel Invocation crashes
+  const headersData = request.headers || {};
+  const authHeader = headersData.authorization || '';
+  let loggedInUser = headersData['x-user-id'] || headersData['x-authenticated-user'] || null;
 
   // Enforce session check ONLY if no explicit override query is running
   if (!isExplicitOverride && !shouldCalcAll) {
@@ -104,12 +101,11 @@ export default async function handler(request, response) {
       return response.status(401).json({
         success: false,
         error: "Unauthorized",
-        message: "No user is logged in and no bypass parameter was supplied."
+        message: "No user session detected and no override parameter passed."
       });
     }
   }
 
-  // Handle immediate manual score computation calls
   if (shouldCalcAll || targetUser || isExplicitOverride) {
     try {
       const debugLogs = await recalculateRankings(directusUrl, adminToken, targetUser, loggedInUser, isExplicitOverride);
@@ -133,8 +129,8 @@ export default async function handler(request, response) {
   }
 
   const nowIso = new Date().toISOString();
-  const forceAllMatches = request.query?.allmatches !== undefined;
-  const queryIdParam = request.query?.id || request.query?.matchId;
+  const forceAllMatches = queryData.allmatches !== undefined;
+  const queryIdParam = queryData.id || queryData.matchId;
   const queryId = queryIdParam ? parseInt(queryIdParam, 10) : null;
 
   let dbMatchStatuses = [];
@@ -235,7 +231,6 @@ export default async function handler(request, response) {
         winner_draw: winner_draw
       };
 
-      // FIXED: Restored the body stringification payload that was missing!
       const directusResponse = await fetch(`${directusUrl}/items/matches/${dbMatch.id}`, {
         method: 'PATCH',
         headers: {
@@ -254,7 +249,6 @@ export default async function handler(request, response) {
     }
 
     if (results.length > 0) {
-      // FIXED: Passed true for isExplicitOverride here during automated syncs so background automation doesn't trigger user session crashes
       calculationLogs = await recalculateRankings(directusUrl, adminToken, null, loggedInUser, true);
     }
 
