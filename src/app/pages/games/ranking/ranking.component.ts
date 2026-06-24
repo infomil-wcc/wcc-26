@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit, inject, ChangeDetectorRef, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnDestroy, OnInit, inject, ChangeDetectorRef, ChangeDetectionStrategy, HostListener } from '@angular/core';
 import { RankingcalculationService } from '../../../shared/services/core/rankingcalculation.service';
 import { Observable, Subscription } from 'rxjs';
 import { GlobaltimeService } from '../../../shared/services/core/globaltime.service';
@@ -38,6 +38,7 @@ export class RankingComponent implements OnInit, OnDestroy {
   protected userChampions: { [username: string]: string } = {};
   protected flags: any[] = [];
   protected currentUserTrigramme: string = '';
+  protected pinPosition: 'top' | 'bottom' | null = 'bottom';
 
   private ranksSub!: Subscription;
   private bracketSub!: Subscription;
@@ -48,6 +49,7 @@ export class RankingComponent implements OnInit, OnDestroy {
       next: (user) => {
         this.currentUserTrigramme = user.last_name || '';
         this.cdr.detectChanges();
+        setTimeout(() => this.checkMyRowPosition(), 100);
       }
     });
 
@@ -73,6 +75,7 @@ export class RankingComponent implements OnInit, OnDestroy {
           this.showLoader = false;
         }
         this.cdr.detectChanges();
+        setTimeout(() => this.checkMyRowPosition(), 100);
       }
     });
 
@@ -199,6 +202,7 @@ export class RankingComponent implements OnInit, OnDestroy {
   switchTab(tab: 'prediction' | 'bracket'): void {
     this.activeTab = tab;
     this.cdr.detectChanges();
+    setTimeout(() => this.checkMyRowPosition(), 100);
   }
 
   updateRanks(): void {
@@ -210,6 +214,43 @@ export class RankingComponent implements OnInit, OnDestroy {
     let month = (date.getMonth() + 1).toString().padStart(2, '0');
     let day = date.getDate().toString().padStart(2, '0');
     return `${year}-${month}-${day}`;
+  }
+
+  @HostListener('window:scroll', [])
+  onWindowScroll() {
+    this.checkMyRowPosition();
+  }
+
+  checkMyRowPosition() {
+    if (!this.shouldPinCurrentUser) {
+      this.pinPosition = null;
+      return;
+    }
+
+    const sentinelEl = document.querySelector('.row-sentinel');
+    if (!sentinelEl) {
+      this.pinPosition = 'bottom';
+      return;
+    }
+
+    const rect = sentinelEl.getBoundingClientRect();
+    const viewportHeight = window.innerHeight;
+
+    // Sticky header and tabs stick to the top.
+    // Desktop: header + tabs ends at 260px. Sticky top at 272px.
+    // Mobile: header + tabs ends at 242px. Sticky top at 254px.
+    const isMobile = window.innerWidth <= 640;
+    const topBoundary = isMobile ? 254 : 272;
+    const bottomBoundary = viewportHeight - 100;
+
+    if (rect.top < topBoundary) {
+      this.pinPosition = 'top';
+    } else if (rect.bottom > bottomBoundary) {
+      this.pinPosition = 'bottom';
+    } else {
+      this.pinPosition = null;
+    }
+    this.cdr.detectChanges();
   }
 
   ngOnDestroy(): void {
