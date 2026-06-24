@@ -80,6 +80,24 @@ export default async function handler(request, response) {
   const adminToken = process.env.DIRECTUS_ADMIN_TOKEN;
   const apiKey = process.env.FOOTBALL_DATA_API_KEY;
 
+  // --- NEW CODE: Check for ?calc=1 query parameter ---
+  if (request.query?.calc === '1') {
+    try {
+      await recalculateRankings(directusUrl, adminToken);
+      return response.status(200).json({
+        success: true,
+        message: "Recalculation of predictions for all users completed successfully via manual trigger."
+      });
+    } catch (calcError) {
+      return response.status(500).json({
+        success: false,
+        error: "Failed manual ranking recalculation",
+        details: calcError.message
+      });
+    }
+  }
+  // ----------------------------------------------------
+
   if (!apiKey) {
     return response.status(500).json({ error: "Missing FOOTBALL_DATA_API_KEY environment variable." });
   }
@@ -91,8 +109,6 @@ export default async function handler(request, response) {
   const queryId = queryIdParam ? parseInt(queryIdParam, 10) : null;
 
   // 1. Fetch match_status entries from Directus
-  //    When queryId is set: fetch ANY status for that specific match (so we know the current state)
-  //    Otherwise: fetch all non-finished entries
   let dbMatchStatuses = [];
   let _statusUrl = '';
   let _statusHttpStatus = null;
@@ -150,7 +166,6 @@ export default async function handler(request, response) {
 
   // Early Exit: if no matches have started and no match statuses are active, skip external calls and updates
   if (dbMatches.length === 0 && dbMatchStatuses.length === 0) {
-    // When queryId is set, return a diagnostic response instead of a silent no-op
     if (queryId !== null) {
       return response.status(200).json({
         success: false,
@@ -257,13 +272,10 @@ export default async function handler(request, response) {
     for (const dbMatch of dbMatches) {
       const matchIdNum = parseInt(dbMatch.id, 10);
 
-      // When a specific queryId is set, always sync that match.
-      // Otherwise only update matches that are currently marked "live".
       if (queryId === null && !activeLiveMatchIds.includes(matchIdNum)) {
         continue;
       }
 
-      // Find corresponding football-data match
       const fdMatch = externalMatches.find(m => {
         const home = getNormalizedTeamName(m.homeTeam?.name);
         const away = getNormalizedTeamName(m.awayTeam?.name);
@@ -273,7 +285,6 @@ export default async function handler(request, response) {
 
       if (!fdMatch) continue;
 
-      // Find corresponding worldcup26.ir game
       const wcMatch = wcMatches.find(m => {
         if (parseInt(dbMatch.id, 10) === parseInt(m.id, 10)) return true;
         const home = getNormalizedTeamName(m.home_team_name_en);
@@ -293,7 +304,6 @@ export default async function handler(request, response) {
       const targetHtA = (htHome !== null && htHome !== undefined && htAway !== null && htAway !== undefined) ? (isReversed ? Number(htAway) : Number(htHome)) : null;
       const targetHtB = (htHome !== null && htHome !== undefined && htAway !== null && htAway !== undefined) ? (isReversed ? Number(htHome) : Number(htAway)) : null;
 
-      // Parse scorers from worldcup26.ir if found
       let scorers = [];
       if (wcMatch) {
         const homeGoals = parseScorersString(wcMatch.home_scorers, getNormalizedTeamName(wcMatch.home_team_name_en));
@@ -329,7 +339,6 @@ export default async function handler(request, response) {
         winner_draw: winner_draw
       };
 
-      // Update match record in Directus
       const directusResponse = await fetch(`${directusUrl}/items/matches/${dbMatch.id}`, {
         method: 'PATCH',
         headers: {
@@ -361,11 +370,9 @@ export default async function handler(request, response) {
       const statusObj = dbMatchStatuses.find(s => parseInt(s.match_id, 10) === matchIdNum);
 
       if (statusObj) {
-        // Update existing match_status row
         const matchStartedAt = new Date(statusObj.started_at || dbMatch.date).getTime();
         const elapsedMinutes = (new Date().getTime() - matchStartedAt) / (60 * 1000);
         const shouldFinish = elapsedMinutes >= 180 || isFinished || payload.fulltime;
-        // When queryId is set: always update the status record (set to finished if warranted, otherwise keep as live)
         const newStatus = shouldFinish ? 'finished' : (queryId !== null ? 'live' : statusObj.status);
         if (shouldFinish || queryId !== null) {
           try {
@@ -383,7 +390,6 @@ export default async function handler(request, response) {
           }
         }
       } else if (queryId !== null) {
-        // No match_status row exists yet — create one now
         const newStatus = (isFinished || payload.fulltime) ? 'finished' : 'live';
         try {
           await fetch(`${directusUrl}/items/match_status`, {
@@ -405,7 +411,6 @@ export default async function handler(request, response) {
       }
     }
 
-    // If any matches were updated, recalculate rankings and populate the pronostics_rankings table
     if (results.length > 0) {
       await recalculateRankings(directusUrl, adminToken);
     }
@@ -427,25 +432,20 @@ async function recalculateRankings(directusUrl, adminToken) {
     console.log("Recalculating rankings...");
     const headers = { 'Authorization': `Bearer ${adminToken}` };
 
-    // 1. Fetch matches
     const matchesRes = await fetch(`${directusUrl}/items/matches?limit=-1`, { headers });
     const matchesData = await matchesRes.json();
     const matches = matchesData.data || [];
 
-    // 2. Fetch predictions
     const predictionsRes = await fetch(`${directusUrl}/items/pronostiques?limit=-1`, { headers });
     const predictionsData = await predictionsRes.json();
     const predictions = predictionsData.data || [];
 
-    // 3. Fetch existing rankings
     const rankingsRes = await fetch(`${directusUrl}/items/pronostics_rankings?limit=-1`, { headers });
     const rankingsData = await rankingsRes.json();
     const existingRankings = rankingsData.data || [];
 
-    // Filter to played matches
     const playedMatches = matches.filter(m => m.fulltime_a !== null && m.fulltime_b !== null);
 
-    // Group predictions by user
     const userPredictions = {};
     for (const prono of predictions) {
       if (!prono.user) continue;
@@ -455,7 +455,6 @@ async function recalculateRankings(directusUrl, adminToken) {
       userPredictions[prono.user].push(prono);
     }
 
-    // Calculate score for each user
     const rankingObj = [];
     for (const username of Object.keys(userPredictions)) {
       let totalPoints = 0;
@@ -485,7 +484,6 @@ async function recalculateRankings(directusUrl, adminToken) {
       });
     }
 
-    // Sort by point descending, then by username
     rankingObj.sort((a, b) => {
       if (b.point !== a.point) {
         return b.point - a.point;
@@ -493,7 +491,6 @@ async function recalculateRankings(directusUrl, adminToken) {
       return a.key.localeCompare(b.key);
     });
 
-    // Add ranks
     let rank = 1;
     rankingObj.forEach((obj, index) => {
       if (index > 0 && obj.point !== rankingObj[index - 1].point) {
@@ -502,7 +499,6 @@ async function recalculateRankings(directusUrl, adminToken) {
       obj.rank = rank;
     });
 
-    // Upload / Update rows
     for (const player of rankingObj) {
       const rankingRow = {
         key: player.key,
@@ -535,7 +531,6 @@ async function recalculateRankings(directusUrl, adminToken) {
       }
     }
 
-    // Delete deprecated users
     for (const existingItem of existingRankings) {
       const stillActive = rankingObj.some(player => player.key === existingItem.key);
       if (!stillActive) {
@@ -549,6 +544,7 @@ async function recalculateRankings(directusUrl, adminToken) {
     console.log("Rankings recalculated successfully!");
   } catch (err) {
     console.error("Error during ranking recalculation:", err);
+    throw err; // Propagate the error so the query handler can report it.
   }
 }
 
@@ -569,20 +565,17 @@ function calcResultForRanking(game, pronostique) {
   const winner_draw = pronostique.winner_draw;
   const scorers = pronostique.scorer;
 
-  // Group Stage Calculation
   if (game.phase === 'Group Stage') {
     let point = (game.winner_draw === winner_draw) ? winner_point : 0;
     finalPoint += point;
   }
 
-  // Round of 32 & Round of 16
   if (game.phase === 'Round of 32' || game.phase === 'Round of 16') {
     let winnerPoint = (game.winner_draw === winner_draw) ? winner_point : 0;
     let fulltimePoint = (parseInt(game.fulltime_a) === parseInt(fulltime_a) && parseInt(game.fulltime_b) === parseInt(fulltime_b)) ? fulltime_point : 0;
     finalPoint += winnerPoint + fulltimePoint;
   }
 
-  // Quarter-finals, Semi-finals, Third Place, Final
   if (['Quarter-finals', 'Semi-finals', 'Third Place', 'Final'].includes(game.phase)) {
     let winnerPoint = (game.winner_draw === winner_draw) ? winner_point : 0;
     let fulltimePoint = (parseInt(game.fulltime_a) === parseInt(fulltime_a) && parseInt(game.fulltime_b) === parseInt(fulltime_b)) ? fulltime_point : 0;
