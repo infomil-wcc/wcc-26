@@ -1,11 +1,15 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, ChangeDetectionStrategy } from '@angular/core';
 import { RulesService } from '../../shared/services/content/rules.service';
 import { Observable, map } from 'rxjs';
+import { LoaderComponent } from '../../shared/components/loader/loader.component';
+import { AsyncPipe } from '@angular/common';
 
 @Component({
-  selector: 'app-faq',
-  templateUrl: './faq.component.html',
-  styleUrl: './faq.component.scss'
+    selector: 'app-faq',
+    templateUrl: './faq.component.html',
+    styleUrl: './faq.component.scss',
+    changeDetection: ChangeDetectionStrategy.Eager,
+    imports: [LoaderComponent, AsyncPipe]
 })
 export class FaqComponent {
   private rulesService = inject(RulesService);

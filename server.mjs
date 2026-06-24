@@ -7,6 +7,7 @@ import dotenv from 'dotenv';
 
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 dotenv.config({ path: path.resolve(process.cwd(), '.env.local') });
+dotenv.config({ path: path.resolve(process.cwd(), '.env') });
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);

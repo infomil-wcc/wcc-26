@@ -3,16 +3,17 @@
 
   <h3>Régles et Conditions des jeux</h3>
   <div class="rules">
-    <ng-container *ngIf="$rules | async as rules; else loader">
-      <div class="rule" *ngFor="let item of rules">
-        <h4>{{ item.name }}</h4>
-        <div class="description" [innerHTML]="item.description"></div>
-      </div>
-    </ng-container>
+    @if ($rules | async; as rules) {
+      @for (item of rules; track item) {
+        <div class="rule">
+          <h4>{{ item.name }}</h4>
+          <div class="description" [innerHTML]="item.description"></div>
+        </div>
+      }
+    } @else {
+      <loader [showLoader]="true" />
+    }
   </div>
 </div>
 
-<ng-template #loader>
-  <loader [showLoader]="true" />
-</ng-template>
 

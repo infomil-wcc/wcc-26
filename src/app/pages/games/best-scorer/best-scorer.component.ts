@@ -1,14 +1,22 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectionStrategy } from '@angular/core';
 import { teamsApiData, Teams, Player, TeamResponse } from '../../../shared/contracts/teams.contract';
 import { TeamsService } from '../../../shared/services/content/teams.service';
 import { CorrectscorerService, BestPlayer } from '../../../shared/services/games/correctscorer.service';
 import { StateService, user } from '../../../shared/services/core/state.service';
 import { Observable } from 'rxjs';
+import { ReactiveFormsModule, FormsModule } from '@angular/forms';
+import { NumberInputComponent } from '../../../shared/components/number-input/number-input.component';
+import { LoaderComponent } from '../../../shared/components/loader/loader.component';
+import { ModalComponent } from '../../../shared/components/modal/modal.component';
+import { LoginComponent } from '../../../shared/components/login/login.component';
+import { AsyncPipe } from '@angular/common';
 
 @Component({
-  selector: 'app-best-scorer',
-  templateUrl: './best-scorer.component.html',
-  styleUrl: './best-scorer.component.scss'
+    selector: 'app-best-scorer',
+    templateUrl: './best-scorer.component.html',
+    styleUrl: './best-scorer.component.scss',
+    changeDetection: ChangeDetectionStrategy.Eager,
+    imports: [ReactiveFormsModule, FormsModule, NumberInputComponent, LoaderComponent, ModalComponent, LoginComponent, AsyncPipe]
 })
 export class BestScorerComponent implements OnInit {
 

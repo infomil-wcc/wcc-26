@@ -1,0 +1,113 @@
+@if ($groups | async; as groups) {
+  <div class="groups-container">
+    @for (group of groups; track group.name) {
+      <div class="group-block">
+
+        <!-- Group Title -->
+        <div class="group-title">
+          <span class="group-title-bar"></span>
+          <span class="group-title-text">{{ group.name }}</span>
+        </div>
+
+        <!-- Header Row -->
+        <div class="standings-table">
+          <div class="standings-header">
+            <div class="col-rank"></div>
+            <div class="col-team">Équipe</div>
+            <div class="col-stat">MJ</div>
+            <div class="col-stat">V</div>
+            <div class="col-stat">N</div>
+            <div class="col-stat">D</div>
+            <div class="col-stat">BP</div>
+            <div class="col-stat">BC</div>
+            <div class="col-stat">DB</div>
+            <div class="col-pts">Pts</div>
+            <div class="col-form">5 dern.</div>
+          </div>
+
+          <!-- Team Rows -->
+          @for (standing of group.standings; track standing.team.id) {
+            <div class="standings-row"
+              [class.row-even]="standing.position % 2 === 0"
+              [class.row-qualified-auto]="standing.qualificationType === 'auto'"
+              [class.row-qualified-third]="standing.qualificationType === 'best-third'">
+
+              <!-- Qualification side bar -->
+              <div class="col-rank">
+                <div class="qual-bar"
+                  [class.qual-bar-auto]="standing.qualificationType === 'auto'"
+                  [class.qual-bar-third]="standing.qualificationType === 'best-third'">
+                </div>
+                <span class="rank-num">{{ standing.position }}</span>
+              </div>
+
+              <!-- Flag + Team Name -->
+              <div class="col-team">
+                <div class="team-flag-wrap">
+                  @if (standing.team.flag_url) {
+                    <img [src]="standing.team.flag_url" [alt]="standing.team.name" class="team-flag" />
+                  } @else {
+                    <div class="flag-placeholder">
+                      <span class="material-symbols-outlined">flag</span>
+                    </div>
+                  }
+                </div>
+                <span class="team-name">{{ standing.team.name }}</span>
+              </div>
+
+              <!-- Stats -->
+              <div class="col-stat stat-val">{{ standing.mp }}</div>
+              <div class="col-stat stat-val">{{ standing.w }}</div>
+              <div class="col-stat stat-val">{{ standing.d }}</div>
+              <div class="col-stat stat-val">{{ standing.l }}</div>
+              <div class="col-stat stat-val">{{ standing.gf }}</div>
+              <div class="col-stat stat-val">{{ standing.ga }}</div>
+              <div class="col-stat stat-val"
+                [class.gd-pos]="standing.gd > 0"
+                [class.gd-neg]="standing.gd < 0">
+                {{ standing.gd > 0 ? '+' : '' }}{{ standing.gd }}
+              </div>
+
+              <!-- Points -->
+              <div class="col-pts">
+                <span class="pts-badge">{{ standing.pts }}</span>
+              </div>
+
+              <!-- Form (Last 5) -->
+              <div class="col-form">
+                <div class="form-dots">
+                  @for (result of standing.form; track $index) {
+                    <div class="form-dot" [class]="'form-dot ' + getFormClass(result)" [title]="result || 'Non joué'">
+                      @if (result) {
+                        <span class="material-symbols-outlined form-icon">{{ getFormIcon(result) }}</span>
+                      }
+                    </div>
+                  }
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+
+        <!-- Legend -->
+        <div class="qual-legend">
+          <div class="legend-item">
+            <span class="qual-dot qual-dot-auto"></span>
+            <span class="qual-legend-text">Qualification directe (1er, 2ème)</span>
+          </div>
+          <div class="legend-item">
+            <span class="qual-dot qual-dot-third"></span>
+            <span class="qual-legend-text">Meilleur 3ème (8 sur 12)</span>
+          </div>
+        </div>
+
+      </div>
+    }
+  </div>
+} @else {
+  <div class="groups-loading">
+    <div class="loading-pulse"></div>
+    <div class="loading-pulse"></div>
+    <div class="loading-pulse"></div>
+  </div>
+}

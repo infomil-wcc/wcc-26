@@ -1,28 +1,28 @@
-import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable, catchError, forkJoin, map, mergeMap, of } from 'rxjs';
-import { environment } from '../../../../environments/environment';
+import { NewsApiService } from '../api/news-api.service';
+import { FilesApiService } from '../api/files-api.service';
+import { UsersApiService } from '../api/users-api.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class NewsService {
-
-  private http = inject(HttpClient);
+  private newsApiService = inject(NewsApiService);
+  private filesApiService = inject(FilesApiService);
+  private usersApiService = inject(UsersApiService);
 
   getHPnews(): Observable<any[]> {
-    return this.http.get<any>(`${environment.apiBaseUrl}/items/news?fields=title,image,route,content,id`)
+    return this.newsApiService.getNews('?fields=title,image,route,content,id')
       .pipe(
         mergeMap(newsData => {
           const newsItems = newsData && newsData.data ? newsData.data : [];
 
           const requests = newsItems.map((newsItem: { image: any; }) => {
             const imageId = newsItem.image;
-            // Make request to get image info from file api
-            return this.http.get(`${environment.apiBaseUrl}/files/${imageId}`);
+            return this.filesApiService.getFile(imageId);
           });
 
-          // Combine requests in observable
           return forkJoin(requests).pipe(
             map((imageInfos: any)=> {
               return newsItems.map((newsItem: any, index: string | number) => {
@@ -37,24 +37,22 @@ export class NewsService {
         }),
         catchError(error => {
           console.error('Error fetching news:', error);
-          return of([]); // Return empty array to prevent further error
+          return of([]);
         })
       );
   }
 
   getNewsDetails(newsId: string): Observable<any[]> {
-    return this.http.get<any>(`${environment.apiBaseUrl}/items/news?filter[id]=${newsId}`)
+    return this.newsApiService.getNews(`?filter[id]=${newsId}`)
       .pipe(
         mergeMap(newsData => {
           const newsItems = newsData && newsData.data ? newsData.data : [];
 
           const requests = newsItems.map((newsItem: { image: any; }) => {
             const imageId = newsItem.image;
-            // Make request to get image info from file api
-            return this.http.get(`${environment.apiBaseUrl}/files/${imageId}`);
+            return this.filesApiService.getFile(imageId);
           });
 
-          // Combine requests in observable
           return forkJoin(requests).pipe(
             map((imageInfos: any)=> {
               return newsItems.map((newsItem: any, index: string | number) => {
@@ -69,22 +67,18 @@ export class NewsService {
         }),
         catchError(error => {
           console.error('Error fetching news:', error);
-          return of([]); // Return empty array to prevent further error
+          return of([]);
         })
       );
   }
 
   getRegisteredUsers(): Observable<any> {
-    return this.http.get<any>(`${environment.apiUrl}/users`)
+    return this.usersApiService.getUsersFromApiUrl()
       .pipe(
-        map(response => {
-          return response;
-        }),
         catchError(error => {
           console.error('Error fetching registered users:', error);
-          return of(0); // Return 0 to prevent further error
+          return of(0);
         })
       );
   }
-
 }

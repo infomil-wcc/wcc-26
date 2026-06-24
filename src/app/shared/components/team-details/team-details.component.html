@@ -17,112 +17,109 @@
     </ng-template>
 
     <!-- <ng-template tabContent title="Joueurs">
-      <ng-container *ngIf="this.$teamPlayers | async as players; else loader">
-        <div class="playersView" class="p-4">
-            <div class="">
-            <h4>Attaquants</h4>
-            <div class="grid gutter-2">
-              <ng-container *ngFor="let player of players">
-                <ng-container *ngIf="player.position === 'Forward'">
-                  <div class="col-fixed w-full sm:w-12rem">
-                    <div class="playerProfile">
-                      <div class="playerAvatar">
+    <ng-container *ngIf="this.$teamPlayers | async as players; else loader">
+      <div class="playersView" class="p-4">
+        <div class="">
+          <h4>Attaquants</h4>
+          <div class="grid gutter-2">
+            <ng-container *ngFor="let player of players">
+              <ng-container *ngIf="player.position === 'Forward'">
+                <div class="col-fixed w-full sm:w-12rem">
+                  <div class="playerProfile">
+                    <div class="playerAvatar">
 
-                      </div>
-                      <div class="playerName">
-                        {{ player.name }}
-                      </div>
+                    </div>
+                    <div class="playerName">
+                      {{ player.name }}
                     </div>
                   </div>
-                </ng-container>
-              </ng-container>
-            </div>
-          </div>
-
-          <div class="">
-            <h4>Millieu</h4>
-            <div class="grid">
-              <ng-container *ngFor="let player of players">
-                <ng-container *ngIf="player.position === 'Midfielder'">
-                  <div class="col-fixed w-full sm:w-12rem">
-                    <div class="playerProfile">
-                      <div class="playerAvatar">
-
-                      </div>
-                      <div class="playerName">
-                        {{ player.name }}
-                      </div>
-                    </div>
-                  </div>
-                </ng-container>
-              </ng-container>
-            </div>
-          </div>
-
-          <div class="">
-            <h4>Défenseurs</h4>
-            <div class="grid">
-              <ng-container *ngFor="let player of players">
-                <ng-container *ngIf="player.position === 'Defender'">
-                  <div class="col-fixed w-full sm:w-12rem">
-                    <div class="playerProfile">
-                      <div class="playerAvatar">
-
-                      </div>
-                      <div class="playerName">
-                        {{ player.name }}
-                      </div>
-                    </div>
-                  </div>
-                </ng-container>
-              </ng-container>
-            </div>
-          </div>
-
-          <div>
-            <h4>Gardiens de buts</h4>
-            <div class="grid">
-              <ng-container *ngFor="let player of players">
-                <ng-container *ngIf="player.position === 'Goalkeeper'">
-                  <div class="col-fixed w-full sm:w-12rem">
-                    <div class="playerProfile">
-                      <div class="playerAvatar">
-
-                      </div>
-                      <div class="playerName">
-                        {{ player.name }}
-                      </div>
-                    </div>
-                  </div>
-                </ng-container>
-              </ng-container>
-            </div>
-          </div>
-
-        </div>
-      </ng-container>
-    </ng-template> -->
-
-    <ng-template tabContent title="Matchs">
-      <div class="p-4 matchDetails mt-3">
-        <ng-container *ngIf="this.$teamMatches | async as matches; else loader">
-
-          <div class="flex flex-wrap gap-2 mb-8">
-            <ng-container *ngFor="let match of matches">
-              <ng-container *ngIf="this.$today | async as today;">
-                <div class="col-12 p-0 sm:col-4">
-                  <app-match [match]="match" [dateTime]="today.dateTime" />
                 </div>
               </ng-container>
             </ng-container>
           </div>
+        </div>
 
-        </ng-container>
+        <div class="">
+          <h4>Millieu</h4>
+          <div class="grid">
+            <ng-container *ngFor="let player of players">
+              <ng-container *ngIf="player.position === 'Midfielder'">
+                <div class="col-fixed w-full sm:w-12rem">
+                  <div class="playerProfile">
+                    <div class="playerAvatar">
+
+                    </div>
+                    <div class="playerName">
+                      {{ player.name }}
+                    </div>
+                  </div>
+                </div>
+              </ng-container>
+            </ng-container>
+          </div>
+        </div>
+
+        <div class="">
+          <h4>Défenseurs</h4>
+          <div class="grid">
+            <ng-container *ngFor="let player of players">
+              <ng-container *ngIf="player.position === 'Defender'">
+                <div class="col-fixed w-full sm:w-12rem">
+                  <div class="playerProfile">
+                    <div class="playerAvatar">
+
+                    </div>
+                    <div class="playerName">
+                      {{ player.name }}
+                    </div>
+                  </div>
+                </div>
+              </ng-container>
+            </ng-container>
+          </div>
+        </div>
+
+        <div>
+          <h4>Gardiens de buts</h4>
+          <div class="grid">
+            <ng-container *ngFor="let player of players">
+              <ng-container *ngIf="player.position === 'Goalkeeper'">
+                <div class="col-fixed w-full sm:w-12rem">
+                  <div class="playerProfile">
+                    <div class="playerAvatar">
+
+                    </div>
+                    <div class="playerName">
+                      {{ player.name }}
+                    </div>
+                  </div>
+                </div>
+              </ng-container>
+            </ng-container>
+          </div>
+        </div>
+
       </div>
-    </ng-template>
-  </app-tabcontent>
+    </ng-container>
+  </ng-template> -->
+
+  <ng-template tabContent title="Matchs">
+    <div class="p-4 matchDetails mt-3">
+      @if (this.$teamMatches | async; as matches) {
+        <div class="flex flex-wrap gap-2 mb-8">
+          @for (match of matches; track match) {
+            @if (this.$today | async; as today;) {
+              <div class="col-12 p-0 sm:col-4">
+                <app-match [match]="match" [dateTime]="today.dateTime" />
+              </div>
+            }
+          }
+        </div>
+      } @else {
+        <loader [showLoader]="true" />
+      }
+    </div>
+  </ng-template>
+</app-tabcontent>
 </div>
 
-<ng-template #loader>
-  <loader [showLoader]="true" />
-</ng-template>

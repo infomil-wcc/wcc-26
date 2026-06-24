@@ -1,14 +1,17 @@
-import { Component, Input, SimpleChanges, inject } from '@angular/core';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { Component, Input, SimpleChanges, inject, ChangeDetectionStrategy } from '@angular/core';
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { AuthService } from '../../services/core/auth.service';
-import { CookieService } from 'ngx-cookie-service';
+import { CookieService } from '../../services/core/cookie.service';
 import { StateService } from '../../services/core/state.service';
 import { MailService } from '../../services/core/mail.service';
+import { NgClass } from '@angular/common';
 
 @Component({
-  selector: 'app-login',
-  templateUrl: './login.component.html',
-  styleUrl: './login.component.scss'
+    selector: 'app-login',
+    templateUrl: './login.component.html',
+    styleUrl: './login.component.scss',
+    changeDetection: ChangeDetectionStrategy.Eager,
+    imports: [ReactiveFormsModule, NgClass]
 })
 export class LoginComponent {
 
@@ -55,6 +58,28 @@ export class LoginComponent {
       confirmationCode: ['', [Validators.required, Validators.minLength(5), Validators.maxLength(5)]]
     });
 
+  }
+
+  protected onEmailInput(type: 'login' | 'register'): void {
+    const form = type === 'login' ? this.loginForm : this.registerForm;
+    const emailControl = form.get('email');
+    if (emailControl && emailControl.value) {
+      const value = emailControl.value;
+      if (value.endsWith('@')) {
+        emailControl.setValue(value + 'infomil.mu');
+      }
+    }
+  }
+
+  protected autocompleteEmail(type: 'login' | 'register'): void {
+    const form = type === 'login' ? this.loginForm : this.registerForm;
+    const emailControl = form.get('email');
+    if (emailControl && emailControl.value) {
+      const value = emailControl.value.trim();
+      if (value && !value.includes('@')) {
+        emailControl.setValue(value + '@infomil.mu');
+      }
+    }
   }
 
   protected verifyLogin(login: string, pass: string):void {

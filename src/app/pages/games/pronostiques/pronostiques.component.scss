@@ -1,69 +1,544 @@
-@import "../../../../variables.scss";
+@use "sass:color";
+@use "../../../../variables" as *;
+
+// ─── Header ──────────────────────────────────────────────────────────────────
 
 .pronostiqueHeader {
   top: $pagesHeader;
   z-index: 50;
 
-  @media screen and (max-width: 640px){
+  @media screen and (max-width: 640px) {
     top: 128px;
   }
 }
 
-.filter {
+// ─── Unified Header Bar ───────────────────────────────────────────────────────
+
+.header-bar {
   background: $darkSecondary;
+  padding: 0.55rem 0.75rem;
 }
 
-.playedFilter {
-  background: $secondaryColor;
+.header-bar-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
 }
 
-.btnFilter {
-  padding: 0.45rem 1rem;
-  background: $inputBorder;
-  color: darken($inputBorder, 40%);
-  border-radius: 20px;
-  font-size: 0.85rem;
+.header-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
 
-  .material-symbols-outlined {
-    font-size: 0.85rem;
-    color: darken($inputBorder, 40%);
-    opacity: 0;
+  .header-title-icon {
+    font-size: 1.3rem;
+    color: rgba(255, 255, 255, 0.85);
+    margin-right: 0;
+    font-variation-settings: 'FILL' 0, 'wght' 500, 'GRAD' 0, 'opsz' 48;
   }
 
-  &.active {
-    pointer-events: none;
-    background: $yellow;
-    color: darken($yellow, 25%);
+  .header-title-text {
+    font-family: UefaEuro;
+    font-size: 1rem;
+    font-weight: 700;
+    color: #ffffff;
+    white-space: nowrap;
+    letter-spacing: 0.3px;
+  }
 
-    .material-symbols-outlined {
-      color: darken($yellow, 25%);
-      opacity: 1;
+  .header-pts-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 0.25rem 0.75rem;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1.5px solid rgba(255, 215, 0, 0.35);
+    border-radius: 50px;
+    margin-left: 10px;
+    box-shadow: 0 0 10px rgba(255, 215, 0, 0.08);
+
+    .gold-icon {
+      font-size: 1rem;
+      color: #ffd700;
+      font-variation-settings: 'FILL' 1, 'wght' 500;
+    }
+
+    .gold-text {
+      font-family: UefaEuro;
+      font-size: 0.85rem;
+      font-weight: 800;
+      color: #ffd700;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+
+      small {
+        font-size: 0.65rem;
+        font-weight: 500;
+        opacity: 0.8;
+        text-transform: uppercase;
+        margin-left: 1px;
+      }
     }
   }
 }
 
-.pronostiquesMain {
-  padding-top: 128px;
+// ─── Pill Tab Bar ─────────────────────────────────────────────────────────────
+
+.tab-group {
+  display: flex;
+  gap: 8px;
+  align-items: center;
 }
 
-// @media screen and (min-width: 576px){
-//   .filter {
-//     // margin-top: -1rem;
-//     // margin-left: -1.5rem;
-//     // width: calc(100% + 3rem) !important;
-//   }
+.tab-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0.4rem 1rem;
+  border-radius: 50px;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1.5px solid rgba(255, 255, 255, 0.18);
+  color: rgba(255, 255, 255, 0.75);
+  font-family: UefaEuro;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+  white-space: nowrap;
 
-//   .playedFilter {
-//     // margin-left: -1.5rem;
-//     // width: calc(100% + 3rem) !important;
-//   }
-// }
+  .tab-icon {
+    font-size: 1rem;
+    color: inherit;
+    margin-right: 0;
+  }
 
-@media screen and (min-width: 991px){
-  .lg\:col-4 {
-    width: 32.8% !important;
+  .tab-label {
+    font-size: 0.85rem;
+  }
+
+  &:hover:not(.tab-active) {
+    background: rgba(255, 255, 255, 0.22);
+    color: #ffffff;
+  }
+
+  &.tab-active {
+    background: #ffffff;
+    border-color: #ffffff;
+    color: $darkSecondary;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+    pointer-events: none;
+
+    .tab-icon {
+      color: $darkSecondary;
+    }
   }
 }
+
+.tab-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  border-radius: 10px;
+  font-size: 0.7rem;
+  font-weight: 800;
+  padding: 0 6px;
+  line-height: 1;
+
+  &.tab-badge-upcoming {
+    background: $yellow;
+    color: color.adjust($yellow, $lightness: -35%);
+  }
+
+  &.tab-badge-played {
+    background: rgba(255, 255, 255, 0.25);
+    color: #ffffff;
+
+    .tab-active & {
+      background: rgba($darkSecondary, 0.12);
+      color: $darkSecondary;
+    }
+  }
+}
+
+// ─── Main Content ─────────────────────────────────────────────────────────────
+
+.pronostiquesMain {
+  // Matches height of the global app header + our unified header bar + calendar strip
+  padding-top: 170px;
+
+  @media screen and (max-width: 640px) {
+    padding-top: 220px;
+  }
+}
+
+// ─── Today Urgency Banner (Floating & Closable) ───────────────────────────────
+
+.today-banner {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  max-width: 360px;
+  z-index: 101; 
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: linear-gradient(135deg, #2c1a04 0%, #170d02 100%);
+  border: 1.5px solid #fdd835;
+  border-radius: 16px;
+  padding: 16px 20px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), 0 2px 15px rgba(253, 216, 53, 0.2);
+  animation: bannerSlideIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  backdrop-filter: blur(8px);
+
+  @media screen and (max-width: 640px) {
+    left: 16px;
+    right: 16px;
+    bottom: 95px; /* Above the bulk save dock */
+    max-width: none;
+  }
+
+  .today-banner-icon {
+    font-size: 1.75rem;
+    color: #fdd835;
+    margin-right: 0;
+    animation: pulseAlarm 1.8s ease-in-out infinite;
+    font-variation-settings: 'FILL' 1, 'wght' 600, 'GRAD' 0, 'opsz' 48;
+    flex-shrink: 0;
+  }
+
+  .today-banner-text {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    flex-grow: 1;
+
+    strong {
+      font-family: UefaEuro;
+      font-size: 0.92rem;
+      color: #ffe082;
+    }
+
+    span {
+      font-size: 0.76rem;
+      color: rgba(255, 255, 255, 0.7);
+    }
+  }
+
+  .banner-close-btn {
+    background: transparent;
+    border: none;
+    color: rgba(255, 255, 255, 0.45);
+    cursor: pointer;
+    padding: 6px;
+    margin-left: 8px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+    outline: none;
+
+    span {
+      font-size: 1.1rem;
+    }
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.1);
+      color: #ffffff;
+    }
+  }
+
+  // Green variant: all matches today played
+  &.today-banner-done {
+    background: linear-gradient(135deg, #0b2216 0%, #040e09 100%);
+    border-color: #10b981;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), 0 2px 15px rgba(16, 185, 129, 0.2);
+
+    .today-banner-icon {
+      color: #10b981;
+      animation: none;
+    }
+
+    .today-banner-text {
+      strong { color: #a7f3d0; }
+      span { color: rgba(255, 255, 255, 0.7); }
+    }
+  }
+
+  // Blue variant: all today matches predicted, waiting for kickoff
+  &.today-banner-predicted {
+    background: linear-gradient(135deg, #0f172a 0%, #020617 100%);
+    border-color: #3b5bdb;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), 0 2px 15px rgba(59, 91, 219, 0.2);
+
+    .today-banner-icon {
+      color: #3b5bdb;
+      animation: none;
+    }
+
+    .today-banner-text {
+      strong { color: #c7d2fe; }
+      span { color: rgba(255, 255, 255, 0.7); }
+    }
+  }
+}
+
+@keyframes bannerSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes bannerSlide {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulseAlarm {
+  0%, 100% { transform: rotate(-10deg); }
+  50% { transform: rotate(10deg); }
+}
+
+// ─── Phase Section ────────────────────────────────────────────────────────────
+
+.phase-section {
+  margin-bottom: 2.75rem;
+}
+
+.phase-header {
+  background: var(--phase-color, #3b5bdb);
+  border-radius: 10px;
+  padding: 10px 16px;
+  margin-bottom: 16px;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.15);
+
+  .phase-header-inner {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .phase-icon {
+    font-size: 1.35rem;
+    color: rgba(255, 255, 255, 0.9);
+    margin-right: 0;
+    font-variation-settings: 'FILL' 1, 'wght' 500, 'GRAD' 0, 'opsz' 48;
+  }
+
+  .phase-label {
+    font-family: UefaEuro;
+    font-size: 1rem;
+    font-weight: 700;
+    color: #ffffff;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+}
+
+// ─── Date Group Sections ──────────────────────────────────────────────────────
+
+.matches-section {
+  padding-bottom: 100px; // room for the floating dock
+}
+
+.date-group {
+  margin-bottom: 2.25rem;
+}
+
+.date-header {
+  margin-bottom: 14px;
+
+  .date-header-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 6px;
+    gap: 10px;
+  }
+
+  .date-label {
+    font-family: UefaEuro;
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #1a202c;
+    letter-spacing: 0.3px;
+  }
+
+  .date-accent-line {
+    height: 3px;
+    border-radius: 2px;
+    background: linear-gradient(90deg, $secondaryColor 0%, rgba($secondaryColor, 0) 100%);
+  }
+
+  &.date-header-played {
+    .date-accent-line {
+      background: linear-gradient(90deg, #718096 0%, rgba(#718096, 0) 100%);
+    }
+  }
+}
+
+.match-count-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 10px;
+  border-radius: 20px;
+  background: rgba($secondaryColor, 0.1);
+  border: 1px solid rgba($secondaryColor, 0.2);
+  color: $darkSecondary;
+  font-size: 0.75rem;
+  font-weight: 700;
+  white-space: nowrap;
+
+  &.match-count-chip-played {
+    background: rgba(#718096, 0.1);
+    border-color: rgba(#718096, 0.2);
+    color: #4a5568;
+  }
+}
+
+// ─── Cards Grid ───────────────────────────────────────────────────────────────
+
+.cards-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.card-wrapper {
+  position: relative;
+  flex: 1 1 300px;
+  max-width: 400px;
+  min-width: 280px;
+  display: flex;
+  flex-direction: column;
+
+  & ::ng-deep app-match {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    height: 100%;
+  }
+
+  & ::ng-deep .match {
+    flex-grow: 1;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+
+  @media screen and (max-width: 640px) {
+    flex: 1 1 100%;
+    max-width: 100%;
+  }
+}
+
+.live-indicator {
+  position: absolute;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(239, 68, 68, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 3px 8px;
+  border-radius: 20px;
+  box-shadow: 0 2px 8px rgba(239, 68, 68, 0.4);
+  pointer-events: none;
+  
+  .live-text {
+    color: #ffffff;
+    font-size: 0.65rem;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+    font-family: UefaEuro, sans-serif;
+  }
+
+  .live-pulse {
+    width: 6px;
+    height: 6px;
+    background-color: #ffffff;
+    border-radius: 50%;
+    animation: blinkPulse 1.2s infinite ease-in-out;
+  }
+}
+
+@keyframes blinkPulse {
+  0% {
+    transform: scale(0.85);
+    opacity: 0.5;
+  }
+  50% {
+    transform: scale(1.2);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(0.85);
+    opacity: 0.5;
+  }
+}
+
+// ─── Empty State ──────────────────────────────────────────────────────────────
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 56px 24px;
+  text-align: center;
+  color: #a0aec0;
+
+  .empty-icon {
+    font-size: 3.5rem;
+    color: #cbd5e0;
+    margin-bottom: 16px;
+    margin-right: 0;
+    font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 48;
+  }
+
+  h3 {
+    font-size: 1.15rem;
+    color: #4a5568;
+    margin: 0 0 8px;
+  }
+
+  p {
+    font-size: 0.9rem;
+    color: #a0aec0;
+    margin: 0;
+  }
+}
+
+// ─── Desktop responsive ───────────────────────────────────────────────────────
+
+@media screen and (min-width: 991px) {
+  .card-wrapper {
+    flex: 0 0 32%;
+    max-width: 400px;
+  }
+}
+
+// ─── Floating Bulk Save Dock ──────────────────────────────────────────────────
 
 .viewport-dock-container {
   position: fixed;
@@ -81,7 +556,7 @@
   box-sizing: border-box;
   gap: 16px;
 
-  @media screen and (max-width: 640px){
+  @media screen and (max-width: 640px) {
     flex-direction: column;
   }
 }
@@ -110,7 +585,7 @@
   }
 
   &:hover:not(:disabled) {
-    background: darken($green, 5%);
+    background: color.adjust($green, $lightness: -5%);
     transform: translateY(-3px);
     box-shadow: 0 15px 30px rgba(0, 168, 93, 0.45), 0 6px 15px rgba(0, 0, 0, 0.18);
   }
@@ -149,7 +624,7 @@
   }
 
   &:hover:not(:disabled) {
-    background: darken(#ffab91, 5%);
+    background: color.adjust(#ffab91, $lightness: -5%);
     transform: translateY(-3px);
     box-shadow: 0 15px 30px rgba(255, 171, 145, 0.5), 0 6px 15px rgba(0, 0, 0, 0.12);
   }
@@ -168,4 +643,138 @@
     transform: translateY(0) scale(1);
     opacity: 1;
   }
+}
+
+app-calendar-strip {
+  --calendar-strip-bg: #{$darkSecondary};
+}
+
+/* Modern Next Date Button */
+.btn-next-date {
+  
+  background: #ffffff;
+  border: 1px solid rgba(17, 24, 39, 0.1); 
+  color: #111827; 
+  
+  padding: 0.75rem 1.75rem;
+  border-radius: 9999px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  outline: none;
+  
+ 
+  transition: 
+    background-color 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+    border-color 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+    color 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+    transform 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+    box-shadow 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04), 0 2px 4px rgba(0, 0, 0, 0.02);
+
+  span {
+    vertical-align: middle;
+  }
+
+  .material-symbols-outlined {
+    font-size: 1.15rem;
+    color: rgba(11, 156, 105, 0.8);
+    transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), color 0.2s ease;
+  }
+
+  &:hover {
+    background: #111827; 
+    color: #ffffff;
+    border-color: #111827;
+    
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(17, 24, 39, 0.15);
+
+    .material-symbols-outlined {
+      color: #34d399;
+      transform: translateX(4px); 
+    }
+  }
+
+  &:active {
+    transform: translateY(-0.5px);
+    box-shadow: 0 4px 10px rgba(17, 24, 39, 0.1);
+  }
+}
+
+// ─── Floating Total Points Badge ──────────────────────────────────────────────
+
+.floating-pts-dock {
+  position: fixed;
+  bottom: 24px;
+  right: 16px;
+  z-index: 99998;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: linear-gradient(135deg, #1a1f2e 0%, #0f172a 100%);
+  border: 1px solid rgba(245, 158, 11, 0.35);
+  border-radius: 16px;
+  padding: 10px 14px;
+  box-shadow:
+    0 4px 20px rgba(0, 0, 0, 0.4),
+    0 0 0 1px rgba(245, 158, 11, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  animation: floatingPtsSlideIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
+  cursor: default;
+  user-select: none;
+  min-width: 110px;
+
+  @media screen and (max-width: 640px) {
+    bottom: 80px;
+    right: 12px;
+    padding: 8px 12px;
+    border-radius: 14px;
+  }
+
+  .floating-pts-icon {
+    font-size: 1.5rem;
+    color: #f59e0b;
+    font-variation-settings: 'FILL' 1, 'wght' 600, 'GRAD' 0, 'opsz' 48;
+    flex-shrink: 0;
+    line-height: 1;
+  }
+
+  .floating-pts-content {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+  }
+
+  .floating-pts-label {
+    font-size: 0.62rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: rgba(245, 158, 11, 0.75);
+    line-height: 1;
+  }
+
+  .floating-pts-value {
+    font-size: 1.15rem;
+    font-weight: 800;
+    color: #f8fafc;
+    line-height: 1.1;
+    letter-spacing: -0.3px;
+
+    small {
+      font-size: 0.65rem;
+      font-weight: 600;
+      color: rgba(248, 250, 252, 0.55);
+      letter-spacing: 0.5px;
+      margin-left: 2px;
+      text-transform: uppercase;
+    }
+  }
+}
+
+@keyframes floatingPtsSlideIn {
+  0%   { transform: translateX(60px); opacity: 0; }
+  100% { transform: translateX(0);    opacity: 1; }
 }

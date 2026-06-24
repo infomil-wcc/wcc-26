@@ -1,34 +1,93 @@
 <div class="filter w-full pt-3 pb-3 pl-2 pr-2">
   <div class="container">
-    <h1 class="text-white flex">
+    <h1 class="text-white flex align-items-center gap-2 mb-3">
       <span class="material-symbols-outlined">calendar_month</span>
       Calendrier des matchs
     </h1>
+    
+    <!-- Tab Controls & Calendar Filter -->
+    <div class="tabs-and-filter flex flex-wrap justify-content-between align-items-center gap-3 pb-1">
+      <div class="tabs-container flex gap-2 overflow-x-auto">
+        <button 
+          class="tab-btn flex align-items-center gap-2" 
+          [class.active]="activeTab === 'live'"
+          (click)="setTab('live')">
+          <span class="live-dot"></span>
+          Direct
+        </button>
+        <button 
+          class="tab-btn" 
+          [class.active]="activeTab === 'upcoming'"
+          (click)="setTab('upcoming')">
+          À venir
+        </button>
+        <button 
+          class="tab-btn" 
+          [class.active]="activeTab === 'past'"
+          (click)="setTab('past')">
+          Terminés
+        </button>
+        <button 
+          class="tab-btn" 
+          [class.active]="activeTab === 'all'"
+          (click)="setTab('all')">
+          Tous
+        </button>
+      </div>
+
+    </div>
   </div>
+
+  <!-- Scrollable Modern Date Strip -->
+  <app-calendar-strip 
+    [matchDates]="$matchDates | async" 
+    [filterDate]="filterDate" 
+    (dateChange)="selectDate($event)">
+  </app-calendar-strip>
 </div>
 
 <div class="container pt-4">
-  
-  <ng-container *ngIf="$today | async as today">
-    <div *ngIf="$groupedMatches | async as groupedMatches; else loader">
-
-      <ng-container *ngFor="let date of getDates(groupedMatches)">
-        <h3 class="capitalize">{{ date | date: 'fullDate' }}</h3>
-        
-        <div class="flex flex-wrap gap-2 mb-8">
-          <ng-container *ngFor="let match of groupedMatches[date]">
-            <div class="col-12 p-0 lg:col-4">
-              <app-match [match]="match" [dateTime]="today.dateTime" />
+  @if ($today | async; as today) {
+    @if ($groupedMatches | async; as groupedMatches) {
+      @if (getDates(groupedMatches).length > 0) {
+        <div>
+          @for (date of getDates(groupedMatches); track date) {
+            <h3 class="capitalize">{{ date | date: 'fullDate' }}</h3>
+            <div class="flex flex-wrap gap-2 mb-8">
+              @for (match of groupedMatches[date]; track match) {
+                <div class="col-12 p-0 lg:col-4">
+                  <app-match [match]="match" [dateTime]="today.dateTime" />
+                </div>
+              }
             </div>
-          </ng-container>
+          }
+          @if ($matchDates | async; as matchDates) {
+            @if (getNextDate(matchDates); as nextDate) {
+              <div class="flex justify-content-center mt-4 mb-8">
+                <button type="button" class="btn-next-date flex align-items-center gap-2" (click)="selectDate(nextDate)">
+                  <span>Date suivante : {{ nextDate | date: 'EEEE d MMMM' }}</span>
+                  <span class="material-symbols-outlined">arrow_forward</span>
+                </button>
+              </div>
+            }
+          }
         </div>
-      </ng-container>
-
-    </div>
-  </ng-container>
-
+      } @else {
+        <div class="empty-state text-center py-8">
+          <span class="material-symbols-outlined empty-icon mb-3">sports_soccer</span>
+          @if (activeTab === 'live') {
+            <p class="text-gray-400">Aucun match en cours pour le moment.</p>
+          } @else if (activeTab === 'upcoming') {
+            <p class="text-gray-400">Aucun match à venir programmé.</p>
+          } @else if (activeTab === 'past') {
+            <p class="text-gray-400">Aucun match terminé trouvé.</p>
+          } @else {
+            <p class="text-gray-400">Aucun match trouvé.</p>
+          }
+        </div>
+      }
+    } @else {
+      <loader [showLoader]="true" />
+    }
+  }
 </div>
-
-<ng-template #loader>
-  <loader [showLoader]="true" />
-</ng-template>

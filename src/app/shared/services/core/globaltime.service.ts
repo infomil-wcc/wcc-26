@@ -1,17 +1,15 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-
+import { TimeApiService } from '../api/time-api.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class GlobaltimeService {
 
-  private http = inject(HttpClient);
+  private timeApiService = inject(TimeApiService);
 
   getMuTime(): Observable<string> {
-    return this.http.get<any>(`https://timeapi.io/api/time/current/zone?timeZone=Indian/Mauritius`)
+    return this.timeApiService.getCurrentTime('Indian/Mauritius');
   }
-
 }

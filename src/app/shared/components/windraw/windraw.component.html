@@ -1,19 +1,27 @@
-<div class="windrawSelector flex" *ngIf="teamA && teamB">
-  <div class="option-wrapper">
-    <button class="btnSelector teamA" [ngClass]="{'active': outCome === teamA }" (click)="winDrawSelect(teamA)" [disabled]="disabled">
-      <span *ngIf="outCome === teamA">🏆</span>
-      {{ teamA }}
-    </button>
+@if (teamA && teamB) {
+  <div class="windrawSelector flex">
+    <div class="option-wrapper">
+      <button class="btnSelector teamA" [ngClass]="{'active': outCome === teamA }" (click)="winDrawSelect(teamA)" [disabled]="disabled">
+        @if (outCome === teamA) {
+          <span>🏆</span>
+        }
+        {{ teamA }}
+      </button>
+    </div>
+    @if (phase === 'Group Stage') {
+      <div class="option-wrapper">
+        <button class="draw" [ngClass]="{'active': outCome === 'Draw' }" (click)="winDrawSelect('Draw')" [disabled]="disabled">
+          Draw
+        </button>
+      </div>
+    }
+    <div class="option-wrapper">
+      <button class="btnSelector teamB" [ngClass]="{'active': outCome === teamB }" (click)="winDrawSelect(teamB)" [disabled]="disabled">
+        @if (outCome === teamB) {
+          <span>🏆</span>
+        }
+        {{ teamB }}
+      </button>
+    </div>
   </div>
-  <div class="option-wrapper" *ngIf="phase === 'Group Stage'">
-    <button class="draw" [ngClass]="{'active': outCome === 'Draw' }" (click)="winDrawSelect('Draw')" [disabled]="disabled">
-      Draw
-    </button>
-  </div>
-  <div class="option-wrapper">
-    <button class="btnSelector teamB" [ngClass]="{'active': outCome === teamB }" (click)="winDrawSelect(teamB)" [disabled]="disabled">
-      <span *ngIf="outCome === teamB">🏆</span>
-      {{ teamB }}
-    </button>
-  </div>
-</div>
+}

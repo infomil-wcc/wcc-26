@@ -1,13 +1,17 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpHeaders } from '@angular/common/http';
 import { Observable, from } from 'rxjs';
 import { map, groupBy, mergeMap, toArray, reduce } from 'rxjs/operators';
-import { CookieService } from 'ngx-cookie-service';
+import { CookieService } from './cookie.service';
 import { MatchesService } from '../content/matches.service';
 import { Matches } from '../../contracts/matches.contract';
 import { Pronostiques, pronostiquesApiData } from '../../contracts/pronostiques.contract';
-import { PredictionsService } from '../games/predictions.service';
 import { AuthService } from './auth.service';
+import { PronosticsRankingsApiService } from '../api/pronostics-rankings-api.service';
+import { BracketRankingsApiService } from '../api/bracket-rankings-api.service';
+import { BracketApiService } from '../api/bracket-api.service';
+import { BracketResultApiService } from '../api/bracket-result-api.service';
+import { PredictionsApiService } from '../api/predictions-api.service';
 
 interface result {
   id: number;
@@ -30,10 +34,13 @@ interface result {
 })
 export class RankingcalculationService {
 
-  private http = inject(HttpClient);
+  private pronosticsRankingsApiService = inject(PronosticsRankingsApiService);
+  private bracketRankingsApiService = inject(BracketRankingsApiService);
+  private bracketApiService = inject(BracketApiService);
+  private bracketResultApiService = inject(BracketResultApiService);
+  private predictionsApiService = inject(PredictionsApiService);
   private cookieService = inject(CookieService);
   private matchService = inject(MatchesService);
-  private predictionService = inject(PredictionsService);
   private authService = inject(AuthService);
   private rankingToken!: string;
   private $pronostiques!: Observable<any>;
@@ -46,12 +53,12 @@ export class RankingcalculationService {
   }
 
   getCurrentrankings(): Observable<any> {
-    return this.http.get<any>(`https://euro.omediainteractive.net/imleuro/items/pronostiques_rankings`).pipe(
+    return this.pronosticsRankingsApiService.getRankings().pipe(
       map(response => response.data));
   }
 
   getBracketRankings(): Observable<any> {
-    return this.http.get<any>(`https://euro.omediainteractive.net/imleuro/items/bracket_rankings`).pipe(map(response=> response.data));
+    return this.bracketRankingsApiService.getRankings().pipe(map(response => response.data));
   }
 
 
@@ -81,11 +88,11 @@ export class RankingcalculationService {
       next: (result) => {
         this.rankingToken = result.data.token;
         this.getBracketResults().subscribe({
-          next: (result)=>{
+          next: (result) => {
             this.bracketResult = result[0];
 
             this.getBrackets().subscribe({
-              next: (brackets)=>{
+              next: (brackets) => {
                 brackets.forEach((bracket: any) => {
                   this.calcBracketPoint(bracket);
                 });
@@ -100,12 +107,12 @@ export class RankingcalculationService {
   }
 
   private getBrackets(): Observable<any> {
-    return this.http.get<any>('https://euro.omediainteractive.net/imleuro/items/bracket').pipe(
+    return this.bracketApiService.getBrackets().pipe(
       map(response => response.data));
   }
 
   private getBracketResults(): Observable<any> {
-    return this.http.get<any>('https://euro.omediainteractive.net/imleuro/items/bracket_result').pipe(
+    return this.bracketResultApiService.getBracketResult().pipe(
       map(response => response.data));
   }
 
@@ -117,8 +124,8 @@ export class RankingcalculationService {
       })
     }
 
-    return this.http.get<pronostiquesApiData>(`https://euro.omediainteractive.net/imleuro/items/pronostiques`, httpOptions).pipe(
-      map(response => response.data),
+    return this.predictionsApiService.getPredictions('', httpOptions).pipe(
+      map(response => response.data as Pronostiques[]),
       mergeMap(pronostiques => from(pronostiques)),
       groupBy((pronostique: Pronostiques) => pronostique.user),
       mergeMap(group => group.pipe(toArray())),
@@ -132,22 +139,32 @@ export class RankingcalculationService {
     );
   }
 
-  private calcRanking(pronostiques: any):void {
-
-
+  private calcRanking(pronostiques: any): void {
     this.getMatchesPlayed().subscribe({
-      next: (playedMatches: any)=>{
+      next: (playedMatches: any) => {
         let rankingObj: any[] = [];
         let resultMatches = playedMatches;
         let keys = Object.keys(pronostiques);
 
         keys.forEach((key) => {
-            let point = 0;
-            pronostiques[key].forEach((prono: any) => {
-                point = this.calcResult(prono.game_id, prono, resultMatches) + point;
-            });
+          let point = 0;
+          const userPronos = pronostiques[key].map((prono: any) => ({
+            id: prono.id,
+            game_id: prono.game_id,
+            user: prono.user,
+            winner_draw: prono.winner_draw,
+            fulltime_a: prono.fulltime_a,
+            fulltime_b: prono.fulltime_b,
+            halftime_a: prono.halftime_a,
+            halftime_b: prono.halftime_b,
+            scorer: prono.scorer
+          }));
 
-            rankingObj.push({key, point});
+          pronostiques[key].forEach((prono: any) => {
+            point = this.calcResult(prono.game_id, prono, resultMatches) + point;
+          });
+
+          rankingObj.push({ key, point, pronostiques: userPronos });
         });
 
         this.updateRanking(rankingObj);
@@ -156,20 +173,15 @@ export class RankingcalculationService {
   }
 
 
-  private getMatchesPlayed():Observable<Matches[]> {
+  private getMatchesPlayed(): Observable<Matches[]> {
     return this.matchService.getPlayedMatches();
   }
 
-  private calcResult(gameId: any, pronostique: any, results: any): number{
-
-
-
-    let gameIndex = parseInt(pronostique.game_id) - 1;
+  private calcResult(gameId: any, pronostique: any, results: any): number {
+    let game = results.find((m: any) => String(m.id) === String(pronostique.game_id));
     let finalPoint: number = 0;
 
-    if(results[gameIndex]){
-      let game = results[gameIndex];
-
+    if (game) {
       let winner_point = game.winner_point;
       let halftime_point = game.halftime_point;
       let fulltime_point = game.fulltime_point;
@@ -183,55 +195,43 @@ export class RankingcalculationService {
       let scorers = pronostique.scorer;
 
       // Group Stage Calculation
-      if(game.phase === 'Group Stage'){
+      if (game.phase === 'Group Stage') {
         let point;
 
-        (game.winner_draw === winner_draw)? point = winner_point : point = 0;
+        (game.winner_draw === winner_draw) ? point = winner_point : point = 0;
 
         finalPoint = finalPoint + point;
 
         this.logPoint(finalPoint, pronostique);
       }
 
-      // First Game
-      if(game.phase === 'Group Stage' && game.id === 1 ){
-        let point;
-        (parseInt(game.fulltime_a) === parseInt(fulltime_a) && parseInt(game.fulltime_b) === parseInt(fulltime_b))? point = parseInt(fulltime_point) : point = 0;
-
-        finalPoint = finalPoint + point;
-
-        this.logPoint(finalPoint, pronostique);
-      }
-
-      // Round of 16
-      if(game.phase === 'Round of 16') {
+      // Round of 32 & Round of 16
+      if (game.phase === 'Round of 32' || game.phase === 'Round of 16') {
         let winnerPoint;
         let fulltimePoint;
-        (game.winner_draw === winner_draw)? winnerPoint = winner_point : winnerPoint = 0;
-        (parseInt(game.fulltime_a) === parseInt(fulltime_a) && parseInt(game.fulltime_b) === parseInt(fulltime_b))? fulltimePoint = parseInt(fulltime_point) : fulltimePoint = 0;
+        (game.winner_draw === winner_draw) ? winnerPoint = winner_point : winnerPoint = 0;
+        (parseInt(game.fulltime_a) === parseInt(fulltime_a) && parseInt(game.fulltime_b) === parseInt(fulltime_b)) ? fulltimePoint = parseInt(fulltime_point) : fulltimePoint = 0;
 
         finalPoint = finalPoint + winnerPoint + fulltimePoint;
         this.logPoint(finalPoint, pronostique);
       }
 
-      // Quarter finals
-      if(game.phase === 'Quarter-finals' || game.phase === 'Semi-finals' || game.phase === 'Final'){
-
-
+      // Quarter-finals, Semi-finals, Third Place, Final
+      if (['Quarter-finals', 'Semi-finals', 'Third Place', 'Final'].includes(game.phase)) {
         let winnerPoint;
         let fulltimePoint;
         let halftimePoint;
         let scorerPoint;
         let gamescorers;
 
-        if(game.scorers) {
+        if (game.scorers) {
           gamescorers = this.returnScorersObj(game.scorers);
         }
 
-        (game.winner_draw === winner_draw)? winnerPoint = winner_point : winnerPoint = 0;
-        (parseInt(game.fulltime_a) === parseInt(fulltime_a) && parseInt(game.fulltime_b) === parseInt(fulltime_b))? fulltimePoint = parseInt(fulltime_point) : fulltimePoint = 0;
-        (parseInt(game.halftime_a) === parseInt(halftime_a) && parseInt(game.halftime_b) === parseInt(halftime_b))? halftimePoint = parseInt(halftime_point) : halftimePoint = 0;
-        (gamescorers?.includes(scorers))? scorerPoint = scorer_point: scorerPoint = 0;
+        (game.winner_draw === winner_draw) ? winnerPoint = winner_point : winnerPoint = 0;
+        (parseInt(game.fulltime_a) === parseInt(fulltime_a) && parseInt(game.fulltime_b) === parseInt(fulltime_b)) ? fulltimePoint = parseInt(fulltime_point) : fulltimePoint = 0;
+        (parseInt(game.halftime_a) === parseInt(halftime_a) && parseInt(game.halftime_b) === parseInt(halftime_b)) ? halftimePoint = parseInt(halftime_point) : halftimePoint = 0;
+        (gamescorers?.includes(scorers)) ? scorerPoint = scorer_point : scorerPoint = 0;
 
         finalPoint = finalPoint + halftimePoint + winnerPoint + fulltimePoint + scorerPoint;
 
@@ -242,23 +242,41 @@ export class RankingcalculationService {
     return finalPoint;
   }
 
-  private logPoint(finalPoint: any, pronostique?: any){
+  private logPoint(finalPoint: any, pronostique?: any) {
     // if(pronostique.user === 'iml-dv') {
     //   console.log(finalPoint, pronostique);
     // }
   }
 
-  private returnScorersObj(scorersList: string){
-    return scorersList.split(',').map(name => name.trim());
+  private returnScorersObj(scorersVal: any): string[] {
+    if (!scorersVal) return [];
+    if (Array.isArray(scorersVal)) {
+      return scorersVal.map(e => e.player?.name || e.scorer?.name).filter(Boolean);
+    }
+    if (typeof scorersVal === 'string') {
+      const trimmed = scorersVal.trim();
+      if (trimmed.startsWith('[') && trimmed.endsWith(']')) {
+        try {
+          const parsed = JSON.parse(trimmed);
+          if (Array.isArray(parsed)) {
+            return parsed.map(e => e.player?.name || e.scorer?.name).filter(Boolean);
+          }
+        } catch (e) {
+          // Fall back to split if JSON parse fails
+        }
+      }
+      return trimmed.split(',').map(name => name.trim());
+    }
+    return [];
   }
 
   private updateRanking(rankingObj: any[]): void {
     // Sort the array by point in descending order, and then by key for consistency
     rankingObj.sort((a, b) => {
       if (b.point !== a.point) {
-          return b.point - a.point; // Sort by point descending
+        return b.point - a.point; // Sort by point descending
       } else {
-          return a.key.localeCompare(b.key); // If points are the same, sort by key ascending
+        return a.key.localeCompare(b.key); // If points are the same, sort by key ascending
       }
     });
 
@@ -266,17 +284,11 @@ export class RankingcalculationService {
     let rank = 1;
     rankingObj.forEach((obj, index) => {
       if (index > 0 && obj.point !== rankingObj[index - 1].point) {
-          rank = index + 1; // Update rank only if the current point is different from the previous
+        rank = index + 1; // Update rank only if the current point is different from the previous
       }
       obj.rank = rank;
-      obj.status = 'published'
+      obj.status = 'published';
     });
-
-
-    let rankingData = {
-      status: 'published',
-      ranking_json: rankingObj
-    }
 
     let token = this.rankingToken;
 
@@ -288,68 +300,90 @@ export class RankingcalculationService {
         })
       };
 
-      this.http.post(`https://euro.omediainteractive.net/imleuro/items/pronostiques_rankings`, rankingData, httpOptions).subscribe({
-        next: (response)=>{
-          console.log(response);
+      this.pronosticsRankingsApiService.getRankings('', httpOptions).subscribe({
+        next: (response) => {
+          const list = response?.data || response || [];
+          
+          rankingObj.forEach(player => {
+            const rankingRow = {
+              key: player.key,
+              point: player.point,
+              rank: player.rank,
+              status: 'published'
+            };
+
+            const existingRow = list.find((item: any) => item.key === player.key);
+            if (existingRow) {
+              this.pronosticsRankingsApiService.updateRanking(existingRow.id, rankingRow, httpOptions).subscribe({});
+            } else {
+              this.pronosticsRankingsApiService.createRanking(rankingRow, httpOptions).subscribe({});
+            }
+          });
+
+          // Delete rows for users who no longer have rankings/predictions
+          list.forEach((existingItem: any) => {
+            const stillActive = rankingObj.some(player => player.key === existingItem.key);
+            if (!stillActive) {
+              this.pronosticsRankingsApiService.deleteRanking(existingItem.id, httpOptions).subscribe({});
+            }
+          });
         },
-        error: (error)=>{
-          throw (error.msg)
-        }
+        error: (error) => {}
       });
     }
   }
 
   private calcBracketPoint(bracket: any) {
-    if(this.bracketResult){
+    if (this.bracketResult) {
       // console.log(bracket);
       // console.log(this.bracketResult);
 
       let point = 0;
 
       let pointR16_1;
-      (bracket.winner_r16_1 === this.bracketResult.winner_r16_1)? pointR16_1 = this.bracketResult.point_r16_1 : pointR16_1 = 0;
+      (bracket.winner_r16_1 === this.bracketResult.winner_r16_1) ? pointR16_1 = this.bracketResult.point_r16_1 : pointR16_1 = 0;
 
       let pointR16_2;
-      (bracket.winner_r16_2 === this.bracketResult.winner_r16_2)? pointR16_2 = this.bracketResult.point_r16_2 : pointR16_2 = 0;
+      (bracket.winner_r16_2 === this.bracketResult.winner_r16_2) ? pointR16_2 = this.bracketResult.point_r16_2 : pointR16_2 = 0;
 
       let pointR16_3;
-      (bracket.winner_r16_3 === this.bracketResult.winner_r16_3)? pointR16_3 = this.bracketResult.point_r16_3 : pointR16_3 = 0;
+      (bracket.winner_r16_3 === this.bracketResult.winner_r16_3) ? pointR16_3 = this.bracketResult.point_r16_3 : pointR16_3 = 0;
 
       let pointR16_4;
-      (bracket.winner_r16_4 === this.bracketResult.winner_r16_4)? pointR16_4 = this.bracketResult.point_r16_4 : pointR16_4 = 0;
+      (bracket.winner_r16_4 === this.bracketResult.winner_r16_4) ? pointR16_4 = this.bracketResult.point_r16_4 : pointR16_4 = 0;
 
       let pointR16_5;
-      (bracket.winner_r16_5 === this.bracketResult.winner_r16_5)? pointR16_5 = this.bracketResult.point_r16_5 : pointR16_5 = 0;
+      (bracket.winner_r16_5 === this.bracketResult.winner_r16_5) ? pointR16_5 = this.bracketResult.point_r16_5 : pointR16_5 = 0;
 
       let pointR16_6;
-      (bracket.winner_r16_6 === this.bracketResult.winner_r16_6)? pointR16_6 = this.bracketResult.point_r16_6 : pointR16_6 = 0;
+      (bracket.winner_r16_6 === this.bracketResult.winner_r16_6) ? pointR16_6 = this.bracketResult.point_r16_6 : pointR16_6 = 0;
 
       let pointR16_7;
-      (bracket.winner_r16_7 === this.bracketResult.winner_r16_7)? pointR16_7 = this.bracketResult.point_r16_7 : pointR16_7 = 0;
+      (bracket.winner_r16_7 === this.bracketResult.winner_r16_7) ? pointR16_7 = this.bracketResult.point_r16_7 : pointR16_7 = 0;
 
       let pointR16_8;
-      (bracket.winner_r16_8 === this.bracketResult.winner_r16_8)? pointR16_8 = this.bracketResult.point_r16_8 : pointR16_8 = 0;
+      (bracket.winner_r16_8 === this.bracketResult.winner_r16_8) ? pointR16_8 = this.bracketResult.point_r16_8 : pointR16_8 = 0;
 
       let pointR4_1;
-      (bracket.winner_r4_1 === this.bracketResult.winner_r4_1)? pointR4_1 = this.bracketResult.point_quarter_1 : pointR4_1 = 0;
+      (bracket.winner_r4_1 === this.bracketResult.winner_r4_1) ? pointR4_1 = this.bracketResult.point_quarter_1 : pointR4_1 = 0;
 
       let pointR4_2;
-      (bracket.winner_r4_2 === this.bracketResult.winner_r4_2)? pointR4_2 = this.bracketResult.point_quarter_2 : pointR4_2 = 0;
+      (bracket.winner_r4_2 === this.bracketResult.winner_r4_2) ? pointR4_2 = this.bracketResult.point_quarter_2 : pointR4_2 = 0;
 
       let pointR4_3;
-      (bracket.winner_r4_3 === this.bracketResult.winner_r4_3)? pointR4_3 = this.bracketResult.point_quarter_3 : pointR4_3 = 0;
+      (bracket.winner_r4_3 === this.bracketResult.winner_r4_3) ? pointR4_3 = this.bracketResult.point_quarter_3 : pointR4_3 = 0;
 
       let pointR4_4;
-      (bracket.winner_r4_4 === this.bracketResult.winner_r4_4)? pointR4_4= this.bracketResult.point_quarter_4 : pointR4_4 = 0;
+      (bracket.winner_r4_4 === this.bracketResult.winner_r4_4) ? pointR4_4 = this.bracketResult.point_quarter_4 : pointR4_4 = 0;
 
       let pointR2_1;
-      (bracket.winner_semi_1 === this.bracketResult.winner_semi_1)? pointR2_1= this.bracketResult.point_semi_1 : pointR2_1 = 0;
+      (bracket.winner_semi_1 === this.bracketResult.winner_semi_1) ? pointR2_1 = this.bracketResult.point_semi_1 : pointR2_1 = 0;
 
       let pointR2_2;
-      (bracket.winner_semi_2 === this.bracketResult.winner_semi_2)? pointR2_2= this.bracketResult.point_semi_2 : pointR2_2 = 0;
+      (bracket.winner_semi_2 === this.bracketResult.winner_semi_2) ? pointR2_2 = this.bracketResult.point_semi_2 : pointR2_2 = 0;
 
       let pointWinnerEuro;
-      (bracket.winner_euro === this.bracketResult.winner_euro)? pointWinnerEuro = this.bracketResult.point_final : pointWinnerEuro = 0;
+      (bracket.winner_euro === this.bracketResult.winner_euro) ? pointWinnerEuro = this.bracketResult.point_final : pointWinnerEuro = 0;
 
       point = pointR16_1 + pointR16_2 + pointR16_3 + pointR16_4 + pointR16_5 + pointR16_6 + pointR16_7 + pointR16_8 + pointR4_1 + pointR4_2 + pointR4_3 + pointR4_4 + pointR2_1 + pointR2_2 + pointWinnerEuro;
 
@@ -359,7 +393,7 @@ export class RankingcalculationService {
         point: point
       })
 
-      if(this.bracketRankingObj.length === 45){
+      if (this.bracketRankingObj.length === 45) {
         this.updateBracketRanking(this.bracketRankingObj);
       }
     }
@@ -369,9 +403,9 @@ export class RankingcalculationService {
     // Sort the array by point in descending order, and then by key for consistency
     rankingObj.sort((a, b) => {
       if (b.point !== a.point) {
-          return b.point - a.point; // Sort by point descending
+        return b.point - a.point; // Sort by point descending
       } else {
-          return a.user.localeCompare(b.user); // If points are the same, sort by key ascending
+        return a.user.localeCompare(b.user); // If points are the same, sort by key ascending
       }
     });
 
@@ -379,7 +413,7 @@ export class RankingcalculationService {
     let rank = 1;
     rankingObj.forEach((obj, index) => {
       if (index > 0 && obj.point !== rankingObj[index - 1].point) {
-          rank = index + 1; // Update rank only if the current point is different from the previous
+        rank = index + 1; // Update rank only if the current point is different from the previous
       }
       obj.rank = rank;
       obj.status = 'published'
@@ -401,11 +435,9 @@ export class RankingcalculationService {
         })
       };
 
-      this.http.post(`https://euro.omediainteractive.net/imleuro/items/bracket_rankings`, rankingData, httpOptions).subscribe({
-        next: (response)=>{
-          console.log(response);
-        },
-        error: (error)=>{
+      this.bracketRankingsApiService.createRankings(rankingData, httpOptions).subscribe({
+        next: (response) => {},
+        error: (error) => {
           throw (error.msg)
         }
       });
