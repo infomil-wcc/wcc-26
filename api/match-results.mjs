@@ -80,12 +80,18 @@ export default async function handler(request, response) {
   const adminToken = process.env.DIRECTUS_ADMIN_TOKEN;
   const apiKey = process.env.FOOTBALL_DATA_API_KEY;
 
-  if (request.query?.calc === '1') {
+  // --- NEW/UPDATED PARAMETER CHECKS ---
+  const targetUser = request.query?.points ? request.query.points.replace(/['"]/g, '').trim() : null;
+  const shouldCalcAll = request.query?.calc === '1';
+
+  if (shouldCalcAll || targetUser) {
     try {
-      const debugLogs = await recalculateRankings(directusUrl, adminToken);
+      const debugLogs = await recalculateRankings(directusUrl, adminToken, targetUser);
       return response.status(200).json({
         success: true,
-        message: "Recalculation of predictions for all users completed successfully via manual trigger.",
+        message: targetUser 
+          ? `Recalculation of predictions for user '${targetUser}' completed successfully.`
+          : "Recalculation of predictions for all users completed successfully.",
         calculationLogs: debugLogs
       });
     } catch (calcError) {
@@ -96,6 +102,7 @@ export default async function handler(request, response) {
       });
     }
   }
+  // -------------------------------------
 
   if (!apiKey) {
     return response.status(500).json({ error: "Missing FOOTBALL_DATA_API_KEY environment variable." });
@@ -424,17 +431,19 @@ export default async function handler(request, response) {
   });
 }
 
-async function recalculateRankings(directusUrl, adminToken) {
-  const apiLogs = []; // Array to capture the required logging output
+async function recalculateRankings(directusUrl, adminToken, specificUser = null) {
+  const apiLogs = [];
   try {
-    console.log("Recalculating rankings...");
+    console.log(specificUser ? `Recalculating rankings for ${specificUser}...` : "Recalculating rankings for all users...");
     const headers = { 'Authorization': `Bearer ${adminToken}` };
 
     const matchesRes = await fetch(`${directusUrl}/items/matches?limit=-1`, { headers });
     const matchesData = await matchesRes.json();
     const matches = matchesData.data || [];
 
-    const predictionsRes = await fetch(`${directusUrl}/items/pronostiques?limit=-1`, { headers });
+    // Filter predictions endpoint: if specificUser is provided, query only their records to optimize processing
+    const pronoFilter = specificUser ? `&filter[user][eq]=${specificUser}` : "";
+    const predictionsRes = await fetch(`${directusUrl}/items/pronostiques?limit=-1${pronoFilter}`, { headers });
     const predictionsData = await predictionsRes.json();
     const predictions = predictionsData.data || [];
 
@@ -491,28 +500,50 @@ async function recalculateRankings(directusUrl, adminToken) {
       });
     }
 
-    rankingObj.sort((a, b) => {
-      if (b.point !== a.point) {
-        return b.point - a.point;
+    // Handle structural integration or dynamic rank shifting
+    if (specificUser) {
+      // For a single user recalculation, update/inject their standalone calculated score into the current ranking topology
+      const dynamicRankings = [...existingRankings];
+      const calculatedUser = rankingObj.find(u => u.key === specificUser);
+      
+      if (calculatedUser) {
+        const matchingIndex = dynamicRankings.findIndex(r => r.key === specificUser);
+        if (matchingIndex !== -1) {
+          dynamicRankings[matchingIndex].point = calculatedUser.point;
+        } else {
+          dynamicRankings.push({ key: specificUser, point: calculatedUser.point });
+        }
       }
-      return a.key.localeCompare(b.key);
-    });
+      
+      dynamicRankings.sort((a, b) => b.point - a.point);
+      let runningRank = 1;
+      dynamicRankings.forEach((obj, idx) => {
+        if (idx > 0 && obj.point !== dynamicRankings[idx - 1].point) {
+          runningRank = idx + 1;
+        }
+        if (obj.key === specificUser && calculatedUser) {
+          calculatedUser.rank = runningRank;
+        }
+      });
+    } else {
+      // Global rank assignment across all users
+      rankingObj.sort((a, b) => b.point - a.point || a.key.localeCompare(b.key));
+      let rank = 1;
+      rankingObj.forEach((obj, index) => {
+        if (index > 0 && obj.point !== rankingObj[index - 1].point) {
+          rank = index + 1;
+        }
+        obj.rank = rank;
+      });
+    }
 
-    let rank = 1;
-    rankingObj.forEach((obj, index) => {
-      if (index > 0 && obj.point !== rankingObj[index - 1].point) {
-        rank = index + 1;
-      }
-      obj.rank = rank;
-    });
-
+    // Persist modifications to Directus collections
     for (const player of rankingObj) {
       const rankingRow = {
         key: player.key,
         point: player.point,
         rank: player.rank,
-        status: 'published',
-        pronostiques: player.pronostiques
+        status: 'published'
       };
 
       const existingRow = existingRankings.find(item => item.key === player.key);
@@ -538,13 +569,16 @@ async function recalculateRankings(directusUrl, adminToken) {
       }
     }
 
-    for (const existingItem of existingRankings) {
-      const stillActive = rankingObj.some(player => player.key === existingItem.key);
-      if (!stillActive) {
-        await fetch(`${directusUrl}/items/pronostics_rankings/${existingItem.id}`, {
-          method: 'DELETE',
-          headers: { 'Authorization': `Bearer ${adminToken}` }
-        });
+    // Perform validation and cleanup tasks across unreferenced rows if calculating a full update
+    if (!specificUser) {
+      for (const existingItem of existingRankings) {
+        const stillActive = rankingObj.some(player => player.key === existingItem.key);
+        if (!stillActive) {
+          await fetch(`${directusUrl}/items/pronostics_rankings/${existingItem.id}`, {
+            method: 'DELETE',
+            headers: { 'Authorization': `Bearer ${adminToken}` }
+          });
+        }
       }
     }
 
