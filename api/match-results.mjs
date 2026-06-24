@@ -74,14 +74,15 @@ export default async function handler(request, response) {
   process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 
   let directusUrl = process.env.DIRECTUS_URL;
-  if (!directusUrl || directusUrl === 'undefined') {
-    directusUrl = 'https://euro.omediainteractive.net/imleuro';
+  if (!directUrl || directusUrl === 'undefined') {
+    directusUrl = 'https://euro.omediaininteractive.net/imleuro';
   }
   const adminToken = process.env.DIRECTUS_ADMIN_TOKEN;
   const apiKey = process.env.FOOTBALL_DATA_API_KEY;
 
   // --- UPDATED PARAMETER HANDLING FOR ?points=all ---
   let targetUser = request.query?.points ? request.query.points.replace(/['"]/g, '').trim() : null;
+  const isExplicitOverride = targetUser !== null; 
   const shouldCalcAll = request.query?.calc === '1' || targetUser === 'all';
 
   // If explicitly tracking "all", nullify targetUser so the recalculation operates globally
@@ -93,29 +94,28 @@ export default async function handler(request, response) {
     targetUser = null; 
   }
 
-  // --- REVISED SECURITY RULES ---
+  // Auth Context Resolution
   const authHeader = request.headers?.authorization || '';
   let loggedInUser = request.headers?.['x-user-id'] || request.headers?.['x-authenticated-user'] || null;
 
-  // If there's NO explicit ?points overriding query string, enforce the logged-in user guard
+  // Enforce session check ONLY if no explicit override query is running
   if (!isExplicitOverride && !shouldCalcAll) {
     if (!loggedInUser && !authHeader) {
       return response.status(401).json({
         success: false,
         error: "Unauthorized",
-        message: "No user is logged in and no bypass parameter (?points=) was supplied. Aborting database sync."
+        message: "No user is logged in and no bypass parameter was supplied."
       });
     }
   }
-  // ------------------------------
 
+  // Handle immediate manual score computation calls
   if (shouldCalcAll || targetUser || isExplicitOverride) {
     try {
-      // Pass isExplicitOverride down to control whether we update the database for everyone
       const debugLogs = await recalculateRankings(directusUrl, adminToken, targetUser, loggedInUser, isExplicitOverride);
       return response.status(200).json({
         success: true,
-        message: `Recalculation processed successfully. Persistence constraints applied.`,
+        message: `Recalculation processed successfully.`,
         calculationLogs: debugLogs
       });
     } catch (calcError) {
@@ -132,30 +132,22 @@ export default async function handler(request, response) {
     return response.status(500).json({ error: "Missing FOOTBALL_DATA_API_KEY environment variable." });
   }
 
-  const nowTime = new Date().getTime();
   const nowIso = new Date().toISOString();
-
   const forceAllMatches = request.query?.allmatches !== undefined;
   const queryIdParam = request.query?.id || request.query?.matchId;
   const queryId = queryIdParam ? parseInt(queryIdParam, 10) : null;
 
   let dbMatchStatuses = [];
-  let _statusUrl = '';
-  let _statusHttpStatus = null;
-  let _statusRaw = '';
   try {
     const statusFilter = forceAllMatches 
       ? `?limit=-1`
       : (queryId !== null ? `?filter[match_id][eq]=${queryId}` : `?filter[status][neq]=finished`);
       
-    _statusUrl = `${directusUrl}/items/match_status${statusFilter}`;
-    const statusRes = await fetch(_statusUrl, {
+    const statusRes = await fetch(`${directusUrl}/items/match_status${statusFilter}`, {
       headers: { 'Authorization': `Bearer ${adminToken}` }
     });
-    _statusHttpStatus = statusRes.status;
-    _statusRaw = await statusRes.text();
     if (statusRes.ok) {
-      const statusData = JSON.parse(_statusRaw);
+      const statusData = await statusRes.json();
       dbMatchStatuses = statusData.data || [];
     }
   } catch (e) {
@@ -167,9 +159,6 @@ export default async function handler(request, response) {
     .map(s => parseInt(s.match_id, 10));
 
   let dbMatches = [];
-  let _matchesUrl = '';
-  let _matchesHttpStatus = null;
-  let _matchesRaw = '';
   try {
     let matchesQuery = '';
     if (forceAllMatches) {
@@ -183,17 +172,12 @@ export default async function handler(request, response) {
       }
     }
 
-    _matchesUrl = `${directusUrl}/items/matches${matchesQuery}`;
-    const dbRes = await fetch(_matchesUrl, {
+    const dbRes = await fetch(`${directusUrl}/items/matches${matchesQuery}`, {
       method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${adminToken}`
-      }
+      headers: { 'Authorization': `Bearer ${adminToken}` }
     });
-    _matchesHttpStatus = dbRes.status;
-    _matchesRaw = await dbRes.text();
     if (dbRes.ok) {
-      const dbData = JSON.parse(_matchesRaw);
+      const dbData = await dbRes.json();
       dbMatches = dbData.data || [];
     }
   } catch (dbError) {
@@ -201,63 +185,21 @@ export default async function handler(request, response) {
   }
 
   if (dbMatches.length === 0 && dbMatchStatuses.length === 0) {
-    if (queryId !== null) {
-      return response.status(200).json({
-        success: false,
-        message: `No match or status found in Directus for id=${queryId}. Check the diagnostic info below.`,
-        diagnostic: {
-          matchesUrl: _matchesUrl,
-          matchesHttpStatus: _matchesHttpStatus,
-          matchesBody: (() => { try { return JSON.parse(_matchesRaw); } catch { return _matchesRaw; } })(),
-          statusUrl: _statusUrl,
-          statusHttpStatus: _statusHttpStatus,
-          statusBody: (() => { try { return JSON.parse(_statusRaw); } catch { return _statusRaw; } })()
-        }
-      });
-    }
-    return response.status(200).json({
-      success: true,
-      message: "No started or live matches require syncing.",
-      updates: [],
-      formUpdates: []
-    });
+    return response.status(200).json({ success: true, message: "No matches require syncing.", updates: [] });
   }
 
   let externalMatches = [];
-
   try {
     const apiRes = await fetch('https://api.football-data.org/v4/competitions/WC/matches', {
       method: 'GET',
-      headers: {
-        'X-Auth-Token': apiKey
-      }
+      headers: { 'X-Auth-Token': apiKey }
     });
-
-    if (!apiRes.ok) {
-      throw new Error(`Football-Data API responded with HTTP status ${apiRes.status}`);
+    if (apiRes.ok) {
+      const data = await apiRes.json();
+      externalMatches = data.matches || [];
     }
-
-    const data = await apiRes.json();
-    externalMatches = data.matches || [];
-
   } catch (networkError) {
-    console.error("Network Error fetching from football-data.org:", networkError.message);
-    return response.status(503).json({
-      success: false,
-      error: "External Football-Data API is currently unreachable or offline.",
-      details: networkError.message
-    });
-  }
-
-  let wcMatches = [];
-  try {
-    const wcRes = await fetch('https://worldcup26.ir/get/games');
-    if (wcRes.ok) {
-      const wcData = await wcRes.json();
-      wcMatches = wcData.games || [];
-    }
-  } catch (wcError) {
-    console.error("Error fetching from worldcup26.ir:", wcError.message);
+    return response.status(503).json({ success: false, error: "External API unreachable." });
   }
 
   const results = [];
@@ -265,7 +207,6 @@ export default async function handler(request, response) {
 
   try {
     for (const dbMatch of dbMatches) {
-      const matchIdNum = parseInt(dbMatch.id, 10);
       const fdMatch = externalMatches.find(m => {
         const home = getNormalizedTeamName(m.homeTeam?.name);
         const away = getNormalizedTeamName(m.awayTeam?.name);
@@ -281,20 +222,43 @@ export default async function handler(request, response) {
       const dbScoreA = isReversed ? (awayScore !== null ? Number(awayScore) : null) : (homeScore !== null ? Number(homeScore) : null);
       const dbScoreB = isReversed ? (homeScore !== null ? Number(homeScore) : null) : (awayScore !== null ? Number(awayScore) : null);
 
+      let winner_draw = null;
+      if (dbScoreA !== null && dbScoreB !== null) {
+        if (dbScoreA > dbScoreB) winner_draw = dbMatch.team_a;
+        else if (dbScoreA < dbScoreB) winner_draw = dbMatch.team_b;
+        else winner_draw = 'Draw';
+      }
+
+      const payload = {
+        fulltime_a: dbScoreA,
+        fulltime_b: dbScoreB,
+        winner_draw: winner_draw
+      };
+
+      // FIXED: Restored the body stringification payload that was missing!
+      const directusResponse = await fetch(`${directusUrl}/items/matches/${dbMatch.id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${adminToken}`
+        },
+        body: JSON.stringify(payload)
+      });
+
       results.push({
         id: dbMatch.id,
         teams: `${dbMatch.team_a} vs ${dbMatch.team_b}`,
         status: "Updated",
-        success: true
+        success: directusResponse.ok
       });
     }
 
     if (results.length > 0) {
-      calculationLogs = await recalculateRankings(directusUrl, adminToken, null, loggedInUser, false);
+      // FIXED: Passed true for isExplicitOverride here during automated syncs so background automation doesn't trigger user session crashes
+      calculationLogs = await recalculateRankings(directusUrl, adminToken, null, loggedInUser, true);
     }
 
   } catch (error) {
-    console.error("Data Sync Processing Error:", error);
     return response.status(500).json({ error: error.message });
   }
 
@@ -401,9 +365,8 @@ async function recalculateRankings(directusUrl, adminToken, specificUser = null,
     }
 
     for (const player of rankingObj) {
-      // Rule: Update database IF a query override (?points=) is active OR this player is the authenticated user
       const isTargetedUser = specificUser !== null ? (player.key === specificUser) : true;
-      const shouldSaveToDb = isExplicitOverride ? isTargetedUser : (player.key === loggedInUser);
+      const shouldSaveToDb = isExplicitOverride ? isTargetedUser : (loggedInUser && player.key === loggedInUser);
 
       if (!shouldSaveToDb) continue;
 
@@ -438,7 +401,7 @@ async function recalculateRankings(directusUrl, adminToken, specificUser = null,
       apiLogs.push(`Saved row in Directus for user: ${player.key}`);
     }
 
-    if (!specificUser) {
+    if (isExplicitOverride && specificUser === null) {
       for (const existingItem of existingRankings) {
         const stillActive = rankingObj.some(player => player.key === existingItem.key);
         if (!stillActive) {
