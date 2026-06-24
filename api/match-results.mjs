@@ -310,11 +310,23 @@ export default async function handler(request, response) {
         scorers = combinedGoals;
       }
 
+      let winner_draw = null;
+      if (dbScoreA !== null && dbScoreB !== null) {
+        if (dbScoreA > dbScoreB) {
+          winner_draw = dbMatch.team_a;
+        } else if (dbScoreA < dbScoreB) {
+          winner_draw = dbMatch.team_b;
+        } else {
+          winner_draw = 'Draw';
+        }
+      }
+
       const isFinished = fdMatch.status === "FINISHED";
       const payload = {
         fulltime_a: dbScoreA,
         fulltime_b: dbScoreB,
-        scorers: scorers
+        scorers: scorers,
+        winner_draw: winner_draw
       };
 
       // Update match record in Directus
