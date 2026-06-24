@@ -5,6 +5,16 @@
       <div class="header-title">
         <span class="material-symbols-outlined header-title-icon">sports_esports</span>
         <span class="header-title-text">Pronostic des matchs</span>
+        @if (isLoggedIn) {
+          @if (totalPoints$ | async; as total) {
+            @if (total !== null) {
+              <div class="header-pts-badge">
+                <span class="material-symbols-outlined gold-icon">emoji_events</span>
+                <span class="gold-text">{{ total.value }} <small>pts</small></span>
+              </div>
+            }
+          }
+        }
       </div>
 
       <div class="tab-group">
@@ -221,19 +231,5 @@
   <loader [showLoader]="true" />
 }
 
-<!-- Floating total-points badge — only shown when logged in and matches have been played -->
-@if (isLoggedIn) {
-  @if (totalPoints$ | async; as total) {
-    @if (total !== null) {
-      <div class="floating-pts-dock" id="floating-total-pts">
-        <span class="floating-pts-icon material-symbols-outlined">emoji_events</span>
-        <div class="floating-pts-content">
-          <span class="floating-pts-label">Mes points</span>
-          <span class="floating-pts-value">{{ total }} <small>pts</small></span>
-        </div>
-      </div>
-    }
-  }
-}
 
-</div>
+</div>

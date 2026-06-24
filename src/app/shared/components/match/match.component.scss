@@ -51,26 +51,6 @@
     pointer-events: none;
   }
 
-  // ── Small corner badge shown when a pronostic is saved in the API ──────────
-  .lock-overlay {
-    position: absolute;
-    top: 8px;
-    right: 8px;
-    z-index: 10;
-    background: rgba(15, 23, 42, 0.60);
-    border-radius: 50%;
-    width: 28px;
-    height: 28px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    backdrop-filter: blur(4px);
-
-    .lock-icon {
-      font-size: 0.95rem;
-      color: rgba(255, 255, 255, 0.65);
-    }
-  }
 
   // ── Inline WordArt points display — lives in the VS center column ──────────
   .points-overlay {
@@ -81,21 +61,25 @@
     text-align: center;
     pointer-events: none;
     animation: ptsReveal 0.55s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+    width: auto;
+    min-width: 60px;
+    max-width: 84px;
+    margin: 0 auto;
 
     // Dark navy pill background — keeps the gold legible on any card colour
     background: linear-gradient(160deg, #0a1628 0%, #001040 100%);
     border: 1px solid rgba(255, 215, 0, 0.30);
-    border-radius: 16px;
-    padding: 10px 14px;
+    border-radius: 12px;
+    padding: 6px 10px;
     box-shadow:
-      0 4px 18px rgba(0, 0, 0, 0.45),
+      0 4px 12px rgba(0, 0, 0, 0.45),
       inset 0 1px 0 rgba(255, 215, 0, 0.10);
 
     .points-value {
-      font-size: 2.6rem;
+      font-size: 1.8rem;
       font-weight: 900;
       line-height: 1;
-      letter-spacing: -2px;
+      letter-spacing: -1.5px;
 
       // True gold gradient — light highlight at top, deep amber at bottom
       background: linear-gradient(
@@ -113,20 +97,20 @@
       // Metallic depth via drop-shadow
       filter:
         drop-shadow(0 1px 0 rgba(255, 255, 255, 0.45))
-        drop-shadow(0 3px 8px rgba(120, 70, 0, 0.65));
+        drop-shadow(0 2px 5px rgba(120, 70, 0, 0.65));
     }
 
     .points-unit {
-      font-size: 0.62rem;
+      font-size: 0.55rem;
       font-weight: 800;
       text-transform: uppercase;
-      letter-spacing: 4px;
-      margin-top: 3px;
+      letter-spacing: 2px;
+      margin-top: 1px;
       background: linear-gradient(90deg, #ffd700 0%, #f4b800 50%, #ffd700 100%);
       -webkit-background-clip: text;
       background-clip: text;
       -webkit-text-fill-color: transparent;
-      filter: drop-shadow(0 1px 4px rgba(120, 70, 0, 0.45));
+      filter: drop-shadow(0 1px 2px rgba(120, 70, 0, 0.45));
     }
 
     // Zero points — cool silver tone instead of gold
@@ -165,6 +149,10 @@
   &.closed {
     opacity: 0.7;
     pointer-events: none;
+
+    &.matchPlayed {
+      opacity: 1;
+    }
   }
 
   // Header Segment
@@ -734,6 +722,7 @@
     right: 0;
     bottom: 0;
     z-index: 30;
+    background: rgba(15, 23, 42, 0.05);
     display: flex;
     align-items: center;
     justify-content: center;

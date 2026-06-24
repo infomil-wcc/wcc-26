@@ -393,30 +393,9 @@ export default async function handler(request, response) {
       }
     }
 
-    // If any matches were updated, delete pronostiques_rankings to force recalculation
+    // If any matches were updated, recalculate rankings and populate the pronostics_rankings table
     if (results.length > 0) {
-      try {
-        const rankRes = await fetch(`${directusUrl}/items/pronostiques_rankings?limit=-1`, {
-          headers: { 'Authorization': `Bearer ${adminToken}` }
-        });
-        if (rankRes.ok) {
-          const rankData = await rankRes.json();
-          const ids = (rankData.data || []).map(r => r.id);
-          if (ids.length > 0) {
-            await fetch(`${directusUrl}/items/pronostiques_rankings`, {
-              method: 'DELETE',
-              headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${adminToken}`
-              },
-              body: JSON.stringify(ids)
-            });
-            console.log(`Successfully deleted ${ids.length} pronostiques_rankings records to force leaderboard recalculation.`);
-          }
-        }
-      } catch (err) {
-        console.error("Failed to clear pronostiques_rankings:", err.message);
-      }
+      await recalculateRankings(directusUrl, adminToken);
     }
 
   } catch (error) {
@@ -429,4 +408,205 @@ export default async function handler(request, response) {
     message: `Synchronisation effectuée. ${results.length} match(s) mis à jour.`,
     updates: results
   });
+}
+
+async function recalculateRankings(directusUrl, adminToken) {
+  try {
+    console.log("Recalculating rankings...");
+    const headers = { 'Authorization': `Bearer ${adminToken}` };
+
+    // 1. Fetch matches
+    const matchesRes = await fetch(`${directusUrl}/items/matches?limit=-1`, { headers });
+    const matchesData = await matchesRes.json();
+    const matches = matchesData.data || [];
+
+    // 2. Fetch predictions
+    const predictionsRes = await fetch(`${directusUrl}/items/pronostiques?limit=-1`, { headers });
+    const predictionsData = await predictionsRes.json();
+    const predictions = predictionsData.data || [];
+
+    // 3. Fetch existing rankings
+    const rankingsRes = await fetch(`${directusUrl}/items/pronostics_rankings?limit=-1`, { headers });
+    const rankingsData = await rankingsRes.json();
+    const existingRankings = rankingsData.data || [];
+
+    // Filter to played matches
+    const playedMatches = matches.filter(m => m.fulltime_a !== null && m.fulltime_b !== null);
+
+    // Group predictions by user
+    const userPredictions = {};
+    for (const prono of predictions) {
+      if (!prono.user) continue;
+      if (!userPredictions[prono.user]) {
+        userPredictions[prono.user] = [];
+      }
+      userPredictions[prono.user].push(prono);
+    }
+
+    // Calculate score for each user
+    const rankingObj = [];
+    for (const username of Object.keys(userPredictions)) {
+      let totalPoints = 0;
+      const userPronos = userPredictions[username].map(prono => ({
+        id: prono.id,
+        game_id: prono.game_id,
+        user: prono.user,
+        winner_draw: prono.winner_draw,
+        fulltime_a: prono.fulltime_a,
+        fulltime_b: prono.fulltime_b,
+        halftime_a: prono.halftime_a,
+        halftime_b: prono.halftime_b,
+        scorer: prono.scorer
+      }));
+
+      for (const prono of userPredictions[username]) {
+        const game = playedMatches.find(m => String(m.id) === String(prono.game_id));
+        if (game) {
+          totalPoints += calcResultForRanking(game, prono);
+        }
+      }
+
+      rankingObj.push({
+        key: username,
+        point: totalPoints,
+        pronostiques: userPronos
+      });
+    }
+
+    // Sort by point descending, then by username
+    rankingObj.sort((a, b) => {
+      if (b.point !== a.point) {
+        return b.point - a.point;
+      }
+      return a.key.localeCompare(b.key);
+    });
+
+    // Add ranks
+    let rank = 1;
+    rankingObj.forEach((obj, index) => {
+      if (index > 0 && obj.point !== rankingObj[index - 1].point) {
+        rank = index + 1;
+      }
+      obj.rank = rank;
+    });
+
+    // Upload / Update rows
+    for (const player of rankingObj) {
+      const rankingRow = {
+        key: player.key,
+        point: player.point,
+        rank: player.rank,
+        status: 'published',
+        pronostiques: player.pronostiques
+      };
+
+      const existingRow = existingRankings.find(item => item.key === player.key);
+
+      if (existingRow) {
+        await fetch(`${directusUrl}/items/pronostics_rankings/${existingRow.id}`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${adminToken}`
+          },
+          body: JSON.stringify(rankingRow)
+        });
+      } else {
+        await fetch(`${directusUrl}/items/pronostics_rankings`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${adminToken}`
+          },
+          body: JSON.stringify(rankingRow)
+        });
+      }
+    }
+
+    // Delete deprecated users
+    for (const existingItem of existingRankings) {
+      const stillActive = rankingObj.some(player => player.key === existingItem.key);
+      if (!stillActive) {
+        await fetch(`${directusUrl}/items/pronostics_rankings/${existingItem.id}`, {
+          method: 'DELETE',
+          headers: { 'Authorization': `Bearer ${adminToken}` }
+        });
+      }
+    }
+
+    console.log("Rankings recalculated successfully!");
+  } catch (err) {
+    console.error("Error during ranking recalculation:", err);
+  }
+}
+
+function calcResultForRanking(game, pronostique) {
+  if (!game || !pronostique) return 0;
+  if (game.fulltime_a === null || game.fulltime_b === null) return 0;
+
+  let finalPoint = 0;
+  const winner_point = Number(game.winner_point) || 0;
+  const halftime_point = Number(game.halftime_point) || 0;
+  const fulltime_point = Number(game.fulltime_point) || 0;
+  const scorer_point = Number(game.scorer_point) || 0;
+
+  const halftime_a = pronostique.halftime_a;
+  const halftime_b = pronostique.halftime_b;
+  const fulltime_a = pronostique.fulltime_a;
+  const fulltime_b = pronostique.fulltime_b;
+  const winner_draw = pronostique.winner_draw;
+  const scorers = pronostique.scorer;
+
+  // Group Stage Calculation
+  if (game.phase === 'Group Stage') {
+    let point = (game.winner_draw === winner_draw) ? winner_point : 0;
+    finalPoint += point;
+  }
+
+  // Round of 16
+  if (game.phase === 'Round of 16') {
+    let winnerPoint = (game.winner_draw === winner_draw) ? winner_point : 0;
+    let fulltimePoint = (parseInt(game.fulltime_a) === parseInt(fulltime_a) && parseInt(game.fulltime_b) === parseInt(fulltime_b)) ? fulltime_point : 0;
+    finalPoint += winnerPoint + fulltimePoint;
+  }
+
+  // Quarter finals, Semis, Final
+  if (['Quarter-finals', 'Semi-finals', 'Final'].includes(game.phase)) {
+    let winnerPoint = (game.winner_draw === winner_draw) ? winner_point : 0;
+    let fulltimePoint = (parseInt(game.fulltime_a) === parseInt(fulltime_a) && parseInt(game.fulltime_b) === parseInt(fulltime_b)) ? fulltime_point : 0;
+    let halftimePoint = (parseInt(game.halftime_a) === parseInt(halftime_a) && parseInt(game.halftime_b) === parseInt(halftime_b)) ? halftime_point : 0;
+
+    let gamescorers = [];
+    if (game.scorers) {
+      gamescorers = parseScorersStringForRanking(game.scorers);
+    }
+    let scorerPoint = (gamescorers.includes(scorers)) ? scorer_point : 0;
+
+    finalPoint += winnerPoint + fulltimePoint + halftimePoint + scorerPoint;
+  }
+
+  return finalPoint;
+}
+
+function parseScorersStringForRanking(scorersStr) {
+  if (!scorersStr || scorersStr === 'null' || scorersStr === '') return [];
+  let cleanStr = scorersStr.replace(/[“”]/g, '"');
+  let arr = [];
+  try {
+    const parsed = JSON.parse(cleanStr);
+    if (Array.isArray(parsed)) {
+      arr = parsed.map(e => e.player?.name || e.scorer?.name).filter(Boolean);
+    } else {
+      const matches = cleanStr.match(/"([^"\\]*(?:\\.[^"\\]*)*)"/g);
+      if (matches) {
+        arr = matches.map(m => m.replace(/^"|"$/g, ''));
+      }
+    }
+  } catch (e) {
+    const matches = cleanStr.match(/"([^"\\]*(?:\\.[^"\\]*)*)"/g);
+    if (matches) {
+      arr = matches.map(m => m.replace(/^"|"$/g, ''));
+    }
+  }
+  return arr.map(s => s.trim());
 }

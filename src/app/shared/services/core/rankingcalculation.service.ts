@@ -7,7 +7,7 @@ import { MatchesService } from '../content/matches.service';
 import { Matches } from '../../contracts/matches.contract';
 import { Pronostiques, pronostiquesApiData } from '../../contracts/pronostiques.contract';
 import { AuthService } from './auth.service';
-import { PronostiquesRankingsApiService } from '../api/pronostiques-rankings-api.service';
+import { PronosticsRankingsApiService } from '../api/pronostics-rankings-api.service';
 import { BracketRankingsApiService } from '../api/bracket-rankings-api.service';
 import { BracketApiService } from '../api/bracket-api.service';
 import { BracketResultApiService } from '../api/bracket-result-api.service';
@@ -34,7 +34,7 @@ interface result {
 })
 export class RankingcalculationService {
 
-  private pronostiquesRankingsApiService = inject(PronostiquesRankingsApiService);
+  private pronosticsRankingsApiService = inject(PronosticsRankingsApiService);
   private bracketRankingsApiService = inject(BracketRankingsApiService);
   private bracketApiService = inject(BracketApiService);
   private bracketResultApiService = inject(BracketResultApiService);
@@ -53,7 +53,7 @@ export class RankingcalculationService {
   }
 
   getCurrentrankings(): Observable<any> {
-    return this.pronostiquesRankingsApiService.getRankings().pipe(
+    return this.pronosticsRankingsApiService.getRankings().pipe(
       map(response => response.data));
   }
 
@@ -140,8 +140,6 @@ export class RankingcalculationService {
   }
 
   private calcRanking(pronostiques: any): void {
-
-
     this.getMatchesPlayed().subscribe({
       next: (playedMatches: any) => {
         let rankingObj: any[] = [];
@@ -150,11 +148,23 @@ export class RankingcalculationService {
 
         keys.forEach((key) => {
           let point = 0;
+          const userPronos = pronostiques[key].map((prono: any) => ({
+            id: prono.id,
+            game_id: prono.game_id,
+            user: prono.user,
+            winner_draw: prono.winner_draw,
+            fulltime_a: prono.fulltime_a,
+            fulltime_b: prono.fulltime_b,
+            halftime_a: prono.halftime_a,
+            halftime_b: prono.halftime_b,
+            scorer: prono.scorer
+          }));
+
           pronostiques[key].forEach((prono: any) => {
             point = this.calcResult(prono.game_id, prono, resultMatches) + point;
           });
 
-          rankingObj.push({ key, point });
+          rankingObj.push({ key, point, pronostiques: userPronos });
         });
 
         this.updateRanking(rankingObj);
@@ -284,14 +294,8 @@ export class RankingcalculationService {
         rank = index + 1; // Update rank only if the current point is different from the previous
       }
       obj.rank = rank;
-      obj.status = 'published'
+      obj.status = 'published';
     });
-
-
-    let rankingData = {
-      status: 'published',
-      ranking_json: rankingObj
-    }
 
     let token = this.rankingToken;
 
@@ -303,36 +307,35 @@ export class RankingcalculationService {
         })
       };
 
-      this.pronostiquesRankingsApiService.getRankings('', httpOptions).subscribe({
+      this.pronosticsRankingsApiService.getRankings('', httpOptions).subscribe({
         next: (response) => {
           const list = response?.data || response || [];
-          if (list.length > 0) {
-            const targetId = list[0].id;
-            this.pronostiquesRankingsApiService.updateRankings(targetId, rankingData, httpOptions).subscribe({
-              next: (res) => console.log('Ranking updated successfully:', res),
-              error: (err) => console.error('Error updating ranking:', err)
-            });
+          
+          rankingObj.forEach(player => {
+            const rankingRow = {
+              key: player.key,
+              point: player.point,
+              rank: player.rank,
+              status: 'published'
+            };
 
-            // Delete extra entries to keep only one line in the table
-            for (let i = 1; i < list.length; i++) {
-              this.pronostiquesRankingsApiService.deleteRankings(list[i].id, httpOptions).subscribe({
-                next: () => console.log(`Deleted extra ranking: ${list[i].id}`),
-                error: (err) => console.error(`Error deleting extra ranking: ${list[i].id}`, err)
-              });
+            const existingRow = list.find((item: any) => item.key === player.key);
+            if (existingRow) {
+              this.pronosticsRankingsApiService.updateRanking(existingRow.id, rankingRow, httpOptions).subscribe({});
+            } else {
+              this.pronosticsRankingsApiService.createRanking(rankingRow, httpOptions).subscribe({});
             }
-          } else {
-            this.pronostiquesRankingsApiService.createRankings(rankingData, httpOptions).subscribe({
-              next: (res) => console.log('Ranking created successfully:', res),
-              error: (err) => console.error('Error creating ranking:', err)
-            });
-          }
-        },
-        error: (error) => {
-          this.pronostiquesRankingsApiService.createRankings(rankingData, httpOptions).subscribe({
-            next: (res) => console.log('Ranking created on fallback:', res),
-            error: (err) => console.error(err)
           });
-        }
+
+          // Delete rows for users who no longer have rankings/predictions
+          list.forEach((existingItem: any) => {
+            const stillActive = rankingObj.some(player => player.key === existingItem.key);
+            if (!stillActive) {
+              this.pronosticsRankingsApiService.deleteRanking(existingItem.id, httpOptions).subscribe({});
+            }
+          });
+        },
+        error: (error) => {}
       });
     }
   }
@@ -440,9 +443,7 @@ export class RankingcalculationService {
       };
 
       this.bracketRankingsApiService.createRankings(rankingData, httpOptions).subscribe({
-        next: (response) => {
-          console.log(response);
-        },
+        next: (response) => {},
         error: (error) => {
           throw (error.msg)
         }

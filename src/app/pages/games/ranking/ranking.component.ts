@@ -7,6 +7,7 @@ import { BracketService } from '../../../shared/services/games/bracket.service';
 import { TeamsService } from '../../../shared/services/content/teams.service';
 import { NgClass, UpperCasePipe, DatePipe } from '@angular/common';
 import { LoaderComponent } from '../../../shared/components/loader/loader.component';
+import { RankingsService } from '../../../shared/services/content/rankings.service';
 
 @Component({
   selector: 'app-ranking',
@@ -18,6 +19,7 @@ import { LoaderComponent } from '../../../shared/components/loader/loader.compon
 export class RankingComponent implements OnInit, OnDestroy {
 
   private rankCalcService = inject(RankingcalculationService);
+  private rankingsService = inject(RankingsService);
   private globalTime = inject(GlobaltimeService);
   private http = inject(HttpClient);
   private bracketService = inject(BracketService);
@@ -38,22 +40,25 @@ export class RankingComponent implements OnInit, OnDestroy {
   private bracketSub!: Subscription;
   private flagsSub!: Subscription;
   ngOnInit():void {
-    this.$ranks = this.rankCalcService.getCurrentrankings();
-    this.$bracketRanks = this.rankCalcService.getBracketRankings();
+    this.$ranks = this.rankingsService.getPronosticsRankings();
+    this.$bracketRanks = this.rankingsService.getBracketRankings();
 
     this.ranksSub = this.$ranks.subscribe({
       next: (response)=>{
-        if(response.length < 1){
+        if(!response || response.length < 1){
           this.updateRanks();
           setTimeout(() => {
             location.reload();
           }, 3000);
         }
 
-        let idx = response.length - 1;
-        this.latestRank = response[idx];
-
-        if(this.latestRank){
+        if (response && response.length > 0) {
+          // Sort by rank ascending
+          response.sort((a: any, b: any) => (a.rank || 1) - (b.rank || 1));
+          this.latestRank = {
+            ranking_json: response,
+            modified_on: response[0].modified_on || new Date()
+          };
           this.showLoader = false;
         }
         this.cdr.detectChanges();
