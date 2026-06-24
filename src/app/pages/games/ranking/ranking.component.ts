@@ -8,6 +8,7 @@ import { TeamsService } from '../../../shared/services/content/teams.service';
 import { NgClass, UpperCasePipe, DatePipe } from '@angular/common';
 import { LoaderComponent } from '../../../shared/components/loader/loader.component';
 import { RankingsService } from '../../../shared/services/content/rankings.service';
+import { StateService } from '../../../shared/services/core/state.service';
 
 @Component({
   selector: 'app-ranking',
@@ -20,6 +21,7 @@ export class RankingComponent implements OnInit, OnDestroy {
 
   private rankCalcService = inject(RankingcalculationService);
   private rankingsService = inject(RankingsService);
+  private stateService = inject(StateService);
   private globalTime = inject(GlobaltimeService);
   private http = inject(HttpClient);
   private bracketService = inject(BracketService);
@@ -35,11 +37,20 @@ export class RankingComponent implements OnInit, OnDestroy {
   protected activeTab: 'prediction' | 'bracket' = 'prediction';
   protected userChampions: { [username: string]: string } = {};
   protected flags: any[] = [];
+  protected currentUserTrigramme: string = '';
 
   private ranksSub!: Subscription;
   private bracketSub!: Subscription;
   private flagsSub!: Subscription;
+  private userSub!: Subscription;
   ngOnInit():void {
+    this.userSub = this.stateService.userState.subscribe({
+      next: (user) => {
+        this.currentUserTrigramme = user.last_name || '';
+        this.cdr.detectChanges();
+      }
+    });
+
     this.$ranks = this.rankingsService.getPronosticsRankings();
     this.$bracketRanks = this.rankingsService.getBracketRankings();
 
@@ -164,6 +175,27 @@ export class RankingComponent implements OnInit, OnDestroy {
     return rank1Count === 1 && rank2Count === 1 && rank3Count === 1;
   }
 
+  get shouldPinCurrentUser(): boolean {
+    if (!this.currentUserTrigramme) return false;
+    const list = this.activeList;
+    if (list.length === 0) return false;
+
+    // Check if the current user is in the active list
+    const userIndex = list.findIndex(player => {
+      const name = (player.key || player.user || '').toLowerCase().trim();
+      return name === this.currentUserTrigramme.toLowerCase().trim();
+    });
+
+    if (userIndex === -1) return false;
+
+    // "Do not do this if the podium is visible and and that I am on the podium"
+    if (this.showPodium && userIndex < 3) {
+      return false;
+    }
+
+    return true;
+  }
+
   switchTab(tab: 'prediction' | 'bracket'): void {
     this.activeTab = tab;
     this.cdr.detectChanges();
@@ -184,5 +216,6 @@ export class RankingComponent implements OnInit, OnDestroy {
     if (this.ranksSub) this.ranksSub.unsubscribe();
     if (this.bracketSub) this.bracketSub.unsubscribe();
     if (this.flagsSub) this.flagsSub.unsubscribe();
+    if (this.userSub) this.userSub.unsubscribe();
   }
 }

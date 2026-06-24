@@ -385,5 +385,60 @@
       color: #ffffff;
       font-weight: 800;
     }
+
+    &.pinned-user-row {
+      position: sticky;
+      bottom: 16px;
+      z-index: 47;
+      background: linear-gradient(135deg, #00367d 0%, #001a45 100%) !important;
+      border: 2.5px solid #ffd700 !important;
+      border-bottom: 2.5px solid #ffd700 !important;
+      box-shadow: 0 10px 25px rgba(255, 215, 0, 0.35);
+      animation: pinned-pulse 2s infinite alternate;
+      margin-top: 8px;
+      margin-bottom: 8px;
+
+      // Wider and bigger styles
+      padding: 0.95rem 1.25rem !important; // Larger padding to feel bigger
+      margin-left: -12px !important; // Pull outward to make it wider than the card list
+      margin-right: -12px !important;
+      width: calc(100% + 24px) !important;
+      border-radius: 14px;
+
+      .row-rank {
+        font-size: 1.05rem !important;
+        color: #ffd700 !important; // Highlight rank with gold color
+      }
+
+      .row-avatar {
+        width: 48px !important;
+        height: 48px !important;
+        border-color: rgba(255, 215, 0, 0.5) !important;
+      }
+
+      .row-username {
+        font-size: 1.15rem !important;
+      }
+
+      .row-pts {
+        font-size: 1.25rem !important;
+        text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+      }
+
+      &:hover {
+        background: linear-gradient(135deg, #004094 0%, #002259 100%) !important;
+      }
+    }
+  }
+}
+
+@keyframes pinned-pulse {
+  0% {
+    box-shadow: 0 6px 15px rgba(255, 215, 0, 0.2);
+    transform: scale(1);
+  }
+  100% {
+    box-shadow: 0 8px 25px rgba(255, 215, 0, 0.4);
+    transform: scale(1.01);
   }
 }
