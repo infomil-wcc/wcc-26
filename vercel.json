@@ -21,11 +21,14 @@
   "functions": {
     "api/match-results.mjs": {
       "maxDuration": 60
+    },
+    "api/match-scheduler.mjs": {
+      "maxDuration": 60
     }
   },
   "crons": [
     {
-      "path": "/api/match-results",
+      "path": "/api/match-scheduler",
       "schedule": "0 12 * * *"
     }
   ]
