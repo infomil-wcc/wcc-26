@@ -169,7 +169,7 @@ export class MatchComponent implements OnInit, OnDestroy {
   }
 
   protected openTacticalLineup(): void {
-    if (this.disabled || this.isSubmitting || this.closed || this.isSavedInApi) {
+    if (this.disabled || this.isSubmitting || (!this.isEditing && (this.match.fulltime || this.isSavedInApi || this.closed))) {
       return;
     }
     this.showTacticalModal = true;
@@ -241,8 +241,8 @@ export class MatchComponent implements OnInit, OnDestroy {
   }
 
   get canEditPrediction(): boolean {
-    return !this.disabled && !this.isSubmitting && !this.closed && !this.match.fulltime &&
-      (!this.isSavedInApi || !this.isEditing);
+    return !this.disabled && !this.isSubmitting && (!this.closed || this.isEditing) && !this.match.fulltime &&
+      (!this.isSavedInApi || this.isEditing);
   }
 
   onHalftimeScoreChanged(): void {
@@ -289,7 +289,10 @@ export class MatchComponent implements OnInit, OnDestroy {
       winner_draw: currentOutcome,
     }
 
-    if (this.donePronostique && this.donePronostique.id) {
+    const existingDraft = this.predictionService.getDrafts().find(d => d.game_id === this.match.id);
+    if (existingDraft?.id) {
+      prediction.id = existingDraft.id;
+    } else if (this.donePronostique && this.donePronostique.id) {
       prediction.id = this.donePronostique.id;
     }
 
@@ -324,7 +327,7 @@ export class MatchComponent implements OnInit, OnDestroy {
 
         if (draft) {
           this.pronostiqueDone = true;
-          this.donePronostique = draft;
+          this.donePronostique = { ...draft };
           this.matchOutcome = draft.winner_draw;
           this.fullTimeA = (draft.fulltime_a !== null && draft.fulltime_a !== undefined && draft.fulltime_a !== '') ? parseInt(draft.fulltime_a, 10) : null;
           this.fullTimeB = (draft.fulltime_b !== null && draft.fulltime_b !== undefined && draft.fulltime_b !== '') ? parseInt(draft.fulltime_b, 10) : null;
@@ -332,6 +335,12 @@ export class MatchComponent implements OnInit, OnDestroy {
           this.halfTimeB = (draft.halftime_b !== null && draft.halftime_b !== undefined && draft.halftime_b !== '') ? parseInt(draft.halftime_b, 10) : null;
           this.scorer = draft.scorer || '';
           this.isSavedInApi = response.length > 0;
+
+          if (response.length > 0 && response[0].id && !draft.id) {
+            draft.id = response[0].id;
+            this.donePronostique.id = response[0].id;
+            this.predictionService.addDraft(draft);
+          }
         } else if (response.length > 0) {
           this.pronostiqueDone = true;
           this.isSavedInApi = true;
@@ -534,11 +543,12 @@ export class MatchComponent implements OnInit, OnDestroy {
   }
 
   modifierPronostic(): void {
-    if (this.closed || this.match.fulltime_a !== null || this.match.fulltime_b !== null) {
+    if (this.match.fulltime_a !== null || this.match.fulltime_b !== null) {
       return;
     }
 
     this.isEditing = true;
+    this.disabled = false;
     console.log('editing pronostic for match', this.match.id);
   }
 

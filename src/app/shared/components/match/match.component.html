@@ -184,12 +184,12 @@
                   </div>
                   @if (match.halftime) {
                     <div class="score-col">
-                      <app-number-input [(num)]="halfTimeA" (numChange)="onHalftimeScoreChanged()" [disabled]="disabled || isSubmitting || match.fulltime || (isSavedInApi && !isEditing) || closed"></app-number-input>
+                      <app-number-input [(num)]="halfTimeA" (numChange)="onHalftimeScoreChanged()" [disabled]="disabled || isSubmitting || (!isEditing && (match.fulltime || isSavedInApi || closed))"></app-number-input>
                     </div>
                   }
                   @if (match.fulltime) {
                     <div class="score-col">
-                      <app-number-input [(num)]="fullTimeA" (numChange)="onScoreChanged()" [disabled]="disabled || isSubmitting || match.fulltime || (isSavedInApi && !isEditing) || closed"></app-number-input>
+                      <app-number-input [(num)]="fullTimeA" (numChange)="onScoreChanged()" [disabled]="disabled || isSubmitting || (!isEditing && (match.fulltime || isSavedInApi || closed))"></app-number-input>
                     </div>
                   }
                 </div>
@@ -202,12 +202,12 @@
                   </div>
                   @if (match.halftime) {
                     <div class="score-col">
-                      <app-number-input [(num)]="halfTimeB" (numChange)="onHalftimeScoreChanged()" [disabled]="disabled || isSubmitting || match.fulltime || (isSavedInApi && !isEditing) || closed"></app-number-input>
+                      <app-number-input [(num)]="halfTimeB" (numChange)="onHalftimeScoreChanged()" [disabled]="disabled || isSubmitting || (!isEditing && (match.fulltime || isSavedInApi || closed))"></app-number-input>
                     </div>
                   }
                   @if (match.fulltime) {
                     <div class="score-col">
-                      <app-number-input [(num)]="fullTimeB" (numChange)="onScoreChanged()" [disabled]="disabled || isSubmitting || match.fulltime || (isSavedInApi && !isEditing) || closed"></app-number-input>
+                      <app-number-input [(num)]="fullTimeB" (numChange)="onScoreChanged()" [disabled]="disabled || isSubmitting || (!isEditing && (match.fulltime || isSavedInApi || closed))"></app-number-input>
                     </div>
                   }
                 </div>
@@ -220,7 +220,7 @@
                   <button class="btn btn-select-scorer w-full flex align-items-center justify-content-center gap-2 py-2" 
                     [ngClass]="{'btn-warning-outline': !scorer || scorer === '-'}"
                     (click)="openTacticalLineup()" 
-                    [disabled]="!canEditPrediction">
+                    [disabled]="disabled || isSubmitting || (!isEditing && (match.fulltime || isSavedInApi || closed))">
                     <span class="material-symbols-outlined" style="font-size: 1.1rem; vertical-align: middle;">sports_soccer</span>
                     Choisir un buteur
                   </button>
@@ -304,7 +304,7 @@
               }
             }
 
-            @if(donePronostique && match.fulltime_a === null && match.fulltime_b === null && !isEditing) {
+            @if(donePronostique && match.fulltime_a === null && match.fulltime_b === null && !isEditing && match.phase !== 'Group Stage') {
               <button class="btnEditpronostic flex align-items-center" (click)="modifierPronostic()">Modifier mon pronostic<i class="material-symbols-outlined">edit</i></button>
             }
           </div>

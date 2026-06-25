@@ -331,7 +331,7 @@ export class PronostiquesComponent implements OnInit {
       next: () => {
         this.predictionService.clearDrafts();
         this.isSubmittingBulk = false;
-        location.reload();
+        // location.reload();
       },
       error: (err) => {
         console.error('Error during bulk submit:', err);
