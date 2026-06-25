@@ -314,6 +314,13 @@ export default async function handler(request, response) {
         });
       }
 
+      // Check and update Round of 32 participants based on Group Standings
+      try {
+        await autoAdvanceRoundOf32(directusUrl, adminToken);
+      } catch (advanceErr) {
+        console.error("Failed to advance Round of 32 matches automatically:", advanceErr.message);
+      }
+
       // Recalculate rankings based on parameters
       if (shouldSyncAndCalcAll) {
         calculationLogs = await recalculateRankings(directusUrl, adminToken, null, loggedInUser, true);
@@ -341,6 +348,125 @@ export default async function handler(request, response) {
     updates: results,
     calculationLogs: calculationLogs
   });
+}
+
+export async function autoAdvanceRoundOf32(directusUrl, adminToken) {
+  const headers = { 'Authorization': `Bearer ${adminToken}` };
+  
+  // 1. Fetch all matches
+  const matchesRes = await fetch(`${directusUrl}/items/matches?limit=-1`, { headers });
+  if (!matchesRes.ok) return;
+  const matchesData = await matchesRes.ok ? await matchesRes.json() : {};
+  const allMatches = matchesData.data || [];
+
+  // Group Stage matches
+  const groupMatches = allMatches.filter(m => m.phase === 'Group Stage');
+  const r32Matches = allMatches.filter(m => m.phase === 'Round of 32');
+
+  if (groupMatches.length === 0 || r32Matches.length === 0) return;
+
+  // 2. Compute group tables/standings
+  // Groups from A to L
+  const groups = ['Group A', 'Group B', 'Group C', 'Group D', 'Group E', 'Group F', 'Group G', 'Group H', 'Group I', 'Group J', 'Group K', 'Group L'];
+  
+  for (const groupName of groups) {
+    const matchesInGroup = groupMatches.filter(m => m.group === groupName);
+    const playedInGroup = matchesInGroup.filter(m => m.fulltime_a !== null && m.fulltime_b !== null);
+
+    // Safeguard: Need more than 2 matches played in the group to determine standing stability
+    if (playedInGroup.length <= 2) continue;
+
+    // Calculate standings points for each team in the group
+    const standings = {};
+    for (const m of matchesInGroup) {
+      if (!standings[m.team_a]) standings[m.team_a] = { team: m.team_a, points: 0, gd: 0, played: 0 };
+      if (!standings[m.team_b]) standings[m.team_b] = { team: m.team_b, points: 0, gd: 0, played: 0 };
+
+      if (m.fulltime_a !== null && m.fulltime_b !== null) {
+        standings[m.team_a].played += 1;
+        standings[m.team_b].played += 1;
+        const scoreA = Number(m.fulltime_a);
+        const scoreB = Number(m.fulltime_b);
+        standings[m.team_a].gd += (scoreA - scoreB);
+        standings[m.team_b].gd += (scoreB - scoreA);
+
+        if (scoreA > scoreB) {
+          standings[m.team_a].points += 3;
+        } else if (scoreA < scoreB) {
+          standings[m.team_b].points += 3;
+        } else {
+          standings[m.team_a].points += 1;
+          standings[m.team_b].points += 1;
+        }
+      }
+    }
+
+    const teamList = Object.values(standings).sort((a, b) => b.points - a.points || b.gd - a.gd || a.team.localeCompare(b.team));
+    if (teamList.length < 2) continue;
+
+    // 3. Determine if Winner/Runner-up has been mathematically defined
+    // Total matches in a 4-team group is 6 (each team plays 3 matches).
+    // Remaining points check:
+    const getWinnerRunnerUp = () => {
+      let winner = null;
+      let runnerUp = null;
+
+      const first = teamList[0];
+      const second = teamList[1];
+      const third = teamList[2];
+      const fourth = teamList[3];
+
+      // A winner is mathematically defined if the 1st place team is more than 3 points ahead of the 3rd place team
+      // (as 3rd place team can gain at most 3 points in their last match).
+      if (first.points - third.points > 3) {
+        winner = first.team;
+      }
+      // A runner-up is mathematically defined if the 2nd place team is more than 3 points ahead of the 3rd place team,
+      // meaning 3rd place cannot catch up to 2nd.
+      if (second.points - third.points > 3) {
+        runnerUp = second.team;
+      }
+
+      return { winner, runnerUp };
+    };
+
+    const { winner, runnerUp } = getWinnerRunnerUp();
+    const groupLetter = groupName.split(' ')[1]; // A, B, C...
+
+    // 4. Update the corresponding Round of 32 placeholder match slots in Directus
+    for (const r32 of r32Matches) {
+      let updatedPayload = null;
+
+      if (winner) {
+        const placeholder = `Group ${groupLetter} Winner`;
+        if (r32.team_a === placeholder) {
+          updatedPayload = { team_a: winner };
+        } else if (r32.team_b === placeholder) {
+          updatedPayload = { team_b: winner };
+        }
+      }
+
+      if (runnerUp) {
+        const placeholder = `Group ${groupLetter} Runner-up`;
+        if (r32.team_a === placeholder) {
+          updatedPayload = { team_a: runnerUp };
+        } else if (r32.team_b === placeholder) {
+          updatedPayload = { team_b: runnerUp };
+        }
+      }
+
+      if (updatedPayload) {
+        await fetch(`${directusUrl}/items/matches/${r32.id}`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${adminToken}`
+          },
+          body: JSON.stringify(updatedPayload)
+        });
+      }
+    }
+  }
 }
 
 
