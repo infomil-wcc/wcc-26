@@ -101,8 +101,7 @@
         </button>
         <button class="btn-tab flex align-items-center justify-content-center px-4 py-3 gap-3"
           [ngClass]="{'active': activeTab === 'bracket'}"
-          (click)="switchTab('bracket')"
-          [style.display]="'none'">
+          (click)="switchTab('bracket')">
           <img src="assets/jeu-bracket.png" alt="Bracket" class="tab-logo" />
           <span class="tab-label">Jeu bracket</span>
         </button>
@@ -110,7 +109,7 @@
       </div>
 
       <!-- Players Table -->
-      @if (activeTab === 'prediction') {
+      @if (activeTab === 'prediction' || activeTab === 'bracket') {
         <div class="table-container text-left">
           <div class="table-header flex justify-content-between px-3 py-2 text-xs font-bold uppercase tracking-wider text-white-alpha-50 mb-2">
             <div class="col-head-player"># Player</div>
