@@ -1,22 +1,5 @@
 import { handleCors } from './utils.mjs';
-import { teamNameMap } from './mappings.mjs';
-
-// --- TOURNAMENT PHASE MAPPING ---
-const phaseMap = {
-  "group": "Group Stage",
-  "group_stage": "Group Stage",
-  "r32": "Round of 32",
-  "last_32": "Round of 32",
-  "r16": "Round of 16",
-  "last_16": "Round of 16",
-  "qf": "Quarter-finals",
-  "quarter_finals": "Quarter-finals",
-  "sf": "Semi-finals",
-  "semi_finals": "Semi-finals",
-  "third": "Third Place",
-  "third_place": "Third Place",
-  "final": "Final"
-};
+import { teamNameMap, phaseMap } from './mappings.mjs';
 
 export function getNormalizedTeamName(externalName) {
   if (!externalName) return null;
@@ -54,7 +37,7 @@ export function getWcGameApproxUtcTime(localDateStr) {
 export function parseScorersString(scorersStr, teamName) {
   if (!scorersStr || scorersStr === 'null' || scorersStr === '') return [];
   let cleanStr = scorersStr.replace(/[“”]/g, '"');
-  
+
   let arr = [];
   try {
     const parsed = JSON.parse(cleanStr);
@@ -131,13 +114,24 @@ export default async function handler(request, response) {
 
   // Safe query extraction fallback
   const queryData = request.query || {};
-  let targetUser = queryData.points ? queryData.points.replace(/['"]/g, '').trim() : null;
-  const isExplicitOverride = targetUser !== null; 
-  const shouldCalcAll = queryData.calc === '1' || targetUser === 'all';
 
-  if (targetUser === 'all') {
-    targetUser = null; 
-  }
+  // Extract query parameters
+  const matchesParam = queryData.matches ? queryData.matches.replace(/['"]/g, '').trim() : null;
+  const pointsParam = queryData.points ? queryData.points.replace(/['"]/g, '').trim() : null;
+
+  // Combination: ?matches=all&points=all
+  const shouldSyncAndCalcAll = (matchesParam === 'all' && pointsParam === 'all');
+
+  // Recalculate options
+  const shouldCalcAll = (pointsParam === 'all' && matchesParam !== 'all');
+  let targetUser = (pointsParam && pointsParam !== 'all') ? pointsParam : null;
+
+  // Match Sync options (if not combination)
+  const shouldSyncMatches = matchesParam !== null && !shouldSyncAndCalcAll;
+  const syncMatchId = (matchesParam && matchesParam !== 'all') ? parseInt(matchesParam, 10) : null;
+
+  // Check if force bypass params exist to allow unauthorized requests
+  const isExplicitOverride = matchesParam !== null || pointsParam !== null;
 
   // FIXED: Bulletproof fallback headers wrapper object to stop Vercel Invocation crashes
   const headersData = request.headers || {};
@@ -145,7 +139,7 @@ export default async function handler(request, response) {
   let loggedInUser = headersData['x-user-id'] || headersData['x-authenticated-user'] || null;
 
   // Enforce session check ONLY if no explicit override query is running
-  if (!isExplicitOverride && !shouldCalcAll) {
+  if (!isExplicitOverride) {
     if (!loggedInUser && !authHeader) {
       return response.status(401).json({
         success: false,
@@ -155,47 +149,200 @@ export default async function handler(request, response) {
     }
   }
 
-  if (shouldCalcAll || targetUser || isExplicitOverride) {
-    try {
-      const debugLogs = await recalculateRankings(directusUrl, adminToken, targetUser, loggedInUser, isExplicitOverride);
-      return response.status(200).json({
-        success: true,
-        message: `Recalculation processed successfully.`,
-        calculationLogs: debugLogs
-      });
-    } catch (calcError) {
-      return response.status(500).json({
-        success: false,
-        error: "Failed manual ranking recalculation",
-        details: calcError.message
-      });
-    }
-  }
-  // --------------------------------------------------
-
   if (!apiKey) {
     return response.status(500).json({ error: "Missing FOOTBALL_DATA_API_KEY environment variable." });
   }
 
-  // Keep it active solely for recalculation triggers and queries
-  const nowIso = new Date().toISOString();
   const results = [];
   let calculationLogs = [];
 
   try {
-    // If a request needs recalculation, it's done directly
-    calculationLogs = await recalculateRankings(directusUrl, adminToken, targetUser, loggedInUser, isExplicitOverride);
+    const headers = { 'Authorization': `Bearer ${adminToken}` };
+
+    if (shouldSyncAndCalcAll || shouldSyncMatches) {
+      // 1. Fetch matches from Directus
+      let dbMatches = [];
+      if (syncMatchId) {
+        const dbMatchRes = await fetch(`${directusUrl}/items/matches/${syncMatchId}`, { headers });
+        if (dbMatchRes.ok) {
+          const dbMatchData = await dbMatchRes.json();
+          if (dbMatchData.data) dbMatches.push(dbMatchData.data);
+        }
+      } else {
+        const dbRes = await fetch(`${directusUrl}/items/matches?limit=-1`, { headers });
+        if (!dbRes.ok) {
+          throw new Error(`Directus list matches lookup failed: ${dbRes.statusText}`);
+        }
+        const dbData = await dbRes.json();
+        dbMatches = dbData.data || [];
+      }
+
+      // 2. Fetch external scores from football-data
+      let externalMatches = [];
+      try {
+        const apiRes = await fetch('https://api.football-data.org/v4/competitions/WC/matches', {
+          headers: { 'X-Auth-Token': apiKey }
+        });
+        if (apiRes.ok) {
+          const data = await apiRes.json();
+          externalMatches = data.matches || [];
+        }
+      } catch (fdErr) {
+        console.error("Failed to fetch football-data.org in match-results:", fdErr.message);
+      }
+
+      // 3. Fetch external scorers from worldcup26.ir
+      let wcGames = [];
+      try {
+        const wcRes = await fetch('https://worldcup26.ir/get/games', {
+          headers: {
+            'accept': 'application/json',
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+          }
+        });
+        if (wcRes.ok) {
+          const wcData = await wcRes.json();
+          wcGames = wcData.games || [];
+        }
+      } catch (wcErr) {
+        console.error("Failed to fetch worldcup26.ir in match-results:", wcErr.message);
+      }
+
+      const nowIso = new Date().toISOString();
+
+      for (const dbMatch of dbMatches) {
+        const dbUtcTime = getDbMatchUtcTime(dbMatch.date);
+
+        // Find match on football-data
+        const fdMatch = externalMatches.find(m => {
+          const home = getNormalizedTeamName(m.homeTeam?.name);
+          const away = getNormalizedTeamName(m.awayTeam?.name);
+          const namesMatch = (dbMatch.team_a === home && dbMatch.team_b === away) ||
+            (dbMatch.team_a === away && dbMatch.team_b === home);
+          if (!namesMatch) return false;
+
+          const dbPhase = dbMatch.phase;
+          const fdPhase = getNormalizedPhase(m.stage);
+          if (dbPhase && fdPhase && dbPhase !== fdPhase) return false;
+
+          const fdUtcTime = getFdMatchUtcTime(m.utcDate);
+          if (dbUtcTime && fdUtcTime && Math.abs(dbUtcTime - fdUtcTime) > 30 * 60 * 60 * 1000) return false;
+
+          return true;
+        });
+
+        // Find match on worldcup26.ir
+        const wcGame = wcGames.find(g => {
+          const home = getNormalizedTeamName(g.home_team_name_en);
+          const away = getNormalizedTeamName(g.away_team_name_en);
+          const namesMatch = (dbMatch.team_a === home && dbMatch.team_b === away) ||
+            (dbMatch.team_a === away && dbMatch.team_b === home);
+          if (!namesMatch) return false;
+
+          const dbPhase = dbMatch.phase;
+          const wcPhase = getNormalizedPhase(g.type);
+          if (dbPhase && wcPhase && dbPhase !== wcPhase) return false;
+
+          const wcUtcTime = getWcGameApproxUtcTime(g.local_date);
+          if (dbUtcTime && wcUtcTime && Math.abs(dbUtcTime - wcUtcTime) > 30 * 60 * 60 * 1000) return false;
+
+          return true;
+        });
+
+        if (!fdMatch) continue;
+
+        let newStatus = 'pending';
+        const fdStatus = fdMatch.status ? fdMatch.status.toUpperCase() : '';
+        if (fdStatus === 'FINISHED' || fdStatus === 'AWARDED') {
+          newStatus = 'finished';
+        } else if (['IN_PLAY', 'PAUSED', 'LIVE'].includes(fdStatus)) {
+          newStatus = 'live';
+        }
+
+        const isReversed = (dbMatch.team_a === getNormalizedTeamName(fdMatch.awayTeam?.name));
+        const homeScore = fdMatch.score?.fullTime?.home;
+        const awayScore = fdMatch.score?.fullTime?.away;
+        const dbScoreA = isReversed ? (awayScore !== null ? Number(awayScore) : null) : (homeScore !== null ? Number(homeScore) : null);
+        const dbScoreB = isReversed ? (homeScore !== null ? Number(homeScore) : null) : (awayScore !== null ? Number(awayScore) : null);
+
+        const htHome = fdMatch.score?.halfTime?.home;
+        const htAway = fdMatch.score?.halfTime?.away;
+        const dbHalftimeA = isReversed ? (htAway !== null ? Number(htAway) : null) : (htHome !== null ? Number(htHome) : null);
+        const dbHalftimeB = isReversed ? (htHome !== null ? Number(htHome) : null) : (htAway !== null ? Number(htAway) : null);
+
+        let winner_draw = null;
+        if (dbScoreA !== null && dbScoreB !== null) {
+          if (dbScoreA > dbScoreB) winner_draw = dbMatch.team_a;
+          else if (dbScoreA < dbScoreB) winner_draw = dbMatch.team_b;
+          else winner_draw = 'Draw';
+        }
+
+        const payload = {
+          fulltime_a: dbScoreA,
+          fulltime_b: dbScoreB,
+          winner_draw: winner_draw,
+          current_status: newStatus,
+          status_updated: nowIso
+        };
+
+        if (dbHalftimeA !== null && dbHalftimeB !== null) {
+          payload.halftime_a = dbHalftimeA;
+          payload.halftime_b = dbHalftimeB;
+        }
+
+        if (wcGame) {
+          const homeScorers = parseScorersString(wcGame.home_scorers, getNormalizedTeamName(wcGame.home_team_name_en));
+          const awayScorers = parseScorersString(wcGame.away_scorers, getNormalizedTeamName(wcGame.away_team_name_en));
+          const combinedScorers = [...homeScorers, ...awayScorers];
+          payload.scorers = combinedScorers;
+        }
+
+        const directusResponse = await fetch(`${directusUrl}/items/matches/${dbMatch.id}`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${adminToken}`
+          },
+          body: JSON.stringify(payload)
+        });
+
+        results.push({
+          id: dbMatch.id,
+          teams: `${dbMatch.team_a} vs ${dbMatch.team_b}`,
+          current_status: newStatus,
+          success: directusResponse.ok
+        });
+      }
+
+      // Recalculate rankings based on parameters
+      if (shouldSyncAndCalcAll) {
+        calculationLogs = await recalculateRankings(directusUrl, adminToken, null, loggedInUser, true);
+      } else if (targetUser || shouldCalcAll) {
+        calculationLogs = await recalculateRankings(directusUrl, adminToken, targetUser, loggedInUser, true);
+      }
+    } else {
+      // Standard recalculation logic path without matching sync
+      calculationLogs = await recalculateRankings(directusUrl, adminToken, targetUser, loggedInUser, isExplicitOverride);
+    }
   } catch (error) {
     return response.status(500).json({ error: error.message });
   }
 
+  let finalMsg = 'Recalculation processed successfully.';
+  if (shouldSyncAndCalcAll) {
+    finalMsg = 'All matches synced and recalculation complete.';
+  } else if (shouldSyncMatches) {
+    finalMsg = 'Matches synchronization processed successfully.';
+  }
+
   return response.status(200).json({
     success: true,
-    message: `Recalculation processed successfully.`,
+    message: finalMsg,
     updates: results,
     calculationLogs: calculationLogs
   });
 }
+
 
 export async function recalculateRankings(directusUrl, adminToken, specificUser = null, loggedInUser = null, isExplicitOverride = false) {
   const apiLogs = [];
@@ -260,7 +407,7 @@ export async function recalculateRankings(directusUrl, adminToken, specificUser 
     if (specificUser) {
       const dynamicRankings = [...existingRankings];
       const calculatedUser = rankingObj.find(u => u.key === specificUser);
-      
+
       if (calculatedUser) {
         const matchingIndex = dynamicRankings.findIndex(r => r.key === specificUser);
         if (matchingIndex !== -1) {
@@ -269,7 +416,7 @@ export async function recalculateRankings(directusUrl, adminToken, specificUser 
           dynamicRankings.push({ key: specificUser, point: calculatedUser.point });
         }
       }
-      
+
       dynamicRankings.sort((a, b) => b.point - a.point);
       let runningRank = 1;
       dynamicRankings.forEach((obj, idx) => {
