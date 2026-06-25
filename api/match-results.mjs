@@ -457,11 +457,17 @@ export async function autoAdvanceKnockoutStages(directusUrl, adminToken) {
     let winner = null;
     let runnerUp = null;
 
-    if (third && first.points - third.points > 3) {
+    const isGroupFinished = (playedInGroup.length === matchesInGroup.length);
+    if (isGroupFinished) {
       winner = first.team;
-    }
-    if (third && second.points - third.points > 3) {
       runnerUp = second.team;
+    } else {
+      if (third && first.points - third.points > 3) {
+        winner = first.team;
+      }
+      if (third && second.points - third.points > 3) {
+        runnerUp = second.team;
+      }
     }
 
     const groupLetter = groupName.split(' ')[1]; // A, B, C...

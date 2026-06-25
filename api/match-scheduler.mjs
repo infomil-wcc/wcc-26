@@ -8,7 +8,8 @@ import {
   getWcGameApproxUtcTime,
   parseScorersString,
   recalculateRankings,
-  hasMatchChanged
+  hasMatchChanged,
+  autoAdvanceKnockoutStages
 } from './match-results.mjs';
 
 export default async function handler(request, response) {
@@ -234,7 +235,13 @@ export default async function handler(request, response) {
     }
 
     let calculationLogs = [];
+    let knockoutUpdates = [];
     if (updates.some(u => u.success && u.current_status === 'finished')) {
+      try {
+        knockoutUpdates = await autoAdvanceKnockoutStages(directusUrl, adminToken);
+      } catch (advanceErr) {
+        console.error("Failed to advance knockout matches automatically in scheduler:", advanceErr.message);
+      }
       calculationLogs = await recalculateRankings(directusUrl, adminToken, null, null, true);
     }
 
@@ -242,6 +249,7 @@ export default async function handler(request, response) {
       success: true,
       message: `Match update processing complete.`,
       updates,
+      knockoutUpdates,
       calculationLogs
     });
 
