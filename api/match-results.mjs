@@ -1,4 +1,5 @@
-import { handleCors } from './utils.mjs';
+import { handleCors, fetchWithBypass } from './utils.mjs';
+const fetch = fetchWithBypass;
 import { teamNameMap, phaseMap } from './mappings.mjs';
 
 export function getNormalizedTeamName(externalName) {

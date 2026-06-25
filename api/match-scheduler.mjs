@@ -1,4 +1,5 @@
-import { handleCors } from './utils.mjs';
+import { handleCors, fetchWithBypass } from './utils.mjs';
+const fetch = fetchWithBypass;
 import { 
   getNormalizedTeamName, 
   getNormalizedPhase, 
@@ -11,6 +12,14 @@ import {
 
 export default async function handler(request, response) {
   if (handleCors(request, response)) return;
+
+  // Secure the cron endpoint by checking Vercel's CRON_SECRET if running in production
+  const authHeader = request.headers.authorization;
+  if (process.env.CRON_SECRET && authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+    if (process.env.NODE_ENV === 'production') {
+      return response.status(401).json({ error: 'Unauthorized: Cron Secret Mismatch' });
+    }
+  }
 
   // Accept GET or POST to allow crons/scheduled queries
   if (request.method !== 'POST' && request.method !== 'GET') {

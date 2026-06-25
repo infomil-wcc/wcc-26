@@ -1,5 +1,7 @@
 import { promises as fs } from 'fs';
 import path from 'path';
+import https from 'https';
+import http from 'http';
 
 /**
  * Handles CORS preflight requests.
@@ -75,3 +77,64 @@ export function applyFiltersAndSelect(data, query, defaultKeyForMap = 'name') {
 
   return { status: 200, data: result };
 }
+
+const rejectUnauthorizedAgent = new https.Agent({
+  rejectUnauthorized: false
+});
+
+/**
+ * Custom fetch helper that uses Node's native https/http modules
+ * with rejectUnauthorized: false to bypass TLS errors.
+ */
+export function fetchWithBypass(url, options = {}) {
+  const isHttps = url.toLowerCase().startsWith('https:');
+  const client = isHttps ? https : http;
+
+  return new Promise((resolve, reject) => {
+    const headers = { ...(options.headers || {}) };
+    let body = options.body;
+
+    if (body && typeof body === 'object') {
+      body = JSON.stringify(body);
+      headers['Content-Type'] = headers['Content-Type'] || 'application/json';
+    }
+
+    if (body) {
+      headers['Content-Length'] = Buffer.byteLength(body);
+    }
+
+    const reqOpts = {
+      method: options.method || 'GET',
+      headers: headers,
+      agent: isHttps ? rejectUnauthorizedAgent : undefined
+    };
+
+    const req = client.request(url, reqOpts, (res) => {
+      let chunks = [];
+      res.on('data', (chunk) => {
+        chunks.push(chunk);
+      });
+      res.on('end', () => {
+        const buffer = Buffer.concat(chunks);
+        const data = buffer.toString('utf8');
+        resolve({
+          ok: res.statusCode >= 200 && res.statusCode < 300,
+          status: res.statusCode,
+          statusText: res.statusMessage,
+          json: async () => JSON.parse(data),
+          text: async () => data
+        });
+      });
+    });
+
+    req.on('error', (err) => {
+      reject(err);
+    });
+
+    if (body) {
+      req.write(body);
+    }
+    req.end();
+  });
+}
+
