@@ -79,7 +79,8 @@ export function applyFiltersAndSelect(data, query, defaultKeyForMap = 'name') {
 }
 
 const rejectUnauthorizedAgent = new https.Agent({
-  rejectUnauthorized: false
+  rejectUnauthorized: false,
+  keepAlive: false
 });
 
 /**
@@ -89,6 +90,9 @@ const rejectUnauthorizedAgent = new https.Agent({
 export function fetchWithBypass(url, options = {}) {
   const isHttps = url.toLowerCase().startsWith('https:');
   const client = isHttps ? https : http;
+  const method = options.method || 'GET';
+
+  console.log(`[fetchWithBypass] START: ${method} ${url}`);
 
   return new Promise((resolve, reject) => {
     const headers = { ...(options.headers || {}) };
@@ -104,8 +108,9 @@ export function fetchWithBypass(url, options = {}) {
     }
 
     const reqOpts = {
-      method: options.method || 'GET',
+      method: method,
       headers: headers,
+      rejectUnauthorized: false,
       agent: isHttps ? rejectUnauthorizedAgent : undefined
     };
 
@@ -117,6 +122,7 @@ export function fetchWithBypass(url, options = {}) {
       res.on('end', () => {
         const buffer = Buffer.concat(chunks);
         const data = buffer.toString('utf8');
+        console.log(`[fetchWithBypass] SUCCESS: ${method} ${url} - Status: ${res.statusCode}`);
         resolve({
           ok: res.statusCode >= 200 && res.statusCode < 300,
           status: res.statusCode,
@@ -128,6 +134,7 @@ export function fetchWithBypass(url, options = {}) {
     });
 
     req.on('error', (err) => {
+      console.error(`[fetchWithBypass] ERROR: ${method} ${url} - ${err.message}`);
       reject(err);
     });
 
