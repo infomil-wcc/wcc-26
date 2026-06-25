@@ -314,11 +314,12 @@ export default async function handler(request, response) {
         });
       }
 
-      // Check and update Round of 32 participants based on Group Standings
+      // Check and update Knockout Stage participants automatically
+      let knockoutUpdates = [];
       try {
-        await autoAdvanceRoundOf32(directusUrl, adminToken);
+        knockoutUpdates = await autoAdvanceKnockoutStages(directusUrl, adminToken);
       } catch (advanceErr) {
-        console.error("Failed to advance Round of 32 matches automatically:", advanceErr.message);
+        console.error("Failed to advance knockout matches automatically:", advanceErr.message);
       }
 
       // Recalculate rankings based on parameters
@@ -346,27 +347,30 @@ export default async function handler(request, response) {
     success: true,
     message: finalMsg,
     updates: results,
+    knockoutUpdates: knockoutUpdates,
     calculationLogs: calculationLogs
   });
 }
 
-export async function autoAdvanceRoundOf32(directusUrl, adminToken) {
+export async function autoAdvanceKnockoutStages(directusUrl, adminToken) {
   const headers = { 'Authorization': `Bearer ${adminToken}` };
+  const updates = [];
   
   // 1. Fetch all matches
   const matchesRes = await fetch(`${directusUrl}/items/matches?limit=-1`, { headers });
-  if (!matchesRes.ok) return;
-  const matchesData = await matchesRes.ok ? await matchesRes.json() : {};
+  if (!matchesRes.ok) return updates;
+  const matchesData = await matchesRes.json();
   const allMatches = matchesData.data || [];
 
   // Group Stage matches
   const groupMatches = allMatches.filter(m => m.phase === 'Group Stage');
-  const r32Matches = allMatches.filter(m => m.phase === 'Round of 32');
+  const knockoutMatches = allMatches.filter(m => m.phase !== 'Group Stage');
 
-  if (groupMatches.length === 0 || r32Matches.length === 0) return;
+  if (allMatches.length === 0) return updates;
 
-  // 2. Compute group tables/standings
-  // Groups from A to L
+  // ----------------------------------------------------
+  // PART A: AUTO-ADVANCE GROUP WINNERS & RUNNERS-UP TO ROUND OF 32
+  // ----------------------------------------------------
   const groups = ['Group A', 'Group B', 'Group C', 'Group D', 'Group E', 'Group F', 'Group G', 'Group H', 'Group I', 'Group J', 'Group K', 'Group L'];
   
   for (const groupName of groups) {
@@ -376,7 +380,6 @@ export async function autoAdvanceRoundOf32(directusUrl, adminToken) {
     // Safeguard: Need more than 2 matches played in the group to determine standing stability
     if (playedInGroup.length <= 2) continue;
 
-    // Calculate standings points for each team in the group
     const standings = {};
     for (const m of matchesInGroup) {
       if (!standings[m.team_a]) standings[m.team_a] = { team: m.team_a, points: 0, gd: 0, played: 0 };
@@ -404,37 +407,23 @@ export async function autoAdvanceRoundOf32(directusUrl, adminToken) {
     const teamList = Object.values(standings).sort((a, b) => b.points - a.points || b.gd - a.gd || a.team.localeCompare(b.team));
     if (teamList.length < 2) continue;
 
-    // 3. Determine if Winner/Runner-up has been mathematically defined
-    // Total matches in a 4-team group is 6 (each team plays 3 matches).
-    // Remaining points check:
-    const getWinnerRunnerUp = () => {
-      let winner = null;
-      let runnerUp = null;
+    const first = teamList[0];
+    const second = teamList[1];
+    const third = teamList[2];
 
-      const first = teamList[0];
-      const second = teamList[1];
-      const third = teamList[2];
-      const fourth = teamList[3];
+    let winner = null;
+    let runnerUp = null;
 
-      // A winner is mathematically defined if the 1st place team is more than 3 points ahead of the 3rd place team
-      // (as 3rd place team can gain at most 3 points in their last match).
-      if (first.points - third.points > 3) {
-        winner = first.team;
-      }
-      // A runner-up is mathematically defined if the 2nd place team is more than 3 points ahead of the 3rd place team,
-      // meaning 3rd place cannot catch up to 2nd.
-      if (second.points - third.points > 3) {
-        runnerUp = second.team;
-      }
+    if (third && first.points - third.points > 3) {
+      winner = first.team;
+    }
+    if (third && second.points - third.points > 3) {
+      runnerUp = second.team;
+    }
 
-      return { winner, runnerUp };
-    };
-
-    const { winner, runnerUp } = getWinnerRunnerUp();
     const groupLetter = groupName.split(' ')[1]; // A, B, C...
 
-    // 4. Update the corresponding Round of 32 placeholder match slots in Directus
-    for (const r32 of r32Matches) {
+    for (const r32 of knockoutMatches) {
       let updatedPayload = null;
 
       if (winner) {
@@ -456,7 +445,7 @@ export async function autoAdvanceRoundOf32(directusUrl, adminToken) {
       }
 
       if (updatedPayload) {
-        await fetch(`${directusUrl}/items/matches/${r32.id}`, {
+        const directusResponse = await fetch(`${directusUrl}/items/matches/${r32.id}`, {
           method: 'PATCH',
           headers: {
             'Content-Type': 'application/json',
@@ -464,9 +453,101 @@ export async function autoAdvanceRoundOf32(directusUrl, adminToken) {
           },
           body: JSON.stringify(updatedPayload)
         });
+        if (directusResponse.ok) {
+          // Reflect update in local copy to allow cascading checks below
+          if (updatedPayload.team_a) r32.team_a = updatedPayload.team_a;
+          if (updatedPayload.team_b) r32.team_b = updatedPayload.team_b;
+          updates.push({
+            id: r32.id,
+            placeholder: winner ? `Group ${groupLetter} Winner` : `Group ${groupLetter} Runner-up`,
+            advancedTeam: winner || runnerUp,
+            success: true
+          });
+        }
       }
     }
   }
+
+  // ----------------------------------------------------
+  // PART B: AUTO-ADVANCE LATER STAGES (Winner Match X / Runner-up Match X)
+  // ----------------------------------------------------
+  // Iterate multiple passes to allow cascading advancement (e.g. R32 winner advances to R16, R16 winner to QF, etc.)
+  let changedInPass = true;
+  let passCount = 0;
+  
+  while (changedInPass && passCount < 5) {
+    changedInPass = false;
+    passCount++;
+
+    for (const match of knockoutMatches) {
+      const winnerPlaceholderA = match.team_a && match.team_a.startsWith('Winner Match ');
+      const runnerUpPlaceholderA = match.team_a && match.team_a.startsWith('Runner-up Match ');
+      const winnerPlaceholderB = match.team_b && match.team_b.startsWith('Winner Match ');
+      const runnerUpPlaceholderB = match.team_b && match.team_b.startsWith('Runner-up Match ');
+
+      let updatedPayload = null;
+
+      // Handle Team A placeholder resolution
+      if (winnerPlaceholderA) {
+        const refMatchId = match.team_a.split('Winner Match ')[1];
+        const refMatch = allMatches.find(m => String(m.id) === String(refMatchId));
+        if (refMatch && refMatch.fulltime_a !== null && refMatch.fulltime_b !== null) {
+          const winner = Number(refMatch.fulltime_a) > Number(refMatch.fulltime_b) ? refMatch.team_a : refMatch.team_b;
+          updatedPayload = { ...updatedPayload, team_a: winner };
+        }
+      } else if (runnerUpPlaceholderA) {
+        const refMatchId = match.team_a.split('Runner-up Match ')[1];
+        const refMatch = allMatches.find(m => String(m.id) === String(refMatchId));
+        if (refMatch && refMatch.fulltime_a !== null && refMatch.fulltime_b !== null) {
+          const runnerUp = Number(refMatch.fulltime_a) < Number(refMatch.fulltime_b) ? refMatch.team_a : refMatch.team_b;
+          updatedPayload = { ...updatedPayload, team_a: runnerUp };
+        }
+      }
+
+      // Handle Team B placeholder resolution
+      if (winnerPlaceholderB) {
+        const refMatchId = match.team_b.split('Winner Match ')[1];
+        const refMatch = allMatches.find(m => String(m.id) === String(refMatchId));
+        if (refMatch && refMatch.fulltime_a !== null && refMatch.fulltime_b !== null) {
+          const winner = Number(refMatch.fulltime_a) > Number(refMatch.fulltime_b) ? refMatch.team_a : refMatch.team_b;
+          updatedPayload = { ...updatedPayload, team_b: winner };
+        }
+      } else if (runnerUpPlaceholderB) {
+        const refMatchId = match.team_b.split('Runner-up Match ')[1];
+        const refMatch = allMatches.find(m => String(m.id) === String(refMatchId));
+        if (refMatch && refMatch.fulltime_a !== null && refMatch.fulltime_b !== null) {
+          const runnerUp = Number(refMatch.fulltime_a) < Number(refMatch.fulltime_b) ? refMatch.team_a : refMatch.team_b;
+          updatedPayload = { ...updatedPayload, team_b: runnerUp };
+        }
+      }
+
+      if (updatedPayload) {
+        const directusResponse = await fetch(`${directusUrl}/items/matches/${match.id}`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${adminToken}`
+          },
+          body: JSON.stringify(updatedPayload)
+        });
+
+        if (directusResponse.ok) {
+          if (updatedPayload.team_a) match.team_a = updatedPayload.team_a;
+          if (updatedPayload.team_b) match.team_b = updatedPayload.team_b;
+          changedInPass = true;
+          
+          updates.push({
+            id: match.id,
+            team_a_updated: !!updatedPayload.team_a,
+            team_b_updated: !!updatedPayload.team_b,
+            success: true
+          });
+        }
+      }
+    }
+  }
+
+  return updates;
 }
 
 
