@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, Input, OnInit, ChangeDetectionStrategy, inject } from '@angular/core';
 import { ActivatedRoute, NavigationStart, Router, RouterOutlet } from '@angular/router';
 import { StateService, AppState, user } from './shared/services/core/state.service';
 import { AuthService } from './shared/services/core/auth.service';
@@ -31,6 +31,7 @@ import { FooterComponent } from './shared/components/footer/footer.component';
 import { DialogComponent } from './shared/components/dialog/dialog.component';
 import { LoaderComponent } from './shared/components/loader/loader.component';
 import { ModalComponent } from './shared/components/modal/modal.component';
+import { AppUpdateService } from './shared/services/core/app-update.service';
 
 @Component({
     selector: 'app-root',
@@ -41,6 +42,8 @@ import { ModalComponent } from './shared/components/modal/modal.component';
 })
 export class AppComponent implements OnInit {
 
+  public appUpdate = inject(AppUpdateService);
+  
   @Input() showLoader: boolean = true;
   public title: string = 'IML Foot Challenge - FIFA WORLD CUP 2026';
   public page: number = 0;
@@ -87,6 +90,7 @@ export class AppComponent implements OnInit {
         this.currentUser = res;
       }
     });
+
   }
 
   handleAlreadylogged(): void {
