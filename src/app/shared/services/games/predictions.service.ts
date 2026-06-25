@@ -4,7 +4,6 @@ import { Observable, BehaviorSubject, map, throwError, tap } from 'rxjs';
 import { CookieService } from '../core/cookie.service';
 import { Pronostiques } from '../../contracts/pronostiques.contract';
 import { PredictionsApiService } from '../api/predictions-api.service';
-import { MatchResultsApiService } from '../api/match-results-api.service';
 import { RankingcalculationService } from '../core/rankingcalculation.service';
 
 @Injectable({
@@ -13,7 +12,6 @@ import { RankingcalculationService } from '../core/rankingcalculation.service';
 export class PredictionsService {
 
   private predictionsApiService = inject(PredictionsApiService);
-  private matchResultsApiService = inject(MatchResultsApiService);
   private cookieService = inject(CookieService);
   private rankingcalculationService = inject(RankingcalculationService);
 
@@ -79,20 +77,11 @@ export class PredictionsService {
   }
 
   updateResults(): Observable<any> {
-    let token = this.cookieService.get('currentToken');
-    let httpOptions = {};
-    if (token) {
-      httpOptions = {
-        headers: new HttpHeaders({
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        })
-      };
-    }
-    return this.matchResultsApiService.postMatchResults(httpOptions).pipe(
-      tap(() => {
-        this.rankingcalculationService.startCalcRanking();
-      })
-    );
+    // Simply trigger the client-side ranking recalculation since results are managed via match-scheduler cron on the backend
+    this.rankingcalculationService.startCalcRanking();
+    return new Observable(subscriber => {
+      subscriber.next({ success: true, message: 'Local calculation triggered.' });
+      subscriber.complete();
+    });
   }
 }

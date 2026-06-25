@@ -12,7 +12,8 @@ import {
 export default async function handler(request, response) {
   if (handleCors(request, response)) return;
 
-  if (request.method !== 'POST') {
+  // Accept GET or POST to allow crons/scheduled queries
+  if (request.method !== 'POST' && request.method !== 'GET') {
     return response.status(405).json({ error: 'Method Not Allowed' });
   }
 
@@ -22,133 +23,96 @@ export default async function handler(request, response) {
   const adminToken = process.env.DIRECTUS_ADMIN_TOKEN;
   const apiKey = process.env.FOOTBALL_DATA_API_KEY;
 
-  const { matchId, action } = request.body || {};
-
-  if (!matchId || !action) {
-    return response.status(400).json({ error: "Missing matchId or action in request body." });
-  }
+  // Extract from body or query params to handle both GET/POST crons or target requests
+  const bodyData = request.body || {};
+  const queryData = request.query || {};
+  const matchId = bodyData.matchId || queryData.matchId || bodyData.match_id || queryData.match_id;
 
   try {
-    // 1. Fetch the Directus dbMatch details to get the teams/phase/date
-    const dbMatchRes = await fetch(`${directusUrl}/items/matches/${matchId}`, {
-      headers: { 'Authorization': `Bearer ${adminToken}` }
-    });
-    if (!dbMatchRes.ok) {
-      throw new Error(`Directus match lookup failed: ${dbMatchRes.statusText}`);
-    }
-    const dbMatchData = await dbMatchRes.json();
-    const dbMatch = dbMatchData.data;
+    let dbMatches = [];
+    const headers = { 'Authorization': `Bearer ${adminToken}` };
 
-    if (!dbMatch) {
-      return response.status(404).json({ error: `Match ID ${matchId} not found in Directus.` });
-    }
+    if (matchId) {
+      // 1. Target match execution
+      const dbMatchRes = await fetch(`${directusUrl}/items/matches/${matchId}`, { headers });
+      if (!dbMatchRes.ok) {
+        throw new Error(`Directus match lookup failed: ${dbMatchRes.statusText}`);
+      }
+      const dbMatchData = await dbMatchRes.json();
+      if (dbMatchData.data) {
+        dbMatches.push(dbMatchData.data);
+      }
+    } else {
+      // 2. Scan mode: fetch matches where the match time has started/passed
+      // Fetch all matches to scan timezone comparisons safely
+      const dbRes = await fetch(`${directusUrl}/items/matches?limit=-1`, { headers });
+      if (!dbRes.ok) {
+        throw new Error(`Directus list matches lookup failed: ${dbRes.statusText}`);
+      }
+      const dbData = await dbRes.json();
+      const allMatches = dbData.data || [];
+      const nowMs = Date.now();
 
-    if (action === 'live') {
-      // Find the match_status record for this match and set it to 'live'
-      const statusRes = await fetch(`${directusUrl}/items/match_status?filter[match_id][eq]=${matchId}`, {
-        headers: { 'Authorization': `Bearer ${adminToken}` }
-      });
-      if (statusRes.ok) {
-        const statusData = await statusRes.json();
-        const statusRecord = (statusData.data || [])[0];
-        if (statusRecord) {
-          await fetch(`${directusUrl}/items/match_status/${statusRecord.id}`, {
-            method: 'PATCH',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${adminToken}`
-            },
-            body: JSON.stringify({ status: 'live' })
-          });
+      for (const m of allMatches) {
+        const matchUtcTime = getDbMatchUtcTime(m.date);
+        // Only consider matches that have started
+        if (matchUtcTime && matchUtcTime <= nowMs) {
+          // Safeguard check: query only if status_updated is missing
+          // OR status_updated is earlier than the match time.
+          if (!m.status_updated) {
+            dbMatches.push(m);
+          } else {
+            const statusUpdatedMs = new Date(m.status_updated).getTime();
+            if (statusUpdatedMs < matchUtcTime) {
+              dbMatches.push(m);
+            }
+          }
         }
       }
-      return response.status(200).json({ success: true, message: `Match ${matchId} status updated to live.` });
     }
 
-    if (action === 'halftime') {
-      // Fetch halftime scores from football-data
+    if (dbMatches.length === 0) {
+      return response.status(200).json({ success: true, message: "No matches require updating or syncing." });
+    }
+
+    // 1. Fetch scores from football-data
+    let externalMatches = [];
+    try {
       const apiRes = await fetch('https://api.football-data.org/v4/competitions/WC/matches', {
         headers: { 'X-Auth-Token': apiKey }
       });
-      if (!apiRes.ok) {
-        throw new Error(`Football-data WC matches lookup failed: ${apiRes.statusText}`);
+      if (apiRes.ok) {
+        const data = await apiRes.json();
+        externalMatches = data.matches || [];
       }
-      const data = await apiRes.json();
-      const externalMatches = data.matches || [];
-
-      const dbUtcTime = getDbMatchUtcTime(dbMatch.date);
-      const fdMatch = externalMatches.find(m => {
-        const home = getNormalizedTeamName(m.homeTeam?.name);
-        const away = getNormalizedTeamName(m.awayTeam?.name);
-        const namesMatch = (dbMatch.team_a === home && dbMatch.team_b === away) ||
-                           (dbMatch.team_a === away && dbMatch.team_b === home);
-        if (!namesMatch) return false;
-
-        const dbPhase = dbMatch.phase;
-        const fdPhase = getNormalizedPhase(m.stage);
-        if (dbPhase && fdPhase && dbPhase !== fdPhase) return false;
-
-        const fdUtcTime = getFdMatchUtcTime(m.utcDate);
-        if (dbUtcTime && fdUtcTime && Math.abs(dbUtcTime - fdUtcTime) > 30 * 60 * 60 * 1000) return false;
-
-        return true;
-      });
-
-      if (!fdMatch) {
-        return response.status(404).json({ error: "No matching external match found on football-data." });
-      }
-
-      const isReversed = (dbMatch.team_a === getNormalizedTeamName(fdMatch.awayTeam?.name));
-      const htHome = fdMatch.score?.halfTime?.home;
-      const htAway = fdMatch.score?.halfTime?.away;
-      const dbHalftimeA = isReversed ? (htAway !== null ? Number(htAway) : null) : (htHome !== null ? Number(htHome) : null);
-      const dbHalftimeB = isReversed ? (htHome !== null ? Number(htHome) : null) : (htAway !== null ? Number(htAway) : null);
-
-      if (dbHalftimeA !== null && dbHalftimeB !== null) {
-        const payload = {
-          halftime_a: dbHalftimeA,
-          halftime_b: dbHalftimeB
-        };
-        await fetch(`${directusUrl}/items/matches/${matchId}`, {
-          method: 'PATCH',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${adminToken}`
-          },
-          body: JSON.stringify(payload)
-        });
-        return response.status(200).json({ success: true, message: `Halftime score updated for match ${matchId}.` });
-      }
-      return response.status(200).json({ success: true, message: `No halftime score available yet for match ${matchId}.` });
+    } catch (fdErr) {
+      console.error("Failed to fetch football-data.org:", fdErr.message);
     }
 
-    if (action === 'fulltime') {
-      // 1. Fetch scores from football-data
-      const fdRes = await fetch('https://api.football-data.org/v4/competitions/WC/matches', {
-        headers: { 'X-Auth-Token': apiKey }
-      });
-      const fdData = fdRes.ok ? await fdRes.json() : {};
-      const externalMatches = fdData.matches || [];
-
-      // 2. Fetch scorers from worldcup26.ir
-      let wcGames = [];
-      try {
-        const wcRes = await fetch('https://worldcup26.ir/get/games', {
-          headers: {
-            'accept': 'application/json',
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
-          }
-        });
-        if (wcRes.ok) {
-          const wcData = await wcRes.json();
-          wcGames = wcData.games || [];
+    // 2. Fetch scorers from worldcup26.ir
+    let wcGames = [];
+    try {
+      const wcRes = await fetch('https://worldcup26.ir/get/games', {
+        headers: {
+          'accept': 'application/json',
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
         }
-      } catch (wcErr) {
-        console.error("Failed to fetch worldcup26.ir in scheduler:", wcErr.message);
+      });
+      if (wcRes.ok) {
+        const wcData = await wcRes.json();
+        wcGames = wcData.games || [];
       }
+    } catch (wcErr) {
+      console.error("Failed to fetch worldcup26.ir in scheduler:", wcErr.message);
+    }
 
+    const updates = [];
+    const nowIso = new Date().toISOString();
+
+    for (const dbMatch of dbMatches) {
       const dbUtcTime = getDbMatchUtcTime(dbMatch.date);
 
+      // Find match on football-data
       const fdMatch = externalMatches.find(m => {
         const home = getNormalizedTeamName(m.homeTeam?.name);
         const away = getNormalizedTeamName(m.awayTeam?.name);
@@ -166,6 +130,7 @@ export default async function handler(request, response) {
         return true;
       });
 
+      // Find match on worldcup26.ir
       const wcGame = wcGames.find(g => {
         const home = getNormalizedTeamName(g.home_team_name_en);
         const away = getNormalizedTeamName(g.away_team_name_en);
@@ -184,7 +149,18 @@ export default async function handler(request, response) {
       });
 
       if (!fdMatch) {
-        return response.status(404).json({ error: "No matching external match found on football-data for fulltime sync." });
+        console.warn(`No matching external match found on football-data for Match ID: ${dbMatch.id}`);
+        continue;
+      }
+
+      // Check external match status to determine current_status
+      // football-data.org statuses: 'FINISHED', 'IN_PLAY', 'PAUSED', 'TIMED', 'SCHEDULED', etc.
+      let newStatus = 'pending';
+      const fdStatus = fdMatch.status ? fdMatch.status.toUpperCase() : '';
+      if (fdStatus === 'FINISHED' || fdStatus === 'AWARDED') {
+        newStatus = 'finished';
+      } else if (['IN_PLAY', 'PAUSED', 'LIVE'].includes(fdStatus)) {
+        newStatus = 'live';
       }
 
       const isReversed = (dbMatch.team_a === getNormalizedTeamName(fdMatch.awayTeam?.name));
@@ -208,7 +184,9 @@ export default async function handler(request, response) {
       const payload = {
         fulltime_a: dbScoreA,
         fulltime_b: dbScoreB,
-        winner_draw: winner_draw
+        winner_draw: winner_draw,
+        current_status: newStatus,
+        status_updated: nowIso
       };
 
       if (dbHalftimeA !== null && dbHalftimeB !== null) {
@@ -223,8 +201,8 @@ export default async function handler(request, response) {
         payload.scorers = combinedScorers;
       }
 
-      // Update match details
-      await fetch(`${directusUrl}/items/matches/${matchId}`, {
+      // Update match details in Directus
+      const directusResponse = await fetch(`${directusUrl}/items/matches/${dbMatch.id}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -233,36 +211,25 @@ export default async function handler(request, response) {
         body: JSON.stringify(payload)
       });
 
-      // Update match_status to finished
-      const statusRes = await fetch(`${directusUrl}/items/match_status?filter[match_id][eq]=${matchId}`, {
-        headers: { 'Authorization': `Bearer ${adminToken}` }
-      });
-      if (statusRes.ok) {
-        const statusData = await statusRes.json();
-        const statusRecord = (statusData.data || [])[0];
-        if (statusRecord) {
-          await fetch(`${directusUrl}/items/match_status/${statusRecord.id}`, {
-            method: 'PATCH',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${adminToken}`
-            },
-            body: JSON.stringify({ status: 'finished' })
-          });
-        }
-      }
-
-      // Recalculate rankings
-      const calculationLogs = await recalculateRankings(directusUrl, adminToken, null, null, true);
-
-      return response.status(200).json({
-        success: true,
-        message: `Match ${matchId} sync complete and status updated to finished.`,
-        calculationLogs
+      updates.push({
+        id: dbMatch.id,
+        teams: `${dbMatch.team_a} vs ${dbMatch.team_b}`,
+        current_status: newStatus,
+        success: directusResponse.ok
       });
     }
 
-    return response.status(400).json({ error: `Unknown action: ${action}` });
+    let calculationLogs = [];
+    if (updates.some(u => u.success && u.current_status === 'finished')) {
+      calculationLogs = await recalculateRankings(directusUrl, adminToken, null, null, true);
+    }
+
+    return response.status(200).json({
+      success: true,
+      message: `Match update processing complete.`,
+      updates,
+      calculationLogs
+    });
 
   } catch (error) {
     console.error("Scheduler Error:", error);
