@@ -97,6 +97,43 @@ export function parseScorersString(scorersStr, teamName) {
   return events;
 }
 
+export function hasMatchChanged(dbMatch, payload) {
+  if (dbMatch.fulltime_a != payload.fulltime_a) return true;
+  if (dbMatch.fulltime_b != payload.fulltime_b) return true;
+  if (dbMatch.halftime_a != payload.halftime_a) return true;
+  if (dbMatch.halftime_b != payload.halftime_b) return true;
+  if (dbMatch.winner_draw != payload.winner_draw) return true;
+  if (dbMatch.current_status != payload.current_status) return true;
+
+  if (payload.scorers) {
+    const dbScorers = dbMatch.scorers || [];
+    const payScorers = payload.scorers || [];
+    
+    let dbScorerNames = [];
+    if (Array.isArray(dbScorers)) {
+      dbScorerNames = dbScorers.map(s => typeof s === 'string' ? s : (s.player?.name || s.scorer?.name || '')).filter(Boolean);
+    } else if (typeof dbScorers === 'string') {
+      try {
+        const parsed = JSON.parse(dbScorers);
+        if (Array.isArray(parsed)) {
+          dbScorerNames = parsed.map(s => typeof s === 'string' ? s : (s.player?.name || s.scorer?.name || '')).filter(Boolean);
+        }
+      } catch (e) {
+        dbScorerNames = [dbScorers];
+      }
+    }
+
+    const payScorerNames = payScorers.map(s => typeof s === 'string' ? s : (s.player?.name || s.scorer?.name || '')).filter(Boolean);
+
+    if (dbScorerNames.length !== payScorerNames.length) return true;
+    for (let i = 0; i < payScorerNames.length; i++) {
+      if (dbScorerNames[i] !== payScorerNames[i]) return true;
+    }
+  }
+
+  return false;
+}
+
 export default async function handler(request, response) {
   if (handleCors(request, response)) return;
 
@@ -156,57 +193,60 @@ export default async function handler(request, response) {
 
   const results = [];
   let calculationLogs = [];
+  let knockoutUpdates = [];
 
   try {
     const headers = { 'Authorization': `Bearer ${adminToken}` };
 
     if (shouldSyncAndCalcAll || shouldSyncMatches) {
-      // 1. Fetch matches from Directus
-      let dbMatches = [];
-      if (syncMatchId) {
-        const dbMatchRes = await fetch(`${directusUrl}/items/matches/${syncMatchId}`, { headers });
-        if (dbMatchRes.ok) {
-          const dbMatchData = await dbMatchRes.json();
-          if (dbMatchData.data) dbMatches.push(dbMatchData.data);
-        }
-      } else {
-        const dbRes = await fetch(`${directusUrl}/items/matches?limit=-1`, { headers });
-        if (!dbRes.ok) {
-          throw new Error(`Directus list matches lookup failed: ${dbRes.statusText}`);
-        }
-        const dbData = await dbRes.json();
-        dbMatches = dbData.data || [];
-      }
-
-      // 2. Fetch external scores from football-data
-      let externalMatches = [];
-      try {
-        const apiRes = await fetch('https://api.football-data.org/v4/competitions/WC/matches', {
+      const dbUrl = syncMatchId ? `${directusUrl}/items/matches/${syncMatchId}` : `${directusUrl}/items/matches?limit=-1`;
+      
+      const [dbRes, apiRes, wcRes] = await Promise.all([
+        fetch(dbUrl, { headers }),
+        fetch('https://api.football-data.org/v4/competitions/WC/matches', {
           headers: { 'X-Auth-Token': apiKey }
-        });
-        if (apiRes.ok) {
-          const data = await apiRes.json();
-          externalMatches = data.matches || [];
-        }
-      } catch (fdErr) {
-        console.error("Failed to fetch football-data.org in match-results:", fdErr.message);
-      }
-
-      // 3. Fetch external scorers from worldcup26.ir
-      let wcGames = [];
-      try {
-        const wcRes = await fetch('https://worldcup26.ir/get/games', {
+        }).catch(err => {
+          console.error("Failed to fetch football-data.org in match-results:", err.message);
+          return { ok: false };
+        }),
+        fetch('https://worldcup26.ir/get/games', {
           headers: {
             'accept': 'application/json',
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
           }
-        });
-        if (wcRes.ok) {
+        }).catch(err => {
+          console.error("Failed to fetch worldcup26.ir in match-results:", err.message);
+          return { ok: false };
+        })
+      ]);
+
+      let dbMatches = [];
+      if (dbRes.ok) {
+        const dbData = await dbRes.json();
+        const rawData = dbData.data || [];
+        dbMatches = Array.isArray(rawData) ? rawData : [rawData];
+      } else {
+        throw new Error(`Directus matches lookup failed: ${dbRes.statusText}`);
+      }
+
+      let externalMatches = [];
+      if (apiRes.ok) {
+        try {
+          const data = await apiRes.json();
+          externalMatches = data.matches || [];
+        } catch (e) {
+          console.error("Failed to parse football-data matches:", e.message);
+        }
+      }
+
+      let wcGames = [];
+      if (wcRes.ok) {
+        try {
           const wcData = await wcRes.json();
           wcGames = wcData.games || [];
+        } catch (e) {
+          console.error("Failed to parse worldcup26 games:", e.message);
         }
-      } catch (wcErr) {
-        console.error("Failed to fetch worldcup26.ir in match-results:", wcErr.message);
       }
 
       const nowIso = new Date().toISOString();
@@ -298,25 +338,27 @@ export default async function handler(request, response) {
           payload.scorers = combinedScorers;
         }
 
-        const directusResponse = await fetch(`${directusUrl}/items/matches/${dbMatch.id}`, {
-          method: 'PATCH',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${adminToken}`
-          },
-          body: JSON.stringify(payload)
-        });
+        let directusResponseOk = true;
+        if (hasMatchChanged(dbMatch, payload)) {
+          const directusResponse = await fetch(`${directusUrl}/items/matches/${dbMatch.id}`, {
+            method: 'PATCH',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${adminToken}`
+            },
+            body: JSON.stringify(payload)
+          });
+          directusResponseOk = directusResponse.ok;
+        }
 
         results.push({
           id: dbMatch.id,
           teams: `${dbMatch.team_a} vs ${dbMatch.team_b}`,
           current_status: newStatus,
-          success: directusResponse.ok
+          success: directusResponseOk
         });
       }
 
-      // Check and update Knockout Stage participants automatically
-      let knockoutUpdates = [];
       try {
         knockoutUpdates = await autoAdvanceKnockoutStages(directusUrl, adminToken);
       } catch (advanceErr) {
@@ -557,17 +599,22 @@ export async function recalculateRankings(directusUrl, adminToken, specificUser 
   try {
     const headers = { 'Authorization': `Bearer ${adminToken}` };
 
-    const matchesRes = await fetch(`${directusUrl}/items/matches?limit=-1`, { headers });
-    const matchesData = await matchesRes.json();
-    const matches = matchesData.data || [];
-
     const pronoFilter = specificUser ? `&filter[user][eq]=${specificUser}` : "";
-    const predictionsRes = await fetch(`${directusUrl}/items/pronostiques?limit=-1${pronoFilter}`, { headers });
-    const predictionsData = await predictionsRes.json();
+    
+    const [matchesRes, predictionsRes, rankingsRes] = await Promise.all([
+      fetch(`${directusUrl}/items/matches?limit=-1`, { headers }),
+      fetch(`${directusUrl}/items/pronostiques?limit=-1${pronoFilter}`, { headers }),
+      fetch(`${directusUrl}/items/pronostics_rankings?limit=-1`, { headers })
+    ]);
+    
+    const [matchesData, predictionsData, rankingsData] = await Promise.all([
+      matchesRes.json(),
+      predictionsRes.json(),
+      rankingsRes.json()
+    ]);
+    
+    const matches = matchesData.data || [];
     const predictions = predictionsData.data || [];
-
-    const rankingsRes = await fetch(`${directusUrl}/items/pronostics_rankings?limit=-1`, { headers });
-    const rankingsData = await rankingsRes.json();
     const existingRankings = rankingsData.data || [];
 
     const playedMatches = matches.filter(m => m.fulltime_a !== null && m.fulltime_b !== null);
@@ -663,6 +710,10 @@ export async function recalculateRankings(directusUrl, adminToken, specificUser 
       const existingRow = existingRankings.find(item => item.key === player.key);
 
       if (existingRow) {
+        if (Number(existingRow.point) === Number(rankingRow.point) && Number(existingRow.rank) === Number(rankingRow.rank)) {
+          // Point and rank are unchanged. Skip patching!
+          continue;
+        }
         await fetch(`${directusUrl}/items/pronostics_rankings/${existingRow.id}`, {
           method: 'PATCH',
           headers: {

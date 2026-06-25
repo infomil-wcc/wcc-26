@@ -7,7 +7,8 @@ import {
   getFdMatchUtcTime, 
   getWcGameApproxUtcTime,
   parseScorersString,
-  recalculateRankings
+  recalculateRankings,
+  hasMatchChanged
 } from './match-results.mjs';
 
 export default async function handler(request, response) {
@@ -211,20 +212,24 @@ export default async function handler(request, response) {
       }
 
       // Update match details in Directus
-      const directusResponse = await fetch(`${directusUrl}/items/matches/${dbMatch.id}`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${adminToken}`
-        },
-        body: JSON.stringify(payload)
-      });
+      let directusResponseOk = true;
+      if (hasMatchChanged(dbMatch, payload)) {
+        const directusResponse = await fetch(`${directusUrl}/items/matches/${dbMatch.id}`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${adminToken}`
+          },
+          body: JSON.stringify(payload)
+        });
+        directusResponseOk = directusResponse.ok;
+      }
 
       updates.push({
         id: dbMatch.id,
         teams: `${dbMatch.team_a} vs ${dbMatch.team_b}`,
         current_status: newStatus,
-        success: directusResponse.ok
+        success: directusResponseOk
       });
     }
 
