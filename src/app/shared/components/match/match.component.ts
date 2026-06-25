@@ -203,7 +203,7 @@ export class MatchComponent implements OnInit, OnDestroy {
   }
 
   protected clearScorer(): void {
-    if (this.disabled || this.isSubmitting || this.closed || this.isSavedInApi) {
+    if (!this.canEditPrediction) {
       return;
     }
     this.scorer = '';
@@ -240,6 +240,11 @@ export class MatchComponent implements OnInit, OnDestroy {
     this.sendBet();
   }
 
+  get canEditPrediction(): boolean {
+    return !this.disabled && !this.isSubmitting && !this.closed && !this.match.fulltime &&
+      (!this.isSavedInApi || !this.isEditing);
+  }
+
   onHalftimeScoreChanged(): void {
     if (this.halfTimeA !== null) {
       if (this.fullTimeA === null || this.fullTimeA < this.halfTimeA) {
@@ -259,7 +264,7 @@ export class MatchComponent implements OnInit, OnDestroy {
   }
 
   selectWinner(outcome: string): void {
-    if (this.disabled || this.isSubmitting || this.closed || this.isSavedInApi || this.match.fulltime) {
+    if (!this.canEditPrediction) {
       return;
     }
     this.matchOutcome = outcome;
@@ -526,6 +531,15 @@ export class MatchComponent implements OnInit, OnDestroy {
 
     const lowerScorers = scorersList.map(name => name.toLowerCase());
     return lowerScorers.includes(predScorer.trim().toLowerCase());
+  }
+
+  modifierPronostic(): void {
+    if (this.closed || this.match.fulltime_a !== null || this.match.fulltime_b !== null) {
+      return;
+    }
+
+    this.isEditing = true;
+    console.log('editing pronostic for match', this.match.id);
   }
 
   /**
