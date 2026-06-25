@@ -16,4 +16,8 @@ export class BracketRankingsApiService {
   createRankings(data: any, options?: any): Observable<any> {
     return this.http.post<any>(`${environment.apiBaseUrl}/items/bracket_rankings`, data, options);
   }
+
+  updateRankings(id: any, data: any, options?: any): Observable<any> {
+    return this.http.patch<any>(`${environment.apiBaseUrl}/items/bracket_rankings/${id}`, data, options);
+  }
 }
