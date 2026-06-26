@@ -1,10 +1,10 @@
 import { handleCors, fetchWithBypass } from './utils.mjs';
 const fetch = fetchWithBypass;
-import { 
-  getNormalizedTeamName, 
-  getNormalizedPhase, 
-  getDbMatchUtcTime, 
-  getFdMatchUtcTime, 
+import {
+  getNormalizedTeamName,
+  getNormalizedPhase,
+  getDbMatchUtcTime,
+  getFdMatchUtcTime,
   getWcGameApproxUtcTime,
   parseScorersString,
   recalculateRankings,
@@ -55,7 +55,6 @@ export default async function handler(request, response) {
       }
     } else {
       // 2. Scan mode: fetch matches where the match time has started/passed
-      // Fetch all matches to scan timezone comparisons safely
       const dbRes = await fetch(`${directusUrl}/items/matches?limit=-1`, { headers });
       if (!dbRes.ok) {
         throw new Error(`Directus list matches lookup failed: ${dbRes.statusText}`);
@@ -66,10 +65,7 @@ export default async function handler(request, response) {
 
       for (const m of allMatches) {
         const matchUtcTime = getDbMatchUtcTime(m.date);
-        // Only consider matches that have started
         if (matchUtcTime && matchUtcTime <= nowMs) {
-          // Safeguard check: query only if status_updated is missing
-          // OR status_updated is earlier than the match time.
           if (!m.status_updated) {
             dbMatches.push(m);
           } else {
@@ -120,6 +116,9 @@ export default async function handler(request, response) {
     const updates = [];
     const nowIso = new Date().toISOString();
 
+    // Track if any match has strictly transitioned to 'finished' right now
+    let dynamicMatchJustFinished = false;
+
     for (const dbMatch of dbMatches) {
       const dbUtcTime = getDbMatchUtcTime(dbMatch.date);
 
@@ -128,7 +127,7 @@ export default async function handler(request, response) {
         const home = getNormalizedTeamName(m.homeTeam?.name);
         const away = getNormalizedTeamName(m.awayTeam?.name);
         const namesMatch = (dbMatch.team_a === home && dbMatch.team_b === away) ||
-                           (dbMatch.team_a === away && dbMatch.team_b === home);
+          (dbMatch.team_a === away && dbMatch.team_b === home);
         if (!namesMatch) return false;
 
         const dbPhase = dbMatch.phase;
@@ -146,7 +145,7 @@ export default async function handler(request, response) {
         const home = getNormalizedTeamName(g.home_team_name_en);
         const away = getNormalizedTeamName(g.away_team_name_en);
         const namesMatch = (dbMatch.team_a === home && dbMatch.team_b === away) ||
-                           (dbMatch.team_a === away && dbMatch.team_b === home);
+          (dbMatch.team_a === away && dbMatch.team_b === home);
         if (!namesMatch) return false;
 
         const dbPhase = dbMatch.phase;
@@ -164,14 +163,18 @@ export default async function handler(request, response) {
         continue;
       }
 
-      // Check external match status to determine current_status
-      // football-data.org statuses: 'FINISHED', 'IN_PLAY', 'PAUSED', 'TIMED', 'SCHEDULED', etc.
       let newStatus = 'pending';
       const fdStatus = fdMatch.status ? fdMatch.status.toUpperCase() : '';
       if (fdStatus === 'FINISHED' || fdStatus === 'AWARDED') {
         newStatus = 'finished';
       } else if (['IN_PLAY', 'PAUSED', 'LIVE'].includes(fdStatus)) {
         newStatus = 'live';
+      }
+
+      // CHANGE DETECTED HERE: Check if status is transitioning to finished
+      const oldStatus = dbMatch.current_status ? dbMatch.current_status.toLowerCase() : 'pending';
+      if (newStatus === 'finished' && oldStatus !== 'finished') {
+        dynamicMatchJustFinished = true;
       }
 
       const isReversed = (dbMatch.team_a === getNormalizedTeamName(fdMatch.awayTeam?.name));
@@ -236,7 +239,9 @@ export default async function handler(request, response) {
 
     let calculationLogs = [];
     let knockoutUpdates = [];
-    if (updates.some(u => u.success && u.current_status === 'finished')) {
+
+    // UPDATED CONDITION: Trigger calculations if any processed match just finalized
+    if (dynamicMatchJustFinished) {
       try {
         knockoutUpdates = await autoAdvanceKnockoutStages(directusUrl, adminToken);
       } catch (advanceErr) {
