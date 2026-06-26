@@ -44,10 +44,10 @@ export class MatchComponent implements OnInit, OnDestroy {
 
   protected userId: number = 0;
   protected userTrigramme: string = '';
-  protected halfTimeA: number | null = null;
-  protected halfTimeB: number | null = null;
-  protected fullTimeA: number | null = null;
-  protected fullTimeB: number | null = null;
+  protected halfTimeA: number | null = 0;
+  protected halfTimeB: number | null = 0;
+  protected fullTimeA: number | null = 0;
+  protected fullTimeB: number | null = 0;
   protected scorer: string = '';
   protected matchOutcome: string = '';
   protected limitDate!: Date;
@@ -138,6 +138,10 @@ export class MatchComponent implements OnInit, OnDestroy {
       this.calcWinDrawOutcome = true;
     }
 
+    if(this.match.phase !== 'Group Stage') {
+      console.log('Statuses ->');
+      console.log(this.disabled, this.isSubmitting, !this.isEditing, (this.match.fulltime || this.isSavedInApi || this.closed));
+    }
     // Forcing for testing 
     // this.match.fulltime_a = 1;
     // this.match.fulltime_b = 2;
@@ -549,6 +553,7 @@ export class MatchComponent implements OnInit, OnDestroy {
 
     this.isEditing = true;
     this.disabled = false;
+    this.isSavedInApi = false;
     console.log('editing pronostic for match', this.match.id);
   }
 
