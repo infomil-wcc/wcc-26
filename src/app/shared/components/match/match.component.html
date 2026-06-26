@@ -5,7 +5,7 @@
   }
 
   <!-- Lock overlay: only shown when pronostic is saved but match is not yet played -->
-  @if (isPronostiques && isSavedInApi && (match.fulltime_a === null || match.fulltime_b === null)) {
+  @if (isPronostiques && isSavedInApi && (match.fulltime_a === null || match.fulltime_b === null) && !isEditing) {
     <div class="lock-overlay">
       <span class="material-symbols-outlined lock-icon">lock</span>
     </div>
@@ -87,7 +87,7 @@
           <!-- Team A Option Button -->
           <div class="col-4">
             <div class="team-option-btn teamA flex flex-column align-items-center justify-content-center position-relative"
-              [ngClass]="{'active': matchOutcome === match.team_a, 'disabled': disabled || isSubmitting || closed || isSavedInApi || match.fulltime}"
+              [ngClass]="{'active': matchOutcome === match.team_a, 'disabled': !canEditPrediction}"
               (click)="selectWinner(match.team_a)">
               <span class="flex flagContainer" [ngStyle]="{'background-image': match.team_a ? 'url(' + teamAFlag + ')'  : 'url(assets/flags/unknown.png)'}"></span>
               @if (matchOutcome === match.team_a) {
@@ -109,7 +109,7 @@
               <!-- Draw Option Button -->
               @if (match.phase === 'Group Stage') {
                 <div class="team-option-btn draw flex flex-column align-items-center justify-content-center position-relative w-full"
-                  [ngClass]="{'active': matchOutcome === 'Draw', 'disabled': disabled || isSubmitting || closed || isSavedInApi || match.fulltime}"
+                  [ngClass]="{'active': matchOutcome === 'Draw', 'disabled': !canEditPrediction}"
                   (click)="selectWinner('Draw')">
                   @if (matchOutcome === 'Draw') {
                     <span class="material-symbols-outlined winner-tick">check_circle</span>
@@ -144,7 +144,7 @@
           <!-- Team B Option Button -->
           <div class="col-4">
             <div class="team-option-btn teamB flex flex-column align-items-center justify-content-center position-relative"
-              [ngClass]="{'active': matchOutcome === match.team_b, 'disabled': disabled || isSubmitting || closed || isSavedInApi || match.fulltime}"
+              [ngClass]="{'active': matchOutcome === match.team_b, 'disabled': !canEditPrediction}"
               (click)="selectWinner(match.team_b)">
               <span class="flex flagContainer" [ngStyle]="{'background-image': match.team_b ? 'url(' + teamBFlag + ')'  : 'url(assets/flags/unknown.png)'}"></span>
               @if (matchOutcome === match.team_b) {
@@ -184,12 +184,12 @@
                   </div>
                   @if (match.halftime) {
                     <div class="score-col">
-                      <app-number-input [(num)]="halfTimeA" (numChange)="onHalftimeScoreChanged()" [disabled]="disabled || isSubmitting || isSavedInApi"></app-number-input>
+                      <app-number-input [(num)]="halfTimeA" (numChange)="onHalftimeScoreChanged()" [disabled]="disabled || isSubmitting || (!isEditing && (match.fulltime || isSavedInApi || closed))"></app-number-input>
                     </div>
                   }
                   @if (match.fulltime) {
                     <div class="score-col">
-                      <app-number-input [(num)]="fullTimeA" (numChange)="onScoreChanged()" [disabled]="disabled || isSubmitting || isSavedInApi"></app-number-input>
+                      <app-number-input [(num)]="fullTimeA" (numChange)="onScoreChanged()" [disabled]="disabled || isSubmitting || (!isEditing && (match.fulltime || isSavedInApi || closed))"></app-number-input>
                     </div>
                   }
                 </div>
@@ -202,12 +202,12 @@
                   </div>
                   @if (match.halftime) {
                     <div class="score-col">
-                      <app-number-input [(num)]="halfTimeB" (numChange)="onHalftimeScoreChanged()" [disabled]="disabled || isSubmitting || isSavedInApi"></app-number-input>
+                      <app-number-input [(num)]="halfTimeB" (numChange)="onHalftimeScoreChanged()" [disabled]="disabled || isSubmitting || (!isEditing && (match.fulltime || isSavedInApi || closed))"></app-number-input>
                     </div>
                   }
                   @if (match.fulltime) {
                     <div class="score-col">
-                      <app-number-input [(num)]="fullTimeB" (numChange)="onScoreChanged()" [disabled]="disabled || isSubmitting || isSavedInApi"></app-number-input>
+                      <app-number-input [(num)]="fullTimeB" (numChange)="onScoreChanged()" [disabled]="disabled || isSubmitting || (!isEditing && (match.fulltime || isSavedInApi || closed))"></app-number-input>
                     </div>
                   }
                 </div>
@@ -220,7 +220,7 @@
                   <button class="btn btn-select-scorer w-full flex align-items-center justify-content-center gap-2 py-2" 
                     [ngClass]="{'btn-warning-outline': !scorer || scorer === '-'}"
                     (click)="openTacticalLineup()" 
-                    [disabled]="disabled || isSubmitting || isSavedInApi">
+                    [disabled]="disabled || isSubmitting || (!isEditing && (match.fulltime || isSavedInApi || closed))">
                     <span class="material-symbols-outlined" style="font-size: 1.1rem; vertical-align: middle;">sports_soccer</span>
                     Choisir un buteur
                   </button>
@@ -302,6 +302,10 @@
                   <strong class="align-middle">Buteur :</strong> <span class="align-middle">{{ donePronostique.scorer }}</span>
                 </h5>
               }
+            }
+
+            @if(donePronostique && match.fulltime_a === null && match.fulltime_b === null && !isEditing && match.phase !== 'Group Stage') {
+              <button class="btnEditpronostic flex align-items-center" (click)="modifierPronostic()">Modifier mon pronostic<i class="material-symbols-outlined">edit</i></button>
             }
           </div>
         }

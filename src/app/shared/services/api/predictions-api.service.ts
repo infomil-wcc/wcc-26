@@ -18,6 +18,6 @@ export class PredictionsApiService {
   }
 
   updatePrediction(id: any, prediction: any, options?: any): Observable<any> {
-    return this.http.put<any>(`${environment.apiBaseUrl}/items/pronostiques/${id}`, prediction, options);
+    return this.http.patch<any>(`${environment.apiBaseUrl}/items/pronostiques/${id}`, prediction, options);
   }
 }
