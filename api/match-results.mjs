@@ -108,7 +108,7 @@ export function hasMatchChanged(dbMatch, payload) {
   if (payload.scorers) {
     const dbScorers = dbMatch.scorers || [];
     const payScorers = payload.scorers || [];
-    
+
     let dbScorerNames = [];
     if (Array.isArray(dbScorers)) {
       dbScorerNames = dbScorers.map(s => typeof s === 'string' ? s : (s.player?.name || s.scorer?.name || '')).filter(Boolean);
@@ -141,7 +141,7 @@ export default async function handler(request, response) {
     return response.status(405).json({ error: 'Method Not Allowed' });
   }
 
-  process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
+  //process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 
   let directusUrl = process.env.DIRECTUS_URL;
   if (!directusUrl || directusUrl === 'undefined') {
@@ -200,7 +200,7 @@ export default async function handler(request, response) {
 
     if (shouldSyncAndCalcAll || shouldSyncMatches) {
       const dbUrl = syncMatchId ? `${directusUrl}/items/matches/${syncMatchId}` : `${directusUrl}/items/matches?limit=-1`;
-      
+
       const [dbRes, apiRes, wcRes] = await Promise.all([
         fetch(dbUrl, { headers }),
         fetch('https://api.football-data.org/v4/competitions/WC/matches', {
@@ -398,7 +398,7 @@ export default async function handler(request, response) {
 export async function autoAdvanceKnockoutStages(directusUrl, adminToken) {
   const headers = { 'Authorization': `Bearer ${adminToken}` };
   const updates = [];
-  
+
   // 1. Fetch all matches
   const matchesRes = await fetch(`${directusUrl}/items/matches?limit=-1`, { headers });
   if (!matchesRes.ok) return updates;
@@ -415,7 +415,7 @@ export async function autoAdvanceKnockoutStages(directusUrl, adminToken) {
   // PART A: AUTO-ADVANCE GROUP WINNERS & RUNNERS-UP TO ROUND OF 32
   // ----------------------------------------------------
   const groups = ['Group A', 'Group B', 'Group C', 'Group D', 'Group E', 'Group F', 'Group G', 'Group H', 'Group I', 'Group J', 'Group K', 'Group L'];
-  
+
   for (const groupName of groups) {
     const matchesInGroup = groupMatches.filter(m => m.group === groupName);
     const playedInGroup = matchesInGroup.filter(m => m.fulltime_a !== null && m.fulltime_b !== null);
@@ -523,7 +523,7 @@ export async function autoAdvanceKnockoutStages(directusUrl, adminToken) {
   // Iterate multiple passes to allow cascading advancement (e.g. R32 winner advances to R16, R16 winner to QF, etc.)
   let changedInPass = true;
   let passCount = 0;
-  
+
   while (changedInPass && passCount < 5) {
     changedInPass = false;
     passCount++;
@@ -584,7 +584,7 @@ export async function autoAdvanceKnockoutStages(directusUrl, adminToken) {
           if (updatedPayload.team_a) match.team_a = updatedPayload.team_a;
           if (updatedPayload.team_b) match.team_b = updatedPayload.team_b;
           changedInPass = true;
-          
+
           updates.push({
             id: match.id,
             team_a_updated: !!updatedPayload.team_a,
@@ -606,19 +606,19 @@ export async function recalculateRankings(directusUrl, adminToken, specificUser 
     const headers = { 'Authorization': `Bearer ${adminToken}` };
 
     const pronoFilter = specificUser ? `&filter[user][eq]=${specificUser}` : "";
-    
+
     const [matchesRes, predictionsRes, rankingsRes] = await Promise.all([
       fetch(`${directusUrl}/items/matches?limit=-1`, { headers }),
       fetch(`${directusUrl}/items/pronostiques?limit=-1${pronoFilter}`, { headers }),
       fetch(`${directusUrl}/items/pronostics_rankings?limit=-1`, { headers })
     ]);
-    
+
     const [matchesData, predictionsData, rankingsData] = await Promise.all([
       matchesRes.json(),
       predictionsRes.json(),
       rankingsRes.json()
     ]);
-    
+
     const matches = matchesData.data || [];
     const predictions = predictionsData.data || [];
     const existingRankings = rankingsData.data || [];
