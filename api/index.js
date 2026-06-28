@@ -6,7 +6,7 @@ import { getRegisteredUserCount, registerNewUser } from '../backend/libs/usersHe
 import { getTeamsOrSquads } from '../backend/libs/teamsSquadsHelper.mjs';
 
 // 1. Initialisation du routeur centralisé pour l'API Infomil
-const router = AutoRouter({ base: '/api' });
+const router = AutoRouter();
 
 // ==========================================================================
 // MIDDLEWARE GLOBAL : AJOUT DU BLOC TRY / CATCH MANQUANT
@@ -29,7 +29,7 @@ router.all('*', async (request, response) => {
 // ----------------------------------------------------------------------
 // ROUTE 1A : GESTION DES SQUADS (Legacy Endpoint)
 // ----------------------------------------------------------------------
-router.get('/squads', async (request, response) => {
+router.get('/api/squads', async (request, response) => {
     try {
         // Force the type to 'squads' and forward all query string filters
         const { status, data } = await getTeamsOrSquads('squads', request.query);
@@ -46,7 +46,7 @@ router.get('/squads', async (request, response) => {
 // ----------------------------------------------------------------------
 // ROUTE 1B : GESTION DES TEAMS (Legacy Endpoint)
 // ----------------------------------------------------------------------
-router.get('/teams', async (request, response) => {
+router.get('/api/teams', async (request, response) => {
     try {
         // Force the type to 'teams' and forward all query string filters
         const { status, data } = await getTeamsOrSquads('teams', request.query);
@@ -63,7 +63,7 @@ router.get('/teams', async (request, response) => {
 // ----------------------------------------------------------------------
 // ROUTE 2 : RÈGLES DU JEU DYNAMIQUES (GAME RULES)
 // ----------------------------------------------------------------------
-router.get('/game-rules', async (request, response) => {
+router.get('/api/game-rules', async (request, response) => {
     const directusUrl = process.env.DIRECTUS_URL || 'https://euro.omediainteractive.net/imleuro';
     const adminToken = process.env.DIRECTUS_ADMIN_TOKEN;
 
@@ -88,7 +88,7 @@ router.get('/game-rules', async (request, response) => {
 // ----------------------------------------------------------------------
 // ROUTE 3 : COMPOSITION DES ÉQUIPES (LINEUPS)
 // ----------------------------------------------------------------------
-router.get('/lineups', async (request, response) => {
+router.get('/api/lineups', async (request, response) => {
     const { team_a, team_b } = request.query;
     if (!team_a || !team_b) {
         return response.status(400).json({ error: 'Missing team_a or team_b parameters.' });
@@ -150,7 +150,7 @@ router.post('/users', async (request, response) => {
 // ----------------------------------------------------------------------
 // ROUTE 6 : COMPTE DES UTILISATEURS (REGISTERED USERS)
 // ----------------------------------------------------------------------
-router.get('/registered-users', async (request, response) => {
+router.get('/api/registered-users', async (request, response) => {
     const directusUrl = process.env.DIRECTUS_URL;
     const adminToken = process.env.DIRECTUS_ADMIN_TOKEN;
     const roleId = process.env.DIRECTUS_USER_ROLE_ID;
