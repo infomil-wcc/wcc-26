@@ -1,14 +1,25 @@
 import { AutoRouter } from 'itty-router';
-import { handleCors, readJsonFile, applyFiltersAndSelect } from './libs/utils.mjs';
-import { teamNameMap } from './libs/mappings.mjs';
+import { handleCors, readJsonFile, applyFiltersAndSelect } from './utils.mjs';
+import { teamNameMap } from './mappings.mjs';
 
-// 1. Initialisation du routeur centralisé
+// 1. Initialisation du routeur centralisé pour l'API Infomil
 const router = AutoRouter({ base: '/api' });
 
-// Middleware global pour gérer la pré-vérification CORS
-router.all('*', (request, response) => {
-    if (handleCors(request, response)) {
-        return response.end();
+// ==========================================================================
+// MIDDLEWARE GLOBAL : AJOUT DU BLOC TRY / CATCH MANQUANT
+// ==========================================================================
+router.all('*', async (request, response) => {
+    try {
+        // Gestion systématique des permissions pré-vol CORS
+        if (handleCors(request, response)) {
+            return response.end();
+        }
+    } catch (corsError) {
+        console.error("❌ Échec critique lors de l'exécution du Middleware CORS :", corsError.message);
+        return response.status(500).json({
+            error: "Erreur d'initialisation de la passerelle API.",
+            details: corsError.message
+        });
     }
 });
 
@@ -66,10 +77,9 @@ router.get('/game-rules', async (request, response) => {
             if (rulesRes.ok) rulesMatrix = (await rulesRes.json()).data || [];
             if (matchesRes.ok) matchesList = (await matchesRes.json()).data || [];
         } catch (apiErr) {
-            console.error("Erreur Directus back-up:", apiErr.message);
+            console.error("⚠️ Erreur récupération Directus (utilisation des fallbacks) :", apiErr.message);
         }
 
-        // Hydratation dynamique de la structure (Idem à votre ancien game-rules.mjs)
         gameData.elements = gameData.elements.map(element => {
             if (element.id === 'jeu_pronostics') {
                 const targetPhases = ['Group Stage', 'Round of 32', 'Round of 16', 'Quarter-finals', 'Semi-finals', 'Final'];
@@ -128,30 +138,37 @@ router.get('/game-rules', async (request, response) => {
                     return row ? Number(row[fieldName] || 0) : 0;
                 };
 
+                // 1. Extract values safely into cleanly named constants
+                const round32 = getBracketVal('Round of 32', 'winner_draw_points');
+                const round16 = getBracketVal('Round of 16', 'winner_draw_points');
+                const quarter = getBracketVal('Quarter-finals', 'winner_draw_points');
                 const sfBonus = getBracketVal('Semi-finals', 'qualification_bonus_points');
                 const fBonus = getBracketVal('Final', 'champion_bonus_points');
 
+                // 2. Assign properties using quotes for properties starting with digits
                 element.bareme_points = {
-                    "32eme_de_finale": getBracketVal('Round of 32', 'winner_draw_points'),
-                    "16eme_de_finale": getBracketVal('Round of 16', 'winner_draw_points'),
-                    "8eme_de_finale": getBracketVal('Quarter-finals', 'winner_draw_points'),
+                    "32eme_de_finale": round32,
+                    "16eme_de_finale": round16,
+                    "8eme_de_finale": quarter,
                     "demi_finale": sfBonus,
                     "finale": fBonus
                 };
                 element.bonus_equipe_finale = sfBonus;
-                element.maximum_possible = (16 * element.bareme_points.32eme_de_finale) + (8 * element.bareme_points.16eme_de_finale) + (4 * element.bareme_points.8eme_de_finale) + (2 * sfBonus) + (1 * fBonus);
-      }
-return element;
-    });
 
-const { select, ...filters } = request.query;
-if (Object.keys(filters).length === 0 && !select) return response.status(200).json(gameData);
+                // 3. Clean math calculation using your constants
+                element.maximum_possible = (16 * round32) + (8 * round16) + (4 * quarter) + (2 * sfBonus) + fBonus;
+            }
+            return element;
+        });
 
-const { status, data } = applyFiltersAndSelect(gameData.elements, request.query, 'nom');
-return response.status(status).json(data);
-  } catch (error) {
-    return response.status(500).json({ error: "Erreur lors de la génération des règles." });
-}
+        const { select, ...filters } = request.query;
+        if (Object.keys(filters).length === 0 && !select) return response.status(200).json(gameData);
+
+        const { status, data } = applyFiltersAndSelect(gameData.elements, request.query, 'nom');
+        return response.status(status).json(data);
+    } catch (error) {
+        return response.status(500).json({ error: "Erreur lors de la génération des règles." });
+    }
 });
 
 // ----------------------------------------------------------------------
@@ -173,7 +190,6 @@ router.get('/lineups', async (request, response) => {
     const normA = normalize(team_a);
     const normB = normalize(team_b);
 
-    // Simulation Hardcodée Argentina / Austria (Identique à votre fichier lineups.mjs original)
     if ((normA === 'argentina' && normB === 'austria') || (normA === 'austria' && normB === 'argentina')) {
         const isReversed = (normA === 'austria');
         const mockArgentina = { name: "Argentina", formation: "4-3-3", lineup: [], bench: [] };
@@ -240,7 +256,6 @@ router.post('/users', async (request, response) => {
         const data = await resDb.json();
         if (!resDb.ok) return response.status(resDb.status).json(data);
 
-        // Publication asynchrone dans le classement Directus
         try {
             await fetch(`${process.env.DIRECTUS_URL}/items/registration_ranking`, {
                 method: 'POST',
@@ -255,7 +270,7 @@ router.post('/users', async (request, response) => {
     }
 });
 
-// 4. Exportation du handler principal standardisé Vercel
+// 3. Export du point d'entrée requis pour Vercel Serverless
 export default async function handler(request, response) {
     return router.handle(request, response);
 }
