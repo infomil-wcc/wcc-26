@@ -46,15 +46,16 @@
                         <div class="match-stadium-name">{{ matchDetails['R32_m'+mIdx]?.stadium || 'Inconnu' }}</div>
                         <div class="match-date-value">{{ matchDetails['R32_m'+mIdx]?.date || '-' }}</div>
                       </div>
-                      @for (slot of [1, 2]; track slot) {
-                        <!-- When showing a validated (read-only) saved bracket, display only the chosen winner for R32 -->
-                        @if (validated && vR32['m'+mIdx]; as savedWinner) {
-                          <div class="team-slot" [class.selected]="getWinner('R32', 'm'+mIdx)?.name === savedWinner?.name">
-                            <img [src]="savedWinner.flagUrl || 'assets/flags/unknown.png'" class="slot-flag" alt="">
-                            <span class="slot-name-text">{{ savedWinner.name || 'À déterminer' }}</span>
+                      @if (validated) {
+                        @for (slot of [1, 2]; track slot) {
+                          <div class="team-slot"
+                            [class.selected]="getWinner('R32', 'm'+mIdx)?.name === getTeam('R32', 'm'+mIdx, slot)?.name">
+                            <img [src]="getTeam('R32', 'm'+mIdx, slot)?.flagUrl || 'assets/flags/unknown.png'" class="slot-flag" alt="">
+                            <span class="slot-name-text">{{ getTeam('R32', 'm'+mIdx, slot)?.name || 'À déterminer' }}</span>
                           </div>
                         }
-                        @if (!validated || !vR32['m'+mIdx]) {
+                      } @else {
+                        @for (slot of [1, 2]; track slot) {
                           @if (getThirdPlaceSlotIdx(mIdx, slot) !== -1) {
                             <div class="team-slot third-place-dropdown-slot"
                               [class.selected]="getWinner('R32', 'm'+mIdx)?.name === getTeam('R32', 'm'+mIdx, slot)?.name">
@@ -93,8 +94,37 @@
                                 <span class="slot-name-text">{{ getTeam('R32', 'm'+mIdx, slot)?.name || 'À déterminer' }}</span>
                               </div>
                             }
-                          }
                         }
+                      }
+                      @if (validated && getPredictionEvaluation('R32', 'm'+mIdx); as evalRes) {
+                        <div class="prediction-status-row" [class.correct]="evalRes.status === 'correct'" [class.incorrect]="evalRes.status === 'incorrect'" [class.pending]="evalRes.status === 'pending'">
+                          @if (evalRes.status === 'correct') {
+                            <span class="status-badge correct">
+                              <span class="material-symbols-outlined status-icon">check_circle</span>
+                              Correct (+{{ evalRes.points }} pts)
+                            </span>
+                          }
+                          @if (evalRes.status === 'incorrect') {
+                            <div class="status-badge-container flex flex-column gap-1">
+                              <span class="status-badge incorrect">
+                                <span class="material-symbols-outlined status-icon">cancel</span>
+                                Incorrect (+0 pts)
+                              </span>
+                              <div class="real-winner-pill flex align-items-center gap-1">
+                                <span class="text-xs text-gray-400">Réel:</span>
+                                <img [src]="evalRes.realWinnerFlagUrl || 'assets/flags/unknown.png'" class="slot-flag-small" alt="">
+                                <span class="text-xs text-white">{{ evalRes.realWinnerName }}</span>
+                              </div>
+                            </div>
+                          }
+                          @if (evalRes.status === 'pending') {
+                            <span class="status-badge pending">
+                              <span class="material-symbols-outlined status-icon">schedule</span>
+                              En attente
+                            </span>
+                          }
+                        </div>
+                      }
                       </div>
                     </div>
                   }
@@ -118,13 +148,55 @@
                           <div class="match-stadium-name">{{ matchDetails['R16_m'+mIdx]?.stadium || 'Inconnu' }}</div>
                           <div class="match-date-value">{{ matchDetails['R16_m'+mIdx]?.date || '-' }}</div>
                         </div>
-                        @for (slot of [1, 2]; track slot) {
-                          <div class="team-slot" [class.disabled]="!getTeam('R16', 'm'+mIdx, slot)"
-                            [class.selected]="getWinner('R16', 'm'+mIdx)?.name === getTeam('R16', 'm'+mIdx, slot)?.name"
-                            (click)="!validated && getTeam('R16', 'm'+mIdx, slot) && selectWinner('R16', 'm'+mIdx, getTeam('R16', 'm'+mIdx, slot)!)">
-                            <img [src]="getTeam('R16', 'm'+mIdx, slot)?.flagUrl || 'assets/flags/unknown.png'"
-                              class="slot-flag" alt="">
-                              <span class="slot-name-text">{{ getTeam('R16', 'm'+mIdx, slot)?.name || 'À déterminer' }}</span>
+                         @if (validated) {
+                           @if (getWinner('R16', 'm'+mIdx); as savedWinner) {
+                             <div class="team-slot selected">
+                               <img [src]="savedWinner.flagUrl || 'assets/flags/unknown.png'" class="slot-flag" alt="">
+                               <span class="slot-name-text">{{ savedWinner.name || 'À déterminer' }}</span>
+                             </div>
+                           } @else {
+                             <div class="team-slot">
+                               <span class="slot-name-text">À déterminer</span>
+                             </div>
+                           }
+                         } @else {
+                           @for (slot of [1, 2]; track slot) {
+                             <div class="team-slot" [class.disabled]="!getTeam('R16', 'm'+mIdx, slot)"
+                               [class.selected]="getWinner('R16', 'm'+mIdx)?.name === getTeam('R16', 'm'+mIdx, slot)?.name"
+                               (click)="!validated && getTeam('R16', 'm'+mIdx, slot) && selectWinner('R16', 'm'+mIdx, getTeam('R16', 'm'+mIdx, slot)!)">
+                               <img [src]="getTeam('R16', 'm'+mIdx, slot)?.flagUrl || 'assets/flags/unknown.png'"
+                                 class="slot-flag" alt="">
+                                 <span class="slot-name-text">{{ getTeam('R16', 'm'+mIdx, slot)?.name || 'À déterminer' }}</span>
+                               </div>
+                             }
+                         }
+                         @if (validated && getPredictionEvaluation('R16', 'm'+mIdx); as evalRes) {
+                            <div class="prediction-status-row" [class.correct]="evalRes.status === 'correct'" [class.incorrect]="evalRes.status === 'incorrect'" [class.pending]="evalRes.status === 'pending'">
+                              @if (evalRes.status === 'correct') {
+                                <span class="status-badge correct">
+                                  <span class="material-symbols-outlined status-icon">check_circle</span>
+                                  Correct (+{{ evalRes.points }} pts)
+                                </span>
+                              }
+                              @if (evalRes.status === 'incorrect') {
+                                <div class="status-badge-container flex flex-column gap-1">
+                                  <span class="status-badge incorrect">
+                                    <span class="material-symbols-outlined status-icon">cancel</span>
+                                    Incorrect (+0 pts)
+                                  </span>
+                                  <div class="real-winner-pill flex align-items-center gap-1">
+                                    <span class="text-xs text-gray-400">Réel:</span>
+                                    <img [src]="evalRes.realWinnerFlagUrl || 'assets/flags/unknown.png'" class="slot-flag-small" alt="">
+                                    <span class="text-xs text-white">{{ evalRes.realWinnerName }}</span>
+                                  </div>
+                                </div>
+                              }
+                              @if (evalRes.status === 'pending') {
+                                <span class="status-badge pending">
+                                  <span class="material-symbols-outlined status-icon">schedule</span>
+                                  En attente
+                                </span>
+                              }
                             </div>
                           }
                         </div>
@@ -150,15 +222,57 @@
                             <div class="match-stadium-name">{{ matchDetails['R4_m'+mIdx]?.stadium || 'Inconnu' }}</div>
                             <div class="match-date-value">{{ matchDetails['R4_m'+mIdx]?.date || '-' }}</div>
                           </div>
-                          @for (slot of [1, 2]; track slot) {
-                            <div class="team-slot" [class.disabled]="!getTeam('R4', 'm'+mIdx, slot)"
-                              [class.selected]="getWinner('R4', 'm'+mIdx)?.name === getTeam('R4', 'm'+mIdx, slot)?.name"
-                              (click)="!validated && getTeam('R4', 'm'+mIdx, slot) && selectWinner('R4', 'm'+mIdx, getTeam('R4', 'm'+mIdx, slot)!)">
-                              <img [src]="getTeam('R4', 'm'+mIdx, slot)?.flagUrl || 'assets/flags/unknown.png'"
-                                class="slot-flag" alt="">
-                                <span class="slot-name-text">{{ getTeam('R4', 'm'+mIdx, slot)?.name || 'À déterminer' }}</span>
+                          @if (validated) {
+                            @if (getWinner('R4', 'm'+mIdx); as savedWinner) {
+                              <div class="team-slot selected">
+                                <img [src]="savedWinner.flagUrl || 'assets/flags/unknown.png'" class="slot-flag" alt="">
+                                <span class="slot-name-text">{{ savedWinner.name || 'À déterminer' }}</span>
+                              </div>
+                            } @else {
+                              <div class="team-slot">
+                                <span class="slot-name-text">À déterminer</span>
                               </div>
                             }
+                          } @else {
+                            @for (slot of [1, 2]; track slot) {
+                              <div class="team-slot" [class.disabled]="!getTeam('R4', 'm'+mIdx, slot)"
+                                [class.selected]="getWinner('R4', 'm'+mIdx)?.name === getTeam('R4', 'm'+mIdx, slot)?.name"
+                                (click)="!validated && getTeam('R4', 'm'+mIdx, slot) && selectWinner('R4', 'm'+mIdx, getTeam('R4', 'm'+mIdx, slot)!)">
+                                <img [src]="getTeam('R4', 'm'+mIdx, slot)?.flagUrl || 'assets/flags/unknown.png'"
+                                  class="slot-flag" alt="">
+                                  <span class="slot-name-text">{{ getTeam('R4', 'm'+mIdx, slot)?.name || 'À déterminer' }}</span>
+                                </div>
+                              }
+                          }
+                          @if (validated && getPredictionEvaluation('R4', 'm'+mIdx); as evalRes) {
+                            <div class="prediction-status-row" [class.correct]="evalRes.status === 'correct'" [class.incorrect]="evalRes.status === 'incorrect'" [class.pending]="evalRes.status === 'pending'">
+                              @if (evalRes.status === 'correct') {
+                                <span class="status-badge correct">
+                                  <span class="material-symbols-outlined status-icon">check_circle</span>
+                                  Correct (+{{ evalRes.points }} pts)
+                                </span>
+                              }
+                              @if (evalRes.status === 'incorrect') {
+                                <div class="status-badge-container flex flex-column gap-1">
+                                  <span class="status-badge incorrect">
+                                    <span class="material-symbols-outlined status-icon">cancel</span>
+                                    Incorrect (+0 pts)
+                                  </span>
+                                  <div class="real-winner-pill flex align-items-center gap-1">
+                                    <span class="text-xs text-gray-400">Réel:</span>
+                                    <img [src]="evalRes.realWinnerFlagUrl || 'assets/flags/unknown.png'" class="slot-flag-small" alt="">
+                                    <span class="text-xs text-white">{{ evalRes.realWinnerName }}</span>
+                                  </div>
+                                </div>
+                              }
+                              @if (evalRes.status === 'pending') {
+                                <span class="status-badge pending">
+                                  <span class="material-symbols-outlined status-icon">schedule</span>
+                                  En attente
+                                </span>
+                              }
+                            </div>
+                          }
                           </div>
                         </div>
                       }
@@ -181,15 +295,57 @@
                             <div class="match-stadium-name">{{ matchDetails['S_m'+mIdx]?.stadium || 'Inconnu' }}</div>
                             <div class="match-date-value">{{ matchDetails['S_m'+mIdx]?.date || '-' }}</div>
                           </div>
-                          @for (slot of [1, 2]; track slot) {
-                            <div class="team-slot" [class.disabled]="!getTeam('S', 'm'+mIdx, slot)"
-                              [class.selected]="getWinner('S', 'm'+mIdx)?.name === getTeam('S', 'm'+mIdx, slot)?.name"
-                              (click)="!validated && getTeam('S', 'm'+mIdx, slot) && selectWinner('S', 'm'+mIdx, getTeam('S', 'm'+mIdx, slot)!)">
-                              <img [src]="getTeam('S', 'm'+mIdx, slot)?.flagUrl || 'assets/flags/unknown.png'" class="slot-flag"
-                                alt="">
-                                <span class="slot-name-text">{{ getTeam('S', 'm'+mIdx, slot)?.name || 'À déterminer' }}</span>
+                          @if (validated) {
+                            @if (getWinner('S', 'm'+mIdx); as savedWinner) {
+                              <div class="team-slot selected">
+                                <img [src]="savedWinner.flagUrl || 'assets/flags/unknown.png'" class="slot-flag" alt="">
+                                <span class="slot-name-text">{{ savedWinner.name || 'À déterminer' }}</span>
+                              </div>
+                            } @else {
+                              <div class="team-slot">
+                                <span class="slot-name-text">À déterminer</span>
                               </div>
                             }
+                          } @else {
+                            @for (slot of [1, 2]; track slot) {
+                              <div class="team-slot" [class.disabled]="!getTeam('S', 'm'+mIdx, slot)"
+                                [class.selected]="getWinner('S', 'm'+mIdx)?.name === getTeam('S', 'm'+mIdx, slot)?.name"
+                                (click)="!validated && getTeam('S', 'm'+mIdx, slot) && selectWinner('S', 'm'+mIdx, getTeam('S', 'm'+mIdx, slot)!)">
+                                <img [src]="getTeam('S', 'm'+mIdx, slot)?.flagUrl || 'assets/flags/unknown.png'" class="slot-flag"
+                                  alt="">
+                                  <span class="slot-name-text">{{ getTeam('S', 'm'+mIdx, slot)?.name || 'À déterminer' }}</span>
+                                </div>
+                              }
+                          }
+                          @if (validated && getPredictionEvaluation('S', 'm'+mIdx); as evalRes) {
+                            <div class="prediction-status-row" [class.correct]="evalRes.status === 'correct'" [class.incorrect]="evalRes.status === 'incorrect'" [class.pending]="evalRes.status === 'pending'">
+                              @if (evalRes.status === 'correct') {
+                                <span class="status-badge correct">
+                                  <span class="material-symbols-outlined status-icon">check_circle</span>
+                                  Correct (+{{ evalRes.points }} pts)
+                                </span>
+                              }
+                              @if (evalRes.status === 'incorrect') {
+                                <div class="status-badge-container flex flex-column gap-1">
+                                  <span class="status-badge incorrect">
+                                    <span class="material-symbols-outlined status-icon">cancel</span>
+                                    Incorrect (+0 pts)
+                                  </span>
+                                  <div class="real-winner-pill flex align-items-center gap-1">
+                                    <span class="text-xs text-gray-400">Réel:</span>
+                                    <img [src]="evalRes.realWinnerFlagUrl || 'assets/flags/unknown.png'" class="slot-flag-small" alt="">
+                                    <span class="text-xs text-white">{{ evalRes.realWinnerName }}</span>
+                                  </div>
+                                </div>
+                              }
+                              @if (evalRes.status === 'pending') {
+                                <span class="status-badge pending">
+                                  <span class="material-symbols-outlined status-icon">schedule</span>
+                                  En attente
+                                </span>
+                              }
+                            </div>
+                          }
                           </div>
                         </div>
                       }
@@ -209,21 +365,63 @@
                           <div class="match-stadium-name">{{ matchDetails['Final_f1']?.stadium || 'Inconnu' }}</div>
                           <div class="match-date-value">{{ matchDetails['Final_f1']?.date || '-' }}</div>
                         </div>
-                        @for (slot of [1, 2]; track slot) {
-                          <div class="team-slot large-slot" [class.disabled]="!getTeam('Final', 'f1', slot)"
-                            [class.selected]="getWinner('Final', 'f1')?.name === getTeam('Final', 'f1', slot)?.name"
-                            (click)="!validated && getTeam('Final', 'f1', slot) && selectWinner('Final', 'f1', getTeam('Final', 'f1', slot)!)">
-                            <img [src]="getTeam('Final', 'f1', slot)?.flagUrl || 'assets/flags/unknown.png'"
-                              class="slot-flag big-flag" alt="">
-                              <span class="slot-name-text text-lg">{{ getTeam('Final', 'f1', slot)?.name || ('Finaliste ' + slot)
-                              }}</span>
+                        @if (validated) {
+                          @if (getWinner('Final', 'f1'); as savedWinner) {
+                            <div class="team-slot large-slot selected">
+                              <img [src]="savedWinner.flagUrl || 'assets/flags/unknown.png'" class="slot-flag big-flag" alt="">
+                              <span class="slot-name-text text-lg">{{ savedWinner.name || 'À déterminer' }}</span>
                             </div>
-                            @if (slot === 1) {
-                              <div class="versus-divider-badge"
-                                (click)="!validated && openWinnerModal('Final', 'f1', getTeam('Final', 'f1', 1), getTeam('Final', 'f1', 2))">
-                              VS</div>
-                            }
+                          } @else {
+                            <div class="team-slot large-slot">
+                              <span class="slot-name-text text-lg">À déterminer</span>
+                            </div>
                           }
+                        } @else {
+                          @for (slot of [1, 2]; track slot) {
+                            <div class="team-slot large-slot" [class.disabled]="!getTeam('Final', 'f1', slot)"
+                              [class.selected]="getWinner('Final', 'f1')?.name === getTeam('Final', 'f1', slot)?.name"
+                              (click)="!validated && getTeam('Final', 'f1', slot) && selectWinner('Final', 'f1', getTeam('Final', 'f1', slot)!)">
+                              <img [src]="getTeam('Final', 'f1', slot)?.flagUrl || 'assets/flags/unknown.png'"
+                                class="slot-flag big-flag" alt="">
+                                <span class="slot-name-text text-lg">{{ getTeam('Final', 'f1', slot)?.name || ('Finaliste ' + slot)
+                                }}</span>
+                              </div>
+                              @if (slot === 1) {
+                                <div class="versus-divider-badge"
+                                  (click)="!validated && openWinnerModal('Final', 'f1', getTeam('Final', 'f1', 1), getTeam('Final', 'f1', 2))">
+                                VS</div>
+                              }
+                            }
+                        }
+                        @if (validated && getPredictionEvaluation('Final', 'f1'); as evalRes) {
+                          <div class="prediction-status-row" [class.correct]="evalRes.status === 'correct'" [class.incorrect]="evalRes.status === 'incorrect'" [class.pending]="evalRes.status === 'pending'">
+                            @if (evalRes.status === 'correct') {
+                              <span class="status-badge correct">
+                                <span class="material-symbols-outlined status-icon">check_circle</span>
+                                Correct (+{{ evalRes.points }} pts)
+                              </span>
+                            }
+                            @if (evalRes.status === 'incorrect') {
+                              <div class="status-badge-container flex flex-column gap-1">
+                                <span class="status-badge incorrect">
+                                  <span class="material-symbols-outlined status-icon">cancel</span>
+                                  Incorrect (+0 pts)
+                                </span>
+                                <div class="real-winner-pill flex align-items-center gap-1">
+                                  <span class="text-xs text-gray-400">Réel:</span>
+                                  <img [src]="evalRes.realWinnerFlagUrl || 'assets/flags/unknown.png'" class="slot-flag-small" alt="">
+                                  <span class="text-xs text-white">{{ evalRes.realWinnerName }}</span>
+                                </div>
+                              </div>
+                            }
+                            @if (evalRes.status === 'pending') {
+                              <span class="status-badge pending">
+                                <span class="material-symbols-outlined status-icon">schedule</span>
+                                En attente
+                              </span>
+                            }
+                          </div>
+                        }
                         </div>
                         <!-- Winner selection Modal (Only active if not validated) -->
                         @if (showWinnerModal && modalContext && !validated) {

@@ -6,6 +6,8 @@ import { StateService } from '../../../shared/services/core/state.service';
 import { BracketService } from '../../../shared/services/games/bracket.service';
 import { MatchesService } from '../../../shared/services/content/matches.service';
 import { TeamsService } from '../../../shared/services/content/teams.service';
+import { BracketResultApiService } from '../../../shared/services/api/bracket-result-api.service';
+import { GameRulesService } from '../../../shared/services/content/game-rules.service';
 
 export interface Country {
   name: string;
@@ -49,6 +51,8 @@ export class BracketKnockoutComponent implements OnInit {
   private matchesService = inject(MatchesService);
   private teamsService = inject(TeamsService);
   private cdr = inject(ChangeDetectorRef);
+  private bracketResultApiService = inject(BracketResultApiService);
+  private gameRulesService = inject(GameRulesService);
 
   @Input() isOpen: boolean = true;
 
@@ -433,9 +437,20 @@ export class BracketKnockoutComponent implements OnInit {
 
     forkJoin({
       matches: this.matchesService.getAllMatches(),
-      flags: this.teamsService.getFlags()
+      flags: this.teamsService.getFlags(),
+      bracketResult: this.bracketResultApiService.getBracketResult(),
+      rules: this.gameRulesService.getGameRules()
     }).subscribe({
-      next: ({ matches, flags }) => {
+      next: ({ matches, flags, bracketResult, rules }) => {
+        if (bracketResult && bracketResult.data && bracketResult.data.length > 0) {
+          this.realResults = bracketResult.data[0];
+        }
+        if (rules && rules.elements) {
+          const bracketEl = rules.elements.find((e: any) => e.id === 'jeu_bracket');
+          if (bracketEl) {
+            this.bracketRules = bracketEl.bareme_points;
+          }
+        }
         try {
           flags.forEach((f: any) => {
             if (f && f.name) {
@@ -1067,5 +1082,69 @@ export class BracketKnockoutComponent implements OnInit {
     if (stage === 'S') return 'M' + (100 + mIdx);
     if (stage === 'Final') return 'M104';
     return '';
+  }
+
+  protected realResults: any = null;
+  protected bracketRules: any = null;
+
+  getPredictionEvaluation(stage: string, matchKey: string): { status: 'correct' | 'incorrect' | 'pending', points: number, realWinnerName?: string, realWinnerFlagUrl?: string } {
+    if (!this.validated || !this.realResults) {
+      return { status: 'pending', points: 0 };
+    }
+
+    let resultKey = '';
+    let pts = 0;
+
+    const r32Pts = this.bracketRules?.['32eme_de_finale'] ?? 20;
+    const r16Pts = this.bracketRules?.['16eme_de_finale'] ?? 40;
+    const qfPts = this.bracketRules?.['8eme_de_finale'] ?? 60;
+    const sfPts = this.bracketRules?.['demi_finale'] ?? 75;
+    const fPts = this.bracketRules?.['finale'] ?? 150;
+
+    if (stage === 'R32') {
+      const idx = matchKey.replace('m', '');
+      resultKey = `winner_r32_${idx}`;
+      pts = r32Pts;
+    } else if (stage === 'R16') {
+      const idx = matchKey.replace('m', '');
+      resultKey = `winner_r16_${idx}`;
+      pts = r16Pts;
+    } else if (stage === 'R4') {
+      const idx = matchKey.replace('m', '');
+      resultKey = `winner_r4_${idx}`;
+      pts = qfPts;
+    } else if (stage === 'S') {
+      const idx = matchKey.replace('m', '');
+      resultKey = `winner_semi_${idx}`;
+      pts = sfPts;
+    } else if (stage === 'Final') {
+      resultKey = 'winner_wc';
+      pts = fPts;
+    }
+
+    const predicted = this.getWinner(stage, matchKey)?.name;
+    const real = this.realResults[resultKey];
+
+    if (!real || real === 'À déterminer') {
+      return { status: 'pending', points: 0 };
+    }
+
+    if (!predicted || predicted === 'À déterminer') {
+      const realCountry = this.mapNameToCountry(real);
+      const realWinnerFlagUrl = realCountry?.flagUrl || 'assets/flags/unknown.png';
+      return { status: 'incorrect', points: 0, realWinnerName: real, realWinnerFlagUrl };
+    }
+
+    const isCorrect = predicted.toLowerCase().trim() === real.toLowerCase().trim();
+    const isCorrectFuzzy = this.normalizeName(predicted) === this.normalizeName(real);
+
+    const realCountry = this.mapNameToCountry(real);
+    const realWinnerFlagUrl = realCountry?.flagUrl || 'assets/flags/unknown.png';
+
+    if (isCorrect || isCorrectFuzzy) {
+      return { status: 'correct', points: pts, realWinnerName: real, realWinnerFlagUrl };
+    } else {
+      return { status: 'incorrect', points: 0, realWinnerName: real, realWinnerFlagUrl };
+    }
   }
 }

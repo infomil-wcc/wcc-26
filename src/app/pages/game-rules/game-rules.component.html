@@ -1,250 +1,318 @@
 @if (this.apiResponse$) {
-  <div id="rules-app">
-    <header class="st-header">
-      <h1>{{ titleGeneral }}</h1>
-      <p>{{ introduction }}</p>
-    </header>
-    <nav class="st-horizontal-stepper">
-      @for (step of sortedSteps; track step; let idx = $index) {
-<div (click)="goToStep(idx)" class="st-step-node" [ngClass]="{
+<div id="rules-app">
+  <header class="st-header">
+    <h1>{{ titleGeneral }}</h1>
+    <p>{{ introduction }}</p>
+  </header>
+  <nav class="st-horizontal-stepper">
+    @for (step of sortedSteps; track step; let idx = $index) {
+    <div (click)="goToStep(idx)" class="st-step-node" [ngClass]="{
           'is-active': activeStepIndex === idx,
           'is-completed': activeStepIndex > idx
         }">
-          <!-- <div class="st-step-line" *ngIf="idx > 0"></div> -->
-          <div class="st-step-trigger">
-            <span class="st-step-indicator">
-              @if (activeStepIndex > idx) {
-                <span>✓</span>
-              } @else {
-                <span>{{ idx + 1 }}</span>
-              }
-            </span>
-            <div class="st-step-label-group">
-              <p class="st-step-title">{{ step.nom }}</p>
-              <div class="st-step-line"></div>
-              <span class="st-step-date">
-                @if (step.date_debut) {
-                  {{ step.date_debut | date:'dd MMM yyyy': '' :'fr' }}
-                  }-
-                  @if (step.date_fin) {
-                    {{ step.date_fin | date:'dd MMM yyyy': '' :'fr' }}
-                  }
-                  &nbsp;
-                </span>
-              </div>
-            </div>
-          </div>
-        }
-      </nav>
-      <div class="st-layout-container">
-        <main class="st-content-panel">
-          @for (step of sortedSteps; track step; let idx = $index) {
-            <div class="st-view-wrapper">
-              @if (activeStepIndex === idx) {
-                <div class="st-animated-view">
-                  <div class="st-view-header">
-                    <div class="st-badge-row">
-                      <span class="st-badge primary">Étape {{ idx + 1 }}</span>
-                      @if (step.date_debut) {
-                        <span class="st-badge warning">🗓️ Début: {{ step.date_debut | date:'dd MMMM yyyy HH:mm':'':'fr' }}</span>
-                      }
-                      @if (step.date_fin) {
-                        <span class="st-badge warning">🗓️ Fin: {{ step.date_fin | date:'dd MMMM yyyy HH:mm':'':'fr' }}</span>
-                      }
-                    </div>
-                    <h2>{{ step.nom }}</h2>
-                    <p class="st-step-description">{{ step.description }}</p>
-                  </div>
-                  @if (step.elements_a_predire) {
-                    <div class="st-section-card accent-card">
-                      <h3>🌟 Éléments clés à pronostiquer :</h3>
-                      <ul class="st-clean-list">
-                        @for (item of step.elements_a_predire; track item) {
-                          <li>⚡ {{ item }}</li>
-                        }
-                      </ul>
-                      @if (step.systeme_points_departage) {
-                        <div class="st-sub-box">
-                          <p class="st-italic-text">{{ step.systeme_points_departage.introduction }}</p>
-                          <div class="st-badge-flex">
-                            @for (pt of step.systeme_points_departage.points | keyvalue; track pt) {
-                              <span class="st-pill">
-                                {{ pt.key }} : <strong>+{{ pt.value }} pts</strong>
-                              </span>
-                            }
-                          </div>
-                        </div>
-                      }
-                    </div>
-                  }
-                  @if (step.phases) {
-                    <div class="st-compound-block">
-                      <div class="st-accordion">
-                        @for (key of ['phase_de_groupes', 'seiziemes_de_finale', 'huitiemes_de_finale', 'quarts_demis_troisieme_place', 'finale']; track key; let pIdx = $index) {
-                          @if (step.phases[key]) {
-                            <div class="st-accordion-node" [ngClass]="{'is-expanded': openAccordionIndex === pIdx}">
-                              <button (click)="toggleAccordion(pIdx)" class="st-accordion-trigger">
-                                <span>{{ step.phases[key].nom_affiche }}</span>
-                                <span class="st-arrow-icon" [ngClass]="{'is-flipped': openAccordionIndex === pIdx}">▼</span>
-                              </button>
-                              @if (openAccordionIndex === pIdx) {
-                                <div class="st-accordion-content">
-                                  <p><strong>Règles :</strong> {{ step.phases[key].regles }}</p>
-                                  @if (step.phases[key].points_info) {
-                                    <p><strong>Points :</strong> {{ step.phases[key].points_info }}</p>
-                                  }
-                                  @if (step.phases[key].categories_predictions) {
-                                    <div class="st-sub-categories">
-                                      <strong>Catégories débloquées :</strong>
-                                      <div class="st-pill-container">
-                                        @for (cat of step.phases[key].categories_predictions; track cat) {
-                                          <span class="st-pill-indigo">🎯 {{ cat }}</span>
-                                        }
-                                      </div>
-                                    </div>
-                                  }
-                                </div>
-                              }
-                            </div>
-                          }
-                        }
-                      </div>
-                      @if (step.bareme_points_detaille) {
-                        <div class="st-table-section">
-                          <h4>📊 Tableau récapitulatif des points :</h4>
-                          <div class="st-responsive-table">
-                            <table>
-                              <thead>
-                                <tr>
-                                  @for (col of step.bareme_points_detaille.colonnes; track col) {
-                                    <th>{{ col }}</th>
-                                  }
-                                </tr>
-                              </thead>
-                              <tbody>
-                                @for (row of step.bareme_points_detaille.rows; track row) {
-                                  <tr [ngClass]="{ 'st-meta-row': row.cat === 'Nombre de matchs' || row.cat === 'Points max possible / match' || row.cat === 'Total points possible' }">
-                                    <td class="st-sticky-col"><strong>{{ row.cat }}</strong></td>
-                                    @for (val of row.vals; track val) {
-                                      <td class="st-center-td">
-                                        <span [ngClass]="{'st-dash': val === '-', 'st-highlight-cell': val !== '-' && val !== 0}">{{ val }}</span>
-                                      </td>
-                                    }
-                                  </tr>
-                                }
-                              </tbody>
-                            </table>
-                          </div>
-                          <div class="st-total-banner">
-                            <span>Points maximum cumulables sur la compétition :</span>
-                            <strong>{{ step.bareme_points_detaille.total_points_competition }} Points !</strong>
-                          </div>
-                        </div>
-                      }
-                      @if (step.exemples_calcul) {
-                        <div class="st-examples-grid">
-                          @for (ex of step.exemples_calcul; track ex) {
-                            <div class="st-example-card">
-                              <h5>💡 {{ ex.type }}</h5>
-                              <p class="st-scenario-sub">{{ ex.scenario }}</p>
-                              <ul class="st-nested-ul">
-                                @for (det of ex.details; track det) {
-                                  <li>
-                                    <span>• {{ det.prediction }}</span>
-                                    <strong>+{{ det.points }} pts</strong>
-                                  </li>
-                                }
-                              </ul>
-                              <div class="st-example-footer">Total du match : <span>{{ ex.total }} pts</span></div>
-                            </div>
-                          }
-                        </div>
-                      }
-                    </div>
-                  }
-                  @if (step.bareme_points) {
-                    <div class="st-bracket-section">
-                      <p class="st-alert-pill">🚀 {{ step.interet }}</p>
-                      <div class="st-bracket-grid">
-                        @for (item of step.bareme_points | keyvalue:bracketOrder; track item) {
-                          <div class="st-bracket-card">
-                            <span class="st-b-label">{{ formatKey(item.key) }}</span>
-                            <span class="st-b-val">+{{ item.value }} PTS</span>
-                          </div>
-                        }
-                      </div>
-                      <div class="st-total-banner jeu-bracket">
-                        <p>
-                          <span>Pronostic correct de la qualification d’une équipe pour la finale :</span>
-                          <strong>{{ step.bonus_equipe_finale }} Points !</strong>
-                        </p>
-                        <p>
-                          <span>Points maximum cumulables sur la compétition :</span>
-                          <strong>{{ step.maximum_possible }} Points !</strong>
-                        </p>
-                      </div>
-                      @if (step.conditions_egalite) {
-                        <div class="st-rule-callout">
-                          <h4>⚖️ Règles d'égalité spécifiques au Bracket :</h4>
-                          <p><strong>1️⃣</strong> {{ step.conditions_egalite.etape_1 }}</p>
-                          <p><strong>2️⃣</strong> {{ step.conditions_egalite.etape_2 }}</p>
-                          <div class="st-chain-flow">
-                            <span class="st-chain-title">Priorité par phase :</span>
-                            <div class="st-chain-links">
-                              @for (phase of step.conditions_egalite.ordre_priorite_phases; track phase; let last = $last) {
-                                <span>
-                                  <span class="st-chain-badge">{{ phase }}</span>
-                                  @if (!last) {
-                                    <span class="st-chain-arrow"> ▶</span>
-                                  }
-                                </span>
-                              }
-                            </div>
-                          </div>
-                        </div>
-                      }
-                    </div>
-                  }
-                  @if (step.conditions_victoire_et_egalite) {
-                    <div class="st-global-rules">
-                      <div class="st-gradient-banner">
-                        <h4>🏆 Clause de victoire générale</h4>
-                        <p class="st-main-rule">{{ step.conditions_victoire_et_egalite.regle_principale }}</p>
-                        @for (dep of step.conditions_victoire_et_egalite.departage_egalite; track dep) {
-                          <p class="st-sub-rule">⚖️ {{ dep
-                          }}</p>
-                        }
-                      </div>
-                    </div>
-                  }
-                  @if (step.regles) {
-                    <div class="st-legal-container">
-                      @for (regle of step.regles; track regle) {
-                        <div class="st-legal-row">
-                          <span class="st-icon">📜</span> <span class="st-text">{{ regle }}</span>
-                        </div>
-                      }
-                    </div>
-                  }
-                </div>
-              }
-            </div>
+      <div class="st-step-trigger">
+        <span class="st-step-indicator">
+          @if (activeStepIndex > idx) {
+          <span>✓</span>
+          } @else {
+          <span>{{ idx + 1 }}</span>
           }
-          <footer class="st-footer-actions">
-            <button (click)="prevStep()" [disabled]="activeStepIndex === 0" class="st-btn st-btn-secondary">Retour</button>
-            @if (activeStepIndex < sortedSteps.length - 1) {
-              <button (click)="nextStep()"
-              class="st-btn btn">Suivant</button>
+        </span>
+        <div class="st-step-label-group">
+          <p class="st-step-title">{{ step.nom }}</p>
+          <div class="st-step-line"></div>
+          <span class="st-step-date">
+            @if (step.date_debut) {
+            {{ step.date_debut | date:'dd MMM yyyy': '' :'fr' }}
+            }-
+            @if (step.date_fin) {
+            {{ step.date_fin | date:'dd MMM yyyy': '' :'fr' }}
             }
-            @if (activeStepIndex === sortedSteps.length - 1) {
-              <button (click)="resetStepper()"
-              class="st-btn st-btn-accent">Recommencer la lecture</button>
-            }
-          </footer>
-        </main>
+            &nbsp;
+          </span>
+        </div>
       </div>
     </div>
-  } @else {
-    <loader [showLoader]="true" />
-  }
+    }
+  </nav>
+  <div class="st-layout-container">
+    <main class="st-content-panel">
+      @for (step of sortedSteps; track step; let idx = $index) {
+      <div class="st-view-wrapper">
+        @if (activeStepIndex === idx) {
+        <div class="st-animated-view">
+          <div class="st-view-header">
+            <div class="st-badge-row">
+              <span class="st-badge primary">Étape {{ idx + 1 }}</span>
+              @if (step.date_debut) {
+              <span class="st-badge warning">🗓️ Début: {{ step.date_debut | date:'dd MMMM yyyy HH:mm':'':'fr' }}</span>
+              }
+              @if (step.date_fin) {
+              <span class="st-badge warning">🗓️ Fin: {{ step.date_fin | date:'dd MMMM yyyy HH:mm':'':'fr' }}</span>
+              }
+            </div>
+            <h2>{{ step.nom }}</h2>
+            <p class="st-step-description">{{ step.description }}</p>
+          </div>
 
+          @if (step.elements_a_predire) {
+          <div class="st-section-card accent-card">
+            <h3>🌟 Éléments clés à pronostiquer :</h3>
+            <ul class="st-clean-list">
+              @for (item of step.elements_a_predire; track item) {
+              <li>⚡ {{ item }}</li>
+              }
+            </ul>
+            @if (step.systeme_points_departage) {
+            <div class="st-sub-box">
+              <p class="st-italic-text">{{ step.systeme_points_departage.introduction }}</p>
+              <div class="st-badge-flex">
+                @for (pt of step.systeme_points_departage.points | keyvalue; track pt) {
+                <span class="st-pill">
+                  {{ pt.key }} : <strong>+{{ pt.value }} pts</strong>
+                </span>
+                }
+              </div>
+            </div>
+            }
+          </div>
+          }
+
+          @if (step.phases) {
+          <div class="st-compound-block">
+            <div class="st-accordion">
+              @for (key of ['phase_de_groupes', 'seiziemes_de_finale', 'huitiemes_de_finale',
+              'quarts_demis_troisieme_place', 'finale']; track key; let pIdx = $index) {
+              @if (step.phases[key]) {
+              <div class="st-accordion-node" [ngClass]="{'is-expanded': openAccordionIndex === pIdx}">
+                <button (click)="toggleAccordion(pIdx)" class="st-accordion-trigger">
+                  <span>{{ step.phases[key].nom_affiche }}</span>
+                  <span class="st-arrow-icon" [ngClass]="{'is-flipped': openAccordionIndex === pIdx}">▼</span>
+                </button>
+                @if (openAccordionIndex === pIdx) {
+                <div class="st-accordion-content">
+                  <p><strong>Règles :</strong> {{ step.phases[key].regles }}</p>
+                  @if (step.phases[key].points_info) {
+                  <p><strong>Points :</strong> {{ step.phases[key].points_info }}</p>
+                  }
+                  @if (step.phases[key].categories_predictions) {
+                  <div class="st-sub-categories">
+                    <strong>Catégories débloquées :</strong>
+                    <div class="st-pill-container">
+                      @for (cat of step.phases[key].categories_predictions; track cat) {
+                      <span class="st-pill-indigo">🎯 {{ cat }}</span>
+                      }
+                    </div>
+                  </div>
+                  }
+                </div>
+                }
+              </div>
+              }
+              }
+            </div>
+
+            @if (step.bareme_points_detaille) {
+            <div class="st-table-section">
+              <h4>📊 Tableau récapitulatif des points :</h4>
+              <div class="st-responsive-table">
+                <table>
+                  <thead>
+                    <tr>
+                      @for (col of step.bareme_points_detaille.colonnes; track col) {
+                      <th>{{ col }}</th>
+                      }
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @for (row of step.bareme_points_detaille.rows; track row) {
+                    <tr
+                      [ngClass]="{ 'st-meta-row': row.cat === 'Nombre de matchs' || row.cat === 'Points max possible / match' || row.cat === 'Total points possible' }">
+                      <td class="st-sticky-col"><strong>{{ row.cat }}</strong></td>
+
+                      @for (val of row.vals; track $index) {
+                      <td class="st-center-td">
+                        <span [ngClass]="{'st-dash': val === '-', 'st-highlight-cell': val !== '-' && val !== 0}">{{ val
+                          }}</span>
+                      </td>
+                      }
+                    </tr>
+                    }
+                  </tbody>
+                </table>
+              </div>
+              <div class="st-total-banner">
+                <span>Points maximum cumulables sur la compétition :</span>
+                <strong>{{ step.bareme_points_detaille.total_points_competition }} Points !</strong>
+              </div>
+            </div>
+            }
+
+            @if (step.exemples_calcul) {
+            <div class="st-examples-grid">
+              @for (ex of step.exemples_calcul; track ex) {
+              <div class="st-example-card">
+                <h5>💡 {{ ex.type }}</h5>
+                <p class="st-scenario-sub">{{ ex.scenario }}</p>
+                <ul class="st-nested-ul">
+                  @for (det of ex.details; track det) {
+                  <li>
+                    <span>• {{ det.prediction }}</span>
+                    <strong>+{{ det.points }} pts</strong>
+                  </li>
+                  }
+                </ul>
+                <div class="st-example-footer">Total du match : <span>{{ ex.total }} pts</span></div>
+              </div>
+              }
+            </div>
+            }
+          </div>
+          }
+
+          @if (step.bareme_points) {
+          <div class="st-bracket-section">
+            <p class="st-alert-pill">🚀 {{ step.interet }}</p>
+            <div class="st-bracket-grid">
+              @for (item of step.bareme_points | keyvalue:bracketOrder; track item) {
+              <div class="st-bracket-card">
+                <span class="st-b-label">{{ formatKey(item.key) }}</span>
+                <span class="st-b-val">+{{ item.value }} PTS</span>
+              </div>
+              }
+            </div>
+
+            <!-- Tableau Dynamique Explicatif du Bracket Mondial 2026 -->
+            <div class="st-table-section" style="margin-top: 2rem;">
+              <h4>📖 Grille d'accumulation des points du Bracket :</h4>
+              <div class="st-responsive-table">
+                <table>
+                  <thead>
+                    <tr>
+                      <th style="text-align: left;">Phase du tableau</th>
+                      <th>Nombre de matchs</th>
+                      <th>Points par match évalué</th>
+                      <th>Type de règle de score</th>
+                      <th>Total de la phase</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td class="st-sticky-col"><strong>32èmes de finale</strong></td>
+                      <td class="st-center-td">16 matchs</td>
+                      <td class="st-center-td"><span class="st-highlight-cell">+{{ step.bareme_points['32eme_de_finale']
+                          }} pts</span></td>
+                      <td class="st-center-td">Vainqueur correct</td>
+                      <td class="st-center-td">{{ 16 * step.bareme_points['32eme_de_finale'] }} pts</td>
+                    </tr>
+                    <tr>
+                      <td class="st-sticky-col"><strong>16èmes de finale</strong></td>
+                      <td class="st-center-td">8 matchs</td>
+                      <td class="st-center-td"><span class="st-highlight-cell">+{{ step.bareme_points['16eme_de_finale']
+                          }} pts</span></td>
+                      <td class="st-center-td">Vainqueur correct</td>
+                      <td class="st-center-td">{{ 8 * step.bareme_points['16eme_de_finale'] }} pts</td>
+                    </tr>
+                    <tr>
+                      <td class="st-sticky-col"><strong>Huitièmes de finale</strong></td>
+                      <td class="st-center-td">4 matchs</td>
+                      <td class="st-center-td"><span class="st-highlight-cell">+{{ step.bareme_points['8eme_de_finale']
+                          }} pts</span></td>
+                      <td class="st-center-td">Vainqueur correct</td>
+                      <td class="st-center-td">{{ 4 * step.bareme_points['8eme_de_finale'] }} pts</td>
+                    </tr>
+                    <tr>
+                      <td class="st-sticky-col"><strong>Demi-finales</strong></td>
+                      <td class="st-center-td">2 matchs</td>
+                      <td class="st-center-td"><span class="st-highlight-cell">+{{ step.bareme_points['demi_finale'] }}
+                          pts</span></td>
+                      <td class="st-center-td">Bonus équipe qualifiée en Finale</td>
+                      <td class="st-center-td">{{ 2 * step.bareme_points['demi_finale'] }} pts</td>
+                    </tr>
+                    <tr>
+                      <td class="st-sticky-col"><strong>Finale</strong></td>
+                      <td class="st-center-td">1 match</td>
+                      <td class="st-center-td"><span class="st-highlight-cell">+{{ step.bareme_points['finale'] }}
+                          pts</span></td>
+                      <td class="st-center-td">Bonus pronostic Champion du Monde</td>
+                      <td class="st-center-td">{{ 1 * step.bareme_points['finale'] }} pts</td>
+                    </tr>
+                    <tr class="st-meta-row">
+                      <td class="st-sticky-col"><strong>MAXIMUM POSSIBLE</strong></td>
+                      <td class="st-center-td">31 Matchs</td>
+                      <td class="st-center-td">-</td>
+                      <td class="st-center-td">-</td>
+                      <td class="st-center-td"><strong>{{ step.maximum_possible }} Points</strong></td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <div class="st-total-banner">
+              <span>Points maximum cumulables sur la compétition du Bracket :</span>
+              <strong>{{ step.maximum_possible }} Points !</strong>
+            </div>
+            @if (step.conditions_egalite) {
+            <div class="st-rule-callout">
+              <h4>⚖️ Règles d'égalité spécifiques au Bracket :</h4>
+              <p><strong>1️⃣</strong> {{ step.conditions_egalite.etape_1 }}</p>
+              <p><strong>2️⃣</strong> {{ step.conditions_egalite.etape_2 }}</p>
+              <div class="st-chain-flow">
+                <span class="st-chain-title">Priorité par phase :</span>
+                <div class="st-chain-links">
+                  @for (phase of step.conditions_egalite.ordre_priorite_phases; track phase; let last = $last) {
+                  <span>
+                    <span class="st-chain-badge">{{ phase }}</span>
+                    @if (!last) {
+                    <span class="st-chain-arrow"> ▶</span>
+                    }
+                  </span>
+                  }
+                </div>
+              </div>
+            </div>
+            }
+          </div>
+          }
+
+          @if (step.conditions_victoire_et_egalite) {
+          <div class="st-global-rules">
+            <div class="st-gradient-banner">
+              <h4>🏆 Clause de victoire générale</h4>
+              <p class="st-main-rule">{{ step.conditions_victoire_et_egalite.regle_principale }}</p>
+              @for (dep of step.conditions_victoire_et_egalite.departage_egalite; track dep) {
+              <p class="st-sub-rule">⚖️ {{ dep }}</p>
+              }
+            </div>
+          </div>
+          }
+
+          @if (step.regles) {
+          <div class="st-legal-container">
+            @for (regle of step.regles; track regle) {
+            <div class="st-legal-row">
+              <span class="st-icon">📜</span> <span class="st-text">{{ regle }}</span>
+            </div>
+            }
+          </div>
+          }
+        </div>
+        }
+      </div>
+      }
+      <footer class="st-footer-actions">
+        <button (click)="prevStep()" [disabled]="activeStepIndex === 0" class="st-btn st-btn-secondary">Retour</button>
+        @if (activeStepIndex < sortedSteps.length - 1) { <button (click)="nextStep()" class="st-btn btn">
+          Suivant</button>
+          }
+          @if (activeStepIndex === sortedSteps.length - 1) {
+          <button (click)="resetStepper()" class="st-btn st-btn-accent">Recommencer la lecture</button>
+          }
+      </footer>
+    </main>
+  </div>
+</div>
+} @else {
+<loader [showLoader]="true" />
+}

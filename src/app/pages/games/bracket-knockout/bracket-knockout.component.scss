@@ -403,9 +403,6 @@ $line-connector-color: #94a3b8; // Tree connector layout lines color
   pointer-events: none;
 }
 
-.fifa-bracket-canvas.readonly .stage-r32 .match-node .team-slot + .team-slot {
-  display: none;
-}
 
 .third-place-dropdown-slot {
   display: flex;
@@ -501,5 +498,70 @@ $line-connector-color: #94a3b8; // Tree connector layout lines color
     color: #ffffff;
     font-size: 0.85rem;
     font-weight: 600;
+  }
+}
+
+.prediction-status-row {
+  margin: 6px 10px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+
+  &.correct {
+    background: rgba(16, 185, 129, 0.08);
+    border-color: rgba(16, 185, 129, 0.25);
+  }
+
+  &.incorrect {
+    background: rgba(239, 68, 68, 0.08);
+    border-color: rgba(239, 68, 68, 0.25);
+  }
+
+  &.pending {
+    background: rgba(148, 163, 184, 0.05);
+    border-color: rgba(148, 163, 184, 0.15);
+  }
+
+  .status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.8rem;
+    font-weight: 700;
+
+    &.correct {
+      color: #10b981;
+    }
+
+    &.incorrect {
+      color: #ef4444;
+    }
+
+    &.pending {
+      color: #94a3b8;
+    }
+
+    .status-icon {
+      font-size: 0.95rem;
+    }
+  }
+
+  .real-winner-pill {
+    margin-top: 4px;
+    padding: 3px 8px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 4px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+
+    .slot-flag-small {
+      width: 18px;
+      height: 12px;
+      object-fit: cover;
+      border-radius: 2px;
+    }
   }
 }

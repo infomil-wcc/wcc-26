@@ -1,426 +1,155 @@
 import { handleCors, fetchWithBypass } from './utils.mjs';
-const fetch = fetchWithBypass;
-import { teamNameMap, phaseMap } from './mappings.mjs';
+import { syncMatchesPipeline } from './libs/match-core.mjs';
+import { calcResultForRanking } from './libs/match-calculations.mjs';
+import { calcBracketPoints } from './libs/calc-bracket-stage.mjs';
 
-export function getNormalizedTeamName(externalName) {
-  if (!externalName) return null;
-  const trimmedName = externalName.trim();
-  return teamNameMap[trimmedName] || trimmedName;
-}
+// Proxy internal exports to maintain external backwards compatibility
+export { getNormalizedTeamName, getNormalizedPhase, getDbMatchUtcTime, getFdMatchUtcTime, getWcGameApproxUtcTime, parseScorersString } from './libs/match-mappings.mjs';
+export { hasMatchChanged } from './libs/match-calculations.mjs';
 
-export function getNormalizedPhase(apiType) {
-  if (!apiType) return null;
-  const lowerType = apiType.toLowerCase().trim();
-  return phaseMap[lowerType] || lowerType;
-}
+// ==========================================
+// FACTORY FUNCTION FOR ROUTE HANDLER (DI)
+// ==========================================
+export function createHandler(deps = {}) {
+  // Injectable dependencies with standard production fallbacks
+  const fetch = deps.fetch || fetchWithBypass;
+  const env = deps.env || process.env;
+  const _syncMatchesPipeline = deps.syncMatchesPipeline || syncMatchesPipeline;
+  const _autoAdvanceKnockoutStages = deps.autoAdvanceKnockoutStages || autoAdvanceKnockoutStages;
+  const _recalculateRankings = deps.recalculateRankings || recalculateRankings;
 
-export function getDbMatchUtcTime(dbDateStr) {
-  if (!dbDateStr) return 0;
-  // dbDateStr is e.g. "2026-06-14 08:00:00" in Mauritius timezone (+04:00)
-  const isoStr = dbDateStr.trim().replace(' ', 'T') + '+04:00';
-  return new Date(isoStr).getTime();
-}
+  return async function handler(request, response) {
+    if (handleCors(request, response)) return;
 
-export function getFdMatchUtcTime(utcDateStr) {
-  if (!utcDateStr) return 0;
-  return new Date(utcDateStr).getTime();
-}
-
-export function getWcGameApproxUtcTime(localDateStr) {
-  if (!localDateStr) return 0;
-  // localDateStr is e.g. "06/13/2026 21:00"
-  const [datePart, timePart] = localDateStr.split(' ');
-  const [month, day, year] = datePart.split('/');
-  const isoStr = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}T${timePart || '00:00'}:00Z`;
-  return new Date(isoStr).getTime();
-}
-
-export function parseScorersString(scorersStr, teamName) {
-  if (!scorersStr || scorersStr === 'null' || scorersStr === '') return [];
-  let cleanStr = scorersStr.replace(/[“”]/g, '"');
-
-  let arr = [];
-  try {
-    const parsed = JSON.parse(cleanStr);
-    if (Array.isArray(parsed)) {
-      arr = parsed;
-    } else {
-      const matches = cleanStr.match(/"([^"\\]*(?:\\.[^"\\]*)*)"/g);
-      if (matches) {
-        arr = matches.map(m => m.replace(/^"|"$/g, ''));
-      }
-    }
-  } catch (e) {
-    const matches = cleanStr.match(/"([^"\\]*(?:\\.[^"\\]*)*)"/g);
-    if (matches) {
-      arr = matches.map(m => m.replace(/^"|"$/g, ''));
-    }
-  }
-
-  const events = [];
-  for (const goalStr of arr) {
-    // If it's already an object (e.g. parsed from existing array in db/elsewhere), keep it
-    if (typeof goalStr === 'object' && goalStr !== null) {
-      events.push(goalStr);
-      continue;
-    }
-    const regex = /^(.*?)\s+(\d+)'?(?:\+(\d+))?'?\s*(\((?:OG|p|CSC|PEN)\)|\[(?:OG|p|CSC|PEN)\])?$/i;
-    const match = goalStr.trim().match(regex);
-    if (match) {
-      const playerName = match[1].trim();
-      const elapsed = parseInt(match[2], 10);
-      const extra = match[3] ? parseInt(match[3], 10) : null;
-      let detail = 'Normal Goal';
-      if (match[4]) {
-        const detailLower = match[4].toLowerCase();
-        if (detailLower.includes('og') || detailLower.includes('csc')) {
-          detail = 'Own Goal';
-        } else if (detailLower.includes('p') || detailLower.includes('pen')) {
-          detail = 'Penalty';
-        }
-      }
-      events.push({
-        time: { elapsed, extra },
-        team: { name: teamName },
-        player: { name: playerName },
-        detail
-      });
-    } else {
-      events.push({
-        time: { elapsed: 0, extra: null },
-        team: { name: teamName },
-        player: { name: goalStr.trim() },
-        detail: 'Normal Goal'
-      });
-    }
-  }
-  return events;
-}
-
-export function hasMatchChanged(dbMatch, payload) {
-  if (dbMatch.fulltime_a != payload.fulltime_a) return true;
-  if (dbMatch.fulltime_b != payload.fulltime_b) return true;
-  if (dbMatch.halftime_a != payload.halftime_a) return true;
-  if (dbMatch.halftime_b != payload.halftime_b) return true;
-  if (dbMatch.winner_draw != payload.winner_draw) return true;
-  if (dbMatch.current_status != payload.current_status) return true;
-
-  if (payload.scorers) {
-    const dbScorers = dbMatch.scorers || [];
-    const payScorers = payload.scorers || [];
-
-    let dbScorerNames = [];
-    if (Array.isArray(dbScorers)) {
-      dbScorerNames = dbScorers.map(s => typeof s === 'string' ? s : (s.player?.name || s.scorer?.name || '')).filter(Boolean);
-    } else if (typeof dbScorers === 'string') {
-      try {
-        const parsed = JSON.parse(dbScorers);
-        if (Array.isArray(parsed)) {
-          dbScorerNames = parsed.map(s => typeof s === 'string' ? s : (s.player?.name || s.scorer?.name || '')).filter(Boolean);
-        }
-      } catch (e) {
-        dbScorerNames = [dbScorers];
-      }
+    if (request.method !== 'POST' && request.method !== 'GET') {
+      return response.status(405).json({ error: 'Method Not Allowed' });
     }
 
-    const payScorerNames = payScorers.map(s => typeof s === 'string' ? s : (s.player?.name || s.scorer?.name || '')).filter(Boolean);
+    const directusUrl = env.DIRECTUS_URL || 'https://euro.omediainteractive.net/imleuro';
+    const adminToken = env.DIRECTUS_ADMIN_TOKEN;
+    const apiKey = env.FOOTBALL_DATA_API_KEY;
 
-    if (dbScorerNames.length !== payScorerNames.length) return true;
-    for (let i = 0; i < payScorerNames.length; i++) {
-      if (dbScorerNames[i] !== payScorerNames[i]) return true;
-    }
-  }
+    const queryData = request.query || {};
+    const matchesParam = queryData.matches ? queryData.matches.replace(/['"]/g, '').trim() : null;
+    const pointsParam = queryData.points ? queryData.points.replace(/['"]/g, '').trim() : null;
 
-  return false;
-}
+    const shouldSyncAndCalcAll = (matchesParam === 'all' && pointsParam === 'all');
+    const shouldCalcAll = (pointsParam === 'all' && matchesParam !== 'all');
+    const shouldSyncMatches = matchesParam !== null && !shouldSyncAndCalcAll;
+    const syncMatchId = (matchesParam && matchesParam !== 'all') ? parseInt(matchesParam, 10) : null;
 
-export default async function handler(request, response) {
-  if (handleCors(request, response)) return;
+    const isExplicitOverride = matchesParam !== null || pointsParam !== null;
 
-  if (request.method !== 'POST' && request.method !== 'GET') {
-    return response.status(405).json({ error: 'Method Not Allowed' });
-  }
+    const headersData = request.headers || {};
+    const authHeader = headersData.authorization || '';
+    let loggedInUser = headersData['x-user-id'] || headersData['x-authenticated-user'] || null;
 
-  //process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
-
-  let directusUrl = process.env.DIRECTUS_URL;
-  if (!directusUrl || directusUrl === 'undefined') {
-    directusUrl = 'https://euro.omediainteractive.net/imleuro';
-  }
-  const adminToken = process.env.DIRECTUS_ADMIN_TOKEN;
-  const apiKey = process.env.FOOTBALL_DATA_API_KEY;
-
-  // Safe query extraction fallback
-  const queryData = request.query || {};
-
-  // Extract query parameters
-  const matchesParam = queryData.matches ? queryData.matches.replace(/['"]/g, '').trim() : null;
-  const pointsParam = queryData.points ? queryData.points.replace(/['"]/g, '').trim() : null;
-
-  // Combination: ?matches=all&points=all
-  const shouldSyncAndCalcAll = (matchesParam === 'all' && pointsParam === 'all');
-
-  // Recalculate options
-  const shouldCalcAll = (pointsParam === 'all' && matchesParam !== 'all');
-  let targetUser = (pointsParam && pointsParam !== 'all') ? pointsParam : null;
-
-  // Match Sync options (if not combination)
-  const shouldSyncMatches = matchesParam !== null && !shouldSyncAndCalcAll;
-  const syncMatchId = (matchesParam && matchesParam !== 'all') ? parseInt(matchesParam, 10) : null;
-
-  // Check if force bypass params exist to allow unauthorized requests
-  const isExplicitOverride = matchesParam !== null || pointsParam !== null;
-
-  // FIXED: Bulletproof fallback headers wrapper object to stop Vercel Invocation crashes
-  const headersData = request.headers || {};
-  const authHeader = headersData.authorization || '';
-  let loggedInUser = headersData['x-user-id'] || headersData['x-authenticated-user'] || null;
-
-  // Enforce session check ONLY if no explicit override query is running
-  if (!isExplicitOverride) {
-    if (!loggedInUser && !authHeader) {
+    if (!isExplicitOverride && !loggedInUser && !authHeader) {
       return response.status(401).json({
         success: false,
         error: "Unauthorized",
         message: "No user session detected and no override parameter passed."
       });
     }
-  }
 
-  if (!apiKey) {
-    return response.status(500).json({ error: "Missing FOOTBALL_DATA_API_KEY environment variable." });
-  }
-
-  const results = [];
-  let calculationLogs = [];
-  let knockoutUpdates = [];
-
-  try {
-    const headers = { 'Authorization': `Bearer ${adminToken}` };
-
-    if (shouldSyncAndCalcAll || shouldSyncMatches) {
-      const dbUrl = syncMatchId ? `${directusUrl}/items/matches/${syncMatchId}` : `${directusUrl}/items/matches?limit=-1`;
-
-      const [dbRes, apiRes, wcRes] = await Promise.all([
-        fetch(dbUrl, { headers }),
-        fetch('https://api.football-data.org/v4/competitions/WC/matches', {
-          headers: { 'X-Auth-Token': apiKey }
-        }).catch(err => {
-          console.error("Failed to fetch football-data.org in match-results:", err.message);
-          return { ok: false };
-        }),
-        fetch('https://worldcup26.ir/get/games', {
-          headers: {
-            'accept': 'application/json',
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
-          }
-        }).catch(err => {
-          console.error("Failed to fetch worldcup26.ir in match-results:", err.message);
-          return { ok: false };
-        })
-      ]);
-
-      let dbMatches = [];
-      if (dbRes.ok) {
-        const dbData = await dbRes.json();
-        const rawData = dbData.data || [];
-        dbMatches = Array.isArray(rawData) ? rawData : [rawData];
-      } else {
-        throw new Error(`Directus matches lookup failed: ${dbRes.statusText}`);
-      }
-
-      let externalMatches = [];
-      if (apiRes.ok) {
-        try {
-          const data = await apiRes.json();
-          externalMatches = data.matches || [];
-        } catch (e) {
-          console.error("Failed to parse football-data matches:", e.message);
-        }
-      }
-
-      let wcGames = [];
-      if (wcRes.ok) {
-        try {
-          const wcData = await wcRes.json();
-          wcGames = wcData.games || [];
-        } catch (e) {
-          console.error("Failed to parse worldcup26 games:", e.message);
-        }
-      }
-
-      const nowIso = new Date().toISOString();
-
-      for (const dbMatch of dbMatches) {
-        const dbUtcTime = getDbMatchUtcTime(dbMatch.date);
-
-        // Find match on football-data
-        const fdMatch = externalMatches.find(m => {
-          const home = getNormalizedTeamName(m.homeTeam?.name);
-          const away = getNormalizedTeamName(m.awayTeam?.name);
-          const namesMatch = (dbMatch.team_a === home && dbMatch.team_b === away) ||
-            (dbMatch.team_a === away && dbMatch.team_b === home);
-          if (!namesMatch) return false;
-
-          const dbPhase = dbMatch.phase;
-          const fdPhase = getNormalizedPhase(m.stage);
-          if (dbPhase && fdPhase && dbPhase !== fdPhase) return false;
-
-          const fdUtcTime = getFdMatchUtcTime(m.utcDate);
-          if (dbUtcTime && fdUtcTime && Math.abs(dbUtcTime - fdUtcTime) > 30 * 60 * 60 * 1000) return false;
-
-          return true;
-        });
-
-        // Find match on worldcup26.ir
-        const wcGame = wcGames.find(g => {
-          const home = getNormalizedTeamName(g.home_team_name_en);
-          const away = getNormalizedTeamName(g.away_team_name_en);
-          const namesMatch = (dbMatch.team_a === home && dbMatch.team_b === away) ||
-            (dbMatch.team_a === away && dbMatch.team_b === home);
-          if (!namesMatch) return false;
-
-          const dbPhase = dbMatch.phase;
-          const wcPhase = getNormalizedPhase(g.type);
-          if (dbPhase && wcPhase && dbPhase !== wcPhase) return false;
-
-          const wcUtcTime = getWcGameApproxUtcTime(g.local_date);
-          if (dbUtcTime && wcUtcTime && Math.abs(dbUtcTime - wcUtcTime) > 30 * 60 * 60 * 1000) return false;
-
-          return true;
-        });
-
-        if (!fdMatch) continue;
-
-        let newStatus = 'pending';
-        const fdStatus = fdMatch.status ? fdMatch.status.toUpperCase() : '';
-        if (fdStatus === 'FINISHED' || fdStatus === 'AWARDED') {
-          newStatus = 'finished';
-        } else if (['IN_PLAY', 'PAUSED', 'LIVE'].includes(fdStatus)) {
-          newStatus = 'live';
-        }
-
-        const isReversed = (dbMatch.team_a === getNormalizedTeamName(fdMatch.awayTeam?.name));
-        const homeScore = fdMatch.score?.fullTime?.home;
-        const awayScore = fdMatch.score?.fullTime?.away;
-        const dbScoreA = isReversed ? (awayScore !== null ? Number(awayScore) : null) : (homeScore !== null ? Number(homeScore) : null);
-        const dbScoreB = isReversed ? (homeScore !== null ? Number(homeScore) : null) : (awayScore !== null ? Number(awayScore) : null);
-
-        const htHome = fdMatch.score?.halfTime?.home;
-        const htAway = fdMatch.score?.halfTime?.away;
-        const dbHalftimeA = isReversed ? (htAway !== null ? Number(htAway) : null) : (htHome !== null ? Number(htHome) : null);
-        const dbHalftimeB = isReversed ? (htHome !== null ? Number(htHome) : null) : (htAway !== null ? Number(htAway) : null);
-
-        let winner_draw = null;
-        if (dbScoreA !== null && dbScoreB !== null) {
-          if (dbScoreA > dbScoreB) winner_draw = dbMatch.team_a;
-          else if (dbScoreA < dbScoreB) winner_draw = dbMatch.team_b;
-          else winner_draw = 'Draw';
-        }
-
-        const payload = {
-          fulltime_a: dbScoreA,
-          fulltime_b: dbScoreB,
-          winner_draw: winner_draw,
-          current_status: newStatus,
-          status_updated: nowIso
-        };
-
-        if (dbHalftimeA !== null && dbHalftimeB !== null) {
-          payload.halftime_a = dbHalftimeA;
-          payload.halftime_b = dbHalftimeB;
-        }
-
-        if (wcGame) {
-          const homeScorers = parseScorersString(wcGame.home_scorers, getNormalizedTeamName(wcGame.home_team_name_en));
-          const awayScorers = parseScorersString(wcGame.away_scorers, getNormalizedTeamName(wcGame.away_team_name_en));
-          const combinedScorers = [...homeScorers, ...awayScorers];
-          payload.scorers = combinedScorers;
-        }
-
-        let directusResponseOk = true;
-        if (hasMatchChanged(dbMatch, payload)) {
-          const directusResponse = await fetch(`${directusUrl}/items/matches/${dbMatch.id}`, {
-            method: 'PATCH',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${adminToken}`
-            },
-            body: JSON.stringify(payload)
-          });
-          directusResponseOk = directusResponse.ok;
-        }
-
-        results.push({
-          id: dbMatch.id,
-          teams: `${dbMatch.team_a} vs ${dbMatch.team_b}`,
-          current_status: newStatus,
-          success: directusResponseOk
-        });
-      }
-
-      try {
-        knockoutUpdates = await autoAdvanceKnockoutStages(directusUrl, adminToken);
-      } catch (advanceErr) {
-        console.error("Failed to advance knockout matches automatically:", advanceErr.message);
-      }
-
-      // Recalculate rankings based on parameters
-      if (shouldSyncAndCalcAll) {
-        calculationLogs = await recalculateRankings(directusUrl, adminToken, null, loggedInUser, true);
-      } else if (targetUser || shouldCalcAll) {
-        calculationLogs = await recalculateRankings(directusUrl, adminToken, targetUser, loggedInUser, true);
-      }
-    } else {
-      // Standard recalculation logic path without matching sync
-      calculationLogs = await recalculateRankings(directusUrl, adminToken, targetUser, loggedInUser, isExplicitOverride);
+    if (!apiKey) {
+      return response.status(500).json({ error: "Missing FOOTBALL_DATA_API_KEY environment variable." });
     }
-  } catch (error) {
-    return response.status(500).json({ error: error.message });
-  }
 
-  let finalMsg = 'Recalculation processed successfully.';
-  if (shouldSyncAndCalcAll) {
-    finalMsg = 'All matches synced and recalculation complete.';
-  } else if (shouldSyncMatches) {
-    finalMsg = 'Matches synchronization processed successfully.';
-  }
+    let syncResults = [];
+    let calculationLogs = [];
+    let knockoutUpdates = [];
 
-  return response.status(200).json({
-    success: true,
-    message: finalMsg,
-    updates: results,
-    knockoutUpdates: knockoutUpdates,
-    calculationLogs: calculationLogs
-  });
+    try {
+      const headers = { 'Authorization': `Bearer ${adminToken}` };
+
+      if (shouldSyncAndCalcAll || shouldSyncMatches) {
+        const dbUrl = syncMatchId ? `${directusUrl}/items/matches/${syncMatchId}` : `${directusUrl}/items/matches?limit=-1`;
+        const dbRes = await fetch(dbUrl, { headers });
+
+        let dbMatches = [];
+        if (dbRes.ok) {
+          const dbData = await dbRes.json();
+          dbMatches = Array.isArray(dbData.data) ? dbData.data : [dbData.data].filter(Boolean);
+        } else {
+          throw new Error(`Directus matches lookup failed: ${dbRes.statusText}`);
+        }
+
+        // Forward injected fetch context downward
+        const pipeline = await _syncMatchesPipeline(dbMatches, { directusUrl, adminToken, apiKey }, { fetch });
+        syncResults = pipeline.updates;
+
+        try {
+          knockoutUpdates = await _autoAdvanceKnockoutStages(directusUrl, adminToken, { fetch });
+        } catch (advanceErr) {
+          console.error("Failed to advance knockout matches automatically:", advanceErr.message);
+        }
+
+        let targetUser = (pointsParam && pointsParam !== 'all') ? pointsParam : null;
+        if (shouldSyncAndCalcAll) {
+          calculationLogs = await _recalculateRankings(directusUrl, adminToken, null, loggedInUser, true, { fetch });
+        } else if (targetUser || shouldCalcAll) {
+          calculationLogs = await _recalculateRankings(directusUrl, adminToken, targetUser, loggedInUser, true, { fetch });
+        }
+      } else {
+        let targetUser = (pointsParam && pointsParam !== 'all') ? pointsParam : null;
+        calculationLogs = await _recalculateRankings(directusUrl, adminToken, targetUser, loggedInUser, isExplicitOverride, { fetch });
+      }
+    } catch (error) {
+      return response.status(500).json({ error: error.message });
+    }
+
+    let finalMsg = 'Recalculation processed successfully.';
+    if (shouldSyncAndCalcAll) {
+      finalMsg = 'All matches synced and recalculation complete.';
+    } else if (shouldSyncMatches) {
+      finalMsg = 'Matches synchronization processed successfully.';
+    }
+
+    return response.status(200).json({
+      success: true,
+      message: finalMsg,
+      updates: syncResults,
+      knockoutUpdates,
+      calculationLogs
+    });
+  };
 }
 
-export async function autoAdvanceKnockoutStages(directusUrl, adminToken) {
+// Initialize a default instance for production runtime and export it
+const defaultHandler = createHandler();
+export default defaultHandler;
+
+function isPlaceholder(teamName) {
+  if (!teamName) return true;
+  const name = teamName.toLowerCase().trim();
+  return name.includes('winner') || name.includes('runner-up') || name.includes('play-off') || name.includes('à déterminer');
+}
+
+// ==========================================
+// KNOCKOUT CASCADING STAGE ADVANCEMENTS
+// ==========================================
+export async function autoAdvanceKnockoutStages(directusUrl, adminToken, deps = {}) {
+  const fetch = deps.fetch || fetchWithBypass;
   const headers = { 'Authorization': `Bearer ${adminToken}` };
   const updates = [];
 
-  // 1. Fetch all matches
   const matchesRes = await fetch(`${directusUrl}/items/matches?limit=-1`, { headers });
   if (!matchesRes.ok) return updates;
   const matchesData = await matchesRes.json();
   const allMatches = matchesData.data || [];
 
-  // Group Stage matches
   const groupMatches = allMatches.filter(m => m.phase === 'Group Stage');
   const knockoutMatches = allMatches.filter(m => m.phase !== 'Group Stage');
 
   if (allMatches.length === 0) return updates;
 
-  // ----------------------------------------------------
-  // PART A: AUTO-ADVANCE GROUP WINNERS & RUNNERS-UP TO ROUND OF 32
-  // ----------------------------------------------------
   const groups = ['Group A', 'Group B', 'Group C', 'Group D', 'Group E', 'Group F', 'Group G', 'Group H', 'Group I', 'Group J', 'Group K', 'Group L'];
 
   for (const groupName of groups) {
     const matchesInGroup = groupMatches.filter(m => m.group === groupName);
     const playedInGroup = matchesInGroup.filter(m => m.fulltime_a !== null && m.fulltime_b !== null);
 
-    // Safeguard: Need more than 2 matches played in the group to determine standing stability
     if (playedInGroup.length <= 2) continue;
 
     const standings = {};
@@ -436,11 +165,9 @@ export async function autoAdvanceKnockoutStages(directusUrl, adminToken) {
         standings[m.team_a].gd += (scoreA - scoreB);
         standings[m.team_b].gd += (scoreB - scoreA);
 
-        if (scoreA > scoreB) {
-          standings[m.team_a].points += 3;
-        } else if (scoreA < scoreB) {
-          standings[m.team_b].points += 3;
-        } else {
+        if (scoreA > scoreB) standings[m.team_a].points += 3;
+        else if (scoreA < scoreB) standings[m.team_b].points += 3;
+        else {
           standings[m.team_a].points += 1;
           standings[m.team_b].points += 1;
         }
@@ -457,43 +184,38 @@ export async function autoAdvanceKnockoutStages(directusUrl, adminToken) {
     let winner = null;
     let runnerUp = null;
 
-    const isGroupFinished = (playedInGroup.length === matchesInGroup.length);
-    if (isGroupFinished) {
+    if (playedInGroup.length === matchesInGroup.length) {
       winner = first.team;
       runnerUp = second.team;
     } else {
-      if (third && first.points - third.points > 3) {
-        winner = first.team;
-      }
-      if (third && second.points - third.points > 3) {
-        runnerUp = second.team;
-      }
+      if (third && first.points - third.points > 3) winner = first.team;
+      if (third && second.points - third.points > 3) runnerUp = second.team;
     }
 
-    const groupLetter = groupName.split(' ')[1]; // A, B, C...
+    const groupLetter = groupName.split(' ')[1];
 
     for (const r32 of knockoutMatches) {
       let updatedPayload = null;
 
       if (winner) {
         const placeholder = `Group ${groupLetter} Winner`;
-        if (r32.team_a === placeholder) {
-          updatedPayload = { team_a: winner };
-        } else if (r32.team_b === placeholder) {
-          updatedPayload = { team_b: winner };
-        }
+        if (r32.team_a === placeholder) updatedPayload = { team_a: winner };
+        else if (r32.team_b === placeholder) updatedPayload = { team_b: winner };
       }
 
       if (runnerUp) {
         const placeholder = `Group ${groupLetter} Runner-up`;
-        if (r32.team_a === placeholder) {
-          updatedPayload = { team_a: runnerUp };
-        } else if (r32.team_b === placeholder) {
-          updatedPayload = { team_b: runnerUp };
-        }
+        if (r32.team_a === placeholder) updatedPayload = { team_a: runnerUp };
+        else if (r32.team_b === placeholder) updatedPayload = { team_b: runnerUp };
       }
 
       if (updatedPayload) {
+        const finalTeamA = updatedPayload.team_a || r32.team_a;
+        const finalTeamB = updatedPayload.team_b || r32.team_b;
+        if (!isPlaceholder(finalTeamA) && !isPlaceholder(finalTeamB) && r32.status === 'draft') {
+          updatedPayload.status = 'published';
+        }
+
         const directusResponse = await fetch(`${directusUrl}/items/matches/${r32.id}`, {
           method: 'PATCH',
           headers: {
@@ -503,9 +225,9 @@ export async function autoAdvanceKnockoutStages(directusUrl, adminToken) {
           body: JSON.stringify(updatedPayload)
         });
         if (directusResponse.ok) {
-          // Reflect update in local copy to allow cascading checks below
           if (updatedPayload.team_a) r32.team_a = updatedPayload.team_a;
           if (updatedPayload.team_b) r32.team_b = updatedPayload.team_b;
+          if (updatedPayload.status) r32.status = updatedPayload.status;
           updates.push({
             id: r32.id,
             placeholder: winner ? `Group ${groupLetter} Winner` : `Group ${groupLetter} Runner-up`,
@@ -517,10 +239,6 @@ export async function autoAdvanceKnockoutStages(directusUrl, adminToken) {
     }
   }
 
-  // ----------------------------------------------------
-  // PART B: AUTO-ADVANCE LATER STAGES (Winner Match X / Runner-up Match X)
-  // ----------------------------------------------------
-  // Iterate multiple passes to allow cascading advancement (e.g. R32 winner advances to R16, R16 winner to QF, etc.)
   let changedInPass = true;
   let passCount = 0;
 
@@ -536,7 +254,6 @@ export async function autoAdvanceKnockoutStages(directusUrl, adminToken) {
 
       let updatedPayload = null;
 
-      // Handle Team A placeholder resolution
       if (winnerPlaceholderA) {
         const refMatchId = match.team_a.split('Winner Match ')[1];
         const refMatch = allMatches.find(m => String(m.id) === String(refMatchId));
@@ -553,7 +270,6 @@ export async function autoAdvanceKnockoutStages(directusUrl, adminToken) {
         }
       }
 
-      // Handle Team B placeholder resolution
       if (winnerPlaceholderB) {
         const refMatchId = match.team_b.split('Winner Match ')[1];
         const refMatch = allMatches.find(m => String(m.id) === String(refMatchId));
@@ -571,6 +287,12 @@ export async function autoAdvanceKnockoutStages(directusUrl, adminToken) {
       }
 
       if (updatedPayload) {
+        const finalTeamA = updatedPayload.team_a || match.team_a;
+        const finalTeamB = updatedPayload.team_b || match.team_b;
+        if (!isPlaceholder(finalTeamA) && !isPlaceholder(finalTeamB) && match.status === 'draft') {
+          updatedPayload.status = 'published';
+        }
+
         const directusResponse = await fetch(`${directusUrl}/items/matches/${match.id}`, {
           method: 'PATCH',
           headers: {
@@ -583,8 +305,8 @@ export async function autoAdvanceKnockoutStages(directusUrl, adminToken) {
         if (directusResponse.ok) {
           if (updatedPayload.team_a) match.team_a = updatedPayload.team_a;
           if (updatedPayload.team_b) match.team_b = updatedPayload.team_b;
+          if (updatedPayload.status) match.status = updatedPayload.status;
           changedInPass = true;
-
           updates.push({
             id: match.id,
             team_a_updated: !!updatedPayload.team_a,
@@ -599,38 +321,106 @@ export async function autoAdvanceKnockoutStages(directusUrl, adminToken) {
   return updates;
 }
 
-
-export async function recalculateRankings(directusUrl, adminToken, specificUser = null, loggedInUser = null, isExplicitOverride = false) {
+// ==========================================
+// USER LEADERBOARD RANKING CALCULATIONS
+// ==========================================
+export async function recalculateRankings(directusUrl, adminToken, specificUser = null, loggedInUser = null, isExplicitOverride = false, deps = {}) {
+  const fetch = deps.fetch || fetchWithBypass;
   const apiLogs = [];
   try {
     const headers = { 'Authorization': `Bearer ${adminToken}` };
-
     const pronoFilter = specificUser ? `&filter[user][eq]=${specificUser}` : "";
 
-    const [matchesRes, predictionsRes, rankingsRes] = await Promise.all([
+    const [matchesRes, predictionsRes, rankingsRes, rulesRes, bracketResultsRes, bracketsRes, bracketRankingsRes] = await Promise.all([
       fetch(`${directusUrl}/items/matches?limit=-1`, { headers }),
       fetch(`${directusUrl}/items/pronostiques?limit=-1${pronoFilter}`, { headers }),
-      fetch(`${directusUrl}/items/pronostics_rankings?limit=-1`, { headers })
+      fetch(`${directusUrl}/items/pronostics_rankings?limit=-1`, { headers }),
+      fetch(`${directusUrl}/items/game_scoring_rules?limit=-1`, { headers }),
+      fetch(`${directusUrl}/items/bracket_result?limit=-1`, { headers }),
+      fetch(`${directusUrl}/items/bracket?limit=-1`, { headers }),
+      fetch(`${directusUrl}/items/bracket_rankings?limit=-1`, { headers })
     ]);
 
-    const [matchesData, predictionsData, rankingsData] = await Promise.all([
-      matchesRes.json(),
-      predictionsRes.json(),
-      rankingsRes.json()
-    ]);
+    const matchesData = matchesRes.ok ? await matchesRes.json() : {};
+    const predictionsData = predictionsRes.ok ? await predictionsRes.json() : {};
+    const rankingsData = rankingsRes.ok ? await rankingsRes.json() : {};
+    const rulesData = rulesRes.ok ? await rulesRes.json() : {};
 
     const matches = matchesData.data || [];
     const predictions = predictionsData.data || [];
     const existingRankings = rankingsData.data || [];
+    const ruleMatrix = rulesData.data || [];
+
+    let bracketResults = [];
+    if (bracketResultsRes && typeof bracketResultsRes.json === 'function') {
+      try {
+        const d = await bracketResultsRes.json();
+        bracketResults = d.data || [];
+      } catch (e) {}
+    }
+
+    let brackets = [];
+    if (bracketsRes && typeof bracketsRes.json === 'function') {
+      try {
+        const d = await bracketsRes.json();
+        brackets = d.data || [];
+      } catch (e) {}
+    }
+
+    let existingBracketRankings = [];
+    if (bracketRankingsRes && typeof bracketRankingsRes.json === 'function') {
+      try {
+        const d = await bracketRankingsRes.json();
+        existingBracketRankings = d.data || [];
+      } catch (e) {}
+    }
+
+    // Sync match point fields with the rules matrix (mapping 'Third Place' to 'Final')
+    for (const game of matches) {
+      const targetPhase = game.phase === 'Third Place' ? 'Final' : game.phase;
+      const rule = ruleMatrix.find(r => r.game_type === 'pronostics' && r.phase === targetPhase);
+      if (rule) {
+        const expectedWinnerPoint = Number(rule.winner_draw_points) || 0;
+        const expectedFulltimePoint = Number(rule.fulltime_exact_points) || 0;
+        const expectedHalftimePoint = Number(rule.halftime_exact_points) || 0;
+        const expectedScorerPoint = Number(rule.scorer_points) || 0;
+
+        if (
+          game.winner_point !== expectedWinnerPoint ||
+          game.fulltime_point !== expectedFulltimePoint ||
+          game.halftime_point !== expectedHalftimePoint ||
+          game.scorer_point !== expectedScorerPoint
+        ) {
+          await fetch(`${directusUrl}/items/matches/${game.id}`, {
+            method: 'PATCH',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${adminToken}`
+            },
+            body: JSON.stringify({
+              winner_point: expectedWinnerPoint,
+              fulltime_point: expectedFulltimePoint,
+              halftime_point: expectedHalftimePoint,
+              scorer_point: expectedScorerPoint
+            })
+          });
+          
+          game.winner_point = expectedWinnerPoint;
+          game.fulltime_point = expectedFulltimePoint;
+          game.halftime_point = expectedHalftimePoint;
+          game.scorer_point = expectedScorerPoint;
+          
+          apiLogs.push(`Synced points in Directus for Match ID: ${game.id} (${game.phase})`);
+        }
+      }
+    }
 
     const playedMatches = matches.filter(m => m.fulltime_a !== null && m.fulltime_b !== null);
 
     const userPredictions = {};
     for (const prono of predictions) {
       if (!prono.user) continue;
-      if (!userPredictions[prono.user]) {
-        userPredictions[prono.user] = [];
-      }
+      if (!userPredictions[prono.user]) userPredictions[prono.user] = [];
       userPredictions[prono.user].push(prono);
     }
 
@@ -652,7 +442,7 @@ export async function recalculateRankings(directusUrl, adminToken, specificUser 
       for (const prono of userPredictions[username]) {
         const game = playedMatches.find(m => String(m.id) === String(prono.game_id));
         if (game) {
-          const pts = calcResultForRanking(game, prono);
+          const pts = calcResultForRanking(game, prono, ruleMatrix);
           totalPoints += pts;
           apiLogs.push(`User: ${username} | Match ID: ${game.id} | Earned: ${pts} pts`);
         }
@@ -671,36 +461,26 @@ export async function recalculateRankings(directusUrl, adminToken, specificUser 
 
       if (calculatedUser) {
         const matchingIndex = dynamicRankings.findIndex(r => r.key === specificUser);
-        if (matchingIndex !== -1) {
-          dynamicRankings[matchingIndex].point = calculatedUser.point;
-        } else {
-          dynamicRankings.push({ key: specificUser, point: calculatedUser.point });
-        }
+        if (matchingIndex !== -1) dynamicRankings[matchingIndex].point = calculatedUser.point;
+        else dynamicRankings.push({ key: specificUser, point: calculatedUser.point });
       }
 
       dynamicRankings.sort((a, b) => b.point - a.point);
       let runningRank = 1;
       dynamicRankings.forEach((obj, idx) => {
-        if (idx > 0 && obj.point !== dynamicRankings[idx - 1].point) {
-          runningRank = idx + 1;
-        }
-        if (obj.key === specificUser && calculatedUser) {
-          calculatedUser.rank = runningRank;
-        }
+        if (idx > 0 && obj.point !== dynamicRankings[idx - 1].point) runningRank = idx + 1;
+        if (obj.key === specificUser && calculatedUser) calculatedUser.rank = runningRank;
       });
     } else {
       rankingObj.sort((a, b) => b.point - a.point || a.key.localeCompare(b.key));
       let rank = 1;
       rankingObj.forEach((obj, index) => {
-        if (index > 0 && obj.point !== rankingObj[index - 1].point) {
-          rank = index + 1;
-        }
+        if (index > 0 && obj.point !== rankingObj[index - 1].point) rank = index + 1;
         obj.rank = rank;
       });
     }
 
     for (const player of rankingObj) {
-      // If specificUser is set, only update this user. Otherwise, update everyone if isExplicitOverride is true or we are doing a general sync (no loggedInUser).
       const isTargetedUser = specificUser !== null ? (player.key === specificUser) : true;
       const shouldSaveToDb = isExplicitOverride ? isTargetedUser : (!loggedInUser || player.key === loggedInUser);
 
@@ -717,7 +497,6 @@ export async function recalculateRankings(directusUrl, adminToken, specificUser 
 
       if (existingRow) {
         if (Number(existingRow.point) === Number(rankingRow.point) && Number(existingRow.rank) === Number(rankingRow.rank)) {
-          // Point and rank are unchanged. Skip patching!
           continue;
         }
         await fetch(`${directusUrl}/items/pronostics_rankings/${existingRow.id}`, {
@@ -753,66 +532,112 @@ export async function recalculateRankings(directusUrl, adminToken, specificUser 
       }
     }
 
+    // Recalculate bracket rankings
+    if (bracketResults.length > 0 && brackets.length > 0) {
+      const bracketResult = bracketResults[0];
+      const ruleMatrixBracket = ruleMatrix.filter(r => r.game_type === 'bracket');
+
+      const bracketMatchesToEvaluate = [
+        ...Array.from({ length: 16 }, (_, i) => ({ key: `winner_r32_${i + 1}`, phase: 'Round of 32' })),
+        ...Array.from({ length: 8 }, (_, i) => ({ key: `winner_r16_${i + 1}`, phase: 'Round of 16' })),
+        ...Array.from({ length: 4 }, (_, i) => ({ key: `winner_r4_${i + 1}`, phase: 'Quarter-finals' })),
+        { key: 'winner_wc', phase: 'Final', isGrandFinal: true }
+      ];
+
+      const ruleSemi = ruleMatrixBracket.find(r => r.phase.trim().toLowerCase() === 'semi-finals');
+      const bonusFinalist = ruleSemi ? Number(ruleSemi.qualification_bonus_points ?? 0) : 75;
+
+      const actualFinalists = [
+        bracketResult.winner_semi_1,
+        bracketResult.winner_semi_2
+      ].filter(team => team && team !== 'À déterminer');
+
+      const bracketRankingObj = [];
+      for (const b of brackets) {
+        let point = 0;
+
+        for (const match of bracketMatchesToEvaluate) {
+          const prediction = b[match.key];
+          const actual = bracketResult[match.key];
+
+          const item = {
+            predicted_winner: prediction,
+            predicted_finalist: match.phase === 'Semi-finals' ? prediction : null,
+            predicted_champion: match.isGrandFinal ? prediction : null,
+            is_grand_final: match.isGrandFinal || false
+          };
+
+          point += calcBracketPoints(item, actual, match.phase, ruleMatrixBracket);
+        }
+
+        // Swapped finalist support matching frontend logic
+        const predFinalists = [
+          b.winner_semi_1,
+          b.winner_semi_2
+        ].filter(team => team && team !== 'À déterminer');
+
+        predFinalists.forEach(predTeam => {
+          if (actualFinalists.includes(predTeam)) {
+            point += bonusFinalist;
+          }
+        });
+
+        bracketRankingObj.push({
+          user: b.user,
+          point: point
+        });
+      }
+
+      // Sort bracket rankings: point descending, then user ascending
+      bracketRankingObj.sort((a, b) => {
+        if (b.point !== a.point) return b.point - a.point;
+        return (a.user || '').localeCompare(b.user || '');
+      });
+
+      // Add rank
+      let rank = 1;
+      bracketRankingObj.forEach((obj, index) => {
+        if (index > 0 && obj.point !== bracketRankingObj[index - 1].point) {
+          rank = index + 1;
+        }
+        obj.rank = rank;
+        obj.status = 'published';
+      });
+
+      const rankingData = {
+        status: 'published',
+        ranking_json: bracketRankingObj
+      };
+
+      if (existingBracketRankings.length > 0) {
+        const existingRow = existingBracketRankings[0];
+        if (JSON.stringify(existingRow.ranking_json) !== JSON.stringify(bracketRankingObj)) {
+          await fetch(`${directusUrl}/items/bracket_rankings/${existingRow.id}`, {
+            method: 'PATCH',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${adminToken}`
+            },
+            body: JSON.stringify(rankingData)
+          });
+          apiLogs.push(`Updated bracket rankings (ID: ${existingRow.id})`);
+        }
+      } else {
+        await fetch(`${directusUrl}/items/bracket_rankings`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${adminToken}`
+          },
+          body: JSON.stringify(rankingData)
+        });
+        apiLogs.push(`Created new bracket rankings`);
+      }
+    }
+
     return apiLogs;
   } catch (err) {
     console.error("Error during ranking recalculation:", err);
     throw err;
   }
-}
-
-function calcResultForRanking(game, pronostique) {
-  if (!game || !pronostique) return 0;
-  if (game.fulltime_a === null || game.fulltime_b === null) return 0;
-
-  let finalPoint = 0;
-  const winner_point = Number(game.winner_point) || 0;
-  const halftime_point = Number(game.halftime_point) || 0;
-  const fulltime_point = Number(game.fulltime_point) || 0;
-  const scorer_point = Number(game.scorer_point) || 0;
-
-  if (game.phase === 'Group Stage') {
-    if (game.winner_draw === pronostique.winner_draw) finalPoint += winner_point;
-  }
-
-  if (game.phase === 'Round of 32' || game.phase === 'Round of 16') {
-    if (game.winner_draw === pronostique.winner_draw) finalPoint += winner_point;
-    if (parseInt(game.fulltime_a) === parseInt(pronostique.fulltime_a) && parseInt(game.fulltime_b) === parseInt(pronostique.fulltime_b)) finalPoint += fulltime_point;
-  }
-
-  if (['Quarter-finals', 'Semi-finals', 'Third Place', 'Final'].includes(game.phase)) {
-    if (game.winner_draw === pronostique.winner_draw) finalPoint += winner_point;
-    if (parseInt(game.fulltime_a) === parseInt(pronostique.fulltime_a) && parseInt(game.fulltime_b) === parseInt(pronostique.fulltime_b)) finalPoint += fulltime_point;
-    if (parseInt(game.halftime_a) === parseInt(pronostique.halftime_a) && parseInt(game.halftime_b) === parseInt(pronostique.halftime_b)) finalPoint += halftime_point;
-
-    let gamescorers = [];
-    if (game.scorers) {
-      gamescorers = parseScorersStringForRanking(game.scorers);
-    }
-    if (gamescorers.includes(pronostique.scorer)) finalPoint += scorer_point;
-  }
-
-  return finalPoint;
-}
-
-function parseScorersStringForRanking(scorersStr) {
-  if (!scorersStr || scorersStr === 'null' || scorersStr === '') return [];
-  let cleanStr = scorersStr.replace(/[“”]/g, '"');
-  let arr = [];
-  try {
-    const parsed = JSON.parse(cleanStr);
-    if (Array.isArray(parsed)) {
-      arr = parsed.map(e => e.player?.name || e.scorer?.name).filter(Boolean);
-    } else {
-      const matches = cleanStr.match(/"([^"\\]*(?:\\.[^"\\]*)*)"/g);
-      if (matches) {
-        arr = matches.map(m => m.replace(/^"|"$/g, ''));
-      }
-    }
-  } catch (e) {
-    const matches = cleanStr.match(/"([^"\\]*(?:\\.[^"\\]*)*)"/g);
-    if (matches) {
-      arr = matches.map(m => m.replace(/^"|"$/g, ''));
-    }
-  }
-  return arr.map(s => s.trim());
 }

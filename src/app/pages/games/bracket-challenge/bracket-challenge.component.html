@@ -1,9 +1,19 @@
 <div class="filter w-full pt-3 pb-3 pl-2 pr-2">
   <div class="container">
-    <h1 class="text-white flex align-items-center gap-2">
+    <h1 class="text-white flex align-items-center gap-2 m-0">
       <span class="material-symbols-outlined">sports_esports</span>
       Bracket Challenge 2026
     </h1>
+    @if (isLoggedIn) {
+      @if (bracketPoints$ | async; as total) {
+        @if (total !== null) {
+          <div class="header-pts-badge">
+            <span class="material-symbols-outlined gold-icon">emoji_events</span>
+            <span class="gold-text">{{ total.value }} <small>pts</small></span>
+          </div>
+        }
+      }
+    }
   </div>
 </div>
 

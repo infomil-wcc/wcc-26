@@ -1,5 +1,4 @@
 import { Component, OnDestroy, OnInit, inject, ChangeDetectorRef, ChangeDetectionStrategy, HostListener } from '@angular/core';
-import { RankingcalculationService } from '../../../shared/services/core/rankingcalculation.service';
 import { Observable, Subscription } from 'rxjs';
 import { GlobaltimeService } from '../../../shared/services/core/globaltime.service';
 import { HttpClient } from '@angular/common/http';
@@ -19,7 +18,6 @@ import { StateService } from '../../../shared/services/core/state.service';
 })
 export class RankingComponent implements OnInit, OnDestroy {
 
-  private rankCalcService = inject(RankingcalculationService);
   private rankingsService = inject(RankingsService);
   private stateService = inject(StateService);
   private globalTime = inject(GlobaltimeService);
@@ -95,7 +93,6 @@ export class RankingComponent implements OnInit, OnDestroy {
       }
     });
 
-    this.rankCalcService.calcBracket();
     this.loadUserChampions();
   }
 
@@ -206,7 +203,14 @@ export class RankingComponent implements OnInit, OnDestroy {
   }
 
   updateRanks(): void {
-    this.rankCalcService.startCalcRanking();
+    this.rankingsService.recalculateRankings().subscribe({
+      next: () => {
+        console.log('Rankings recalculated on backend.');
+      },
+      error: (err) => {
+        console.error('Failed to recalculate rankings on backend:', err);
+      }
+    });
   }
 
   formatDate(date: Date) {

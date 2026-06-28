@@ -1,10 +1,9 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpHeaders } from '@angular/common/http';
+import { HttpHeaders, HttpClient } from '@angular/common/http';
 import { Observable, BehaviorSubject, map, throwError, tap } from 'rxjs';
 import { CookieService } from '../core/cookie.service';
 import { Pronostiques } from '../../contracts/pronostiques.contract';
 import { PredictionsApiService } from '../api/predictions-api.service';
-import { RankingcalculationService } from '../core/rankingcalculation.service';
 
 @Injectable({
   providedIn: 'root'
@@ -13,7 +12,7 @@ export class PredictionsService {
 
   private predictionsApiService = inject(PredictionsApiService);
   private cookieService = inject(CookieService);
-  private rankingcalculationService = inject(RankingcalculationService);
+  private http = inject(HttpClient);
 
   private draftsSubject = new BehaviorSubject<any[]>([]);
   drafts$ = this.draftsSubject.asObservable();
@@ -77,11 +76,7 @@ export class PredictionsService {
   }
 
   updateResults(): Observable<any> {
-    // Simply trigger the client-side ranking recalculation since results are managed via match-scheduler cron on the backend
-    this.rankingcalculationService.startCalcRanking();
-    return new Observable(subscriber => {
-      subscriber.next({ success: true, message: 'Local calculation triggered.' });
-      subscriber.complete();
-    });
+    // Trigger the backend ranking recalculation
+    return this.http.get('/api/match-results?points=all');
   }
 }

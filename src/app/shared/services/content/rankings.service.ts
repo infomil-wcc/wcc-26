@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpHeaders } from '@angular/common/http';
+import { HttpHeaders, HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { map, switchMap } from 'rxjs/operators';
 import { PronosticsRankingsApiService } from '../api/pronostics-rankings-api.service';
@@ -13,6 +13,7 @@ export class RankingsService {
   private pronosticsRankingsApiService = inject(PronosticsRankingsApiService);
   private bracketRankingsApiService = inject(BracketRankingsApiService);
   private authService = inject(AuthService);
+  private http = inject(HttpClient);
 
   private rankingBot = {
     'email': 'ranking.bot@infomil.mu',
@@ -65,5 +66,9 @@ export class RankingsService {
       }),
       map(response => response.data)
     );
+  }
+
+  recalculateRankings(): Observable<any> {
+    return this.http.get('/api/match-results?points=all');
   }
 }

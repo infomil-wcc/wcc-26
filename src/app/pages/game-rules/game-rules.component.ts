@@ -6,19 +6,19 @@ import { Observable } from 'rxjs';
 import { LoaderComponent } from '../../shared/components/loader/loader.component';
 
 @Component({
-    selector: 'app-game-rules',
-    templateUrl: './game-rules.component.html',
-    styleUrls: ['./game-rules.component.scss'],
-    changeDetection: ChangeDetectionStrategy.Eager,
-    imports: [NgClass, LoaderComponent, DatePipe, KeyValuePipe]
+  selector: 'app-game-rules',
+  templateUrl: './game-rules.component.html',
+  styleUrls: ['./game-rules.component.scss'],
+  changeDetection: ChangeDetectionStrategy.Eager,
+  imports: [NgClass, LoaderComponent, DatePipe, KeyValuePipe]
 })
 export class GameRulesComponent implements OnInit {
-  
+
   apiResponse$!: Observable<ApiResponse>;
   titleGeneral = '';
   introduction = '';
   sortedSteps: GameElement[] = [];
-  
+
   activeStepIndex = 0;
   openAccordionIndex: number | null = 0;
 
@@ -69,24 +69,22 @@ export class GameRulesComponent implements OnInit {
     return key.replace(/_/g, ' ').replace('eme', 'ème');
   }
 
-  // Custom comparison function for KeyValue pipe to sort bracket phases
   public bracketOrder = (a: KeyValue<string, number>, b: KeyValue<string, number>): number => {
-   const order = [
-    '16eme_de_finale',
-    '8eme_de_finale',
-    'quart_de_finale',
-    'demi_finale',
-    'finale'
-  ];
+    const order = [
+      '32eme_de_finale',
+      '16eme_de_finale',
+      '8eme_de_finale',
+      'demi_finale',
+      'finale'
+    ];
 
-  const indexA = order.indexOf(a.key);
-  const indexB = order.indexOf(b.key);
+    const indexA = order.indexOf(a.key);
+    const indexB = order.indexOf(b.key);
 
-  // If a key isn't found in the predefined order array
-  if (indexA === -1 && indexB === -1) return 0; 
-  if (indexA === -1) return 1; 
-  if (indexB === -1) return -1; 
+    if (indexA === -1 && indexB === -1) return 0;
+    if (indexA === -1) return 1;
+    if (indexB === -1) return -1;
 
-  return indexA - indexB;
+    return indexA - indexB;
   };
 }

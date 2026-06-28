@@ -1,4 +1,7 @@
 import { Component, inject, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { AsyncPipe } from '@angular/common';
+import { Observable, of } from 'rxjs';
+import { map, switchMap, catchError } from 'rxjs/operators';
 import { CookieService } from '../../../shared/services/core/cookie.service';
 import { StateService } from '../../../shared/services/core/state.service';
 import { BracketService } from '../../../shared/services/games/bracket.service';
@@ -7,18 +10,22 @@ import { BracketKnockoutComponent } from '../bracket-knockout/bracket-knockout.c
 import { ModalComponent } from '../../../shared/components/modal/modal.component';
 import { LoginComponent } from '../../../shared/components/login/login.component';
 import { DialogComponent } from '../../../shared/components/dialog/dialog.component';
+import { RankingsService } from '../../../shared/services/content/rankings.service';
 
 @Component({
     selector: 'app-bracket-challenge',
     templateUrl: './bracket-challenge.component.html',
     styleUrl: './bracket-challenge.component.scss',
     changeDetection: ChangeDetectionStrategy.Eager,
-    imports: [BracketPredictorComponent, BracketKnockoutComponent, ModalComponent, LoginComponent, DialogComponent]
+    imports: [BracketPredictorComponent, BracketKnockoutComponent, ModalComponent, LoginComponent, DialogComponent, AsyncPipe]
 })
 export class BracketChallengeComponent implements OnInit {
   private cookieService = inject(CookieService);
   private bracketService = inject(BracketService);
   private stateService = inject(StateService);
+  private rankingsService = inject(RankingsService);
+
+  protected bracketPoints$!: Observable<{ value: number } | null>;
 
   private targetDate = new Date(2026, 5, 12, 22, 55, 0);
   private currentDate = new Date();
@@ -34,6 +41,23 @@ export class BracketChallengeComponent implements OnInit {
   protected jeuFermer: boolean = false;
 
   ngOnInit(): void {
+    this.bracketPoints$ = this.stateService.userState.pipe(
+      switchMap(user => {
+        if (!user?.id || !user?.last_name) return of(null);
+        return this.rankingsService.getBracketRankings().pipe(
+          map(res => {
+            const list = res?.[0]?.ranking_json || [];
+            const userRank = list.find((item: any) => (item.user || '').toLowerCase().trim() === (user.last_name || '').toLowerCase().trim());
+            if (userRank) {
+              return { value: Number(userRank.point) || 0 };
+            }
+            return { value: 0 };
+          }),
+          catchError(() => of({ value: 0 }))
+        );
+      })
+    );
+
     if (this.currentDate < this.targetDate) {
       this.jeuFermer = false;
     }
