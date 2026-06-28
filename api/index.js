@@ -269,10 +269,21 @@ router.all('/api/mail/*', proxyDirectus);
 
 // 3. Export du point d'entrée requis pour Vercel Serverless
 export default async function handler(request, response) {
+    let requestUrl = request.url || '';
+    if (request.headers['x-vercel-forwarded-path']) {
+        requestUrl = request.headers['x-vercel-forwarded-path'];
+        const qIdx = (request.url || '').indexOf('?');
+        if (qIdx !== -1) {
+            requestUrl += (request.url || '').slice(qIdx);
+        }
+    } else if (request.headers['x-forwarded-url']) {
+        requestUrl = request.headers['x-forwarded-url'];
+    }
+
     const host = request.headers.host || 'localhost';
-    const absoluteUrl = request.url.startsWith('http://') || request.url.startsWith('https://') 
-        ? request.url 
-        : `http://${host}${request.url}`;
+    const absoluteUrl = requestUrl.startsWith('http://') || requestUrl.startsWith('https://') 
+        ? requestUrl 
+        : `http://${host}${requestUrl}`;
 
     const wrappedRequest = {
         url: absoluteUrl,

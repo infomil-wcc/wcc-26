@@ -23,7 +23,8 @@ export class RankingsService {
   getPronosticsRankings(): Observable<any> {
     return this.authService.trylogin(this.rankingBot.email, this.rankingBot.password).pipe(
       switchMap(loginRes => {
-        const token = loginRes.data.token;
+        const data = loginRes?.data || loginRes;
+        const token = data?.token || data?.access_token || '';
         const httpOptions = {
           headers: new HttpHeaders({
             'Content-Type': 'application/json',
@@ -32,14 +33,15 @@ export class RankingsService {
         };
         return this.pronosticsRankingsApiService.getRankings('', httpOptions);
       }),
-      map(response => response.data)
+      map(response => response?.data || [])
     );
   }
 
   getBracketRankings(): Observable<any> {
     return this.authService.trylogin(this.rankingBot.email, this.rankingBot.password).pipe(
       switchMap(loginRes => {
-        const token = loginRes.data.token;
+        const data = loginRes?.data || loginRes;
+        const token = data?.token || data?.access_token || '';
         const httpOptions = {
           headers: new HttpHeaders({
             'Content-Type': 'application/json',
@@ -48,14 +50,15 @@ export class RankingsService {
         };
         return this.bracketRankingsApiService.getRankings('', httpOptions);
       }),
-      map(response => response.data)
+      map(response => response?.data || [])
     );
   }
 
   getUserRanking(username: string): Observable<any> {
     return this.authService.trylogin(this.rankingBot.email, this.rankingBot.password).pipe(
       switchMap(loginRes => {
-        const token = loginRes.data.token;
+        const data = loginRes?.data || loginRes;
+        const token = data?.token || data?.access_token || '';
         const httpOptions = {
           headers: new HttpHeaders({
             'Content-Type': 'application/json',
@@ -64,7 +67,7 @@ export class RankingsService {
         };
         return this.pronosticsRankingsApiService.getRankings(`?filter[key]=${username}`, httpOptions);
       }),
-      map(response => response.data)
+      map(response => response?.data || [])
     );
   }
 
