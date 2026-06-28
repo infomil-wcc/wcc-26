@@ -2,6 +2,7 @@ import { promises as fs } from 'fs';
 import path from 'path';
 import https from 'https';
 import http from 'http';
+import zlib from 'zlib';
 
 /**
  * Handles CORS preflight requests.
@@ -115,11 +116,19 @@ export function fetchWithBypass(url, options = {}) {
     };
 
     const req = client.request(url, reqOpts, (res) => {
+      let stream = res;
+      const contentEncoding = res.headers['content-encoding'];
+      if (contentEncoding === 'gzip') {
+        stream = res.pipe(zlib.createGunzip());
+      } else if (contentEncoding === 'deflate') {
+        stream = res.pipe(zlib.createInflate());
+      }
+
       let chunks = [];
-      res.on('data', (chunk) => {
+      stream.on('data', (chunk) => {
         chunks.push(chunk);
       });
-      res.on('end', () => {
+      stream.on('end', () => {
         const buffer = Buffer.concat(chunks);
         const data = buffer.toString('utf8');
         console.log(`[fetchWithBypass] SUCCESS: ${method} ${url} - Status: ${res.statusCode}`);

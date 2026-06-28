@@ -222,7 +222,7 @@ const proxyDirectus = async (request, response) => {
     try {
         const headers = {};
         for (const [k, v] of Object.entries(request.headers)) {
-            if (!['host', 'connection', 'content-length'].includes(k.toLowerCase())) {
+            if (!['host', 'connection', 'content-length', 'accept-encoding'].includes(k.toLowerCase())) {
                 headers[k] = v;
             }
         }
