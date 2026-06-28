@@ -1,6 +1,7 @@
 {
   "name": "imlfootballchallenge",
   "version": "1.0.1",
+  "type": "module",
   "scripts": {
     "ng": "ng",
     "start": "ng serve",

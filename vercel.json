@@ -18,6 +18,12 @@
       "dest": "/index.html"
     }
   ],
+  "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": "/api/index.js"
+    }
+  ],
   "functions": {
     "api/match-results.mjs": {
       "maxDuration": 60
