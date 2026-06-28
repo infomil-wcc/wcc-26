@@ -1,4 +1,4 @@
-import { teamNameMap, phaseMap } from '../mappings.mjs'; // Path changed to parent directory
+import { teamNameMap, phaseMap } from './mappings.mjs'; // Path changed to parent directory
 
 export function getNormalizedTeamName(externalName) {
     if (!externalName) return null;

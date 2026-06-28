@@ -1,4 +1,4 @@
-import { fetchWithBypass } from '../utils.mjs';
+import { fetchWithBypass } from './utils.mjs';
 const fetch = fetchWithBypass;
 import {
     getNormalizedTeamName,

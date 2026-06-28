@@ -1,9 +1,9 @@
 import { AutoRouter } from 'itty-router';
-import { handleCors, applyFiltersAndSelect } from './utils.mjs';
-import { generateGameRules } from './gameRulesHelper.mjs';
-import { getMatchLineups } from './lineupsHelper.mjs';
-import { getRegisteredUserCount, registerNewUser } from './usersHelper.mjs';
-import { getTeamsOrSquads } from './teamsSquadsHelper.mjs';
+import { handleCors, applyFiltersAndSelect } from './libs/utils.mjs';
+import { generateGameRules } from './lib    s/gameRulesHelper.mjs';
+import { getMatchLineups } from './libs/lineupsHelper.mjs';
+import { getRegisteredUserCount, registerNewUser } from './libs/usersHelper.mjs';
+import { getTeamsOrSquads } from './libs/teamsSquadsHelper.mjs';
 
 // 1. Initialisation du routeur centralisé pour l'API Infomil
 const router = AutoRouter({ base: '/api' });

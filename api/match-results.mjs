@@ -1,4 +1,4 @@
-import { handleCors, fetchWithBypass } from './utils.mjs';
+import { handleCors, fetchWithBypass } from './libs/utils.mjs';
 import { syncMatchesPipeline } from './libs/match-core.mjs';
 import { calcResultForRanking } from './libs/match-calculations.mjs';
 import { calcBracketPoints } from './libs/calc-bracket-stage.mjs';

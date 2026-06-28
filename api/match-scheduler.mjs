@@ -1,4 +1,4 @@
-import { handleCors, fetchWithBypass } from './utils.mjs';
+import { handleCors, fetchWithBypass } from './libs/utils.mjs';
 import { getDbMatchUtcTime, recalculateRankings, autoAdvanceKnockoutStages } from './match-results.mjs';
 import { syncMatchesPipeline } from './libs/match-core.mjs';
 
