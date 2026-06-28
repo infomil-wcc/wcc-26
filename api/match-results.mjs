@@ -338,7 +338,7 @@ export async function recalculateRankings(directusUrl, adminToken, specificUser 
       fetch(`${directusUrl}/items/game_scoring_rules?limit=-1`, { headers }),
       fetch(`${directusUrl}/items/bracket_result?limit=-1`, { headers }),
       fetch(`${directusUrl}/items/bracket?limit=-1`, { headers }),
-      fetch(`${directusUrl}/items/knockout_bracket?limit=-1`, { headers }),
+      fetch(`${directusUrl}/items/bracket_knockout?limit=-1`, { headers }),
       fetch(`${directusUrl}/items/bracket_rankings?limit=-1`, { headers })
     ]);
 
@@ -357,7 +357,7 @@ export async function recalculateRankings(directusUrl, adminToken, specificUser 
       try {
         const d = await bracketResultsRes.json();
         bracketResults = d.data || [];
-      } catch (e) {}
+      } catch (e) { }
     }
 
     let brackets = [];
@@ -365,7 +365,7 @@ export async function recalculateRankings(directusUrl, adminToken, specificUser 
       try {
         const d = await bracketsRes.json();
         brackets = d.data || [];
-      } catch (e) {}
+      } catch (e) { }
     }
 
     let knockoutBrackets = [];
@@ -373,7 +373,7 @@ export async function recalculateRankings(directusUrl, adminToken, specificUser 
       try {
         const d = await knockoutBracketsRes.json();
         knockoutBrackets = d.data || [];
-      } catch (e) {}
+      } catch (e) { }
     }
 
     let existingBracketRankings = [];
@@ -381,7 +381,7 @@ export async function recalculateRankings(directusUrl, adminToken, specificUser 
       try {
         const d = await bracketRankingsRes.json();
         existingBracketRankings = d.data || [];
-      } catch (e) {}
+      } catch (e) { }
     }
 
     // Sync match point fields with the rules matrix (mapping 'Third Place' to 'Final')
@@ -413,12 +413,12 @@ export async function recalculateRankings(directusUrl, adminToken, specificUser 
               scorer_point: expectedScorerPoint
             })
           });
-          
+
           game.winner_point = expectedWinnerPoint;
           game.fulltime_point = expectedFulltimePoint;
           game.halftime_point = expectedHalftimePoint;
           game.scorer_point = expectedScorerPoint;
-          
+
           apiLogs.push(`Synced points in Directus for Match ID: ${game.id} (${game.phase})`);
         }
       }

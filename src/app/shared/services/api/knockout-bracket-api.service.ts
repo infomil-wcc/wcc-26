@@ -10,14 +10,14 @@ export class KnockoutBracketApiService {
   private http = inject(HttpClient);
 
   getKnockoutBrackets(queryParams: string = '', options?: any): Observable<any> {
-    return this.http.get<any>(`${environment.apiBaseUrl}/items/knockout_bracket${queryParams}`, options);
+    return this.http.get<any>(`${environment.apiBaseUrl}/items/bracket_knockout${queryParams}`, options);
   }
 
   createKnockoutBracket(bracket: any, options?: any): Observable<any> {
-    return this.http.post<any>(`${environment.apiBaseUrl}/items/knockout_bracket`, bracket, options);
+    return this.http.post<any>(`${environment.apiBaseUrl}/items/bracket_knockout`, bracket, options);
   }
 
   deleteKnockoutBracket(id: string, options?: any): Observable<any> {
-    return this.http.delete<any>(`${environment.apiBaseUrl}/items/knockout_bracket/${id}`, options);
+    return this.http.delete<any>(`${environment.apiBaseUrl}/items/bracket_knockout/${id}`, options);
   }
 }
