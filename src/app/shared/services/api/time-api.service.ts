@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, of } from 'rxjs';
+import { Observable, of, timeout } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { environment } from '../../../../environments/environment';
 
@@ -12,6 +12,7 @@ export class TimeApiService {
 
   getCurrentTime(timeZone: string = 'Indian/Mauritius'): Observable<any> {
     return this.http.get<any>(`${environment.apiBaseUrl}/time/current/zone?timeZone=${timeZone}`).pipe(
+      timeout(3000),
       catchError(err => {
         console.warn('timeapi.io request failed, falling back to local client time.', err);
         const now = new Date();

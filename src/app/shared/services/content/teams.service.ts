@@ -1,7 +1,8 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpHeaders } from '@angular/common/http';
 import { Teams, Group } from '../../contracts/teams.contract';
-import { Observable, map } from 'rxjs';
+import { Observable, map, of } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 import { TeamsApiService } from '../api/teams-api.service';
 import { GroupsApiService } from '../api/groups-api.service';
 import { SquadsApiService } from '../api/squads-api.service';
@@ -22,37 +23,43 @@ export class TeamsService {
 
   getAllTeams(): Observable<Teams[]> {
     return this.teamsApiService.getTeams().pipe(
-      map(response => response.data)
+      map(response => response?.data || []),
+      catchError(() => of([]))
     );
   }
 
   getTeamByGroup(groupId: string): Observable<Teams[]> {
     return this.teamsApiService.getTeams(`?filter[group]=${groupId}`).pipe(
-      map(response => response.data)
+      map(response => response?.data || []),
+      catchError(() => of([]))
     );
   }
 
   getPlayersByTeamName(teamName: string): Observable<any> {
     return this.squadsApiService.getPlayersByCountry(teamName).pipe(
-      map(response => response[0])
+      map(response => response?.[0] || null),
+      catchError(() => of(null))
     );
   }
 
   getTeamByName(teamName: string): Observable<Teams[]> {
     return this.teamsApiService.getTeams(`?filter[name]=${teamName}`).pipe(
-      map(response => response.data)
+      map(response => response?.data || []),
+      catchError(() => of([]))
     );
   }
 
   getGroups(): Observable<Group[]> {
     return this.groupsApiService.getGroups().pipe(
-      map(response => response.data)
+      map(response => response?.data || []),
+      catchError(() => of([]))
     );
   }
 
   getFlags(): Observable<any> {
     return this.teamsApiService.getTeams('?fields=flag_url,name,iso').pipe(
-      map(response => response.data)
+      map(response => response?.data || []),
+      catchError(() => of([]))
     );
   }
 

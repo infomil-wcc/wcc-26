@@ -57,6 +57,12 @@ export class GroupTableComponent implements OnInit {
   }
 
   private buildGroupStandings(teams: Teams[], matches: Matches[]): GroupData[] {
+    if (!teams || !Array.isArray(teams)) {
+      return [];
+    }
+    if (!matches || !Array.isArray(matches)) {
+      matches = [];
+    }
     // Only Group Stage played matches
     const groupMatches = matches.filter(m => m.phase === 'Group Stage');
     const playedMatches = groupMatches.filter(m => m.fulltime_a !== null && m.fulltime_b !== null);

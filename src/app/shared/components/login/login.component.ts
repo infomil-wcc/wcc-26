@@ -168,8 +168,16 @@ export class LoginComponent {
   }
 
   private loginFlow(obj: any){
-    let userObj = obj.data.user;
-    let token = obj.data.token;
+    if (!obj) return;
+    let data = obj.data || obj;
+    let userObj = data.user;
+    let token = data.token || data.access_token;
+
+    if (!userObj || !token) {
+      console.error('Invalid login response:', obj);
+      this.loginLoader = false;
+      return;
+    }
 
     this.authService.setTokenCookie(token);
     this.authService.setUserCookie(userObj.id);

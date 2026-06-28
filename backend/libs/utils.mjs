@@ -133,6 +133,11 @@ export function fetchWithBypass(url, options = {}) {
       });
     });
 
+    req.setTimeout(5000, () => {
+      console.warn(`[fetchWithBypass] TIMEOUT: ${method} ${url} after 5000ms`);
+      req.destroy(new Error('Timeout'));
+    });
+
     req.on('error', (err) => {
       console.error(`[fetchWithBypass] ERROR: ${method} ${url} - ${err.message}`);
       reject(err);

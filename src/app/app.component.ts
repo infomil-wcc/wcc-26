@@ -102,20 +102,33 @@ export class AppComponent implements OnInit {
   handleAlreadylogged(): void {
     this.authService.tryRefreshToken(this.cookieToken)
     .pipe(
-      catchError(err => this.handleError(err))
-    )
-    .subscribe((res: any) => {
-      if (res && res.data && res.data.token) {
-        this.authService.setTokenCookie(res.data.token);
-        this.cookieToken = res.data.token;
-      }
-      this.authService.getUserInfos(this.cookieUser, this.cookieToken).subscribe((resUser: any)=> {
-        if (resUser && resUser.data) {
-          this.stateService.updateUser(resUser.data);
-          this.checkTotalGoals(this.currentUser.last_name ?? '');
-        }
+      catchError(err => {
         this.showLoader = false;
+        return this.handleError(err);
       })
+    )
+    .subscribe({
+      next: (res: any) => {
+        if (res && res.data && res.data.token) {
+          this.authService.setTokenCookie(res.data.token);
+          this.cookieToken = res.data.token;
+        }
+        this.authService.getUserInfos(this.cookieUser, this.cookieToken).subscribe({
+          next: (resUser: any)=> {
+            if (resUser && resUser.data) {
+              this.stateService.updateUser(resUser.data);
+              this.checkTotalGoals(this.currentUser.last_name ?? '');
+            }
+            this.showLoader = false;
+          },
+          error: () => {
+            this.showLoader = false;
+          }
+        });
+      },
+      error: () => {
+        this.showLoader = false;
+      }
     });
   }
 
