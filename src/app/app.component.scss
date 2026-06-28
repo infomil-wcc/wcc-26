@@ -7,3 +7,254 @@
         font-size: 14px;
     }
 }
+
+.fullscreen-takeover {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 99999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  overflow: hidden;
+
+  .takeover-backdrop {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(8, 14, 28, 0.95);
+    backdrop-filter: blur(16px) saturate(180%);
+    -webkit-backdrop-filter: blur(16px) saturate(180%);
+  }
+
+  .takeover-card {
+    position: relative;
+    width: 100%;
+    max-width: 580px;
+    background: linear-gradient(135deg, #111e36 0%, #0d172a 100%);
+    border: 1.5px solid rgba(14, 212, 222, 0.25);
+    border-radius: 28px;
+    box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.7), 0 0 40px rgba(14, 212, 222, 0.1);
+    z-index: 10;
+    overflow: hidden;
+    padding: 40px 30px;
+    text-align: center;
+    animation: fadeInUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+
+  .takeover-close-btn {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    color: #94a3b8;
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    z-index: 20;
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.1);
+      color: #ffffff;
+      transform: rotate(90deg);
+    }
+  }
+
+  .takeover-content {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .glow-sphere {
+    position: absolute;
+    top: -80px;
+    width: 250px;
+    height: 250px;
+    background: radial-gradient(circle, rgba(14, 212, 222, 0.18) 0%, rgba(14, 212, 222, 0) 70%);
+    z-index: 0;
+    pointer-events: none;
+  }
+
+  .takeover-icon-wrapper {
+    position: relative;
+    margin-bottom: 25px;
+    z-index: 2;
+
+    .takeover-icon {
+      font-size: 5rem;
+      color: #ffd700;
+      filter: drop-shadow(0 0 15px rgba(255, 215, 0, 0.4));
+      animation: pulseGold 2s infinite ease-in-out;
+      font-variation-settings: 'FILL' 1, 'wght' 400;
+    }
+
+    .takeover-badge {
+      position: absolute;
+      bottom: -5px;
+      right: -10px;
+      background: linear-gradient(135deg, #facc15 0%, #ca8a04 100%);
+      color: #0b1426;
+      font-size: 0.7rem;
+      font-weight: 800;
+      padding: 3px 9px;
+      border-radius: 20px;
+      border: 2px solid #111e36;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+      letter-spacing: 0.5px;
+    }
+  }
+
+  .takeover-title {
+    font-family: UefaEuro, 'Inter', sans-serif;
+    font-size: 2.2rem;
+    font-weight: 900;
+    color: #ffffff;
+    letter-spacing: 1px;
+    margin: 0 0 6px 0;
+    background: linear-gradient(to right, #ffffff 30%, #a5f3fc 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .takeover-subtitle {
+    font-size: 1.15rem;
+    color: #0ed4de;
+    font-weight: 700;
+    margin: 0 0 25px 0;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .takeover-info-box {
+    background: rgba(15, 23, 42, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 18px;
+    padding: 22px 20px;
+    margin-bottom: 30px;
+    max-width: 480px;
+    z-index: 2;
+
+    .takeover-desc {
+      color: #cbd5e1;
+      font-size: 0.95rem;
+      line-height: 1.6;
+      margin: 0 0 15px 0;
+      strong {
+        color: #facc15;
+      }
+    }
+
+    .takeover-deadline {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(239, 68, 68, 0.15);
+      border: 1px solid rgba(239, 68, 68, 0.25);
+      color: #f87171;
+      padding: 6px 14px;
+      border-radius: 30px;
+      font-size: 0.85rem;
+      font-weight: 700;
+
+      .material-symbols-outlined {
+        font-size: 1.1rem;
+      }
+    }
+  }
+
+  .takeover-actions {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+    width: 100%;
+    max-width: 320px;
+    z-index: 2;
+
+    .btn-takeover-primary {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      width: 100%;
+      background: linear-gradient(135deg, #0ed4de 0%, #0284c7 100%);
+      color: #ffffff;
+      border: none;
+      padding: 15px 24px;
+      font-size: 0.95rem;
+      font-weight: 800;
+      border-radius: 50px;
+      cursor: pointer;
+      box-shadow: 0 4px 15px rgba(14, 212, 222, 0.35);
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      letter-spacing: 0.5px;
+
+      .material-symbols-outlined {
+        font-size: 1.25rem;
+      }
+
+      &:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(14, 212, 222, 0.45);
+      }
+
+      &:active {
+        transform: translateY(0);
+      }
+    }
+
+    .btn-takeover-link {
+      background: transparent;
+      border: none;
+      color: #64748b;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: color 0.2s ease;
+      text-decoration: underline;
+
+      &:hover {
+        color: #94a3b8;
+      }
+    }
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes pulseGold {
+  0% {
+    transform: scale(1);
+    filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.3));
+  }
+  50% {
+    transform: scale(1.05);
+    filter: drop-shadow(0 0 20px rgba(255, 215, 0, 0.5));
+  }
+  100% {
+    transform: scale(1);
+    filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.3));
+  }
+}

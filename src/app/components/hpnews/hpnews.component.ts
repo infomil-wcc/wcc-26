@@ -78,6 +78,9 @@ export class HpnewsComponent {
           return `${year}-${month}-${day}`;
         });
 
+        if (!matches || !Array.isArray(matches)) {
+          return [];
+        }
         return matches
           .filter(match => {
             const matchDateStr = match.date.split(' ')[0];

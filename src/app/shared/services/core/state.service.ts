@@ -58,6 +58,9 @@ export class StateService {
   }
 
   updateUser(userData: user){
+    if (!userData) {
+      return;
+    }
     this._user.next({
       id : userData.id,
       first_name:  userData.first_name,

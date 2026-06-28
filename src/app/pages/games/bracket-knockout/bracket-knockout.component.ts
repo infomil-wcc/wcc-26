@@ -493,10 +493,14 @@ export class BracketKnockoutComponent implements OnInit {
               next: (data) => {
                 if (data && Array.isArray(data) && data.length > 0) {
                   this.applySavedBracket(data[0]);
+                } else if (this.jeuFermer) {
+                  this.validated = true;
                 }
               },
               error: () => {
-                // ignore
+                if (this.jeuFermer) {
+                  this.validated = true;
+                }
               }
             });
           }

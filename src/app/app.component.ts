@@ -104,12 +104,17 @@ export class AppComponent implements OnInit {
     .pipe(
       catchError(err => this.handleError(err))
     )
-    .subscribe(() =>{
-      this.authService.getUserInfos(this.cookieUser, this.cookieToken).subscribe((res: any)=> {
-        this.stateService.updateUser(res.data);
+    .subscribe((res: any) => {
+      if (res && res.data && res.data.token) {
+        this.authService.setTokenCookie(res.data.token);
+        this.cookieToken = res.data.token;
+      }
+      this.authService.getUserInfos(this.cookieUser, this.cookieToken).subscribe((resUser: any)=> {
+        if (resUser && resUser.data) {
+          this.stateService.updateUser(resUser.data);
+          this.checkTotalGoals(this.currentUser.last_name ?? '');
+        }
         this.showLoader = false;
-
-        this.checkTotalGoals(this.currentUser.last_name ?? '');
       })
     });
   }

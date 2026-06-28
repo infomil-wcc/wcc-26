@@ -14,6 +14,7 @@ import { RankingsService } from '../../../shared/services/content/rankings.servi
 import { MatchesService } from '../../../shared/services/content/matches.service';
 import { TeamsService } from '../../../shared/services/content/teams.service';
 import { KnockoutBracketService } from '../../../shared/services/games/knockout-bracket.service';
+import { PredictionsApiService } from '../../../shared/services/api/predictions-api.service';
 
 @Component({
     selector: 'app-bracket-challenge',
@@ -30,6 +31,7 @@ export class BracketChallengeComponent implements OnInit {
   private matchesService = inject(MatchesService);
   private teamsService = inject(TeamsService);
   private knockoutBracketService = inject(KnockoutBracketService);
+  private predictionsApiService = inject(PredictionsApiService);
 
   protected bracketPoints$!: Observable<{ value: number } | null>;
 
@@ -85,108 +87,105 @@ export class BracketChallengeComponent implements OnInit {
       this.knockoutJeuFermer = true;
     }
 
+    // 1. Fetch matches and flags first
     forkJoin({
       matches: this.matchesService.getAllMatches(),
       flags: this.teamsService.getFlags()
     }).subscribe({
       next: ({ matches, flags }) => {
         this.realKnockoutQualifiers = this.bracketService.generateRoundOf32FromGroups(matches, flags);
-      }
-    });
 
-    this.stateService.userState.subscribe({
-      next: (user) => {
-        const firstName = user.first_name ?? '';
-        if (firstName) {
-          this.isLoggedIn = true;
+        // 2. Once matches & flags are ready, subscribe to userState and load user brackets
+        this.stateService.userState.subscribe({
+          next: (user) => {
+            const firstName = user.first_name ?? '';
+            if (firstName) {
+              this.isLoggedIn = true;
 
-          // Load Phase 1 Bracket
-          this.bracketService.getUserBracket(firstName).subscribe({
-            next: (data) => {
-              if (data && Array.isArray(data) && data.length > 0) {
-                const payload = data[0] || {};
-                this.hasSavedBracket = true;
-                this.savedBracketId = payload?.id || null;
+              // Load Phase 1 Bracket
+              this.bracketService.getUserBracket(firstName).subscribe({
+                next: (data) => {
+                  if (data && Array.isArray(data) && data.length > 0) {
+                    const payload = data[0] || {};
+                    this.hasSavedBracket = true;
+                    this.savedBracketId = payload?.id || null;
 
-                console.log('Found saved Phase 1 bracket for user', firstName, 'with payload:', payload);
-                const extracted: any[] = [];
+                    console.log('Found saved Phase 1 bracket for user', firstName, 'with payload:', payload);
+                    const extracted: any[] = [];
 
-                if (Array.isArray(payload.r32) && payload.r32.length >= 32) {
-                  extracted.push(...payload.r32.slice(0,32));
-                } else if (Array.isArray(payload.teams32) && payload.teams32.length >= 32) {
-                  extracted.push(...payload.teams32.slice(0,32));
-                } else if (Array.isArray(payload.advancedQualifiers) && payload.advancedQualifiers.length >= 32) {
-                  extracted.push(...payload.advancedQualifiers.slice(0,32));
-                } else {
-                  for (let i = 1; i <= 16; i++) {
-                    const candidatesLeft = [
-                      payload[`r32_${i}_1`], payload[`r32_${i}1`], payload[`team_r32_${i}_1`], payload[`m${i}_1`]
-                    ];
-                    const candidatesRight = [
-                      payload[`r32_${i}_2`], payload[`r32_${i}2`], payload[`team_r32_${i}_2`], payload[`m${i}_2`]
-                    ];
-                    const leftRaw = candidatesLeft.find(v => v !== undefined && v !== null);
-                    const rightRaw = candidatesRight.find(v => v !== undefined && v !== null);
+                    // Reconstruct from predictions_json if present
+                    const pSource = (payload.predictions_json && typeof payload.predictions_json === 'object')
+                      ? { ...payload, ...payload.predictions_json }
+                      : payload;
 
-                    const normalize = (raw: any) => {
-                      if (!raw) return null;
-                      if (typeof raw === 'string') return { name: raw, flagUrl: raw.includes('assets') ? raw : 'assets/flags/unknown.png', flagId: raw.substring(0,2).toLowerCase() };
-                      if (raw.name) return raw;
-                      return null;
+                    if (Array.isArray(pSource.r32) && pSource.r32.length >= 32) {
+                      extracted.push(...pSource.r32.slice(0, 32));
+                    } else if (Array.isArray(pSource.teams32) && pSource.teams32.length >= 32) {
+                      extracted.push(...pSource.teams32.slice(0, 32));
+                    } else if (Array.isArray(pSource.advancedQualifiers) && pSource.advancedQualifiers.length >= 32) {
+                      extracted.push(...pSource.advancedQualifiers.slice(0, 32));
+                    } else {
+                      for (let i = 1; i <= 16; i++) {
+                        const candidatesLeft = [
+                          pSource[`r32_${i}_1`], pSource[`r32_${i}1`], pSource[`team_r32_${i}_1`], pSource[`m${i}_1`]
+                        ];
+                        const candidatesRight = [
+                          pSource[`r32_${i}_2`], pSource[`r32_${i}2`], pSource[`team_r32_${i}_2`], pSource[`m${i}_2`]
+                        ];
+                        const leftRaw = candidatesLeft.find(v => v !== undefined && v !== null);
+                        const rightRaw = candidatesRight.find(v => v !== undefined && v !== null);
+
+                        const normalize = (raw: any) => {
+                          if (!raw) return null;
+                          if (typeof raw === 'string') return { name: raw, flagUrl: raw.includes('assets') ? raw : 'assets/flags/unknown.png', flagId: raw.substring(0, 2).toLowerCase() };
+                          if (raw.name) return raw;
+                          return null;
+                        }
+
+                        const left = normalize(leftRaw);
+                        const right = normalize(rightRaw);
+                        if (left) extracted.push(left);
+                        if (right) extracted.push(right);
+                      }
                     }
 
-                    const left = normalize(leftRaw);
-                    const right = normalize(rightRaw);
-                    if (left) extracted.push(left); else extracted.push({ name: 'À déterminer', flagUrl: 'assets/flags/unknown.png', flagId: 'tbc' });
-                    if (right) extracted.push(right); else extracted.push({ name: 'À déterminer', flagUrl: 'assets/flags/unknown.png', flagId: 'tbc' });
-                  }
-                }
+                    // Fallback to real qualified teams if we don't have predictions or they are empty
+                    const hasValidTeams = extracted.length >= 32 && extracted.every(t => t && t.name && t.name !== 'À déterminer');
+                    if (hasValidTeams) {
+                      this.advancedQualifiers = extracted.slice(0, 32);
+                    } else {
+                      this.advancedQualifiers = this.realKnockoutQualifiers;
+                    }
 
-                if (extracted.length >= 32) {
-                  this.advancedQualifiers = extracted.slice(0,32);
-                } else {
-                  const winners: any[] = [];
-                  let foundWinner = false;
-                  for (let i = 1; i <= 16; i++) {
-                    const w = payload[`winner_r32_${i}`];
-                    if (w) {
-                      foundWinner = true;
-                      winners.push({ name: w, flagUrl: 'assets/flags/unknown.png', flagId: w.substring(0,2).toLowerCase() });
-                      winners.push({ name: 'À déterminer', flagUrl: 'assets/flags/unknown.png', flagId: 'tbc' });
+                    if (this.jeuFermer) {
+                      // Phase 1 is closed - keep read-only knockout step active
+                      this.activeWizardStep = 'knockout';
                     }
                   }
-                  if (foundWinner && winners.length === 32) {
-                    this.advancedQualifiers = winners;
+                }
+              });
+
+              // Load Phase 2 Bracket
+              this.knockoutBracketService.getUserKnockoutBracket(firstName).subscribe({
+                next: (data) => {
+                  if (data && Array.isArray(data) && data.length > 0) {
+                    const payload = data[0] || {};
+                    this.hasSavedKnockoutBracket = true;
+                    this.savedKnockoutBracketId = payload?.id || null;
+                  } else {
+                    // Not saved yet, trigger popup prompt if game is open
+                    if (!this.knockoutJeuFermer) {
+                      this.showKnockoutPromptDialog = true;
+                    }
                   }
                 }
+              });
 
-                if (this.jeuFermer) {
-                  // Phase 1 is closed - keep read-only knockout step active
-                  this.activeWizardStep = 'knockout';
-                }
-              }
+            } else {
+              this.isLoggedIn = false;
             }
-          });
-
-          // Load Phase 2 Bracket
-          this.knockoutBracketService.getUserKnockoutBracket(firstName).subscribe({
-            next: (data) => {
-              if (data && Array.isArray(data) && data.length > 0) {
-                const payload = data[0] || {};
-                this.hasSavedKnockoutBracket = true;
-                this.savedKnockoutBracketId = payload?.id || null;
-              } else {
-                // Not saved yet, trigger popup prompt if game is open
-                if (!this.knockoutJeuFermer) {
-                  this.showKnockoutPromptDialog = true;
-                }
-              }
-            }
-          });
-
-        } else {
-          this.isLoggedIn = false;
-        }
+          }
+        });
       }
     });
 
