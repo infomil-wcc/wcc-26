@@ -3,7 +3,7 @@ import assert from 'node:assert';
 
 // Import target calculation engines
 import { createHandler } from './match-results.mjs';
-import { calcBracketPoints } from './libs/calc-bracket-stage.mjs';
+import { calcBracketPoints } from '../backend/libs/calc-bracket-stage.mjs';
 
 // ==========================================================================
 // 1. DÉCLARATION UNIQUE EN HAUT DU FICHIER (PORTÉE GLOBALE DU MODULE)

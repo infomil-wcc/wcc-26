@@ -1,11 +1,11 @@
-import { handleCors, fetchWithBypass } from './libs/utils.mjs';
-import { syncMatchesPipeline } from './libs/match-core.mjs';
-import { calcResultForRanking } from './libs/match-calculations.mjs';
-import { calcBracketPoints } from './libs/calc-bracket-stage.mjs';
+import { handleCors, fetchWithBypass } from '../backend/libs/utils.mjs';
+import { syncMatchesPipeline } from '../backend/libs/match-core.mjs';
+import { calcResultForRanking } from '../backend/libs/match-calculations.mjs';
+import { calcBracketPoints } from '../backend/libs/calc-bracket-stage.mjs';
+export { hasMatchChanged } from '../backend/libs/match-calculations.mjs';
 
 // Proxy internal exports to maintain external backwards compatibility
-export { getNormalizedTeamName, getNormalizedPhase, getDbMatchUtcTime, getFdMatchUtcTime, getWcGameApproxUtcTime, parseScorersString } from './libs/match-mappings.mjs';
-export { hasMatchChanged } from './libs/match-calculations.mjs';
+export { getNormalizedTeamName, getNormalizedPhase, getDbMatchUtcTime, getFdMatchUtcTime, getWcGameApproxUtcTime, parseScorersString } from '../backend/libs/match-mappings.mjs';
 
 // ==========================================
 // FACTORY FUNCTION FOR ROUTE HANDLER (DI)
