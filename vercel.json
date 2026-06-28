@@ -20,6 +20,14 @@
   ],
   "rewrites": [
     {
+      "source": "/api/match-results",
+      "destination": "/api/match-results.mjs"
+    },
+    {
+      "source": "/api/match-scheduler",
+      "destination": "/api/match-scheduler.mjs"
+    },
+    {
       "source": "/api/(.*)",
       "destination": "/api/index.js"
     }
