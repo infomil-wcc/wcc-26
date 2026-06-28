@@ -93,6 +93,12 @@ export class AppComponent implements OnInit {
         this.currentUser = res;
         if (res.first_name) {
           this.checkKnockoutPhase2(res.first_name);
+        } else {
+          const now = new Date();
+          const limit = new Date(2026, 5, 28, 23, 0, 0);
+          if (now < limit) {
+            this.showKnockoutPhase2Dialog = true;
+          }
         }
       }
     });
@@ -233,7 +239,12 @@ export class AppComponent implements OnInit {
         const limit = new Date(2026, 5, 28, 23, 0, 0);
         if ((!data || data.length === 0) && now < limit) {
           this.showKnockoutPhase2Dialog = true;
+        } else {
+          this.showKnockoutPhase2Dialog = false;
         }
+      },
+      error: () => {
+        this.showKnockoutPhase2Dialog = false;
       }
     });
   }

@@ -137,15 +137,6 @@ export class MatchComponent implements OnInit, OnDestroy {
     if (this.match.fulltime) {
       this.calcWinDrawOutcome = true;
     }
-
-    if(this.match.phase !== 'Group Stage') {
-      console.log('Statuses ->');
-      console.log(this.disabled, this.isSubmitting, !this.isEditing, (this.match.fulltime || this.isSavedInApi || this.closed));
-    }
-    // Forcing for testing 
-    // this.match.fulltime_a = 1;
-    // this.match.fulltime_b = 2;
-    // this.match.winner_draw = this.match.team_b;
   }
 
   ngOnDestroy(): void {
@@ -459,7 +450,7 @@ export class MatchComponent implements OnInit, OnDestroy {
         }
       }
     }
-    
+
     // Normalize / Clean on the fly to support formats like "K. Havertz 45'+5'(p)"
     return list.map(e => {
       let name = e.player?.name || 'Unknown';
@@ -564,15 +555,15 @@ export class MatchComponent implements OnInit, OnDestroy {
    */
   get matchPoints(): number | null {
     if (!this.donePronostique || !this.match ||
-        this.match.fulltime_a === null || this.match.fulltime_b === null) {
+      this.match.fulltime_a === null || this.match.fulltime_b === null) {
       return null;
     }
     const game = this.match;
     let points = 0;
-    const winnerPts  = Number(game.winner_point)  || 0;
+    const winnerPts = Number(game.winner_point) || 0;
     const fulltimePts = Number(game.fulltime_point) || 0;
     const halftimePts = Number(game.halftime_point) || 0;
-    const scorerPts   = Number(game.scorer_point)   || 0;
+    const scorerPts = Number(game.scorer_point) || 0;
 
     if (game.phase === 'Group Stage') {
       if (this.isOutcomeCorrect()) points += winnerPts;
@@ -582,14 +573,14 @@ export class MatchComponent implements OnInit, OnDestroy {
 
     if (game.phase === 'Round of 32' || game.phase === 'Round of 16') {
       if (this.isOutcomeCorrect()) points += winnerPts;
-      if (this.isFulltimeCorrect())  points += fulltimePts;
+      if (this.isFulltimeCorrect()) points += fulltimePts;
     }
 
     if (['Quarter-finals', 'Semi-finals', 'Third Place', 'Final'].includes(game.phase)) {
-      if (this.isOutcomeCorrect())  points += winnerPts;
+      if (this.isOutcomeCorrect()) points += winnerPts;
       if (this.isFulltimeCorrect()) points += fulltimePts;
       if (this.isHalftimeCorrect()) points += halftimePts;
-      if (this.isScorerCorrect())   points += scorerPts;
+      if (this.isScorerCorrect()) points += scorerPts;
     }
 
     return points;
@@ -599,7 +590,7 @@ export class MatchComponent implements OnInit, OnDestroy {
     if (!this.match || !this.match.scorers) return [];
     const events = this.parsedScorersEvents;
     if (events.length === 0) return [];
-    
+
     const teamEvents = events.filter(e => {
       const eventTeam = e.team?.name;
       return eventTeam && eventTeam.trim().toLowerCase() === teamName.trim().toLowerCase();
@@ -618,7 +609,7 @@ export class MatchComponent implements OnInit, OnDestroy {
       } else if (e.detail === 'Own Goal') {
         timeStr += ' <sup>[OG]</sup>';
       }
-      
+
       if (!groups[name]) {
         groups[name] = [];
       }

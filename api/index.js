@@ -249,6 +249,12 @@ const proxyDirectus = async (request, response) => {
             data = text;
         }
 
+        if (res.status >= 400) {
+            console.error(`[proxyDirectus] ${request.method} ${targetUrl} -> ${res.status}`);
+            console.error('[proxyDirectus] Request body:', typeof fetchOptions.body === 'string' ? fetchOptions.body : JSON.stringify(fetchOptions.body));
+            console.error('[proxyDirectus] Response body:', JSON.stringify(data));
+        }
+
         return response.status(res.status).json(data);
     } catch (error) {
         console.error(`Error proxying request to Directus (${targetUrl}):`, error);
