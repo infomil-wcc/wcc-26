@@ -331,13 +331,14 @@ export async function recalculateRankings(directusUrl, adminToken, specificUser 
     const headers = { 'Authorization': `Bearer ${adminToken}` };
     const pronoFilter = specificUser ? `&filter[user][eq]=${specificUser}` : "";
 
-    const [matchesRes, predictionsRes, rankingsRes, rulesRes, bracketResultsRes, bracketsRes, bracketRankingsRes] = await Promise.all([
+    const [matchesRes, predictionsRes, rankingsRes, rulesRes, bracketResultsRes, bracketsRes, knockoutBracketsRes, bracketRankingsRes] = await Promise.all([
       fetch(`${directusUrl}/items/matches?limit=-1`, { headers }),
       fetch(`${directusUrl}/items/pronostiques?limit=-1${pronoFilter}`, { headers }),
       fetch(`${directusUrl}/items/pronostics_rankings?limit=-1`, { headers }),
       fetch(`${directusUrl}/items/game_scoring_rules?limit=-1`, { headers }),
       fetch(`${directusUrl}/items/bracket_result?limit=-1`, { headers }),
       fetch(`${directusUrl}/items/bracket?limit=-1`, { headers }),
+      fetch(`${directusUrl}/items/knockout_bracket?limit=-1`, { headers }),
       fetch(`${directusUrl}/items/bracket_rankings?limit=-1`, { headers })
     ]);
 
@@ -364,6 +365,14 @@ export async function recalculateRankings(directusUrl, adminToken, specificUser 
       try {
         const d = await bracketsRes.json();
         brackets = d.data || [];
+      } catch (e) {}
+    }
+
+    let knockoutBrackets = [];
+    if (knockoutBracketsRes && typeof knockoutBracketsRes.json === 'function') {
+      try {
+        const d = await knockoutBracketsRes.json();
+        knockoutBrackets = d.data || [];
       } catch (e) {}
     }
 
@@ -552,12 +561,22 @@ export async function recalculateRankings(directusUrl, adminToken, specificUser 
         bracketResult.winner_semi_2
       ].filter(team => team && team !== 'À déterminer');
 
-      const bracketRankingObj = [];
+      const userBracketsMap = new Map();
       for (const b of brackets) {
+        if (b.user) userBracketsMap.set(b.user.toLowerCase().trim(), b);
+      }
+      for (const kb of knockoutBrackets) {
+        if (kb.user) userBracketsMap.set(kb.user.toLowerCase().trim(), kb);
+      }
+      const activeBrackets = Array.from(userBracketsMap.values());
+
+      const bracketRankingObj = [];
+      for (const b of activeBrackets) {
         let point = 0;
+        const pSource = (b.predictions_json && typeof b.predictions_json === 'object') ? { ...b, ...b.predictions_json } : b;
 
         for (const match of bracketMatchesToEvaluate) {
-          const prediction = b[match.key];
+          const prediction = pSource[match.key];
           const actual = bracketResult[match.key];
 
           const item = {
@@ -572,8 +591,8 @@ export async function recalculateRankings(directusUrl, adminToken, specificUser 
 
         // Swapped finalist support matching frontend logic
         const predFinalists = [
-          b.winner_semi_1,
-          b.winner_semi_2
+          pSource.winner_semi_1,
+          pSource.winner_semi_2
         ].filter(team => team && team !== 'À déterminer');
 
         predFinalists.forEach(predTeam => {

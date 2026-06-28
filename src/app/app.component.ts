@@ -32,6 +32,7 @@ import { DialogComponent } from './shared/components/dialog/dialog.component';
 import { LoaderComponent } from './shared/components/loader/loader.component';
 import { ModalComponent } from './shared/components/modal/modal.component';
 import { AppUpdateService } from './shared/services/core/app-update.service';
+import { KnockoutBracketService } from './shared/services/games/knockout-bracket.service';
 
 @Component({
     selector: 'app-root',
@@ -43,11 +44,13 @@ import { AppUpdateService } from './shared/services/core/app-update.service';
 export class AppComponent implements OnInit {
 
   public appUpdate = inject(AppUpdateService);
+  private knockoutBracketService = inject(KnockoutBracketService);
   
   @Input() showLoader: boolean = true;
   public title: string = 'IML Foot Challenge - FIFA WORLD CUP 2026';
   public page: number = 0;
   public showDialog: boolean = false;
+  public showKnockoutPhase2Dialog: boolean = false;
 
   private cookieToken!: string;
   private cookieUser!: string;
@@ -88,6 +91,9 @@ export class AppComponent implements OnInit {
     this.stateService.userState.subscribe({
       next:(res) => {
         this.currentUser = res;
+        if (res.first_name) {
+          this.checkKnockoutPhase2(res.first_name);
+        }
       }
     });
 
@@ -199,5 +205,28 @@ export class AppComponent implements OnInit {
         }
       });
     }
+  }
+
+  checkKnockoutPhase2(userFirstName: string): void {
+    if (!userFirstName) return;
+    this.knockoutBracketService.getUserKnockoutBracket(userFirstName).subscribe({
+      next: (data) => {
+        const now = new Date();
+        const limit = new Date(2026, 5, 28, 23, 0, 0);
+        if ((!data || data.length === 0) && now < limit) {
+          this.showKnockoutPhase2Dialog = true;
+        }
+      }
+    });
+  }
+
+  goToBracketChallenge(): void {
+    this.showKnockoutPhase2Dialog = false;
+    this.page = 13;
+    this.router.navigate([], { fragment: 'bracket-challenge' });
+  }
+
+  closeKnockoutPhase2Dialog(): void {
+    this.showKnockoutPhase2Dialog = false;
   }
 }

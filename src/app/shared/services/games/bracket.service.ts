@@ -244,7 +244,7 @@ export class BracketService {
       88: [getTeamByRank('D', 1), getTeamByRank('G', 1)]
     };
 
-    const r32Order = [74, 77, 73, 75, 83, 84, 81, 82, 76, 78, 79, 80, 86, 88, 85, 87];
+    const r32Order = [73, 75, 74, 77, 81, 82, 83, 84, 76, 78, 79, 80, 85, 87, 86, 88];
     const bracketPairs: any[] = [];
     r32Order.forEach(id => {
       const pair = pairsMap[id];

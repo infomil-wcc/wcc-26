@@ -18,49 +18,91 @@
 </div>
 
 @if (isLoggedIn) {
+  <!-- Phase Selection Sliding Control -->
+  <div class="phase-selector-container pt-3 mb-2 flex justify-content-center">
+    <div class="phase-selector-tabs">
+      <div class="active-slider" [class.slide-right]="currentPhase === 2"></div>
+      <button 
+        type="button"
+        class="phase-tab-btn" 
+        [class.active]="currentPhase === 1"
+        (click)="setPhase(1)">
+        🏆 Bracket Initial (Phase 1)
+      </button>
+      <button 
+        type="button"
+        class="phase-tab-btn" 
+        [class.active]="currentPhase === 2"
+        (click)="setPhase(2)">
+        ⚡ Bracket Phase Finale (Phase 2)
+      </button>
+    </div>
+  </div>
+
   <div class="challenge-container py-4">
     <div class="">
-      @if (this.jeuFermer) {
-        <h2 class="text-center">Le jeu est clos</h2>
-      }
-      <!-- Stepper / Wizard header -->
-      @if (!this.jeuFermer) {
-        <div class="challenge-stepper mb-4" >
-          <div class="step" [class.active]="activeWizardStep === 'groups'" [class.completed]="activeWizardStep === 'knockout'">
-            <div class="step-icon">1</div>
-            <div class="step-label">Phase de Groupes</div>
-          </div>
-          <div class="step-connector" [class.completed]="activeWizardStep === 'knockout'"></div>
-          <div class="step" [class.active]="activeWizardStep === 'knockout'">
-            <div class="step-icon">2</div>
-            <div class="step-label">Phase à Élimination Directe</div>
-          </div>
-        </div>
-      }
-      <!-- Group Stage Predictor (State preserved) -->
-      <div [hidden]="activeWizardStep !== 'groups'" class="fade-in">
-        <app-bracket-predictor  (groupStageComplete)="handleGroupPredictionsFinished($event)"></app-bracket-predictor>
-      </div>
-      <!-- Knockout Stage Bracket (Fresh state on transition) -->
-      <div [hidden]="activeWizardStep !== 'knockout'" class="fade-in">
+      <!-- PHASE 1 CONTENT -->
+      @if (currentPhase === 1) {
+        @if (this.jeuFermer) {
+          <h2 class="text-center mb-4">Le Bracket Initial est clos</h2>
+        }
+        <!-- Stepper / Wizard header -->
         @if (!this.jeuFermer) {
-          <div class="controls-bar mb-4">
-            @if (!hasSavedBracket) {
-              <button type="button" class="btn btn-secondary flex align-items-center gap-2" (click)="backToGroups()">
-                <span class="material-symbols-outlined">arrow_back</span>
-                Modifier mes phases de groupes
-              </button>
-            }
-            @if (hasSavedBracket) {
-              <button type="button" class="btn btn-danger flex align-items-center gap-2" (click)="deleteBracket()">
-                <span class="material-symbols-outlined">delete_forever</span>
-                Re-initialiser mon bracket
-              </button>
-            }
+          <div class="challenge-stepper mb-4" >
+            <div class="step" [class.active]="activeWizardStep === 'groups'" [class.completed]="activeWizardStep === 'knockout'">
+              <div class="step-icon">1</div>
+              <div class="step-label">Phase de Groupes</div>
+            </div>
+            <div class="step-connector" [class.completed]="activeWizardStep === 'knockout'"></div>
+            <div class="step" [class.active]="activeWizardStep === 'knockout'">
+              <div class="step-icon">2</div>
+              <div class="step-label">Phase à Élimination Directe</div>
+            </div>
           </div>
         }
-        <app-bracket-knockout [setupAdvancedTeams]="advancedQualifiers"></app-bracket-knockout>
-      </div>
+        <!-- Group Stage Predictor -->
+        <div [hidden]="activeWizardStep !== 'groups'" class="fade-in">
+          <app-bracket-predictor (groupStageComplete)="handleGroupPredictionsFinished($event)"></app-bracket-predictor>
+        </div>
+        <!-- Knockout Stage Bracket -->
+        <div [hidden]="activeWizardStep !== 'knockout'" class="fade-in">
+          @if (!this.jeuFermer) {
+            <div class="controls-bar mb-4">
+              @if (!hasSavedBracket) {
+                <button type="button" class="btn btn-secondary flex align-items-center gap-2" (click)="backToGroups()">
+                  <span class="material-symbols-outlined">arrow_back</span>
+                  Modifier mes phases de groupes
+                </button>
+              }
+              @if (hasSavedBracket) {
+                <button type="button" class="btn btn-danger flex align-items-center gap-2" (click)="deleteBracket()">
+                  <span class="material-symbols-outlined">delete_forever</span>
+                  Re-initialiser mon bracket
+                </button>
+              }
+            </div>
+          }
+          <app-bracket-knockout [isKnockoutPhase2]="false" [setupAdvancedTeams]="advancedQualifiers"></app-bracket-knockout>
+        </div>
+      }
+
+      <!-- PHASE 2 CONTENT -->
+      @if (currentPhase === 2) {
+        @if (this.knockoutJeuFermer) {
+          <h2 class="text-center mb-4">Le Bracket de la Phase Finale est clos</h2>
+        }
+        <div class="fade-in">
+          @if (hasSavedKnockoutBracket && !knockoutJeuFermer) {
+            <div class="controls-bar mb-4">
+              <button type="button" class="btn btn-danger flex align-items-center gap-2" (click)="deleteBracket()">
+                <span class="material-symbols-outlined">delete_forever</span>
+                Re-initialiser mon bracket Phase Finale
+              </button>
+            </div>
+          }
+          <app-bracket-knockout [isKnockoutPhase2]="true" [setupAdvancedTeams]="realKnockoutQualifiers"></app-bracket-knockout>
+        </div>
+      }
     </div>
   </div>
 } @else {
@@ -84,5 +126,19 @@
       <button class="btn" (click)="onDeleteDialogClose()">OK</button>
     </div>
   }
+</app-dialog>
+
+<app-dialog [(showDialog)]="showKnockoutPromptDialog" [dialogTitle]="'🚨 Bracket Phase Finale disponible !'" [withOverlay]="true" [allowClose]="true">
+  <div class="prompt-modal-body p-3 text-center flex flex-column align-items-center justify-content-center">
+    <span class="material-symbols-outlined prompt-icon mb-3" style="font-size: 4rem; color: #facc15;">sports_esports</span>
+    <h3 class="mb-3 text-white text-xl font-bold">Le premier match des 16es de finale commence bientôt !</h3>
+    <p class="text-gray-300 mb-4 max-w-sm">
+      Les phases de groupes sont terminées et les qualifiés réels sont connus. Jouez dès maintenant votre <strong>Bracket de la Phase Finale</strong> basé sur les vrais qualifiés pour accumuler un maximum de points !
+    </p>
+    <div class="flex justify-content-center gap-3">
+      <button class="btn btn-primary" (click)="playKnockoutPhase2()">Jouer le Bracket Phase Finale</button>
+      <button class="btn" (click)="closeKnockoutPromptDialog()">Plus tard</button>
+    </div>
+  </div>
 </app-dialog>
 

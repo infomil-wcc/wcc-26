@@ -8,6 +8,7 @@ import { MatchesService } from '../../../shared/services/content/matches.service
 import { TeamsService } from '../../../shared/services/content/teams.service';
 import { BracketResultApiService } from '../../../shared/services/api/bracket-result-api.service';
 import { GameRulesService } from '../../../shared/services/content/game-rules.service';
+import { KnockoutBracketService } from '../../../shared/services/games/knockout-bracket.service';
 
 export interface Country {
   name: string;
@@ -53,8 +54,10 @@ export class BracketKnockoutComponent implements OnInit {
   private cdr = inject(ChangeDetectorRef);
   private bracketResultApiService = inject(BracketResultApiService);
   private gameRulesService = inject(GameRulesService);
+  private knockoutBracketService = inject(KnockoutBracketService);
 
   @Input() isOpen: boolean = true;
+  @Input() isKnockoutPhase2: boolean = false;
 
   protected syncHeadersScroll(): void {
     if (this.headersSync && this.bracketWrapper) {
@@ -166,7 +169,7 @@ export class BracketKnockoutComponent implements OnInit {
 
     const r32Matches = this.dbMatches.filter(m => m.phase === 'Round of 32');
 
-    const r32Order = [74, 77, 73, 75, 83, 84, 81, 82, 76, 78, 79, 80, 86, 88, 85, 87];
+    const r32Order = [73, 75, 74, 77, 81, 82, 83, 84, 76, 78, 79, 80, 85, 87, 86, 88];
     r32Matches.sort((a, b) => {
       const idA = parseInt(a.id || a.game_id, 10);
       const idB = parseInt(b.id || b.game_id, 10);
@@ -255,8 +258,9 @@ export class BracketKnockoutComponent implements OnInit {
   }
 
   getThirdPlaceSlotIdx(mIdx: number, slot: number): number {
+    if (this.isKnockoutPhase2) return -1;
     if (slot !== 2) return -1;
-    const r32Order = [74, 77, 73, 75, 83, 84, 81, 82, 76, 78, 79, 80, 86, 88, 85, 87];
+    const r32Order = [73, 75, 74, 77, 81, 82, 83, 84, 76, 78, 79, 80, 85, 87, 86, 88];
     if (this.dbMatches && this.dbMatches.length > 0) {
       const r32Matches = this.dbMatches.filter(m => m.phase === 'Round of 32');
       r32Matches.sort((a, b) => {
@@ -425,11 +429,13 @@ export class BracketKnockoutComponent implements OnInit {
   protected jeuFermer: boolean = false;
 
   ngOnInit(): void {
+    const checkDate = this.isKnockoutPhase2 
+      ? new Date(2026, 5, 28, 23, 0, 0)
+      : this.targetDate;
 
-    if (this.currentDate < this.targetDate) {
+    if (this.currentDate < checkDate) {
       this.jeuFermer = false;
-    }
-    else {
+    } else {
       this.jeuFermer = true;
     }
     this.initializePlaceholders();
@@ -479,7 +485,10 @@ export class BracketKnockoutComponent implements OnInit {
         this.stateService.userState.subscribe({
           next: (user) => {
             this.currentUser = user.first_name ? user.first_name : '';
-            this.$bracket = this.bracketService.getUserBracket(this.currentUser);
+            this.$bracket = this.isKnockoutPhase2
+              ? this.knockoutBracketService.getUserKnockoutBracket(this.currentUser)
+              : this.bracketService.getUserBracket(this.currentUser);
+
             this.$bracket.subscribe({
               next: (data) => {
                 if (data && Array.isArray(data) && data.length > 0) {
@@ -542,7 +551,7 @@ export class BracketKnockoutComponent implements OnInit {
     const filterAndSort = (phase: string) => {
       const filtered = matches.filter(m => m.phase === phase);
       if (phase === 'Round of 32') {
-        const r32Order = [74, 77, 73, 75, 83, 84, 81, 82, 76, 78, 79, 80, 86, 88, 85, 87];
+        const r32Order = [73, 75, 74, 77, 81, 82, 83, 84, 76, 78, 79, 80, 85, 87, 86, 88];
         filtered.sort((a, b) => {
           const idA = parseInt(a.id || a.game_id, 10);
           const idB = parseInt(b.id || b.game_id, 10);
@@ -736,6 +745,10 @@ export class BracketKnockoutComponent implements OnInit {
 
   private applySavedBracket(payload: any): void {
     if (!payload) return;
+
+    if (payload.predictions_json && typeof payload.predictions_json === 'object') {
+      payload = { ...payload, ...payload.predictions_json };
+    }
     // Attempt to reconstruct full R32 teams from payload if present
     const extracted: any[] = [];
     if (Array.isArray(payload.r32) && payload.r32.length >= 32) {
@@ -1017,9 +1030,23 @@ export class BracketKnockoutComponent implements OnInit {
       payload[`winner_semi_${i}`] = this.wS[`m${i}`]?.name;
     }
 
+    if (this.isKnockoutPhase2) {
+      const predictions_json: any = {};
+      for (const key in payload) {
+        if (key !== 'user' && key !== 'status') {
+          predictions_json[key] = payload[key];
+        }
+      }
+      payload.predictions_json = predictions_json;
+    }
+
     console.log('Payload to submit:', payload);
 
-    this.bracketService.postBracket(payload).subscribe({
+    const serviceCall = this.isKnockoutPhase2
+      ? this.knockoutBracketService.postKnockoutBracket(payload)
+      : this.bracketService.postBracket(payload);
+
+    serviceCall.subscribe({
       next: () => {
         // take a snapshot of the current bracket to show as a read-only validated view
         this.takeValidatedSnapshot();
@@ -1043,7 +1070,7 @@ export class BracketKnockoutComponent implements OnInit {
   }
 
   getMatchIdLabel(mIdx: number): string {
-    const r32Order = [74, 77, 73, 75, 83, 84, 81, 82, 76, 78, 79, 80, 86, 88, 85, 87];
+    const r32Order = [73, 75, 74, 77, 81, 82, 83, 84, 76, 78, 79, 80, 85, 87, 86, 88];
     if (this.dbMatches && this.dbMatches.length > 0) {
       const r32Matches = this.dbMatches.filter(m => m.phase === 'Round of 32');
       r32Matches.sort((a, b) => {
@@ -1087,9 +1114,72 @@ export class BracketKnockoutComponent implements OnInit {
   protected realResults: any = null;
   protected bracketRules: any = null;
 
-  getPredictionEvaluation(stage: string, matchKey: string): { status: 'correct' | 'incorrect' | 'pending', points: number, realWinnerName?: string, realWinnerFlagUrl?: string } {
+  getPredictionEvaluation(stage: string, matchKey: string): { 
+    status: 'correct' | 'incorrect' | 'pending', 
+    points: number, 
+    realWinnerName?: string, 
+    realWinnerFlagUrl?: string,
+    realTeamAName?: string,
+    realTeamBName?: string,
+    realTeamAFlagUrl?: string,
+    realTeamBFlagUrl?: string
+  } {
+    let realTeamAName = '';
+    let realTeamBName = '';
+    let realTeamAFlagUrl = '';
+    let realTeamBFlagUrl = '';
+
+    if (this.dbMatches && this.dbMatches.length > 0) {
+      let phaseName = '';
+      let mIdx = stage === 'Final' ? 1 : parseInt(matchKey.replace(/\D/g, ''), 10);
+      if (stage === 'R32') phaseName = 'Round of 32';
+      else if (stage === 'R16') phaseName = 'Round of 16';
+      else if (stage === 'R4') phaseName = 'Quarter-finals';
+      else if (stage === 'S') phaseName = 'Semi-finals';
+      else if (stage === 'Final') phaseName = 'Final';
+
+      const phaseMatches = this.dbMatches.filter(m => m.phase === phaseName);
+      if (stage === 'R32') {
+        const r32Order = [73, 75, 74, 77, 81, 82, 83, 84, 76, 78, 79, 80, 85, 87, 86, 88];
+        phaseMatches.sort((a, b) => {
+          const idA = parseInt(a.id || a.game_id, 10);
+          const idB = parseInt(b.id || b.game_id, 10);
+          return r32Order.indexOf(idA) - r32Order.indexOf(idB);
+        });
+      } else {
+        phaseMatches.sort((a, b) => parseInt(a.id || a.game_id, 10) - parseInt(b.id || b.game_id, 10));
+      }
+
+      const match = phaseMatches[mIdx - 1];
+      if (match) {
+        const isPlaceholder = (name: string) => {
+          if (!name) return true;
+          const lower = name.toLowerCase();
+          return lower.includes('winner') || lower.includes('runner') || lower.includes('3rd') || lower.includes('determiner') || lower.includes('group');
+        };
+
+        if (match.team_a && !isPlaceholder(match.team_a)) {
+          realTeamAName = match.team_a;
+          const c = this.mapNameToCountry(match.team_a);
+          realTeamAFlagUrl = c?.flagUrl || 'assets/flags/unknown.png';
+        }
+        if (match.team_b && !isPlaceholder(match.team_b)) {
+          realTeamBName = match.team_b;
+          const c = this.mapNameToCountry(match.team_b);
+          realTeamBFlagUrl = c?.flagUrl || 'assets/flags/unknown.png';
+        }
+      }
+    }
+
+    const baseResult = {
+      realTeamAName: realTeamAName || undefined,
+      realTeamBName: realTeamBName || undefined,
+      realTeamAFlagUrl: realTeamAFlagUrl || undefined,
+      realTeamBFlagUrl: realTeamBFlagUrl || undefined
+    };
+
     if (!this.validated || !this.realResults) {
-      return { status: 'pending', points: 0 };
+      return { status: 'pending', points: 0, ...baseResult };
     }
 
     let resultKey = '';
@@ -1126,13 +1216,13 @@ export class BracketKnockoutComponent implements OnInit {
     const real = this.realResults[resultKey];
 
     if (!real || real === 'À déterminer') {
-      return { status: 'pending', points: 0 };
+      return { status: 'pending', points: 0, ...baseResult };
     }
 
     if (!predicted || predicted === 'À déterminer') {
       const realCountry = this.mapNameToCountry(real);
       const realWinnerFlagUrl = realCountry?.flagUrl || 'assets/flags/unknown.png';
-      return { status: 'incorrect', points: 0, realWinnerName: real, realWinnerFlagUrl };
+      return { status: 'incorrect', points: 0, realWinnerName: real, realWinnerFlagUrl, ...baseResult };
     }
 
     const isCorrect = predicted.toLowerCase().trim() === real.toLowerCase().trim();
@@ -1142,9 +1232,9 @@ export class BracketKnockoutComponent implements OnInit {
     const realWinnerFlagUrl = realCountry?.flagUrl || 'assets/flags/unknown.png';
 
     if (isCorrect || isCorrectFuzzy) {
-      return { status: 'correct', points: pts, realWinnerName: real, realWinnerFlagUrl };
+      return { status: 'correct', points: pts, realWinnerName: real, realWinnerFlagUrl, ...baseResult };
     } else {
-      return { status: 'incorrect', points: 0, realWinnerName: real, realWinnerFlagUrl };
+      return { status: 'incorrect', points: 0, realWinnerName: real, realWinnerFlagUrl, ...baseResult };
     }
   }
 }

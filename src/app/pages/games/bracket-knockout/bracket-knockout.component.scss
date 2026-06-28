@@ -564,4 +564,34 @@ $line-connector-color: #94a3b8; // Tree connector layout lines color
       border-radius: 2px;
     }
   }
+
+  .border-top-dashed {
+    border-top: 1px dashed rgba(255, 255, 255, 0.15);
+  }
+
+  .text-xxs {
+    font-size: 0.7rem;
+  }
+
+  .real-matchup-row {
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 4px;
+
+    .slot-flag-xs {
+      width: 12px;
+      height: 8px;
+      object-fit: cover;
+      border-radius: 1px;
+      vertical-align: middle;
+    }
+
+    .font-semibold {
+      font-weight: 600;
+    }
+  }
 }
