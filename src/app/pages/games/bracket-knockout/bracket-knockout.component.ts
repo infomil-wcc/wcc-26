@@ -1015,7 +1015,7 @@ export class BracketKnockoutComponent implements OnInit {
   validateBracket(): void {
     if (!this.isBracketComplete()) return;
 
-    const payload: any = {
+    let payload: any = {
       status: 'published',
       user: this.currentUser,
       winner_wc: this.champion?.name
@@ -1041,7 +1041,12 @@ export class BracketKnockoutComponent implements OnInit {
           predictions_json[key] = payload[key];
         }
       }
-      payload.predictions_json = predictions_json;
+      const cleanPayload: any = {
+        predictions_json: predictions_json
+      };
+      if (payload.user !== undefined) cleanPayload.user = payload.user;
+      if (payload.status !== undefined) cleanPayload.status = payload.status;
+      payload = cleanPayload;
     }
 
     console.log('Payload to submit:', payload);
@@ -1058,7 +1063,8 @@ export class BracketKnockoutComponent implements OnInit {
         // refresh the page to reflect saved state
         window.location.reload();
       },
-      error: () => {
+      error: (err) => {
+        console.error('Validation error details:', err);
         alert('Erreur lors de la validation du pronostic.');
       }
     });
