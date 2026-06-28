@@ -36,7 +36,6 @@ export class BracketChallengeComponent implements OnInit {
   protected bracketPoints$!: Observable<{ value: number } | null>;
 
   private targetDate = new Date(2026, 5, 12, 22, 55, 0);
-  private firstR32MatchDate = new Date(2026, 5, 28, 23, 0, 0);
   private currentDate = new Date();
   
   protected activeWizardStep: 'groups' | 'knockout' = 'groups';
@@ -81,18 +80,21 @@ export class BracketChallengeComponent implements OnInit {
       this.jeuFermer = true;
     }
 
-    if (this.currentDate < this.firstR32MatchDate) {
-      this.knockoutJeuFermer = false;
-    } else {
-      this.knockoutJeuFermer = true;
-    }
-
     // 1. Fetch matches and flags first
     forkJoin({
       matches: this.matchesService.getAllMatches(),
       flags: this.teamsService.getFlags()
     }).subscribe({
       next: ({ matches, flags }) => {
+        // Derive knockoutJeuFermer dynamically from the first R32 match kickoff
+        const r32Matches = matches
+          .filter(m => m.phase === 'Round of 32' && m.date)
+          .map(m => new Date(m.date))
+          .filter(d => !isNaN(d.getTime()))
+          .sort((a, b) => a.getTime() - b.getTime());
+        const firstR32Kickoff = r32Matches.length > 0 ? r32Matches[0] : null;
+        this.knockoutJeuFermer = firstR32Kickoff ? this.currentDate >= firstR32Kickoff : false;
+
         this.realKnockoutQualifiers = this.bracketService.generateRoundOf32FromGroups(matches, flags);
 
         // 2. Once matches & flags are ready, subscribe to userState and load user brackets

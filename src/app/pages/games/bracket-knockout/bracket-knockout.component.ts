@@ -1035,21 +1035,26 @@ export class BracketKnockoutComponent implements OnInit {
     }
 
     if (this.isKnockoutPhase2) {
+      // bracket_knockout collection stores: user (string), status, predictions_json (JSON object).
+      // The JSON object uses the same flat keys as the bracket collection so match-results.mjs
+      // can spread them via: { ...b, ...b.predictions_json } for scoring.
       const predictions_json: any = {};
       for (const key in payload) {
         if (key !== 'user' && key !== 'status') {
           predictions_json[key] = payload[key];
         }
       }
-      const cleanPayload: any = {
-        predictions_json: predictions_json
+      payload = {
+        user: payload.user,
+        status: payload.status,
+        predictions_json
       };
-      if (payload.user !== undefined) cleanPayload.user = payload.user;
-      if (payload.status !== undefined) cleanPayload.status = payload.status;
-      payload = cleanPayload;
     }
 
     console.log('Payload to submit:', payload);
+    if (this.isKnockoutPhase2) {
+      console.log('Phase 2 JSON body:', JSON.stringify(payload));
+    }
 
     const serviceCall = this.isKnockoutPhase2
       ? this.knockoutBracketService.postKnockoutBracket(payload)
@@ -1065,7 +1070,11 @@ export class BracketKnockoutComponent implements OnInit {
       },
       error: (err) => {
         console.error('Validation error details:', err);
-        alert('Erreur lors de la validation du pronostic.');
+        const msg = err?.error?.errors?.[0]?.message
+          || err?.error?.message
+          || JSON.stringify(err?.error)
+          || 'Unknown error';
+        alert(`Erreur lors de la validation du pronostic.\n\nDirectus: ${msg}`);
       }
     });
   }

@@ -4,7 +4,7 @@ import { StateService, AppState, user } from './shared/services/core/state.servi
 import { AuthService } from './shared/services/core/auth.service';
 import { TeamsService } from './shared/services/content/teams.service';
 import { CookieService } from './shared/services/core/cookie.service';
-import { Observable, catchError, throwError } from 'rxjs';
+import { Observable, catchError, switchMap, of, throwError } from 'rxjs';
 import { TotalgoalsService } from './shared/services/core/totalgoals.service';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { LayoutComponent } from './shared/components/layout/layout.component';
@@ -33,6 +33,7 @@ import { LoaderComponent } from './shared/components/loader/loader.component';
 import { ModalComponent } from './shared/components/modal/modal.component';
 import { AppUpdateService } from './shared/services/core/app-update.service';
 import { KnockoutBracketService } from './shared/services/games/knockout-bracket.service';
+import { MatchesService } from './shared/services/content/matches.service';
 
 @Component({
     selector: 'app-root',
@@ -45,6 +46,7 @@ export class AppComponent implements OnInit {
 
   public appUpdate = inject(AppUpdateService);
   private knockoutBracketService = inject(KnockoutBracketService);
+  private matchesService = inject(MatchesService);
   
   @Input() showLoader: boolean = true;
   public title: string = 'IML Foot Challenge - FIFA WORLD CUP 2026';
@@ -94,11 +96,12 @@ export class AppComponent implements OnInit {
         if (res.first_name) {
           this.checkKnockoutPhase2(res.first_name);
         } else {
-          const now = new Date();
-          const limit = new Date(2026, 5, 28, 23, 0, 0);
-          if (now < limit) {
-            this.showKnockoutPhase2Dialog = true;
-          }
+          // Guest user: show popup only if the first R32 match has not kicked off yet
+          this.getFirstR32KickoffTime().subscribe(kickoff => {
+            if (kickoff && new Date() < kickoff) {
+              this.showKnockoutPhase2Dialog = true;
+            }
+          });
         }
       }
     });
@@ -231,13 +234,38 @@ export class AppComponent implements OnInit {
     }
   }
 
+  /** Fetches the kickoff time of the very first Round of 32 match from the API. */
+  private getFirstR32KickoffTime(): Observable<Date | null> {
+    return this.matchesService.getMatchesByPhase('Round of 32').pipe(
+      switchMap(matches => {
+        if (!matches || matches.length === 0) return of(null);
+        const sorted = matches
+          .map(m => ({ ...m, parsedDate: m.date ? new Date(m.date) : null }))
+          .filter(m => m.parsedDate && !isNaN(m.parsedDate.getTime()))
+          .sort((a, b) => a.parsedDate!.getTime() - b.parsedDate!.getTime());
+        return of(sorted.length > 0 ? sorted[0].parsedDate : null);
+      }),
+      catchError(() => of(null))
+    );
+  }
+
   checkKnockoutPhase2(userFirstName: string): void {
     if (!userFirstName) return;
-    this.knockoutBracketService.getUserKnockoutBracket(userFirstName).subscribe({
-      next: (data) => {
+    this.getFirstR32KickoffTime().pipe(
+      switchMap(kickoff => {
         const now = new Date();
-        const limit = new Date(2026, 5, 28, 23, 0, 0);
-        if ((!data || data.length === 0) && now < limit) {
+        if (kickoff && now >= kickoff) {
+          // First R32 match already kicked off — never show popup
+          this.showKnockoutPhase2Dialog = false;
+          return of(null);
+        }
+        return this.knockoutBracketService.getUserKnockoutBracket(userFirstName);
+      }),
+      catchError(() => of(null))
+    ).subscribe({
+      next: (data) => {
+        if (data === null) return; // already handled above
+        if (!data || data.length === 0) {
           this.showKnockoutPhase2Dialog = true;
         } else {
           this.showKnockoutPhase2Dialog = false;
