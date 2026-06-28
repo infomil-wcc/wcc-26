@@ -1,7 +1,8 @@
-import { handleCors } from './utils.mjs';
-
 import { teamNameMap } from './mappings.mjs';
 
+/**
+ * Normalizes a team name based on pre-defined mapping matrices.
+ */
 function normalize(name) {
     if (!name) return '';
     const trimmed = name.trim().toLowerCase();
@@ -13,18 +14,18 @@ function normalize(name) {
     return trimmed;
 }
 
-export default async function handler(request, response) {
-    if (handleCors(request, response)) return;
+/**
+ * Retrieves match lineups dynamically from an external api or structural fallback mocks.
+ * @param {string} teamA - The name of team A.
+ * @param {string} teamB - The name of team B.
+ * @param {string} apiKey - Football-Data API Token.
+ * @returns {Promise<Object>} Formatted object containing matchId, homeTeam, and awayTeam lineups.
+ */
+export async function getMatchLineups(teamA, teamB, apiKey) {
+    const normA = normalize(teamA);
+    const normB = normalize(teamB);
 
-    const { team_a, team_b } = request.query;
-
-    if (!team_a || !team_b) {
-        return response.status(400).json({ error: 'Missing team_a or team_b parameters.' });
-    }
-
-    const normA = normalize(team_a);
-    const normB = normalize(team_b);
-
+    // 1. Structural Fallback Mock (Argentina vs Austria)
     if ((normA === 'argentina' && normB === 'austria') || (normA === 'austria' && normB === 'argentina')) {
         const isReversed = (normA === 'austria');
         const mockArgentina = {
@@ -80,83 +81,66 @@ export default async function handler(request, response) {
             ]
         };
 
-        return response.status(200).json({
+        return {
             matchId: 43,
             homeTeam: isReversed ? mockAustria : mockArgentina,
             awayTeam: isReversed ? mockArgentina : mockAustria
-        });
-    }
-
-    const apiKey = process.env.FOOTBALL_DATA_API_KEY;
-    if (!apiKey) {
-        return response.status(500).json({ error: 'Missing FOOTBALL_DATA_API_KEY environment variable.' });
-    }
-
-    try {
-        // 1. Fetch matches from football-data.org API
-        const apiRes = await fetch('https://api.football-data.org/v4/competitions/WC/matches', {
-            method: 'GET',
-            headers: {
-                'X-Auth-Token': apiKey
-            }
-        });
-
-        if (!apiRes.ok) {
-            throw new Error(`Football-Data API returned status ${apiRes.status}`);
-        }
-
-        const data = await apiRes.json();
-        const matches = data.matches || [];
-
-        const normA = normalize(team_a);
-        const normB = normalize(team_b);
-
-        // Find match matching team_a and team_b
-        const targetMatch = matches.find(m => {
-            const homeNorm = normalize(m.homeTeam?.name);
-            const awayNorm = normalize(m.awayTeam?.name);
-            return (homeNorm === normA && awayNorm === normB) || (homeNorm === normB && awayNorm === normA);
-        });
-
-        if (!targetMatch) {
-            return response.status(404).json({ error: `Match not found for ${team_a} vs ${team_b}` });
-        }
-
-        // 2. Fetch specific match details to get starting line-up and bench
-        const matchDetailsRes = await fetch(`https://api.football-data.org/v4/matches/${targetMatch.id}`, {
-            method: 'GET',
-            headers: {
-                'X-Auth-Token': apiKey
-            }
-        });
-
-        if (!matchDetailsRes.ok) {
-            throw new Error(`Football-Data Match Details API returned status ${matchDetailsRes.status}`);
-        }
-
-        const matchDetails = await matchDetailsRes.json();
-
-        // extract lineups
-        const result = {
-            matchId: targetMatch.id,
-            homeTeam: {
-                name: matchDetails.homeTeam?.name,
-                formation: matchDetails.homeTeam?.formation || '4-3-3',
-                lineup: matchDetails.homeTeam?.lineup || [],
-                bench: matchDetails.homeTeam?.bench || []
-            },
-            awayTeam: {
-                name: matchDetails.awayTeam?.name,
-                formation: matchDetails.awayTeam?.formation || '4-3-3',
-                lineup: matchDetails.awayTeam?.lineup || [],
-                bench: matchDetails.awayTeam?.bench || []
-            }
         };
-
-        return response.status(200).json(result);
-
-    } catch (error) {
-        console.error('Error fetching lineups from football-data:', error);
-        return response.status(500).json({ error: 'Failed to fetch lineup details.', details: error.message });
     }
+
+    // 2. Fetch Live data from external API 
+    if (!apiKey) {
+        throw new Error('MISSING_API_KEY');
+    }
+
+    const apiRes = await fetch('https://api.football-data.org/v4/competitions/WC/matches', {
+        method: 'GET',
+        headers: { 'X-Auth-Token': apiKey }
+    });
+
+    if (!apiRes.ok) {
+        throw new Error(`Football-Data API returned status ${apiRes.status}`);
+    }
+
+    const data = await apiRes.json();
+    const matches = data.matches || [];
+
+    // Find match matching team_a and team_b
+    const targetMatch = matches.find(m => {
+        const homeNorm = normalize(m.homeTeam?.name);
+        const awayNorm = normalize(m.awayTeam?.name);
+        return (homeNorm === normA && awayNorm === normB) || (homeNorm === normB && awayNorm === normA);
+    });
+
+    if (!targetMatch) {
+        return null; // Signals a 404 condition to the route layer
+    }
+
+    // Fetch deep match details for active starting line-ups
+    const matchDetailsRes = await fetch(`https://api.football-data.org/v4/matches/${targetMatch.id}`, {
+        method: 'GET',
+        headers: { 'X-Auth-Token': apiKey }
+    });
+
+    if (!matchDetailsRes.ok) {
+        throw new Error(`Football-Data Match Details API returned status ${matchDetailsRes.status}`);
+    }
+
+    const matchDetails = await matchDetailsRes.json();
+
+    return {
+        matchId: targetMatch.id,
+        homeTeam: {
+            name: matchDetails.homeTeam?.name,
+            formation: matchDetails.homeTeam?.formation || '4-3-3',
+            lineup: matchDetails.homeTeam?.lineup || [],
+            bench: matchDetails.homeTeam?.bench || []
+        },
+        awayTeam: {
+            name: matchDetails.awayTeam?.name,
+            formation: matchDetails.awayTeam?.formation || '4-3-3',
+            lineup: matchDetails.awayTeam?.lineup || [],
+            bench: matchDetails.awayTeam?.bench || []
+        }
+    };
 }
