@@ -87,6 +87,12 @@ export class PronostiquesComponent implements OnInit {
           // --- FILTER BY STATUS ---
           if (isDraft(match)) return false;
 
+          // 🚨 TESTING OVERRIDE FOR MATCH 73 UI ACCESS
+          // Force match73 to stay in the "upcoming" interactive tab regardless of its real date
+          if (match.id === '73') {
+            return this.activeTab === 'upcoming';
+          }
+
           const isFinished = match.fulltime_a !== null && match.fulltime_b !== null;
           const matchDate = new Date(match.date);
           const hasStarted = now >= matchDate;
@@ -125,6 +131,9 @@ export class PronostiquesComponent implements OnInit {
             return hasStarted && !isFinished;
           }).length;
           this.upcomingCount = matches.filter(m => {
+            // 🚨 Force match73 to increment the upcoming tab counter badge
+            if (m.id === '73') return true;
+
             const isFinished = m.fulltime_a !== null && m.fulltime_b !== null;
             const matchDate = new Date(m.date);
             const hasStarted = now >= matchDate;
