@@ -235,6 +235,11 @@ export class MatchComponent implements OnInit, OnDestroy {
   }
 
   get canEditPrediction(): boolean {
+
+    // Si c'est une fraude détectée à la volée, on bloque immédiatement toute modification
+    if (this.hidePointsBadge) {
+      return false;
+    }
     return !this.disabled && !this.isSubmitting && (!this.closed || this.isEditing) && !this.match.fulltime &&
       (!this.isSavedInApi || this.isEditing) && !this.hidePointsBadge;
   }
@@ -362,6 +367,11 @@ export class MatchComponent implements OnInit, OnDestroy {
           // Si le serveur renvoie un pronostic dont la date technique interne 
           // est supérieure au coup d'envoi, on active le bandeau visuel
           this.hidePointsBadge = checkPayloadFraud(response[0]);
+
+          // 🚨 FORCE LE BLOCAGE DE L'AFFICHAGE DES POINTS SUR LES MATCHS JOUÉS TRUQUÉS
+          if (this.hidePointsBadge) {
+            this.isSavedInApi = false; // Désactive l'affichage des badges de points d'API classiques
+          }
 
         } else {
           this.pronostiqueDone = false;
