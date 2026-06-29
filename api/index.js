@@ -11,6 +11,25 @@ const router = Router();
 // ==========================================================================
 // MIDDLEWARE GLOBAL : AJOUT DU BLOC TRY / CATCH MANQUANT
 // ==========================================================================
+
+// Helper to set standard Vercel Cache-Control headers safely
+const setCacheControl = (request, response, maxAge = 60, staleWhileRevalidate = 120, forcePublic = false) => {
+    // Only cache GET or HEAD requests
+    if (request.method !== 'GET' && request.method !== 'HEAD') {
+        response.setHeader('Cache-Control', 'private, no-cache, no-store');
+        return;
+    }
+
+    // Check if the frontend sent an authorization token
+    const hasAuth = request.headers.authorization && request.headers.authorization.length > 0;
+
+    if (hasAuth && !forcePublic) {
+        response.setHeader('Cache-Control', 'private, no-cache, no-store');
+    } else {
+        response.setHeader('Cache-Control', `public, s-maxage=${maxAge}, stale-while-revalidate=${staleWhileRevalidate}`);
+    }
+};
+
 router.all('*', async (request, response) => {
     try {
         // Gestion systématique des permissions pré-vol CORS
@@ -31,6 +50,7 @@ router.all('*', async (request, response) => {
 // ----------------------------------------------------------------------
 router.get('/api/squads', async (request, response) => {
     try {
+        setCacheControl(request, response, 60, 120, true);
         // Force the type to 'squads' and forward all query string filters
         const { status, data } = await getTeamsOrSquads('squads', request.query);
         return response.status(status).json(data);
@@ -48,6 +68,7 @@ router.get('/api/squads', async (request, response) => {
 // ----------------------------------------------------------------------
 router.get('/api/teams', async (request, response) => {
     try {
+        setCacheControl(request, response, 60, 120, true);
         // Force the type to 'teams' and forward all query string filters
         const { status, data } = await getTeamsOrSquads('teams', request.query);
         return response.status(status).json(data);
@@ -68,6 +89,7 @@ router.get('/api/game-rules', async (request, response) => {
     const adminToken = process.env.DIRECTUS_ADMIN_TOKEN;
 
     try {
+        setCacheControl(request, response, 86400, 300, true);
         // Execute helper tracking calculations cleanly 
         const gameData = await generateGameRules(fetchWithBypass, directusUrl, adminToken);
 
@@ -134,6 +156,7 @@ router.get('/api/lineups', async (request, response) => {
     const apiKey = process.env.FOOTBALL_DATA_API_KEY;
 
     try {
+        setCacheControl(request, response, 60, 120, true);
         const result = await getMatchLineups(team_a, team_b, apiKey);
 
         if (!result) {
@@ -252,9 +275,9 @@ const handleMatchPredictionValidation = async (request, response) => {
 
         // 2. Core validation logic: If current time is past the match kick-off, lock predictions
         if (currentTime >= matchTime) {
-            return response.status(400).json({ 
-                error: "Prediction Refused", 
-                details: "Le match a déjà commencé ou est terminé. Les pronostics sont verrouillés." 
+            return response.status(400).json({
+                error: "Prediction Refused",
+                details: "Le match a déjà commencé ou est terminé. Les pronostics sont verrouillés."
             });
         }
 
@@ -278,6 +301,14 @@ const proxyDirectus = async (request, response) => {
     const relativePath = url.pathname.replace(/^\/api/, '');
     const targetUrl = `${directusUrl}${relativePath}${url.search}`;
 
+    // Manage cache control intelligently for proxy endpoints
+    if (relativePath.startsWith('/assets') || relativePath.startsWith('/files')) {
+        setCacheControl(request, response, 86400, 86400, true);
+    } else {
+        // Items endpoints or others - only cached if no auth token is passed from frontend
+        setCacheControl(request, response, 60, 120, false);
+    }
+
     try {
         const headers = {};
         for (const [k, v] of Object.entries(request.headers)) {
@@ -300,7 +331,7 @@ const proxyDirectus = async (request, response) => {
         }
 
         const res = await fetchWithBypass(targetUrl, fetchOptions);
-        
+
         const contentType = res.headers && res.headers['content-type'] ? res.headers['content-type'].toLowerCase() : '';
         if (contentType.startsWith('image/') || contentType.startsWith('video/') || contentType.startsWith('application/pdf') || contentType.startsWith('font/') || contentType.startsWith('audio/')) {
             const buf = await res.buffer();
@@ -350,8 +381,8 @@ router.all('/api/mail/*', proxyDirectus);
 // 3. Export du point d'entrée requis pour Vercel Serverless
 export default async function handler(request, response) {
     const host = request.headers.host || 'localhost';
-    const absoluteUrl = request.url.startsWith('http://') || request.url.startsWith('https://') 
-        ? request.url 
+    const absoluteUrl = request.url.startsWith('http://') || request.url.startsWith('https://')
+        ? request.url
         : `http://${host}${request.url}`;
 
     const wrappedRequest = {
