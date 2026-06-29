@@ -1,6 +1,6 @@
 import { Component, EventEmitter, Input, OnInit, OnDestroy, Output, inject, ChangeDetectionStrategy } from '@angular/core';
 import { Matches } from '../../contracts/matches.contract';
-import { Observable } from 'rxjs';
+import { max, Observable } from 'rxjs';
 import { TeamsService } from '../../services/content/teams.service';
 import { StateService } from '../../services/core/state.service';
 import { PredictionsService } from '../../services/games/predictions.service';
@@ -338,7 +338,7 @@ export class MatchComponent implements OnInit, OnDestroy {
           if (!pred || !this.match.date) return false;
 
           // 1. Récupération du timestamp technique de Directus
-          const predTimeStr = pred.created_on || pred.modified_on;
+          const predTimeStr =  pred.modified_on || pred.created_on;
           if (!predTimeStr) {
             console.log(`[🚨 EXECUTION checkPayloadFraud] M${this.match.id} : Prono=${new Date(predTimeStr).toLocaleString()} | Match=${new Date(this.match.date).toLocaleString()}`);
             return false;
