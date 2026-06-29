@@ -1,17 +1,14 @@
 <div class="match" [ngClass]="{'donePronostique': pronostiqueDone, 'pronostiqueMode': isPronostiques, 'closed': !pronostiqueDone && closed, 'matchPlayed' : match.fulltime_a !== null && match.fulltime_b !== null }">
-  <!-- Stadium Background Overlay with light opacity -->
   @if (isPronostiques && stadiumImageUrl) {
     <div class="match-bg-overlay" [ngStyle]="{'background-image': 'url(' + stadiumImageUrl + ')'}"></div>
   }
 
-  <!-- Lock overlay: only shown when pronostic is saved but match is not yet played -->
   @if (isPronostiques && isSavedInApi && (match.fulltime_a === null || match.fulltime_b === null) && !isEditing) {
     <div class="lock-overlay">
       <span class="material-symbols-outlined lock-icon">lock</span>
     </div>
   }
 
-  <!-- Header Segment -->
   <div class="match-header flex justify-content-between align-items-center">
     <div class="header-left">
       @if (match.group) {
@@ -32,7 +29,6 @@
       </span>
     </div>
   </div>
-  <!-- Body Segment -->
   <div class="match-body">
     <div class="flex justify-content-between align-items-center mb-2 venue-countdown-row">
       @if (match.stadium) {
@@ -84,7 +80,6 @@
     @if (isPronostiques) {
       <div class="pronostiques">
         <div class="grid justify-content-center align-items-center min-h mb-3">
-          <!-- Team A Option Button -->
           <div class="col-4">
             <div class="team-option-btn teamA flex flex-column align-items-center justify-content-center position-relative"
               [ngClass]="{'active': matchOutcome === match.team_a, 'disabled': !canEditPrediction}"
@@ -103,10 +98,16 @@
               }
             </div>
           </div>
-          <!-- Center Column (Draw Button / VS) -->
           <div class="col-4 flex flex-column justify-content-center align-items-center px-1 gap-2">
-            @if (!closed) {
-              <!-- Draw Option Button -->
+            @if (hidePointsBadge) {
+              <div class="fraud-card-center-badge flex flex-column align-items-center justify-content-center text-center p-1 rounded">
+                <span class="material-symbols-outlined text-red-500 font-bold" style="font-size: 1.25rem;">gavel</span>
+                <span class="text-xs font-bold text-red-500 block uppercase tracking-wider" style="font-size: 0.65rem;">Fraude</span>
+                <span class="text-white font-medium block mt-1" style="font-size: 0.62rem; line-height: 1.1;">
+                  Joué le :<br>{{ match.date | date: 'dd/MM HH:mm' }}
+                </span>
+              </div>
+            } @else if (!closed) {
               @if (match.phase === 'Group Stage') {
                 <div class="team-option-btn draw flex flex-column align-items-center justify-content-center position-relative w-full"
                   [ngClass]="{'active': matchOutcome === 'Draw', 'disabled': !canEditPrediction}"
@@ -127,7 +128,6 @@
                 </div>
               }
             } @else {
-              <!-- Closed: show points WordArt in VS slot if match is played with a prediction -->
               @if (isSavedInApi && match.fulltime_a !== null && match.fulltime_b !== null && matchPoints !== null) {
                 <div class="points-overlay" [ngClass]="{'points-zero': matchPoints === 0}">
                   <span class="points-value">{{ matchPoints > 0 ? '+' + matchPoints : matchPoints }}</span>
@@ -141,7 +141,6 @@
               }
             }
           </div>
-          <!-- Team B Option Button -->
           <div class="col-4">
             <div class="team-option-btn teamB flex flex-column align-items-center justify-content-center position-relative"
               [ngClass]="{'active': matchOutcome === match.team_b, 'disabled': !canEditPrediction}"
@@ -161,9 +160,8 @@
             </div>
           </div>
         </div>
-        @if (!closed) {
+        @if (!closed && !hidePointsBadge) {
           <div class="pronostiqueWrapper">
-            <!-- Score Inputs (Compact Grid Layout) -->
             @if (match.fulltime || match.halftime) {
               <div class="scores-compact-grid mt-2 mb-3">
                 <div class="grid-header-row" [class.has-both]="match.fulltime && match.halftime">
@@ -176,7 +174,6 @@
                   }
                 </div>
                 
-                <!-- Team A Row -->
                 <div class="grid-team-row" [class.has-both]="match.fulltime && match.halftime">
                   <div class="team-col">
                     <span class="flag-mini mr-2" [ngStyle]="{'background-image': 'url(' + teamAFlag + ')'}"></span>
@@ -194,7 +191,6 @@
                   }
                 </div>
 
-                <!-- Team B Row -->
                 <div class="grid-team-row" [class.has-both]="match.fulltime && match.halftime">
                   <div class="team-col">
                     <span class="flag-mini mr-2" [ngStyle]="{'background-image': 'url(' + teamBFlag + ')'}"></span>
@@ -213,7 +209,6 @@
                 </div>
               </div>
             }
-            <!-- Un buteur -->
             @if (match.scorer) {
               <div class="scorerContainer mt-2 mb-3">
                 <div class="flex flex-column align-items-center gap-1" [ngClass]="{'disabled': this.userTrigramme ===''}">
@@ -257,7 +252,7 @@
               </strong>
             </h4>
 
-            @if (!closed && donePronostique.scorer && donePronostique.scorer !== '-') {
+            @if (!closed && donePronostique.scorer && donePronostique.scorer !== '-' && !hidePointsBadge) {
               <div class="flex align-items-center justify-content-center gap-2 mt-0 mb-2 text-md font-bold text-center text-indigo-900">
                 <span class="material-symbols-outlined align-middle" style="font-size: 1.25rem; color: #3f51b5; vertical-align: middle;">sports_soccer</span>
                 <span class="align-middle" style="vertical-align: middle;">Buteur : {{ donePronostique.scorer }}</span>
@@ -304,7 +299,7 @@
               }
             }
 
-            @if(isSavedInApi &&donePronostique && match.fulltime_a === null && match.fulltime_b === null && !isEditing && match.phase !== 'Group Stage') {
+            @if(isSavedInApi && donePronostique && match.fulltime_a === null && match.fulltime_b === null && !isEditing && match.phase !== 'Group Stage' && !hidePointsBadge) {
               <button class="btnEditpronostic flex align-items-center" (click)="modifierPronostic()">Modifier mon pronostic<i class="material-symbols-outlined">edit</i></button>
             }
           </div>
@@ -341,7 +336,6 @@
       </div>
       
       <div class="scorers-split-grid" style="display: grid; grid-template-columns: 1fr 1fr; background: #202734; border-top: 1px solid rgba(255, 255, 255, 0.05); padding: 8px 12px; font-size: 0.72rem; color: #a0aec0; min-height: 64px;">
-        <!-- Team A Scorers (Left Column) -->
         <div class="text-left" style="border-right: 1px solid rgba(255, 255, 255, 0.05); padding-right: 8px;">
           @if (isScorersJson) {
             @for (scorer of teamAScorersGrouped; track scorer.name) {
@@ -358,7 +352,6 @@
             </div>
           }
         </div>
-        <!-- Team B Scorers (Right Column) -->
         <div class="text-right" style="padding-left: 8px;">
           @if (isScorersJson) {
             @for (scorer of teamBScorersGrouped; track scorer.name) {
@@ -379,7 +372,6 @@
 
 <loader [showLoader]="showLoader" />
 
-<!-- Tactical Lineup Selection Modal -->
 @if (showTacticalModal) {
   <div class="tactical-modal-overlay">
     <div class="tactical-modal-container">

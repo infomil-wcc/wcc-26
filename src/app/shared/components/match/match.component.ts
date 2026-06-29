@@ -37,6 +37,7 @@ export class MatchComponent implements OnInit, OnDestroy {
   @Input() disabled: boolean = false;
   @Input() dateTime!: string;
   @Input() hasPlayed!: boolean;
+  @Input() hidePointsBadge: boolean = false; // Flag to overlay fraud notice rather than point pill layout
   @Output() hasPlayedChange = new EventEmitter<boolean>;
 
   protected showLoader: boolean = false;
@@ -237,7 +238,7 @@ export class MatchComponent implements OnInit, OnDestroy {
 
   get canEditPrediction(): boolean {
     return !this.disabled && !this.isSubmitting && (!this.closed || this.isEditing) && !this.match.fulltime &&
-      (!this.isSavedInApi || this.isEditing);
+      (!this.isSavedInApi || this.isEditing) && !this.hidePointsBadge;
   }
 
   onHalftimeScoreChanged(): void {
@@ -410,14 +411,14 @@ export class MatchComponent implements OnInit, OnDestroy {
   }
 
   isOutcomeCorrect(): boolean {
-    if (!this.donePronostique || !this.match || this.match.fulltime_a === null || this.match.fulltime_b === null) {
+    if (!this.donePronostique || !this.match || this.match.fulltime_a === null || this.match.fulltime_b === null || this.hidePointsBadge) {
       return false;
     }
     return this.donePronostique.winner_draw === this.match.winner_draw;
   }
 
   isFulltimeCorrect(): boolean {
-    if (!this.donePronostique || !this.match || this.match.fulltime_a === null || this.match.fulltime_b === null) {
+    if (!this.donePronostique || !this.match || this.match.fulltime_a === null || this.match.fulltime_b === null || this.hidePointsBadge) {
       return false;
     }
     const predA = parseInt(this.donePronostique.fulltime_a, 10);
@@ -426,7 +427,7 @@ export class MatchComponent implements OnInit, OnDestroy {
   }
 
   isHalftimeCorrect(): boolean {
-    if (!this.donePronostique || !this.match || this.match.halftime_a === null || this.match.halftime_b === null) {
+    if (!this.donePronostique || !this.match || this.match.halftime_a === null || this.match.halftime_b === null || this.hidePointsBadge) {
       return false;
     }
     const predA = parseInt(this.donePronostique.halftime_a, 10);
@@ -451,7 +452,6 @@ export class MatchComponent implements OnInit, OnDestroy {
       }
     }
 
-    // Normalize / Clean on the fly to support formats like "K. Havertz 45'+5'(p)"
     return list.map(e => {
       let name = e.player?.name || 'Unknown';
       let elapsed = e.time?.elapsed ?? 0;
@@ -487,7 +487,7 @@ export class MatchComponent implements OnInit, OnDestroy {
   }
 
   isScorerCorrect(): boolean {
-    if (!this.donePronostique || !this.match || !this.match.scorers) {
+    if (!this.donePronostique || !this.match || !this.match.scorers || this.hidePointsBadge) {
       return false;
     }
     const predScorer = this.donePronostique.scorer;
@@ -538,7 +538,7 @@ export class MatchComponent implements OnInit, OnDestroy {
   }
 
   modifierPronostic(): void {
-    if (this.match.fulltime_a !== null || this.match.fulltime_b !== null) {
+    if (this.match.fulltime_a !== null || this.match.fulltime_b !== null || this.hidePointsBadge) {
       return;
     }
 
@@ -548,14 +548,9 @@ export class MatchComponent implements OnInit, OnDestroy {
     console.log('editing pronostic for match', this.match.id);
   }
 
-  /**
-   * Points earned by the logged-in user for this specific match.
-   * Uses the same phase-based rules as RankingcalculationService.calcResult().
-   * Returns null when the match is not yet finished or no prediction was made.
-   */
   get matchPoints(): number | null {
     if (!this.donePronostique || !this.match ||
-      this.match.fulltime_a === null || this.match.fulltime_b === null) {
+      this.match.fulltime_a === null || this.match.fulltime_b === null || this.hidePointsBadge) {
       return null;
     }
     const game = this.match;
@@ -567,7 +562,6 @@ export class MatchComponent implements OnInit, OnDestroy {
 
     if (game.phase === 'Group Stage') {
       if (this.isOutcomeCorrect()) points += winnerPts;
-      // Only the first match (id === '1') rewards exact fulltime score
       if (game.id === '1' && this.isFulltimeCorrect()) points += fulltimePts;
     }
 
