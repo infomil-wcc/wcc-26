@@ -50,6 +50,9 @@ export class PronostiquesComponent implements OnInit {
   protected todayPlayedCount: number = 0;
   protected todayPredictedCount: number = 0;
 
+  protected showLockPopup: boolean = false;
+  protected lockedMatchName: string = '';
+
   protected showTodayBanner: boolean = true;
   protected filterDate: string | null = null;
   protected filterDate$ = new BehaviorSubject<string | null>(null);
@@ -317,21 +320,47 @@ export class PronostiquesComponent implements OnInit {
     if (drafts.length === 0 || this.isSubmittingBulk) return;
 
     this.isSubmittingBulk = true;
+    let invalidMatches: string[] = [];
 
-    const requests = drafts.map(draft =>
-      this.predictionService.sendPrediction(draft).pipe(
-        catchError(err => {
-          console.error('Failed to send prediction for game:', draft.game_id, err);
-          return of(null);
-        })
-      )
-    );
+    this.matchesService.getAllMatches().pipe(
+      map(allMatches => {
+        return drafts.map(draft => {
+          const correspondingMatch = allMatches.find(m => m.id === draft.game_id);
+          const kickoffTime = correspondingMatch ? correspondingMatch.date : new Date().toISOString();
 
-    forkJoin(requests).subscribe({
+          return this.predictionService.sendPrediction(draft, kickoffTime).pipe(
+            catchError(err => {
+              if (err.message === 'MATCH_ALREADY_STARTED' && correspondingMatch) {
+                // Collect team names contextually (Adjust property keys depending on contract)
+                const teamA = correspondingMatch.team_a || 'Équipe A';
+                const teamB = correspondingMatch.team_b || 'Équipe B';
+                invalidMatches.push(`${teamA} - ${teamB}`);
+              }
+              console.error('Failed to send prediction for game:', draft.game_id, err);
+              return of(null);
+            })
+          );
+        });
+      }),
+      switchMap(requests => forkJoin(requests))
+    ).subscribe({
       next: () => {
-        this.predictionService.clearDrafts();
         this.isSubmittingBulk = false;
-        location.reload();
+
+        if (invalidMatches.length > 0) {
+          // Set context and trigger your beautiful design popup modal
+          this.lockedMatchName = invalidMatches.join(', ');
+          this.showLockPopup = true;
+          this.cdr.detectChanges();
+
+          // Automatically clear drafts that failed and don't reload page immediately 
+          // to give the user time to read the dynamic error toast.
+          this.predictionService.clearDrafts();
+        } else {
+          // Clear drafts and reload clean if everything was perfectly successful
+          this.predictionService.clearDrafts();
+          location.reload();
+        }
       },
       error: (err) => {
         console.error('Error during bulk submit:', err);

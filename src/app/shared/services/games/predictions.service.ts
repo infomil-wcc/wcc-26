@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpHeaders, HttpClient } from '@angular/common/http';
-import { Observable, BehaviorSubject, map, throwError, tap } from 'rxjs';
+import { Observable, BehaviorSubject, map, throwError, tap, switchMap } from 'rxjs';
 import { CookieService } from '../core/cookie.service';
 import { Pronostiques } from '../../contracts/pronostiques.contract';
 import { PredictionsApiService } from '../api/predictions-api.service';
@@ -36,28 +36,42 @@ export class PredictionsService {
     this.draftsSubject.next([]);
   }
 
-  sendPrediction(predictions: Pronostiques): Observable<any> {
-    let token = this.cookieService.get('currentToken');
-  
-    if (token) {
-      let httpOptions = {
-        headers: new HttpHeaders({
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        })
-      };
-      if (predictions.id) {
-        return this.predictionsApiService.updatePrediction(predictions.id, predictions, httpOptions);
-      } else {
-        return this.predictionsApiService.createPrediction(predictions, httpOptions);
-      }
-    } else {
-      return throwError('No token found');
+  sendPrediction(predictions: Pronostiques, matchKickoffTimeStr: string): Observable<any> {
+    const token = this.cookieService.get('currentToken');
+
+    if (!token) {
+      return throwError(() => new Error('No token found'));
     }
+
+    const httpOptions = {
+      headers: new HttpHeaders({
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      })
+    };
+
+    // Optional UI Optimization: Querying the centralized time proxy before posting
+    return this.http.get<any>(`/api/time/current/zone?timeZone=Indian/Mauritius`).pipe(
+     switchMap((timeResponse) => {
+        const backendCurrentTime = new Date(timeResponse.dateTime);
+        const matchKickoffTime = new Date(matchKickoffTimeStr);
+
+        // 2. Lockout validation step
+        if (backendCurrentTime >= matchKickoffTime) {
+          return throwError(() => new Error('MATCH_ALREADY_STARTED'));
+        }
+
+        // 3. Forward prediction payload to Directus API
+        if (predictions.id) {
+          return this.predictionsApiService.updatePrediction(predictions.id, predictions, httpOptions);
+        } else {
+          return this.predictionsApiService.createPrediction(predictions, httpOptions);
+        }
+      })
+    );
   }
 
-  getMyPredictions(gameID: string): Observable<any>{
-
+getMyPredictions(gameID: string): Observable<any>{
     let token = this.cookieService.get('currentToken');
     
     if (token) {
@@ -71,9 +85,9 @@ export class PredictionsService {
         map(response => response.data)
       );
     } else {
-      return throwError('No token found');
+      return throwError(() => new Error('No token found'));
     }
-  }
+}
 
   updateResults(): Observable<any> {
     // Trigger the backend ranking recalculation

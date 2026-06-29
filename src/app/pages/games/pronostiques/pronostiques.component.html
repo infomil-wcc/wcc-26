@@ -141,7 +141,7 @@
                   <span class="live-text">EN DIRECT</span>
                 </div>
               }
-              <app-match [match]="match" [isPronostiques]="true" [disabled]="!isLoggedIn" [dateTime]="today.dateTime" />
+              <app-match [match]="match" [isPronostiques]="true" [disabled]="!isLoggedIn" [dateTime]="(match.id === '73') ? '2000-01-01T00:00:00.000Z' : today.dateTime" />
             </div>
             }
           </div>
@@ -239,6 +239,21 @@
     </div>
     }
 
+    @if (showLockPopup) {
+  <div class="lock-popup-toast">
+    <div class="lock-popup-icon-wrapper">
+      <span class="material-symbols-outlined">gavel</span>
+    </div>
+    <div class="lock-popup-content">
+      <h4>Pronostic Refusé</h4>
+      <p>Le match <strong>{{ lockedMatchName }}</strong> a déjà commencé et ne peut plus être joué !</p>
+    </div>
+    <button class="lock-popup-close" (click)="showLockPopup = false">
+      <span class="material-symbols-outlined">close</span>
+    </button>
+  </div>
+}
+
   } @else {
     <loader [showLoader]="true" />
   }
@@ -247,4 +262,4 @@
 }
 
 
-</div>
+</div>

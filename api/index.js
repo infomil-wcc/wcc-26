@@ -208,6 +208,65 @@ router.get('/api/registered-users', async (request, response) => {
     }
 });
 
+
+// ----------------------------------------------------------------------
+// ROUTE 7: VALIDATION ET INTERCEPTION DES PRONOSTICS
+// ----------------------------------------------------------------------
+const handleMatchPredictionValidation = async (request, response) => {
+    const directusUrl = process.env.DIRECTUS_URL || 'https://euro.omediainteractive.net/imleuro';
+    const adminToken = process.env.DIRECTUS_ADMIN_TOKEN;
+
+    try {
+        // Parse the body to extract game_id
+        let body = request.body;
+        if (typeof body === 'string') {
+            body = JSON.parse(body);
+        }
+
+        const gameId = body.game_id;
+        if (!gameId) {
+            return response.status(400).json({ error: "Missing game_id in prediction payload." });
+        }
+
+        // 1. Fetch the match date/time details from Directus
+        // Adjust the collection path ('/items/matches/') according to your actual Directus structure
+        const matchUrl = `${directusUrl}/items/matches/${gameId}`;
+        const matchRes = await fetchWithBypass(matchUrl, {
+            headers: adminToken ? { 'Authorization': `Bearer ${adminToken}` } : {}
+        });
+
+        if (!matchRes.ok) {
+            return response.status(404).json({ error: `Match with ID ${gameId} not found.` });
+        }
+
+        const matchData = await matchRes.json();
+        // Assuming your match object contains a 'date' or 'kickoff_time' field in ISO format string (e.g. "2026-06-15T18:00:00Z")
+        const matchTimeStr = matchData.data?.date || matchData.data?.kickoff_time;
+
+        if (!matchTimeStr) {
+            return response.status(500).json({ error: "Match baseline timing configuration is missing on the server." });
+        }
+
+        const matchTime = new Date(matchTimeStr);
+        const currentTime = new Date(); // Use internal system server time synchronized with your Time API
+
+        // 2. Core validation logic: If current time is past the match kick-off, lock predictions
+        if (currentTime >= matchTime) {
+            return response.status(400).json({ 
+                error: "Prediction Refused", 
+                details: "Le match a déjà commencé ou est terminé. Les pronostics sont verrouillés." 
+            });
+        }
+
+        // 3. If validation passes, hand over execution context to the standard Directus proxy handler
+        return proxyDirectus(request, response);
+
+    } catch (error) {
+        console.error("Error during prediction validation middleware intercept:", error);
+        return response.status(500).json({ error: "Internal validation failure.", details: error.message });
+    }
+};
+
 // ----------------------------------------------------------------------
 // ROUTE DIRECTUS PROXY CATCH-ALL FOR THIRD-PARTY CALLS
 // ----------------------------------------------------------------------
@@ -262,6 +321,11 @@ const proxyDirectus = async (request, response) => {
     }
 };
 
+
+// Intercept both creations (POST) and updates (PATCH/PUT) for the collection
+router.post('/api/items/pronostiques', handleMatchPredictionValidation);
+router.patch('/api/items/pronostiques/*', handleMatchPredictionValidation);
+router.put('/api/items/pronostiques/*', handleMatchPredictionValidation);
 router.all('/api/items', proxyDirectus);
 router.all('/api/items/*', proxyDirectus);
 router.all('/api/auth', proxyDirectus);
