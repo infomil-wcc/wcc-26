@@ -11,6 +11,7 @@ import { MatchComponent } from '../../../shared/components/match/match.component
 import { LoaderComponent } from '../../../shared/components/loader/loader.component';
 import { CalendarStripComponent } from '../../../shared/components/calendar-strip/calendar-strip.component';
 import { RankingsService } from '../../../shared/services/content/rankings.service';
+import { LoginComponent } from '../../../shared/components/login/login.component';
 
 const PHASE_CONFIG: { key: string; label: string; icon: string; color: string }[] = [
   { key: 'Group Stage', label: 'Phase de groupes', icon: 'groups', color: '#3b5bdb' },
@@ -26,7 +27,7 @@ const PHASE_CONFIG: { key: string; label: string; icon: string; color: string }[
   templateUrl: './pronostiques.component.html',
   styleUrl: './pronostiques.component.scss',
   changeDetection: ChangeDetectionStrategy.Eager,
-  imports: [NgClass, MatchComponent, LoaderComponent, AsyncPipe, DatePipe, CalendarStripComponent]
+  imports: [NgClass, MatchComponent, LoaderComponent, AsyncPipe, DatePipe, CalendarStripComponent, LoginComponent]
 })
 export class PronostiquesComponent implements OnInit {
 
