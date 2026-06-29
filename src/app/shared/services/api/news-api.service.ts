@@ -10,6 +10,6 @@ export class NewsApiService {
   private http = inject(HttpClient);
 
   getNews(queryParams: string = ''): Observable<any> {
-    return this.http.get<any>(`${environment.apiBaseUrl}/items/news${queryParams}`);
+    return this.http.get<any>(`https://euro.omediainteractive.net/imleuro/items/news${queryParams}`);
   }
 }
