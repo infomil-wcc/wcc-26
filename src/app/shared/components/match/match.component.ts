@@ -338,7 +338,7 @@ export class MatchComponent implements OnInit, OnDestroy {
           if (!pred || !this.match.date) return false;
 
           // 1. Récupération du timestamp technique de Directus
-          const predTimeStr = pred.date_updated || pred.date_created;
+          const predTimeStr = pred.created_on || pred.modified_on;
           if (!predTimeStr) {
             console.log(`[🚨 EXECUTION checkPayloadFraud] M${this.match.id} : Prono=${new Date(predTimeStr).toLocaleString()} | Match=${new Date(this.match.date).toLocaleString()}`);
             return false;
