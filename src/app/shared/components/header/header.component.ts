@@ -5,6 +5,7 @@ import { NavComponent } from '../nav/nav.component';
 import { ModalComponent } from '../modal/modal.component';
 import { LoginComponent } from '../login/login.component';
 import { AsyncPipe } from '@angular/common';
+import { Router } from '@angular/router';
 
 @Component({
     selector: 'cmp-header',
@@ -16,6 +17,7 @@ import { AsyncPipe } from '@angular/common';
 export class HeaderComponent implements OnInit{
 
   private state = inject(StateService);
+  private router = inject(Router);
 
   protected $userState!: Observable<user>;
 
@@ -31,7 +33,7 @@ export class HeaderComponent implements OnInit{
 
   protected loadHomepage() {
     this.state.updateState({ currentPage: 'accueil' });
-    location.href = `#accueil`;
+    this.router.navigate(['/accueil']);
   }
 
   protected logout() {

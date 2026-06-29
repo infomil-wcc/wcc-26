@@ -7,14 +7,14 @@ import { GlobaltimeService } from '../../shared/services/core/globaltime.service
 import { Matches } from '../../shared/contracts/matches.contract';
 import { MatchComponent } from '../../shared/components/match/match.component';
 import { LoaderComponent } from '../../shared/components/loader/loader.component';
-import { AsyncPipe, DatePipe } from '@angular/common';
+import { AsyncPipe, DatePipe, NgClass } from '@angular/common';
 
 @Component({
     selector: 'app-hpnews',
     templateUrl: './hpnews.component.html',
     styleUrl: './hpnews.component.scss',
     changeDetection: ChangeDetectionStrategy.Eager,
-    imports: [MatchComponent, LoaderComponent, AsyncPipe, DatePipe]
+    imports: [MatchComponent, LoaderComponent, AsyncPipe, DatePipe, NgClass]
 })
 export class HpnewsComponent {
   private newsService = inject(NewsService);

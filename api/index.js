@@ -300,6 +300,14 @@ const proxyDirectus = async (request, response) => {
         }
 
         const res = await fetchWithBypass(targetUrl, fetchOptions);
+        
+        const contentType = res.headers && res.headers['content-type'] ? res.headers['content-type'].toLowerCase() : '';
+        if (contentType.startsWith('image/') || contentType.startsWith('video/') || contentType.startsWith('application/pdf') || contentType.startsWith('font/') || contentType.startsWith('audio/')) {
+            const buf = await res.buffer();
+            response.setHeader('Content-Type', contentType);
+            return response.status(res.status).send(buf);
+        }
+
         const text = await res.text();
         let data;
         try {
@@ -334,6 +342,8 @@ router.get('/api/users', proxyDirectus);
 router.all('/api/users/*', proxyDirectus);
 router.all('/api/files', proxyDirectus);
 router.all('/api/files/*', proxyDirectus);
+router.all('/api/assets', proxyDirectus);
+router.all('/api/assets/*', proxyDirectus);
 router.all('/api/mail', proxyDirectus);
 router.all('/api/mail/*', proxyDirectus);
 

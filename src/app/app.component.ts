@@ -12,18 +12,6 @@ import { NgSwitch, NgSwitchCase } from '@angular/common';
 import { HeaderComponent } from './shared/components/header/header.component';
 import { HeroComponent } from './shared/components/hero/hero.component';
 import { HpnewsComponent } from './components/hpnews/hpnews.component';
-import { HomepageComponent } from './pages/homepage/homepage.component';
-import { ErrorComponent } from './pages/error/error.component';
-import { GamesComponent } from './pages/competition/games/games.component';
-import { TeamsComponent } from './pages/competition/teams/teams.component';
-import { StadiumsComponent } from './pages/competition/stadiums/stadiums.component';
-import { StatisticsComponent } from './pages/competition/statistics/statistics.component';
-import { BestScorerComponent } from './pages/games/best-scorer/best-scorer.component';
-import { PronostiquesComponent } from './pages/games/pronostiques/pronostiques.component';
-import { BracketKnockoutComponent } from './pages/games/bracket-knockout/bracket-knockout.component';
-import { BracketChallengeComponent } from './pages/games/bracket-challenge/bracket-challenge.component';
-import { QuizComponent } from './pages/games/quiz/quiz.component';
-import { RankingComponent } from './pages/games/ranking/ranking.component';
 import { FaqComponent } from './pages/faq/faq.component';
 import { GameRulesComponent } from './pages/game-rules/game-rules.component';
 import { GroupStandingsComponent } from './pages/competition/group-standings/group-standings.component';
@@ -40,7 +28,7 @@ import { MatchesService } from './shared/services/content/matches.service';
     templateUrl: './app.component.html',
     styleUrl: './app.component.scss',
     changeDetection: ChangeDetectionStrategy.Eager,
-    imports: [LayoutComponent, NgSwitch, HeaderComponent, NgSwitchCase, HeroComponent, HpnewsComponent, HomepageComponent, ErrorComponent, GamesComponent, TeamsComponent, StadiumsComponent, StatisticsComponent, BestScorerComponent, PronostiquesComponent, BracketKnockoutComponent, BracketChallengeComponent, QuizComponent, RankingComponent, FaqComponent, GameRulesComponent, GroupStandingsComponent, RouterOutlet, FooterComponent, DialogComponent, ReactiveFormsModule, LoaderComponent, ModalComponent]
+    imports: [LayoutComponent, HeaderComponent, HeroComponent, HpnewsComponent, RouterOutlet, FooterComponent, DialogComponent, ReactiveFormsModule, LoaderComponent, ModalComponent]
 })
 export class AppComponent implements OnInit {
 
@@ -61,20 +49,14 @@ export class AppComponent implements OnInit {
 
   constructor(
     private route: ActivatedRoute,
-    private router: Router,
+    public router: Router,
     private stateService: StateService,
     private euroService: TeamsService,
     private authService: AuthService,
     private totalgoalsService: TotalgoalsService,
     private cookieService: CookieService,
     private formBuilder: FormBuilder
-  ){
-    router.events.forEach((event) => {
-      if(event instanceof NavigationStart) {
-        this.internalRoute(event.url.split('/#')[1])
-      }
-    })
-  }
+  ){}
 
   ngOnInit(): void {
     this.goalsForm = this.formBuilder.group({
@@ -150,60 +132,7 @@ export class AppComponent implements OnInit {
     return throwError(Err);
   }
 
-  internalRoute(route: string):void {
-    switch (route) {
-      case 'les-matchs':
-        this.page = 1;
-        break;
-      case 'les-equipes':
-        this.page = 2;
-        break;
-      case 'les-stades':
-        this.page = 3;
-        break;
-      case 'statistiques':
-        this.page = 4;
-        break;
-      case 'meilleur-buteur':
-        this.page = 5;
-        break;
-      case 'pronostiques':
-        this.page = 6;
-        break;
-      case 'bracket':
-        this.page = 7;
-        break;
-      case 'bracket-challenge':
-        this.page = 13;
-        break;
-      // case 'quiz':
-      //   this.page = 8;
-      //   break;
-      case 'classement':
-        this.page = 9;
-        break;
-      case 'faq':
-        this.page = 10;
-        break;
-      case 'game-rules':
-        this.page = 12;
-        break;
-      case 'les-groupes':
-        this.page = 14;
-        break;
-      case 'accueil':
-        this.page = 0;
-        break;
-      case undefined:
-        this.page = 0;
-        route = "accueil"
-        break;
-      default:
-        this.page = 11;
-        break;
-    }
-    this.stateService.updateState({ currentPage: route });
-  }
+
 
   checkTotalGoals(user: string): void {
     this.totalgoalsService.hasTotalGoals(user).subscribe({
@@ -279,8 +208,7 @@ export class AppComponent implements OnInit {
 
   goToBracketChallenge(): void {
     this.showKnockoutPhase2Dialog = false;
-    this.page = 13;
-    this.router.navigate([], { fragment: 'bracket-challenge' });
+    this.router.navigate(['/bracket-challenge']);
   }
 
   closeKnockoutPhase2Dialog(): void {

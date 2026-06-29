@@ -1,5 +1,6 @@
 import { Component, OnInit, OnDestroy, ChangeDetectionStrategy } from '@angular/core';
 import { StateService, AppState } from '../../services/core/state.service';
+import { Router } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { NgClass } from '@angular/common';
 
@@ -23,7 +24,7 @@ export class NavComponent implements OnInit, OnDestroy {
   public navList: NavigationItem[];
   private stateSubscription!: Subscription;
 
-  constructor(private stateService: StateService) {
+  constructor(private stateService: StateService, private router: Router) {
     this.navList = [
       {
         "label": "Accueil",
@@ -123,7 +124,7 @@ export class NavComponent implements OnInit, OnDestroy {
 
   public navTo(currentRoute: string, pageName: string) {
     this.stateService.updateState({ currentPage: currentRoute });
-    location.href = `#${currentRoute}`;
+    this.router.navigate(['/' + currentRoute]);
     this.showMenu = false;
     window.scroll({
       top: 0,

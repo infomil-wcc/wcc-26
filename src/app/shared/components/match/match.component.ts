@@ -38,7 +38,7 @@ export class MatchComponent implements OnInit, OnDestroy {
   @Input() hidePointsBadge: boolean = false; // Flag to overlay fraud notice rather than point pill layout
   @Input() invalidatedDate: Date = new Date();
   @Output() hasPlayedChange = new EventEmitter<boolean>;
-  
+
 
   protected showLoader: boolean = false;
   protected pronostiqueDone: boolean = false;
@@ -333,7 +333,7 @@ export class MatchComponent implements OnInit, OnDestroy {
           if (!pred || !this.match.date) return false;
 
           // 1. Récupération du timestamp technique de Directus
-          const predTimeStr =  pred.modified_on || pred.created_on;
+          const predTimeStr = pred.modified_on || pred.created_on;
           if (!predTimeStr) {
             return false;
           }
@@ -345,13 +345,15 @@ export class MatchComponent implements OnInit, OnDestroy {
           this.invalidatedDate = new Date(predTimeStr);
 
           // 3. Log de débogage pour voir la réalité dans la console F12
-          console.log(`[Fraud Check] Match M${this.match.id} :`, {
-            'Joué le': new Date(predTimeStr).toLocaleString(),
-            'Coup d\'envoi': new Date(this.match.date).toLocaleString(),
-            'predTimestamp': predTimestamp,
-            'matchTimestamp': matchTimestamp,
-            'Est une fraude ?': predTimestamp >= matchTimestamp
-          });
+          if (predTimestamp >= matchTimestamp) {
+            console.log(`[Fraud Check] Match M${this.match.id} :`, {
+              'Joué le': new Date(predTimeStr).toLocaleString(),
+              'Coup d\'envoi': new Date(this.match.date).toLocaleString(),
+              'predTimestamp': predTimestamp,
+              'matchTimestamp': matchTimestamp,
+              'Est une fraude ?': predTimestamp >= matchTimestamp
+            });
+          }
 
           // 4. Comparaison stricte des millisecondes UTC
           return predTimestamp >= matchTimestamp;
@@ -397,7 +399,6 @@ export class MatchComponent implements OnInit, OnDestroy {
           }
 
         } else {
-          console.log(`[Vérification] Aucun pronostic ni brouillon pour M${this.match.id}`);
           this.pronostiqueDone = false;
           this.donePronostique = [];
           this.isSavedInApi = false;
@@ -601,7 +602,6 @@ export class MatchComponent implements OnInit, OnDestroy {
     this.isEditing = true;
     this.disabled = false;
     this.isSavedInApi = false;
-    console.log('editing pronostic for match', this.match.id);
   }
 
   get matchPoints(): number | null {

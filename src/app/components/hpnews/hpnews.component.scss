@@ -116,7 +116,6 @@
 .slider-viewport {
   width: 100%;
   overflow: hidden;
-  margin-bottom: 2rem;
 }
 
 .slider-track {
@@ -147,5 +146,38 @@
     }
     to {
       text-shadow: 0 0 30px #ffffff;
-    }
   }
+}
+
+.match-card-wrapper {
+  transition: all 0.3s ease;
+  padding: 10px;
+  border-radius: 16px;
+
+  &.is-played-match {
+    background: rgba(200, 200, 200, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  &.is-upcoming-match {
+    background: linear-gradient(135deg, rgba(255, 215, 0, 0.15), rgba(255, 140, 0, 0.2));
+    border: 1px solid rgba(255, 215, 0, 0.5);
+    box-shadow: 0 0 15px rgba(255, 215, 0, 0.3);
+    animation: glow-upcoming 2s infinite alternate;
+  }
+}
+
+@keyframes glow-upcoming {
+  from { box-shadow: 0 0 10px rgba(255, 215, 0, 0.2); }
+  to { box-shadow: 0 0 20px rgba(255, 215, 0, 0.6); }
+}
+
+.carousel-indicator {
+  font-weight: bold;
+  letter-spacing: 2px;
+  background: rgba(0, 0, 0, 0.5);
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 20px;
+  margin: 0 auto;
+}

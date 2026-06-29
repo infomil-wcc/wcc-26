@@ -2,6 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { CookieService } from './cookie.service';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { AuthService } from './auth.service';
+import { Router } from '@angular/router';
 
 export interface AppState {
   loggedIn: boolean;
@@ -23,6 +24,7 @@ export interface user {
 export class StateService {
 
   private authService = inject(AuthService);
+  private router = inject(Router);
 
   private _loaderState = new BehaviorSubject<boolean>(false);
 
@@ -85,7 +87,7 @@ export class StateService {
 
     this.authService.deleteCookies();
 
-    location.href="#accueil";
+    this.router.navigate(['/accueil']);
   }
 
 }

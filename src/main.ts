@@ -13,12 +13,7 @@ import { cacheInterceptor } from './app/shared/services/core/cache.interceptor';
 
 registerLocaleData(localeFr);
 
-const routes: Routes = [
-  {
-    path: 'bracket-challenge',
-    loadComponent: () => import('./app/pages/games/bracket-challenge/bracket-challenge.component').then(m => m.BracketChallengeComponent)
-  }
-];
+import { routes } from './app/app.routes';
 
 bootstrapApplication(AppComponent, {
   providers: [

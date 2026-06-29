@@ -6,15 +6,21 @@
       <div class="container pt-4">
         @if ($today | async; as today) {
         @if ($filteredMatches | async; as matches) {
-        <div>
-          <div class="slider-viewport">
+        <div class="h-full flex flex-column justify-content-center">
+          <div class="slider-viewport pt-2 pb-2">
             <div class="slider-track"
               [style.transform]="'translateX(-' + ((($currentSlideIndex | async) ?? 0) * 100) + '%)'">
-              @for (match of matches; track match) {
+              @for (match of matches; track match; let index = $index) {
               <div class="slide-item">
-                <app-match [match]="match" [dateTime]="today.dateTime" />
+                <div class="match-card-wrapper flex justify-content-center"
+                     [ngClass]="{
+                        'is-played-match': !isFuturMatch(match, today.dateTime),
+                        'is-upcoming-match': isUpcomingMatch(match, matches, today.dateTime)
+                     }">
+                  <app-match [match]="match" [dateTime]="today.dateTime" />
+                </div>
                 @if (isFuturMatch(match, today.dateTime)) {
-                <div class="title pl-5 pr-5 text-white text-sm mt-3 md:text-2xl md:mt-1">
+                <div class="title pl-5 pr-5 text-white text-sm mt-3 md:text-2xl md:mt-1 text-center">
                   @if (isUpcomingMatch(match, matches, today.dateTime)) {
                   <span class="hurry-up-text">Prochain match :</span>
                   }
@@ -23,6 +29,11 @@
                 }
               </div>
               }
+            </div>
+          </div>
+          <div class="w-full flex justify-content-center mt-2">
+            <div class="carousel-indicator text-center text-white text-sm">
+              {{ (($currentSlideIndex | async) ?? 0) + 1 }} / {{ matches.length }}
             </div>
           </div>
         </div>

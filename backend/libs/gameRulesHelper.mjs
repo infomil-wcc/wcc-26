@@ -113,6 +113,20 @@ export async function generateGameRules(fetchInstance, directusUrl, adminToken) 
                     { "cat": "Total points possible", "vals": totalPointsPossibleRow }
                 ];
                 element.bareme_points_detaille.total_points_competition = grandTotalCompetitionPoints;
+
+                if (element.exemples_calcul) {
+                    element.exemples_calcul.forEach(ex => {
+                        let total = 0;
+                        if (ex.details) {
+                            ex.details.forEach(det => {
+                                const pts = getScoringRuleValue(det.phase, det.field);
+                                det.points = pts;
+                                total += pts;
+                            });
+                        }
+                        ex.total = total;
+                    });
+                }
             }
 
             if (element.id === 'jeu_bracket') {

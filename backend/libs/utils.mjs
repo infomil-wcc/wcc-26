@@ -136,8 +136,11 @@ export function fetchWithBypass(url, options = {}) {
           ok: res.statusCode >= 200 && res.statusCode < 300,
           status: res.statusCode,
           statusText: res.statusMessage,
+          headers: res.headers,
           json: async () => JSON.parse(data),
-          text: async () => data
+          text: async () => data,
+          buffer: async () => buffer,
+          arrayBuffer: async () => buffer.buffer.slice(buffer.byteOffset, buffer.byteOffset + buffer.byteLength)
         });
       });
     });
