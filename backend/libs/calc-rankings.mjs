@@ -260,7 +260,7 @@ export async function recalculateRankings(directusUrl, adminToken, specificUser 
           if (actualFinalists.includes(predTeam)) point += bonusFinalist;
         });
 
-        bracketRankingObj.push({ user: b.user, point: point });
+        bracketRankingObj.push({ user: b.user, point: point, ranking_json: pSource, phase: "1" });
       }
 
       bracketRankingObj.sort((a, b) => (b.point - a.point) || (a.user || '').localeCompare(b.user || ''));
@@ -272,25 +272,35 @@ export async function recalculateRankings(directusUrl, adminToken, specificUser 
         obj.status = 'published';
       });
 
-      const rankingData = { status: 'published', ranking_json: bracketRankingObj };
+      for (const rankObj of bracketRankingObj) {
+        const rankingData = {
+          status: 'published',
+          user: rankObj.user,
+          phase: rankObj.phase,
+          point: rankObj.point,
+          rank: rankObj.rank,
+          ranking_json: rankObj.ranking_json
+        };
 
-      if (existingBracketRankings.length > 0) {
-        const existingRow = existingBracketRankings[0];
-        if (JSON.stringify(existingRow.ranking_json) !== JSON.stringify(bracketRankingObj)) {
-          await fetch(`${directusUrl}/items/bracket_rankings/${existingRow.id}`, {
-            method: 'PATCH',
+        const existingRow = existingBracketRankings.find(item => item.user === rankObj.user && item.phase === rankObj.phase);
+
+        if (existingRow) {
+          if (JSON.stringify(existingRow.ranking_json) !== JSON.stringify(rankObj.ranking_json) || existingRow.point !== rankObj.point || existingRow.rank !== rankObj.rank) {
+            await fetch(`${directusUrl}/items/bracket_rankings/${existingRow.id}`, {
+              method: 'PATCH',
+              headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${adminToken}` },
+              body: JSON.stringify(rankingData)
+            });
+            apiLogs.push(`Updated bracket rankings (ID: ${existingRow.id}) for user: ${rankObj.user}`);
+          }
+        } else {
+          await fetch(`${directusUrl}/items/bracket_rankings`, {
+            method: 'POST',
             headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${adminToken}` },
             body: JSON.stringify(rankingData)
           });
-          apiLogs.push(`Updated bracket rankings (ID: ${existingRow.id})`);
+          apiLogs.push(`Created new bracket rankings for user: ${rankObj.user}`);
         }
-      } else {
-        await fetch(`${directusUrl}/items/bracket_rankings`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${adminToken}` },
-          body: JSON.stringify(rankingData)
-        });
-        apiLogs.push(`Created new bracket rankings`);
       }
     }
 
