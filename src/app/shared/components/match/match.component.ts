@@ -319,19 +319,46 @@ export class MatchComponent implements OnInit, OnDestroy {
   }
 
   verfierMonPronostique(): void {
+    // 1. Log de contrôle pour s'assurer que la méthode démarre
+    console.log(`[Vérification] Initialisation pour le match M${this.match.id} (User: ${this.userTrigramme})`);
+
     this.predictionService.getMyPredictions(this.match.id).subscribe({
       next: (response) => {
+
+        // 2. Log pour voir ce que l'API renvoie réellement
+        console.log(`[Vérification] API de prédiction a répondu pour M${this.match.id}. Données reçues :`, response);
+
         const drafts = this.predictionService.getDrafts();
         const draft = drafts.find(d => d.game_id === this.match.id);
 
+        console.log(`[Vérification] M${this.match.id} -> Draft trouvé ?`, !!draft);
+
         // Fonction utilitaire locale pour valider la triche à la volée
         const checkPayloadFraud = (pred: any): boolean => {
-          console.log('checkpayload() - ', pred);
           if (!pred || !this.match.date) return false;
-          // On compare la date de création/modification du pronostic à celle du match
-          const predTime = pred.date_updated || pred.date_created;
-          if (!predTime) return false;
-          return new Date(predTime) >= new Date(this.match.date);
+
+          // 1. Récupération du timestamp technique de Directus
+          const predTimeStr = pred.date_updated || pred.date_created;
+          if (!predTimeStr) {
+            console.log(`[🚨 EXECUTION checkPayloadFraud] M${this.match.id} : Prono=${new Date(predTimeStr).toLocaleString()} | Match=${new Date(this.match.date).toLocaleString()}`);
+            return false;
+          }
+
+          // 2. Conversion sécurisée en millisecondes
+          const predTimestamp = new Date(predTimeStr).getTime();
+          const matchTimestamp = new Date(this.match.date).getTime();
+
+          // 3. Log de débogage pour voir la réalité dans la console F12
+          console.log(`[Fraud Check] Match M${this.match.id} :`, {
+            'Joué le': new Date(predTimeStr).toLocaleString(),
+            'Coup d\'envoi': new Date(this.match.date).toLocaleString(),
+            'predTimestamp': predTimestamp,
+            'matchTimestamp': matchTimestamp,
+            'Est une fraude ?': predTimestamp >= matchTimestamp
+          });
+
+          // 4. Comparaison stricte des millisecondes UTC
+          return predTimestamp >= matchTimestamp;
         };
 
         if (draft) {
@@ -374,12 +401,18 @@ export class MatchComponent implements OnInit, OnDestroy {
           }
 
         } else {
+          console.log(`[Vérification] Aucun pronostic ni brouillon pour M${this.match.id}`);
           this.pronostiqueDone = false;
           this.donePronostique = [];
           this.isSavedInApi = false;
+          this.hidePointsBadge = false;
         }
+      },
+      error: (err) => {
+        // 3. Capturer l'erreur si l'API plante (ex: 401 Unauthorized, 404, etc.)
+        console.error(`[Vérification ❌ ERREUR API] Erreur sur le match M${this.match.id} :`, err);
       }
-    })
+    });
   }
 
   getStadiumImage(): void {
@@ -437,7 +470,6 @@ export class MatchComponent implements OnInit, OnDestroy {
   }
 
   isOutcomeCorrect(): boolean {
-    console.log(this.match.id  +' hidePointsBadge - ' +  this.hidePointsBadge);
     if (this.hidePointsBadge) return false; // 🚨 Bloque l'analyse ici - FRAUDE
     if (!this.donePronostique || !this.match || this.match.fulltime_a === null || this.match.fulltime_b === null || this.hidePointsBadge) {
       return false;
