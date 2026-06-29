@@ -324,9 +324,9 @@ export class MatchComponent implements OnInit, OnDestroy {
         const drafts = this.predictionService.getDrafts();
         const draft = drafts.find(d => d.game_id === this.match.id);
 
-
         // Fonction utilitaire locale pour valider la triche à la volée
         const checkPayloadFraud = (pred: any): boolean => {
+          console.log('checkpayload() - ', pred);
           if (!pred || !this.match.date) return false;
           // On compare la date de création/modification du pronostic à celle du match
           const predTime = pred.date_updated || pred.date_created;
@@ -437,6 +437,7 @@ export class MatchComponent implements OnInit, OnDestroy {
   }
 
   isOutcomeCorrect(): boolean {
+    console.log(this.match.id  +' hidePointsBadge - ' +  this.hidePointsBadge);
     if (this.hidePointsBadge) return false; // 🚨 Bloque l'analyse ici - FRAUDE
     if (!this.donePronostique || !this.match || this.match.fulltime_a === null || this.match.fulltime_b === null || this.hidePointsBadge) {
       return false;
