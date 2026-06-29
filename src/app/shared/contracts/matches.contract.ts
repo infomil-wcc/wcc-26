@@ -30,4 +30,5 @@ export interface Matches {
     halftime: boolean | null;
     scorer: boolean | null;
     winner_draw: string | null;
+    isFraud?: boolean;
 }

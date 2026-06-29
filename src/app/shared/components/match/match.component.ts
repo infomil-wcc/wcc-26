@@ -1,10 +1,8 @@
 import { Component, EventEmitter, Input, OnInit, OnDestroy, Output, inject, ChangeDetectionStrategy } from '@angular/core';
 import { Matches } from '../../contracts/matches.contract';
 import { Observable } from 'rxjs';
-import { Player } from '../../contracts/teams.contract';
 import { TeamsService } from '../../services/content/teams.service';
 import { StateService } from '../../services/core/state.service';
-import { Pronostiques } from '../../contracts/pronostiques.contract';
 import { PredictionsService } from '../../services/games/predictions.service';
 import { GlobaltimeService } from '../../services/core/globaltime.service';
 import { StadiumsService } from '../../services/content/stadiums.service';

@@ -143,7 +143,7 @@
                 <span class="live-text">EN DIRECT</span>
               </div>
               }
-              <app-match [match]="match" [isPronostiques]="true" [disabled]="!isLoggedIn" [dateTime]="today.dateTime" />
+              <app-match [match]="match" [isPronostiques]="true" [disabled]="!isLoggedIn" [dateTime]="today.dateTime" [hidePointsBadge]="match.isFraud || false" />
             </div>
             }
           </div>
@@ -201,7 +201,7 @@
         <div class="cards-grid">
           @for (match of getSortedPlayedMatchesForDate(groupedMatches[date]); track match.id) {
           <div class="card-wrapper">
-            <app-match [match]="match" [isPronostiques]="true" [disabled]="!isLoggedIn" [dateTime]="today.dateTime" />
+            <app-match [match]="match" [isPronostiques]="true" [disabled]="!isLoggedIn" [dateTime]="today.dateTime" [hidePointsBadge]="match.isFraud || false" />
           </div>
           }
         </div>
