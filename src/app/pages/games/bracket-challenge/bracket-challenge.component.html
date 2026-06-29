@@ -19,25 +19,27 @@
 
 @if (isLoggedIn) {
   <!-- Phase Selection Sliding Control -->
-  <div class="phase-selector-container pt-3 mb-2 flex justify-content-center">
-    <div class="phase-selector-tabs">
-      <div class="active-slider" [class.slide-right]="currentPhase === 2"></div>
-      <button 
-        type="button"
-        class="phase-tab-btn" 
-        [class.active]="currentPhase === 1"
-        (click)="setPhase(1)">
-        🏆 Bracket Initial (Phase 1)
-      </button>
-      <button 
-        type="button"
-        class="phase-tab-btn" 
-        [class.active]="currentPhase === 2"
-        (click)="setPhase(2)">
-        ⚡ Bracket Phase Finale (Phase 2)
-      </button>
+  @if (false) {
+    <div class="phase-selector-container pt-3 mb-2 flex justify-content-center">
+      <div class="phase-selector-tabs">
+        <div class="active-slider" [class.slide-right]="currentPhase === 2"></div>
+        <button 
+          type="button"
+          class="phase-tab-btn" 
+          [class.active]="currentPhase === 1"
+          (click)="setPhase(1)">
+          🏆 Bracket Initial (Phase 1)
+        </button>
+        <button 
+          type="button"
+          class="phase-tab-btn" 
+          [class.active]="currentPhase === 2"
+          (click)="setPhase(2)">
+          ⚡ Bracket Phase Finale (Phase 2)
+        </button>
+      </div>
     </div>
-  </div>
+  }
 
   <div class="challenge-container py-4">
     <div class="">
@@ -128,7 +130,7 @@
   }
 </app-dialog>
 
-@if (showKnockoutPromptDialog) {
+@if (false) {
   <div class="fullscreen-takeover">
     <div class="takeover-backdrop"></div>
     <div class="takeover-card">

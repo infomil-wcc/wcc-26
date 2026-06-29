@@ -59,6 +59,19 @@ export class BracketKnockoutComponent implements OnInit {
   @Input() isOpen: boolean = true;
   @Input() isKnockoutPhase2: boolean = false;
 
+  getStartingTeamEvaluation(mIdx: number, slot: number): { status: string, points: number } | null {
+    if (!this.validated || !this.realR32Teams || this.realR32Teams.size === 0) return null;
+    const team = this.getTeam('R32', 'm' + mIdx, slot);
+    if (!team || !team.name || team.name === 'À déterminer') return null;
+    
+    // Check if the team is in the real R32 teams
+    const isCorrect = this.realR32Teams.has(team.name.toLowerCase().trim());
+    return {
+      status: isCorrect ? 'correct' : 'incorrect',
+      points: isCorrect ? 10 : 0
+    };
+  }
+
   protected syncHeadersScroll(): void {
     if (this.headersSync && this.bracketWrapper) {
       this.headersSync.nativeElement.scrollLeft = this.bracketWrapper.nativeElement.scrollLeft;
@@ -66,6 +79,7 @@ export class BracketKnockoutComponent implements OnInit {
   }
   
   protected activeStageIndex: number = 0;
+  protected realR32Teams = new Set<string>();
 
   protected setActiveStage(index: number): void {
     this.activeStageIndex = index;
@@ -470,6 +484,14 @@ export class BracketKnockoutComponent implements OnInit {
 
         this.dbMatches = matches;
         this.populateMatchDetails(matches);
+
+        const r32 = matches.filter((m: any) => m.phase === 'Round of 32');
+        const realR32Teams = new Set<string>();
+        r32.forEach((m: any) => {
+          if (m.team_a && !m.team_a.includes('Placeholder') && m.team_a !== 'À déterminer') realR32Teams.add(m.team_a.toLowerCase().trim());
+          if (m.team_b && !m.team_b.includes('Placeholder') && m.team_b !== 'À déterminer') realR32Teams.add(m.team_b.toLowerCase().trim());
+        });
+        this.realR32Teams = realR32Teams;
 
         if (!this.isAdvancedTeamsSet) {
           const generatedR32Teams = this.bracketService.generateRoundOf32FromGroups(matches, flags);

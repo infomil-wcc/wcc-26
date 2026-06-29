@@ -80,7 +80,8 @@ export class RankingComponent implements OnInit, OnDestroy {
     this.bracketSub = this.$bracketRanks.subscribe({
       next: (res) => {
         if (res && res.length > 0) {
-          this.bracketRankingsList = res[0].ranking_json || [];
+          this.bracketRankingsList = res || [];
+          
         }
         this.cdr.detectChanges();
       }
@@ -102,12 +103,14 @@ export class RankingComponent implements OnInit, OnDestroy {
       next: (data) => {
         if (data) {
           data.forEach((b: any) => {
-            if (b.user && b.winner_wc) {
-              const uKey = b.user.toLowerCase().trim();
-              const country = b.winner_wc.trim();
-              this.userChampions[uKey] = country;
-            }
-          });
+              const predictions = b.predictions_json || {};
+              const winner = b.winner_wc || predictions.winner_wc;
+              if (b.user && winner) {
+                const uKey = b.user.toLowerCase().trim();
+                const country = winner.trim();
+                this.userChampions[uKey] = country;
+              }
+            });
         }
         this.cdr.detectChanges();
       }
@@ -143,7 +146,7 @@ export class RankingComponent implements OnInit, OnDestroy {
   }
 
   get topThree(): any[] {
-    const list = this.activeList;
+    const list = this.activeListDeduplicated;
     // Return in order [2nd place, 1st place, 3rd place]
     return [
       list[1] || null,
@@ -152,8 +155,22 @@ export class RankingComponent implements OnInit, OnDestroy {
     ];
   }
 
-  get remainingPlayers(): any[] {
+  
+  get activeListDeduplicated(): any[] {
     const list = this.activeList;
+    if (!list || list.length === 0) return [];
+    const uniquePlayers = new Map();
+    list.forEach(p => {
+      const key = (p.key || p.user || '').toLowerCase().trim();
+      if (key && !uniquePlayers.has(key)) {
+        uniquePlayers.set(key, p);
+      }
+    });
+    return Array.from(uniquePlayers.values());
+  }
+
+  get remainingPlayers(): any[] {
+    const list = this.activeListDeduplicated;
     if (this.showPodium) {
       return list.slice(3);
     } else {
