@@ -1,6 +1,7 @@
 import { handleCors, fetchWithBypass } from '../backend/libs/utils.mjs';
-import { getDbMatchUtcTime, recalculateRankings, autoAdvanceKnockoutStages } from './match-results.mjs';
+import { getDbMatchUtcTime, autoAdvanceKnockoutStages } from './match-results.mjs';
 import { syncMatchesPipeline } from '../backend/libs/match-core.mjs';
+import { recalculateRankings } from '../backend/libs/calc-rankings.mjs';
 
 // ==========================================
 // FACTORY FUNCTION FOR ROUTE HANDLER (DI)
