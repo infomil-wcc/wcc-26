@@ -1,3 +1,4 @@
+import { environment } from '../../../../environments/environment';
 import { Injectable, inject } from '@angular/core';
 import { Observable, catchError, forkJoin, map, mergeMap, of } from 'rxjs';
 import { NewsApiService } from '../api/news-api.service';
@@ -29,7 +30,7 @@ export class NewsService {
                 return {
                   ...newsItem,
                   imgUrl: imageInfos[index].data.data.full_url,
-                  imgThumnails: imageInfos[index].data.data.thumbnails
+                  imgThumnails: imageInfos[index].data.data.thumbnails.map((t: any) => ({ ...t, proxyUrl: environment.apiBaseUrl + t.relative_url.replace('/imleuro', '') }))
                 };
               });
             })
@@ -59,7 +60,7 @@ export class NewsService {
                 return {
                   ...newsItem,
                   imgUrl: imageInfos[index].data.data.full_url,
-                  imgThumnails: imageInfos[index].data.data.thumbnails
+                  imgThumnails: imageInfos[index].data.data.thumbnails.map((t: any) => ({ ...t, proxyUrl: environment.apiBaseUrl + t.relative_url.replace('/imleuro', '') }))
                 };
               });
             })
