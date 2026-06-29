@@ -36,7 +36,9 @@ export class MatchComponent implements OnInit, OnDestroy {
   @Input() dateTime!: string;
   @Input() hasPlayed!: boolean;
   @Input() hidePointsBadge: boolean = false; // Flag to overlay fraud notice rather than point pill layout
+  @Input() invalidatedDate: Date = new Date();
   @Output() hasPlayedChange = new EventEmitter<boolean>;
+  
 
   protected showLoader: boolean = false;
   protected pronostiqueDone: boolean = false;
@@ -339,6 +341,8 @@ export class MatchComponent implements OnInit, OnDestroy {
           // 2. Conversion sécurisée en millisecondes
           const predTimestamp = new Date(predTimeStr).getTime();
           const matchTimestamp = new Date(this.match.date).getTime();
+
+          this.invalidatedDate = new Date(predTimeStr);
 
           // 3. Log de débogage pour voir la réalité dans la console F12
           console.log(`[Fraud Check] Match M${this.match.id} :`, {

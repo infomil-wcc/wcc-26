@@ -110,7 +110,7 @@
           <div class="fraud-card-center-badge flex flex-column align-items-center justify-content-center text-center">
             <span class="material-symbols-outlined gavel-icon">gavel</span>
             <span class="invalid-title">Invalidé</span>
-            <span class="played-date">Joué le :<br><strong>{{ match.date | date: 'dd/MM HH:mm' }}</strong></span>
+            <span class="played-date">Joué le :<br><strong>{{ invalidatedDate | date: 'dd/MM HH:mm' }}</strong></span>
           </div>
           } @else if (!closed) {
           @if (match.phase === 'Group Stage') {
