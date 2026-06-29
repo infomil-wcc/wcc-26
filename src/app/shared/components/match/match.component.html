@@ -100,13 +100,11 @@
           </div>
           <div class="col-4 flex flex-column justify-content-center align-items-center px-1 gap-2">
             @if (hidePointsBadge) {
-              <div class="fraud-card-center-badge flex flex-column align-items-center justify-content-center text-center p-1 rounded">
-                <span class="material-symbols-outlined text-red-500 font-bold" style="font-size: 1.25rem;">gavel</span>
-                <span class="text-xs font-bold text-red-500 block uppercase tracking-wider" style="font-size: 0.65rem;">Invalidé</span>
-                <span class="text-white font-medium block mt-1" style="font-size: 0.62rem; line-height: 1.1;">
-                  Joué le :<br>{{ match.date | date: 'dd/MM HH:mm' }}
-                </span>
-              </div>
+            <div class="fraud-card-center-badge">
+              <span class="material-symbols-outlined gavel-icon">gavel</span>
+              <span class="invalid-text">Invalidé</span>
+              <span class="played-on-text">Joué le :<br>{{ match.date | date: 'dd/MM HH:mm' }}</span>
+            </div>
             } @else if (!closed) {
               @if (match.phase === 'Group Stage') {
                 <div class="team-option-btn draw flex flex-column align-items-center justify-content-center position-relative w-full"

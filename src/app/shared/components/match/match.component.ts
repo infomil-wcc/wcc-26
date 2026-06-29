@@ -319,19 +319,12 @@ export class MatchComponent implements OnInit, OnDestroy {
   }
 
   verfierMonPronostique(): void {
-    // 1. Log de contrôle pour s'assurer que la méthode démarre
-    console.log(`[Vérification] Initialisation pour le match M${this.match.id} (User: ${this.userTrigramme})`);
 
     this.predictionService.getMyPredictions(this.match.id).subscribe({
       next: (response) => {
 
-        // 2. Log pour voir ce que l'API renvoie réellement
-        console.log(`[Vérification] API de prédiction a répondu pour M${this.match.id}. Données reçues :`, response);
-
         const drafts = this.predictionService.getDrafts();
         const draft = drafts.find(d => d.game_id === this.match.id);
-
-        console.log(`[Vérification] M${this.match.id} -> Draft trouvé ?`, !!draft);
 
         // Fonction utilitaire locale pour valider la triche à la volée
         const checkPayloadFraud = (pred: any): boolean => {
@@ -340,7 +333,6 @@ export class MatchComponent implements OnInit, OnDestroy {
           // 1. Récupération du timestamp technique de Directus
           const predTimeStr =  pred.modified_on || pred.created_on;
           if (!predTimeStr) {
-            console.log(`[🚨 EXECUTION checkPayloadFraud] M${this.match.id} : Prono=${new Date(predTimeStr).toLocaleString()} | Match=${new Date(this.match.date).toLocaleString()}`);
             return false;
           }
 
