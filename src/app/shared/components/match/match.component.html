@@ -328,7 +328,7 @@
         }
 
         @if(isSavedInApi && donePronostique && match.fulltime_a === null && match.fulltime_b === null && !isEditing &&
-        match.phase !== 'Group Stage' && !hidePointsBadge) {
+        match.phase !== 'Group Stage' && !hidePointsBadge && countdownText !== 'Match commencé') {
         <button class="btnEditpronostic flex align-items-center" (click)="modifierPronostic()">Modifier mon pronostic<i
             class="material-symbols-outlined">edit</i></button>
         }
