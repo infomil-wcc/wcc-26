@@ -198,7 +198,7 @@
               <div class="cards-grid">
                 @for (match of getSortedPlayedMatchesForDate(groupedMatches[date]); track match.id) {
                   <div class="card-wrapper">
-                    <app-match [match]="match" [isPronostiques]="true" [disabled]="!isLoggedIn" [dateTime]="today.dateTime" />
+                    <app-match [match]="match" [isPronostiques]="true" [disabled]="!isLoggedIn" [dateTime]="(match.id === '73') ? '2026-01-01T00:00:00.000Z' : today.dateTime" />
                   </div>
                 }
               </div>
