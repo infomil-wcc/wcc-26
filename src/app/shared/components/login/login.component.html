@@ -21,7 +21,7 @@
         Authentification</h3>
         <p>Veuillez saisir vos identifiants pour participer aux différents jeux proposés</p>
         <div class="input mt-4">
-          <input tabindex="1" type="email" #email value="" autocomplete="off" placeholder="Veuillez renseigner votre email @infomil.mu" formControlName="email" (input)="onEmailInput('login')" (blur)="autocompleteEmail('login')" />
+          <input tabindex="1" type="email" id="loginEmail" name="loginEmail" #email value="" autocomplete="email" placeholder="Veuillez renseigner votre email @infomil.mu" formControlName="email" (input)="onEmailInput('login')" (blur)="autocompleteEmail('login')" />
           <label>EMAIL (&#64;infomil.mu)</label>
           @if (loginForm.get('email')?.invalid && loginForm.get('email')?.touched) {
             <span class="error mt-2 mb-2">
@@ -35,7 +35,7 @@
           }
         </div>
         <div class="input">
-          <input tabindex="2" type="{{ passType }}" #pass value="" placeholder="Mot de passe"  autocomplete="off" formControlName="pass" (keydown.enter)="verifyLogin(email.value, pass.value)" />
+          <input tabindex="2" type="{{ passType }}" id="loginPass" name="loginPass" #pass value="" placeholder="Mot de passe"  autocomplete="current-password" formControlName="pass" (keydown.enter)="verifyLogin(email.value, pass.value)" />
           <label>MOT DE PASSE</label>
           <span class="material-symbols-outlined togglePass" (click)="toggleType()">{{ visibility }}</span>
           @if (loginForm.get('pass')?.invalid && loginForm.get('pass')?.touched) {
@@ -73,7 +73,7 @@
       Créer mon compte</h3>
       <p>Veuillez insérer les informations ci-dessous</p>
       <div class="input mt-4">
-        <input tabindex="1" type="email" #emailReg placeholder="Adresse mail &#64;infomil.mu" autocomplete="off" formControlName="email" (input)="onEmailInput('register')" (blur)="autocompleteEmail('register')" />
+        <input tabindex="1" type="email" id="regEmail" name="regEmail" #emailReg placeholder="Adresse mail &#64;infomil.mu" autocomplete="email" formControlName="email" (input)="onEmailInput('register')" (blur)="autocompleteEmail('register')" />
         <label>*Email (&#64;infomil.mu)</label>
         @if (registerForm.get('email')?.invalid && registerForm.get('email')?.touched) {
           <span class="error mt-2 mb-2">
@@ -87,7 +87,7 @@
         }
       </div>
       <div class="input ">
-        <input tabindex="2" type="text" #trigrammeReg autocomplete="off" placeholder="iml-xxx" formControlName="trigramme" />
+        <input tabindex="2" type="text" id="regTrigramme" name="regTrigramme" #trigrammeReg autocomplete="username" placeholder="iml-xxx" formControlName="trigramme" />
         <label>*Votre trigramme (iml-xxx)</label>
         @if (registerForm.get('trigramme')?.invalid && registerForm.get('trigramme')?.touched) {
           <span class="error mt-2 mb-2">
@@ -101,7 +101,7 @@
         }
       </div>
       <div class="input">
-        <input tabindex="3" type="{{ passType }}" #passReg placeholder="Mot de passe" autocomplete="off" formControlName="pass" (keydown.enter)="registerAccount(emailReg.value, trigrammeReg.value, passReg.value)" />
+        <input tabindex="3" type="{{ passType }}" id="regPass" name="regPass" #passReg placeholder="Mot de passe" autocomplete="new-password" formControlName="pass" (keydown.enter)="registerAccount(emailReg.value, trigrammeReg.value, passReg.value)" />
         <label>*Un mot de passe</label>
         <span class="material-symbols-outlined togglePass" (click)="toggleType()">{{ visibility }}</span>
         @if (registerForm.get('pass')?.invalid && registerForm.get('pass')?.touched) {
@@ -134,7 +134,7 @@
     Confirmation de votre compte</h3>
     <p>Veuillez insérer le code de confirmation envoyé à votre adresse email</p>
     <div class="input mt-4">
-      <input tabindex="1" type="text" #inputConfcode value="" placeholder="Code de confirmation"  autocomplete="off" (input)="inputConfcode.value !== confirmationCode.toString() ? disableConfirm = true : disableConfirm = false" />
+      <input tabindex="1" type="text" id="confCode" name="confCode" #inputConfcode value="" placeholder="Code de confirmation"  autocomplete="one-time-code" (input)="inputConfcode.value !== confirmationCode.toString() ? disableConfirm = true : disableConfirm = false" />
       <label>*Code de confirmation</label>
     </div>
     <div class="flex flex-column align-items-end justify-content-between pt-2 pb-2 md:flex-row md:align-items-center md:mt-3">
