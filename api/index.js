@@ -267,37 +267,6 @@ const handleMatchPredictionValidation = async (request, response) => {
     }
 };
 
-
-// ----------------------------------------------------------------------
-// ROUTE 8: DIRECTUS WEBHOOK FOR KICK-OFF FRAUD DETECTION
-// ----------------------------------------------------------------------
-router.post('/api/webhooks/fraud-check', async (request, response) => {
-    try {
-        // Dynamic import of your logic handler module
-        const { checkPredictionValidity } = await import('../backend/libs/fraud-detection.mjs');
-        
-        let payload = request.body;
-        if (typeof payload === 'string') {
-            payload = JSON.parse(payload);
-        }
-
-        // Directus webhooks pass the item event payload inside the request body
-        const result = await checkPredictionValidity(payload);
-
-        return response.status(200).json({
-            success: true,
-            status: result.status,
-            message: result.message
-        });
-    } catch (error) {
-        console.error("❌ Error running webhook fraud detection handler:", error);
-        return response.status(500).json({ 
-            error: "Internal Webhook Handler Failure", 
-            details: error.message 
-        });
-    }
-});
-
 // ----------------------------------------------------------------------
 // ROUTE DIRECTUS PROXY CATCH-ALL FOR THIRD-PARTY CALLS
 // ----------------------------------------------------------------------

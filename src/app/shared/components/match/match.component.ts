@@ -319,6 +319,16 @@ export class MatchComponent implements OnInit, OnDestroy {
         const drafts = this.predictionService.getDrafts();
         const draft = drafts.find(d => d.game_id === this.match.id);
 
+
+        // Fonction utilitaire locale pour valider la triche à la volée
+        const checkPayloadFraud = (pred: any): boolean => {
+          if (!pred || !this.match.date) return false;
+          // On compare la date de création/modification du pronostic à celle du match
+          const predTime = pred.date_updated || pred.date_created;
+          if (!predTime) return false;
+          return new Date(predTime) >= new Date(this.match.date);
+        };
+
         if (draft) {
           this.pronostiqueDone = true;
           this.donePronostique = { ...draft };
@@ -329,6 +339,9 @@ export class MatchComponent implements OnInit, OnDestroy {
           this.halfTimeB = (draft.halftime_b !== null && draft.halftime_b !== undefined && draft.halftime_b !== '') ? parseInt(draft.halftime_b, 10) : null;
           this.scorer = draft.scorer || '';
           this.isSavedInApi = response.length > 0;
+
+          // Calcul à la volée du badge de fraude sans modifier Directus
+          this.hidePointsBadge = checkPayloadFraud(draft);
 
           if (response.length > 0 && response[0].id && !draft.id) {
             draft.id = response[0].id;
@@ -345,6 +358,11 @@ export class MatchComponent implements OnInit, OnDestroy {
           this.halfTimeA = (response[0].halftime_a !== null && response[0].halftime_a !== undefined && response[0].halftime_a !== '') ? parseInt(response[0].halftime_a, 10) : null;
           this.halfTimeB = (response[0].halftime_b !== null && response[0].halftime_b !== undefined && response[0].halftime_b !== '') ? parseInt(response[0].halftime_b, 10) : null;
           this.scorer = response[0].scorer || '';
+
+          // Si le serveur renvoie un pronostic dont la date technique interne 
+          // est supérieure au coup d'envoi, on active le bandeau visuel
+          this.hidePointsBadge = checkPayloadFraud(response[0]);
+
         } else {
           this.pronostiqueDone = false;
           this.donePronostique = [];
