@@ -128,7 +128,7 @@
                 </div>
               }
             } @else {
-              @if (isSavedInApi && match.fulltime_a !== null && match.fulltime_b !== null && matchPoints !== null) {
+              @if (isSavedInApi && match.fulltime_a !== null && match.fulltime_b !== null && matchPoints !== null && !hidePointsBadge) {
                 <div class="points-overlay" [ngClass]="{'points-zero': matchPoints === 0}">
                   <span class="points-value">{{ matchPoints > 0 ? '+' + matchPoints : matchPoints }}</span>
                   <span class="points-unit">pts</span>
@@ -231,7 +231,7 @@
           </div>
         }
 
-        @if (pronostiqueDone) {
+        @if (pronostiqueDone && !hidePointsBadge) {
           <div class="pronostiqueDone flex flex-column align-items-center mt-2"
                [ngClass]="(match.fulltime_a !== null && match.fulltime_b !== null) ? (isOutcomeCorrect() ? 'bg-success-box' : 'bg-danger-box') : ''">
             <span class="label text-xs uppercase font-semibold text-center mb-1"

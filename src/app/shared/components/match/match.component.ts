@@ -437,6 +437,7 @@ export class MatchComponent implements OnInit, OnDestroy {
   }
 
   isOutcomeCorrect(): boolean {
+    if (this.hidePointsBadge) return false; // 🚨 Bloque l'analyse ici - FRAUDE
     if (!this.donePronostique || !this.match || this.match.fulltime_a === null || this.match.fulltime_b === null || this.hidePointsBadge) {
       return false;
     }
