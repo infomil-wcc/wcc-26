@@ -262,9 +262,7 @@
   }
 </div>
 } @else {
-<div class="login-modal-overlay">
-  <div class="login-modal-card">
-    <app-login></app-login>
-  </div>
-</div>
+  <modal [showModal]="!isLoggedIn" [showCloseButton]="false">
+    <app-login />
+  </modal>
 }
