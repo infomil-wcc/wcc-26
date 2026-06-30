@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, OnInit, OnDestroy, Output, inject, ChangeDetectionStrategy } from '@angular/core';
+import { Component, EventEmitter, Input, OnInit, OnDestroy, Output, inject, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
 import { Matches } from '../../contracts/matches.contract';
 import { max, Observable, Subscription } from 'rxjs';
 import { TeamsService } from '../../services/content/teams.service';
@@ -29,6 +29,7 @@ export class MatchComponent implements OnInit, OnDestroy {
   globalTime = inject(GlobaltimeService);
   stadiumsService = inject(StadiumsService);
   lineupsService = inject(LineupsApiService);
+  cdr = inject(ChangeDetectorRef);
 
   @Input() match!: Matches;
   @Input() isPronostiques: boolean = false;
@@ -305,10 +306,10 @@ export class MatchComponent implements OnInit, OnDestroy {
 
     if (this.calcWinDrawOutcome) {
       currentOutcome = this.calculateWinDraw(this.match.team_a, this.match.team_b, this.fullTimeA, this.fullTimeB);
-    } else {
-      if (currentOutcome === 'Draw' && this.match.phase !== 'Group Stage' && this.penaltyWinner) {
-        currentOutcome = this.penaltyWinner;
-      }
+    }
+    
+    if (currentOutcome === 'Draw' && this.match.phase !== 'Group Stage' && this.penaltyWinner) {
+      currentOutcome = this.penaltyWinner;
     }
 
     let prediction: any = {
@@ -329,6 +330,7 @@ export class MatchComponent implements OnInit, OnDestroy {
       prediction.id = this.donePronostique.id;
     }
 
+    prediction.game_id = this.match.id;
     this.predictionService.addDraft(prediction);
 
     this.pronostiqueDone = true;
@@ -399,12 +401,14 @@ export class MatchComponent implements OnInit, OnDestroy {
 
         if (draft) {
           this.pronostiqueDone = true;
+          this.isEditing = true;
           this.donePronostique = { ...draft };
           this.matchOutcome = draft.winner_draw;
           this.fullTimeA = (draft.fulltime_a !== null && draft.fulltime_a !== undefined && draft.fulltime_a !== '') ? parseInt(draft.fulltime_a, 10) : null;
           this.fullTimeB = (draft.fulltime_b !== null && draft.fulltime_b !== undefined && draft.fulltime_b !== '') ? parseInt(draft.fulltime_b, 10) : null;
           
           if (this.match.phase !== 'Group Stage' && this.fullTimeA !== null && this.fullTimeA === this.fullTimeB) {
+            this.matchOutcome = 'Draw';
             this.penaltyWinner = draft.winner_draw;
           }
 
@@ -424,13 +428,21 @@ export class MatchComponent implements OnInit, OnDestroy {
         } else if (response.length > 0) {
           this.pronostiqueDone = true;
           this.isSavedInApi = true;
+          this.isEditing = false;
           this.donePronostique = response[0];
           this.matchOutcome = response[0].winner_draw;
           this.fullTimeA = (response[0].fulltime_a !== null && response[0].fulltime_a !== undefined && response[0].fulltime_a !== '') ? parseInt(response[0].fulltime_a, 10) : null;
           this.fullTimeB = (response[0].fulltime_b !== null && response[0].fulltime_b !== undefined && response[0].fulltime_b !== '') ? parseInt(response[0].fulltime_b, 10) : null;
           
           if (this.match.phase !== 'Group Stage' && this.fullTimeA !== null && this.fullTimeA === this.fullTimeB) {
+            this.matchOutcome = 'Draw';
             this.penaltyWinner = response[0].winner_draw;
+            
+            // Auto-add to drafts if no penalty winner is selected so the floating dock appears
+            if (!this.penaltyWinner || this.penaltyWinner.trim() === '' || this.penaltyWinner === 'Draw') {
+              this.donePronostique.game_id = this.match.id;
+              this.predictionService.addDraft(this.donePronostique);
+            }
           }
 
           this.halfTimeA = (response[0].halftime_a !== null && response[0].halftime_a !== undefined && response[0].halftime_a !== '') ? parseInt(response[0].halftime_a, 10) : null;
@@ -448,14 +460,25 @@ export class MatchComponent implements OnInit, OnDestroy {
 
         } else {
           this.pronostiqueDone = false;
-          this.donePronostique = [];
+          this.donePronostique = null;
           this.isSavedInApi = false;
+          this.isEditing = false;
           this.hidePointsBadge = false;
+          this.fullTimeA = null;
+          this.fullTimeB = null;
+          this.halfTimeA = null;
+          this.halfTimeB = null;
+          this.matchOutcome = '';
+          this.penaltyWinner = '';
+          this.scorer = '';
         }
+
+        this.cdr.detectChanges();
       },
       error: (err) => {
         // 3. Capturer l'erreur si l'API plante (ex: 401 Unauthorized, 404, etc.)
         console.error(`[Vérification ❌ ERREUR API] Erreur sur le match M${this.match.id} :`, err);
+        this.cdr.detectChanges();
       }
     });
   }
@@ -651,6 +674,11 @@ export class MatchComponent implements OnInit, OnDestroy {
     this.isEditing = true;
     this.disabled = false;
     this.isSavedInApi = false;
+    
+    if (this.donePronostique) {
+      this.donePronostique.game_id = this.match.id;
+      this.predictionService.addDraft(this.donePronostique);
+    }
   }
 
   get matchPoints(): number | null {

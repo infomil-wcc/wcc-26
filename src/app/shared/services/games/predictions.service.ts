@@ -4,6 +4,7 @@ import { Observable, BehaviorSubject, Subject, map, throwError, tap, switchMap }
 import { CookieService } from '../core/cookie.service';
 import { Pronostiques } from '../../contracts/pronostiques.contract';
 import { PredictionsApiService } from '../api/predictions-api.service';
+import { environment } from '../../../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
@@ -58,7 +59,7 @@ export class PredictionsService {
     };
 
     // Optional UI Optimization: Querying the centralized time proxy before posting
-    return this.http.get<any>(`/api/time/current/zone?timeZone=Indian/Mauritius`).pipe(
+    return this.http.get<any>(`${environment.apiUrl}/time/current/zone?timeZone=Indian/Mauritius`).pipe(
      switchMap((timeResponse) => {
         const backendCurrentTime = new Date(timeResponse.dateTime);
         const matchKickoffTime = new Date(matchKickoffTimeStr);
@@ -70,7 +71,16 @@ export class PredictionsService {
 
         // 3. Forward prediction payload to Directus API
         if (predictions.id) {
-          return this.predictionsApiService.updatePrediction(predictions.id, predictions, httpOptions);
+          const updatePayload = {
+            game_id: predictions.game_id,
+            halftime_a: predictions.halftime_a,
+            halftime_b: predictions.halftime_b,
+            fulltime_a: predictions.fulltime_a,
+            fulltime_b: predictions.fulltime_b,
+            scorer: predictions.scorer,
+            winner_draw: predictions.winner_draw
+          };
+          return this.predictionsApiService.updatePrediction(predictions.id, updatePayload, httpOptions);
         } else {
           return this.predictionsApiService.createPrediction(predictions, httpOptions);
         }

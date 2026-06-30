@@ -257,6 +257,64 @@
     </div>
     }
 
+    @if (showPenaltyPopup) {
+    <div class="penalty-popup-overlay">
+      <div class="penalty-popup-modal" (click)="$event.stopPropagation()">
+        
+        <div class="penalty-popup-header">
+          <button class="btn-close-popup" (click)="cancelPenaltySelections()" title="Fermer">
+            <span class="material-symbols-outlined" style="font-size: 1.2rem;">close</span>
+          </button>
+          <h3>
+            <span class="material-symbols-outlined mr-2">sports_soccer</span>
+            Tirs aux buts
+          </h3>
+          <p>Vous avez prédit des matchs nuls en phase à élimination directe. <br/>Vous devez choisir un vainqueur.</p>
+        </div>
+
+        <div class="penalty-matches-list">
+          @for (item of pendingDraftsForPenalty; track item.match.id) {
+            <div class="penalty-match-item">
+              <div class="penalty-match-title">{{ item.match.team_a | uppercase }} vs {{ item.match.team_b | uppercase }}</div>
+              
+              <div class="penalty-teams-grid">
+                <label class="penalty-team-btn" [class.selected]="item.selectedWinner === item.match.team_a">
+                  <input type="radio" [name]="'penalty_popup_' + item.match.id" 
+                    [value]="item.match.team_a"
+                    (change)="selectPenaltyWinner(item, item.match.team_a)">
+                  <span class="penalty-flag" [ngStyle]="{'background-image': 'url(' + item.teamAFlag + ')'}"></span>
+                  <span class="penalty-name">{{ item.match.team_a | uppercase | slice:0:3 }}</span>
+                </label>
+                
+                <span class="penalty-vs">VS</span>
+
+                <label class="penalty-team-btn" [class.selected]="item.selectedWinner === item.match.team_b">
+                  <input type="radio" [name]="'penalty_popup_' + item.match.id" 
+                    [value]="item.match.team_b"
+                    (change)="selectPenaltyWinner(item, item.match.team_b)">
+                  <span class="penalty-flag" [ngStyle]="{'background-image': 'url(' + item.teamBFlag + ')'}"></span>
+                  <span class="penalty-name">{{ item.match.team_b | uppercase | slice:0:3 }}</span>
+                </label>
+              </div>
+            </div>
+          }
+        </div>
+
+        <div class="penalty-popup-footer">
+          <button class="btn-bulk-cancel" (click)="cancelPenaltySelections()">
+            Annuler
+            <span class="material-symbols-outlined ml-2">close</span>
+          </button>
+          <button class="btn-bulk-save" (click)="confirmPenaltySelections()">
+            <span class="material-symbols-outlined mr-2">save</span>
+            Sauvegarder
+          </button>
+        </div>
+
+      </div>
+    </div>
+    }
+
   } @else {
     <loader [showLoader]="true" />
   }
