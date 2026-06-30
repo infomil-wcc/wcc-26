@@ -307,3 +307,10 @@
 }
 
 
+
+.filter { position: sticky; top: $pagesHeader; z-index: 50; @media screen and (max-width: 640px) { top: 128px; } }
+
+.games-date-header { position: sticky; top: calc(#{$pagesHeader} + 172px); z-index: 40; background: #3b5bdb; margin: 0 0 1rem 0; padding: 0.5rem 1rem; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.15); @media screen and (max-width: 640px) { top: calc(128px + 172px); } }
+
+.calendar-collapsed .games-date-header { top: calc(#{$pagesHeader} + 92px); @media screen and (max-width: 640px) { top: calc(128px + 92px); } }
+

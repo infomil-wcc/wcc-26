@@ -143,7 +143,11 @@
                 <span class="live-text">EN DIRECT</span>
               </div>
               }
-              <app-match [match]="match" [isPronostiques]="true" [disabled]="!isLoggedIn" [dateTime]="today.dateTime" />
+              @defer (on viewport) {
+                <app-match [match]="match" [isPronostiques]="true" [disabled]="!isLoggedIn" [dateTime]="today.dateTime" />
+              } @placeholder {
+                <div style="min-height: 200px" class="match-placeholder w-full h-full border-round surface-card"></div>
+              }
             </div>
             }
           </div>
@@ -201,7 +205,11 @@
         <div class="cards-grid">
           @for (match of getSortedPlayedMatchesForDate(groupedMatches[date]); track match.id) {
           <div class="card-wrapper">
-            <app-match [match]="match" [isPronostiques]="true" [disabled]="!isLoggedIn" [dateTime]="today.dateTime"/>
+            @defer (on viewport) {
+              <app-match [match]="match" [isPronostiques]="true" [disabled]="!isLoggedIn" [dateTime]="today.dateTime"/>
+            } @placeholder {
+              <div style="min-height: 200px" class="match-placeholder w-full h-full border-round surface-card"></div>
+            }
           </div>
           }
         </div>
