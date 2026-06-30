@@ -1135,3 +1135,61 @@ app-calendar-strip {
   0% { opacity: 0; transform: translateY(20px); }
   100% { opacity: 1; transform: translateY(0); }
 }
+.success-popup-toast {
+  position: fixed;
+  bottom: 24px;
+  left: 24px;
+  z-index: 100000;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  background: rgba(15, 23, 42, 0.9);
+  backdrop-filter: blur(12px);
+  border: 1.5px solid rgba(16, 185, 129, 0.4); /* Green glow border */
+  border-radius: 16px;
+  padding: 16px 20px;
+  width: calc(100% - 48px);
+  max-width: 420px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4), 0 0 20px rgba(16, 185, 129, 0.15);
+  animation: toastSlideIn 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.25) forwards;
+
+  @media screen and (max-width: 640px) {
+    bottom: 16px;
+    left: 16px;
+    width: calc(100% - 32px);
+  }
+
+  .success-popup-icon-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    background: rgba(16, 185, 129, 0.15);
+    color: #10b981;
+
+    span {
+      font-size: 24px;
+    }
+  }
+
+  .success-popup-content {
+    flex: 1;
+
+    h4 {
+      margin: 0 0 4px 0;
+      color: #f8fafc;
+      font-size: 16px;
+      font-weight: 600;
+    }
+
+    p {
+      margin: 0;
+      color: #cbd5e1;
+      font-size: 13px;
+      line-height: 1.4;
+    }
+  }
+}
+
