@@ -114,7 +114,6 @@
             <span class="played-date">Joué le :<br><strong>{{ invalidatedDate | date: 'dd/MM HH:mm' }}</strong></span>
           </div>
           } @else if (!closed) {
-          @if (match.phase === 'Group Stage') {
           <div
             class="team-option-btn draw flex flex-column align-items-center justify-content-center position-relative w-full"
             [ngClass]="{'active': matchOutcome === 'Draw', 'disabled': !canEditPrediction}"
@@ -122,18 +121,22 @@
             @if (matchOutcome === 'Draw') {
             <span class="material-symbols-outlined winner-tick">check_circle</span>
             }
+            @if (match.phase === 'Group Stage') {
             <div class="draw-vs-box flex align-items-center justify-content-center">
               <span>VS</span>
             </div>
             <div class="mt-2 text-center teamName">
               <strong>DRAW</strong>
             </div>
+            } @else {
+            <div class="draw-vs-box flex align-items-center justify-content-center" style="background: transparent; border: 1px dashed #ffffff55; border-radius: 50%;">
+              <span class="material-symbols-outlined" style="font-size: 1.5rem; color: #ff9800;">sports_soccer</span>
+            </div>
+            <div class="mt-2 text-center teamName">
+              <strong style="color: #ff9800;">PENALTY</strong>
+            </div>
+            }
           </div>
-          } @else {
-          <div class="draw-vs-box flex align-items-center justify-content-center">
-            <span>VS</span>
-          </div>
-          }
           } @else {
           @if (isSavedInApi && match.fulltime_a !== null && match.fulltime_b !== null && matchPoints !== null &&
           !hidePointsBadge) {
@@ -261,9 +264,15 @@
               'cancel' }}</span>
             }
             @if (donePronostique.winner_draw === 'Draw') {
-            <span class="material-symbols-outlined"
-              style="font-size: 1.65rem; color: #3f51b5; vertical-align: middle;">handshake</span>
-            <span style="vertical-align: middle;">Draw</span>
+              @if (match.phase === 'Group Stage') {
+              <span class="material-symbols-outlined"
+                style="font-size: 1.65rem; color: #3f51b5; vertical-align: middle;">handshake</span>
+              <span style="vertical-align: middle;">Draw</span>
+              } @else {
+              <span class="material-symbols-outlined"
+                style="font-size: 1.65rem; color: #ff9800; vertical-align: middle;">sports_soccer</span>
+              <span style="vertical-align: middle; color: #ff9800;">Penalty</span>
+              }
             } @else {
             <span style="vertical-align: middle;">{{ donePronostique.winner_draw }}</span>
             @if (!(match.fulltime_a !== null && match.fulltime_b !== null)) { 🏆 }
