@@ -7,7 +7,7 @@ import { DatePipe, NgClass } from '@angular/common';
   styleUrl: './calendar-strip.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: true,
-  imports: [DatePipe, NgClass]
+  imports: [DatePipe]
 })
 export class CalendarStripComponent {
   @Input() matchDates: string[] | null = [];

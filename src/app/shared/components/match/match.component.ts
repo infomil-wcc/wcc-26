@@ -1,6 +1,7 @@
 import { Component, EventEmitter, Input, OnInit, OnDestroy, Output, inject, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
 import { Matches } from '../../contracts/matches.contract';
 import { max, Observable, Subscription } from 'rxjs';
+import { map, of } from 'rxjs';
 import { TeamsService } from '../../services/content/teams.service';
 import { StateService } from '../../services/core/state.service';
 import { PredictionsService } from '../../services/games/predictions.service';
@@ -13,6 +14,17 @@ import { LoaderComponent } from '../loader/loader.component';
 import { TacticalLineupComponent } from '../tactical-lineup/tactical-lineup.component';
 import { LineupsApiService } from '../../services/api/lineups-api.service';
 import { TeamperformanceComponent } from '../teamperformance/teamperformance.component';
+import { MatchesService } from '../../services/content/matches.service';
+
+const PHASE_CONFIG: { key: string; label: string; icon: string; color: string }[] = [
+  { key: 'Group Stage', label: 'Phase de groupes', icon: 'groups', color: '#3b5bdb' },
+  { key: 'Round of 32', label: 'Seizièmes de finale', icon: 'filter_none', color: '#7048e8' },
+  { key: 'Round of 16', label: 'Huitièmes de finale', icon: 'filter_8', color: '#9c36b5' },
+  { key: 'Quarter-finals', label: 'Quarts de finale', icon: 'emoji_events', color: '#d6336c' },
+  { key: 'Semi-finals', label: 'Demi-finales', icon: 'military_tech', color: '#f76707' },
+  { key: 'Third Place', label: 'Troisième place', icon: 'looks_3', color: '#0ca678' },
+  { key: 'Final', label: 'Finale', icon: 'workspace_premium', color: '#f59f00' }
+];
 
 @Component({
   selector: 'app-match',
@@ -29,6 +41,7 @@ export class MatchComponent implements OnInit, OnDestroy {
   globalTime = inject(GlobaltimeService);
   stadiumsService = inject(StadiumsService);
   lineupsService = inject(LineupsApiService);
+  matchesService = inject(MatchesService);
   cdr = inject(ChangeDetectorRef);
 
   @Input() match!: Matches;
@@ -39,6 +52,12 @@ export class MatchComponent implements OnInit, OnDestroy {
   @Input() hasPlayed!: boolean;
   @Input() hidePointsBadge: boolean = false; // Flag to overlay fraud notice rather than point pill layout
   @Input() invalidatedDate: Date = new Date();
+
+  protected showTeamInfoModal: boolean = false;
+  protected selectedTeamName: string = '';
+  protected loadingTeamInfo: boolean = false;
+  protected teamPastMatches: Matches[] = [];
+  protected flagsLookup: { [teamName: string]: string } = {};
   @Output() hasPlayedChange = new EventEmitter<boolean>;
 
 
@@ -188,16 +207,16 @@ export class MatchComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-      if (this.countdownIntervalId) {
-        clearInterval(this.countdownIntervalId);
-      }
-      if (this.refreshSub) {
-        this.refreshSub.unsubscribe();
-      }
-      if (this.savedSub) {
-        this.savedSub.unsubscribe();
-      }
+    if (this.countdownIntervalId) {
+      clearInterval(this.countdownIntervalId);
     }
+    if (this.refreshSub) {
+      this.refreshSub.unsubscribe();
+    }
+    if (this.savedSub) {
+      this.savedSub.unsubscribe();
+    }
+  }
 
   subtractHours(date: Date): Date {
     const newDate = new Date(date);
@@ -348,7 +367,7 @@ export class MatchComponent implements OnInit, OnDestroy {
     if (this.calcWinDrawOutcome) {
       currentOutcome = this.calculateWinDraw(this.match.team_a, this.match.team_b, this.fullTimeA, this.fullTimeB);
     }
-    
+
     if (currentOutcome === 'Draw' && this.match.phase !== 'Group Stage' && this.penaltyWinner) {
       currentOutcome = this.penaltyWinner;
     }
@@ -450,7 +469,7 @@ export class MatchComponent implements OnInit, OnDestroy {
           this.matchOutcome = draft.winner_draw;
           this.fullTimeA = (draft.fulltime_a !== null && draft.fulltime_a !== undefined && draft.fulltime_a !== '') ? parseInt(draft.fulltime_a, 10) : null;
           this.fullTimeB = (draft.fulltime_b !== null && draft.fulltime_b !== undefined && draft.fulltime_b !== '') ? parseInt(draft.fulltime_b, 10) : null;
-          
+
           if (this.match.phase !== 'Group Stage' && this.fullTimeA !== null && this.fullTimeA === this.fullTimeB) {
             this.matchOutcome = 'Draw';
             this.penaltyWinner = draft.winner_draw;
@@ -477,11 +496,11 @@ export class MatchComponent implements OnInit, OnDestroy {
           this.matchOutcome = response[0].winner_draw;
           this.fullTimeA = (response[0].fulltime_a !== null && response[0].fulltime_a !== undefined && response[0].fulltime_a !== '') ? parseInt(response[0].fulltime_a, 10) : null;
           this.fullTimeB = (response[0].fulltime_b !== null && response[0].fulltime_b !== undefined && response[0].fulltime_b !== '') ? parseInt(response[0].fulltime_b, 10) : null;
-          
+
           if (this.match.phase !== 'Group Stage' && this.fullTimeA !== null && this.fullTimeA === this.fullTimeB) {
             this.matchOutcome = 'Draw';
             this.penaltyWinner = response[0].winner_draw;
-            
+
             // Auto-add to drafts if no penalty winner is selected so the floating dock appears
             if (!this.penaltyWinner || this.penaltyWinner.trim() === '' || this.penaltyWinner === 'Draw') {
               this.donePronostique.game_id = this.match.id;
@@ -718,7 +737,7 @@ export class MatchComponent implements OnInit, OnDestroy {
     this.isEditing = true;
     this.disabled = false;
     this.isSavedInApi = false;
-    
+
     if (this.donePronostique) {
       this.donePronostique.game_id = this.match.id;
       this.predictionService.addDraft(this.donePronostique);
@@ -751,7 +770,7 @@ export class MatchComponent implements OnInit, OnDestroy {
           points += fulltimePts; // Award full score points if outcome is correct
         }
       }
-      
+
       if (!game.penalty_shootout && this.isFulltimeCorrect()) {
         points += fulltimePts;
       }
@@ -807,5 +826,197 @@ export class MatchComponent implements OnInit, OnDestroy {
 
   get teamBScorersGrouped(): any[] {
     return this.getGroupedScorers(this.match.team_b);
+  }
+
+
+
+  parseScorers(scorersVal: any): any[] {
+    if (!scorersVal) return [];
+    let list: any[] = [];
+    if (Array.isArray(scorersVal)) {
+      list = scorersVal;
+    } else if (typeof scorersVal === 'string') {
+      const trimmed = scorersVal.trim();
+      if (trimmed.startsWith('[') && trimmed.endsWith(']')) {
+        try {
+          list = JSON.parse(trimmed);
+        } catch (e) {
+          list = [];
+        }
+      }
+    }
+
+    return list.map(e => {
+      let name = e.player?.name || e.scorer?.name || e.name || 'Unknown';
+      let elapsed = e.time?.elapsed ?? 0;
+      let extra = e.time?.extra ?? null;
+      let detail = e.detail || 'Normal Goal';
+
+      const regex = /^(.*?)\s+(\d+)'?(?:\+(\d+))?'?\s*(\((?:OG|p|CSC|PEN)\)|\[(?:OG|p|CSC|PEN)\])?$/i;
+      const match = typeof name === 'string' ? name.trim().match(regex) : null;
+      if (match) {
+        name = match[1].trim();
+        elapsed = parseInt(match[2], 10);
+        extra = match[3] ? parseInt(match[3], 10) : null;
+        if (match[4]) {
+          const detailLower = match[4].toLowerCase();
+          if (detailLower.includes('og') || detailLower.includes('csc')) {
+            detail = 'Own Goal';
+          } else if (detailLower.includes('p') || detailLower.includes('pen')) {
+            detail = 'Penalty';
+          }
+        }
+      }
+      return {
+        ...e,
+        player: { name },
+        time: { elapsed, extra },
+        detail
+      };
+    });
+  }
+
+  isMatchScorersJson(m: Matches): boolean {
+    if (!m || !m.scorers) return false;
+    const events = this.parseScorers(m.scorers);
+    return events.length > 0;
+  }
+
+  getMatchScorersGrouped(m: Matches, teamName: string): any[] {
+    if (!m || !m.scorers) return [];
+    const events = this.parseScorers(m.scorers);
+    if (events.length === 0) return [];
+
+    const teamEvents = events.filter(e => {
+      const eventTeam = e.team?.name || e.team;
+      return eventTeam && typeof eventTeam === 'string' && eventTeam.trim().toLowerCase() ===
+        teamName.trim().toLowerCase();
+    });
+
+    const groups: { [name: string]: string[] } = {};
+    for (const e of teamEvents) {
+      const name = e.player?.name || 'Unknown';
+      let timeStr = `${e.time.elapsed}`;
+      if (e.time.extra) {
+        timeStr += `+${e.time.extra}`;
+      }
+      timeStr += "'";
+      if (e.detail === 'Penalty') {
+        timeStr += ' <sup>[PEN]</sup>';
+      } else if (e.detail === 'Own Goal') {
+        timeStr += ' <sup>[OG]</sup>';
+      }
+
+      if (!groups[name]) {
+        groups[name] = [];
+      }
+      groups[name].push(timeStr);
+    }
+
+    return Object.keys(groups).map(name => ({
+      name,
+      times: `(${groups[name].join(', ')})`
+    }));
+  }
+
+  protected showTeamDetails(teamName: string, event: Event): void {
+    event.stopPropagation();
+    this.selectedTeamName = teamName;
+    this.showTeamInfoModal = true;
+    this.loadingTeamInfo = true;
+
+    // Fetch flags if not loaded yet
+    const loadFlags$ = Object.keys(this.flagsLookup).length > 0
+      ? of(null)
+      : this.teamService.getFlags().pipe(
+        map(flags => {
+          (flags || []).forEach((f: any) => {
+            this.flagsLookup[f.name] = f.flag_url;
+          });
+          return null;
+        })
+      );
+
+    loadFlags$.subscribe(() => {
+      this.matchesService.getAllMatches().subscribe({
+        next: (allMatches) => {
+          // Filter for played matches involving this team
+          this.teamPastMatches = (allMatches || [])
+            .filter(m =>
+              m.fulltime_a !== null && m.fulltime_b !== null &&
+              (m.team_a === teamName || m.team_b === teamName)
+            )
+            // Sort reverse chronologically (most recent first)
+            .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
+          this.loadingTeamInfo = false;
+        },
+        error: (err) => {
+          console.error('Error fetching past matches:', err);
+          this.loadingTeamInfo = false;
+        }
+      });
+    });
+  }
+
+  protected getTeamFlagUrl(teamName: string): string {
+    return this.flagsLookup[teamName] || 'assets/flags/unknown.png';
+  }
+
+  protected getPastMatchesPhases(): typeof PHASE_CONFIG {
+    const presentKeys = new Set(this.teamPastMatches.map(m => m.phase));
+    return PHASE_CONFIG.filter(p => presentKeys.has(p.key));
+  }
+
+  protected getPastMatchesByPhase(phaseKey: string): Matches[] {
+    return this.teamPastMatches.filter(m => m.phase === phaseKey);
+  }
+
+  protected getMatchResultLabel(pastMatch: Matches): string {
+    const isTeamA = pastMatch.team_a === this.selectedTeamName;
+    const scoreA = Number(pastMatch.fulltime_a);
+    const scoreB = Number(pastMatch.fulltime_b);
+    if (scoreA === scoreB) return 'NUL';
+    if (isTeamA) {
+      return scoreA > scoreB ? 'VICTOIRE' : 'DÉFAITE';
+    } else {
+      return scoreB > scoreA ? 'VICTOIRE' : 'DÉFAITE';
+    }
+  }
+
+  protected getMatchResultColor(pastMatch: Matches): string {
+    const isTeamA = pastMatch.team_a === this.selectedTeamName;
+    const scoreA = Number(pastMatch.fulltime_a);
+    const scoreB = Number(pastMatch.fulltime_b);
+    if (scoreA === scoreB) return '#718096'; // Gray
+    if (isTeamA) {
+      return scoreA > scoreB ? '#48bb78' : '#e53e3e'; // Green vs Red
+    } else {
+      return scoreB > scoreA ? '#48bb78' : '#e53e3e'; // Green vs Red
+    }
+  }
+
+  protected getMatchResultBgColor(pastMatch: Matches): string {
+    const isTeamA = pastMatch.team_a === this.selectedTeamName;
+    const scoreA = Number(pastMatch.fulltime_a);
+    const scoreB = Number(pastMatch.fulltime_b);
+    if (scoreA === scoreB) return 'rgba(113, 128, 150, 0.15)';
+    if (isTeamA) {
+      return scoreA > scoreB ? 'rgba(72, 187, 120, 0.15)' : 'rgba(229, 62, 62, 0.15)';
+    } else {
+      return scoreB > scoreA ? 'rgba(72, 187, 120, 0.15)' : 'rgba(229, 62, 62, 0.15)';
+    }
+  }
+
+  protected getMatchResultTextColor(pastMatch: Matches): string {
+    const isTeamA = pastMatch.team_a === this.selectedTeamName;
+    const scoreA = Number(pastMatch.fulltime_a);
+    const scoreB = Number(pastMatch.fulltime_b);
+    if (scoreA === scoreB) return '#a0aec0';
+    if (isTeamA) {
+      return scoreA > scoreB ? '#48bb78' : '#f56565';
+    } else {
+      return scoreB > scoreA ? '#48bb78' : '#f56565';
+    }
   }
 }
