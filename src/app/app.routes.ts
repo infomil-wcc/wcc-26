@@ -51,6 +51,10 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/games/ranking/ranking.component').then(m => m.RankingComponent)
   },
   {
+    path: 'classement/scoresheet/:id',
+    loadComponent: () => import('./pages/games/ranking/scoresheet/scoresheet.component').then(m => m.ScoresheetComponent)
+  },
+  {
     path: 'faq',
     loadComponent: () => import('./pages/faq/faq.component').then(m => m.FaqComponent)
   },

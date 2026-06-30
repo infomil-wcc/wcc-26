@@ -1,0 +1,178 @@
+<div class="scoresheet-page">
+  <div class="ranking-header fixed left-0 w-full z-50">
+    <div class="header-filter w-full pt-4 pb-4 pl-3 pr-3">
+      <div class="container text-left flex align-items-center justify-content-between">
+        <h1 class="text-white flex align-items-center gap-2 text-2xl font-bold m-0">
+          <span class="material-symbols-outlined cursor-pointer" (click)="goBack()">arrow_back</span>
+          Détails des points ({{ userId | uppercase }})
+        </h1>
+      </div>
+    </div>
+  </div>
+
+  <div class="container scoresheet-main pt-8 mt-6">
+    @if (loading) {
+      <div class="flex justify-content-center pt-8">
+        <i class="pi pi-spin pi-spinner" style="font-size: 2rem; color: #475569;"></i>
+      </div>
+    } @else {
+      <!-- Summary Accordion -->
+      <div class="mb-5 scoresheet-card overflow-hidden">
+        <div class="flex justify-content-between align-items-center p-4 cursor-pointer select-none accordion-header" (click)="isSummaryExpanded = !isSummaryExpanded">
+          <h2 class="text-800 text-xl font-bold m-0">Résumé des points</h2>
+          <span class="material-symbols-outlined text-700 text-2xl">
+            {{ isSummaryExpanded ? 'expand_less' : 'expand_more' }}
+          </span>
+        </div>
+        
+        @if (isSummaryExpanded) {
+          <div class="overflow-x-auto">
+        <table class="custom-table w-full">
+          <thead>
+            <tr>
+              <th class="font-bold text-left">Catégories</th>
+              <th class="text-center font-bold">Phase de Groupes</th>
+              <th class="text-center font-bold">16es</th>
+              <th class="text-center font-bold">8es</th>
+              <th class="text-center font-bold">Quarts</th>
+              <th class="text-center font-bold">Demis</th>
+              <th class="text-center font-bold">Finale</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (cat of ['winner', 'fulltime', 'halftime', 'scorer', 'consolation', 'total']; track cat) {
+              <tr [ngClass]="{'row-total': cat === 'total'}">
+                <td class="font-bold category-name">
+                  @if (cat === 'winner') { Trouver le bon vainqueur / Match nul }
+                  @else if (cat === 'fulltime') { Score final (jusqu'à prolongation) }
+                  @else if (cat === 'halftime') { Score mi-temps }
+                  @else if (cat === 'scorer') { Nom d'un buteur }
+                  @else if (cat === 'consolation') { Point de consolation (si 0 pt) }
+                  @else if (cat === 'total') { Total points gagnés }
+                </td>
+                <td class="text-center font-semibold points-val">{{ getSummaryValue('Group Stage', cat) > 0 ? '+' + getSummaryValue('Group Stage', cat) : '-' }}</td>
+                <td class="text-center font-semibold points-val">{{ getSummaryValue('Round of 32', cat) > 0 ? '+' + getSummaryValue('Round of 32', cat) : '-' }}</td>
+                <td class="text-center font-semibold points-val">{{ getSummaryValue('Round of 16', cat) > 0 ? '+' + getSummaryValue('Round of 16', cat) : '-' }}</td>
+                <td class="text-center font-semibold points-val">{{ getSummaryValue('Quarter-finals', cat) > 0 ? '+' + getSummaryValue('Quarter-finals', cat) : '-' }}</td>
+                <td class="text-center font-semibold points-val">{{ getSummaryValue('Semi-finals', cat) > 0 ? '+' + getSummaryValue('Semi-finals', cat) : '-' }}</td>
+                <td class="text-center font-semibold points-val">{{ getSummaryValue('Final', cat) > 0 ? '+' + getSummaryValue('Final', cat) : '-' }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+        </div>
+        }
+      </div>
+
+      <!-- History Accordion -->
+      <div class="mb-6 scoresheet-card overflow-hidden">
+        <div class="flex justify-content-between align-items-center p-4 cursor-pointer select-none accordion-header" (click)="isHistoryExpanded = !isHistoryExpanded">
+          <h2 class="text-800 text-xl font-bold m-0">Historique des matchs</h2>
+          <span class="material-symbols-outlined text-700 text-2xl">
+            {{ isHistoryExpanded ? 'expand_less' : 'expand_more' }}
+          </span>
+        </div>
+
+        @if (isHistoryExpanded) {
+          <!-- Filter Row -->
+          <div class="p-3 bg-gray-50 border-bottom-1 border-300">
+            <input type="text" #filterInput (input)="filterText = filterInput.value" 
+                   class="w-full md:w-20rem p-2 border-round text-sm surface-0 text-900 border-1 border-300 outline-none focus:border-green-500" 
+                   placeholder="Rechercher une équipe ou une phase..." />
+          </div>
+
+          <div class="detailed-matches overflow-x-auto">
+        <table class="custom-table w-full">
+          <thead>
+            <tr>
+              <th class="font-bold text-left">Match</th>
+              <th class="text-center font-bold">Date</th>
+              <th class="text-center font-bold">Phase</th>
+              <th class="text-center font-bold">Score Officiel</th>
+              <th class="text-center font-bold">Pronostic</th>
+              <th class="text-center font-bold">Points</th>
+              <th class="text-center font-bold">Détails</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (item of filteredMatches; track item.match.id) {
+              <!-- Main Row -->
+              <tr [ngClass]="{'bg-red-50': item.breakdown.isFraud}">
+                <td class="font-bold">
+                  <div class="flex align-items-center gap-2 justify-content-start">
+                    @if (getTeamFlag(item.match.team_a)) {
+                      <img [src]="getTeamFlag(item.match.team_a)" class="w-2rem shadow-1 border-round-sm" alt="flag">
+                    }
+                    <span class="text-900">{{ getTeamNameShort(item.match.team_a) }}</span>
+                    <span class="text-500 px-1">-</span>
+                    <span class="text-900">{{ getTeamNameShort(item.match.team_b) }}</span>
+                    @if (getTeamFlag(item.match.team_b)) {
+                      <img [src]="getTeamFlag(item.match.team_b)" class="w-2rem shadow-1 border-round-sm" alt="flag">
+                    }
+                  </div>
+                </td>
+                <td class="text-center text-sm">{{ item.match.date | date: 'dd/MM/yyyy HH:mm' }}</td>
+                <td class="text-center text-sm uppercase">{{ item.match.phase }}</td>
+                <td class="text-center font-bold">{{ item.match.fulltime_a }} - {{ item.match.fulltime_b }}</td>
+                <td class="text-center text-sm">
+                  @if (item.prediction.fulltime_a !== null && item.prediction.fulltime_b !== null) {
+                    {{ item.prediction.fulltime_a }} - {{ item.prediction.fulltime_b }}
+                  } @else {
+                    -
+                  }
+                </td>
+                <td class="text-center">
+                  <div class="points-badge border-round px-2 py-1 font-bold inline-block"
+                       [ngClass]="item.breakdown.isFraud ? 'bg-red-100 text-red-600' : (item.breakdown.total > 0 ? 'bg-green-100 text-green-700' : 'bg-gray-200 text-gray-500')">
+                    {{ item.breakdown.isFraud ? 0 : item.breakdown.total }} pts
+                  </div>
+                </td>
+                <td class="text-center">
+                  <button type="button" class="p-row-toggler" (click)="item.expanded = !item.expanded">
+                    <span class="material-symbols-outlined" style="font-size: 1.25rem;">
+                      {{ item.expanded ? 'expand_more' : 'chevron_right' }}
+                    </span>
+                  </button>
+                </td>
+              </tr>
+              <!-- Detail Row -->
+              @if (item.expanded) {
+                <tr class="detail-row">
+                  <td colspan="7">
+                    <div class="detail-content p-4">
+                      @if (item.breakdown.isFraud) {
+                        <div class="bg-red-50 border-red-200 border-1 text-red-700 font-bold p-3 border-round-xl flex align-items-center gap-2 shadow-1">
+                          <span class="material-symbols-outlined text-2xl">gavel</span>
+                          <span>Match invalidé (Fraude) : Le pronostic a été modifié après le coup d'envoi.</span>
+                        </div>
+                      } @else if (item.breakdown.total > 0) {
+                        <div class="flex flex-wrap gap-4 align-items-center bg-white p-3 border-round-xl border-1 border-300 shadow-1">
+                          <span class="text-600 font-bold text-sm uppercase tracking-wide">Points alloués</span>
+                          <div class="border-right-1 border-300 h-2rem"></div>
+                          @if (item.breakdown.winner > 0) { <div class="text-sm text-green-600 flex align-items-center gap-1"><span class="font-bold text-lg">+{{ item.breakdown.winner }}</span> Vainqueur</div> }
+                          @if (item.breakdown.fulltime > 0) { <div class="text-sm text-green-600 flex align-items-center gap-1"><span class="font-bold text-lg">+{{ item.breakdown.fulltime }}</span> Score Final</div> }
+                          @if (item.breakdown.halftime > 0) { <div class="text-sm text-green-600 flex align-items-center gap-1"><span class="font-bold text-lg">+{{ item.breakdown.halftime }}</span> Mi-temps</div> }
+                          @if (item.breakdown.scorer > 0) { <div class="text-sm text-green-600 flex align-items-center gap-1"><span class="font-bold text-lg">+{{ item.breakdown.scorer }}</span> Buteur</div> }
+                          @if (item.breakdown.consolation > 0) { <div class="text-sm text-blue-600 flex align-items-center gap-1"><span class="font-bold text-lg">+{{ item.breakdown.consolation }}</span> Consolation</div> }
+                        </div>
+                      } @else {
+                        <div class="text-500 text-sm font-medium p-2">Aucun point obtenu pour ce match.</div>
+                      }
+                    </div>
+                  </td>
+                </tr>
+              }
+            }
+          </tbody>
+        </table>
+        @if (filteredMatches.length === 0) {
+          <div class="text-center text-500 py-6 font-medium text-lg">
+            Aucun match trouvé.
+          </div>
+        }
+        </div>
+        }
+      </div>
+    }
+  </div>
+</div>

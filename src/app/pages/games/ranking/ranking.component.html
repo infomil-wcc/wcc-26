@@ -24,7 +24,9 @@
       <div class="podium-container flex justify-content-center align-items-end mb-6 gap-2 md:gap-4">
         <!-- 2nd Place (Left) -->
         @if (topThree[0]; as player) {
-          <div class="podium-spot spot-2nd flex flex-column align-items-center">
+          <div class="podium-spot spot-2nd flex flex-column align-items-center" 
+               [ngClass]="{'cursor-pointer': canViewScoresheet(player)}"
+               [routerLink]="canViewScoresheet(player) ? ['/classement/scoresheet', player.key || player.user] : null">
             <div class="avatar-wrapper flex align-items-center justify-content-center mb-2">
               <img [src]="getChampionFlag(player.key || player.user)" class="champion-flag" alt="" />
               <div class="podium-username text-xs font-bold text-white">
@@ -45,7 +47,9 @@
         }
         <!-- 1st Place (Center) -->
         @if (topThree[1]; as player) {
-          <div class="podium-spot spot-1st flex flex-column align-items-center">
+          <div class="podium-spot spot-1st flex flex-column align-items-center" 
+               [ngClass]="{'cursor-pointer': canViewScoresheet(player)}"
+               [routerLink]="canViewScoresheet(player) ? ['/classement/scoresheet', player.key || player.user] : null">
             <div class="avatar-wrapper first-place flex align-items-center justify-content-center mb-2">
               <img [src]="getChampionFlag(player.key || player.user)" class="champion-flag" alt="" />
               <div class="podium-username text-sm font-extrabold text-white">
@@ -66,7 +70,9 @@
         }
         <!-- 3rd Place (Right) -->
         @if (topThree[2]; as player) {
-          <div class="podium-spot spot-3rd flex flex-column align-items-center">
+          <div class="podium-spot spot-3rd flex flex-column align-items-center" 
+               [ngClass]="{'cursor-pointer': canViewScoresheet(player)}"
+               [routerLink]="canViewScoresheet(player) ? ['/classement/scoresheet', player.key || player.user] : null">
             <div class="avatar-wrapper flex align-items-center justify-content-center mb-2">
               <img [src]="getChampionFlag(player.key || player.user)" class="champion-flag" alt="" />
               <div class="podium-username text-xs font-bold text-white">
@@ -121,6 +127,8 @@
                 <div class="row-sentinel" style="height: 0; margin: 0; padding: 0; visibility: hidden; pointer-events: none;"></div>
               }
               <div class="table-row flex justify-content-between align-items-center px-3 py-2.5"
+                [ngClass]="{'is-current-user': player.isCurrentUser, 'cursor-pointer': canViewScoresheet(player)}"
+                [routerLink]="canViewScoresheet(player) ? ['/classement/scoresheet', player.key || player.user] : null"
                 [class.pinned-user-row]="shouldPinCurrentUser && (player.key || player.user || '').toLowerCase().trim() === currentUserTrigramme.toLowerCase().trim()"
                 [class.pinned-to-top]="shouldPinCurrentUser && pinPosition === 'top' && (player.key || player.user || '').toLowerCase().trim() === currentUserTrigramme.toLowerCase().trim()"
                 [class.pinned-to-bottom]="shouldPinCurrentUser && pinPosition === 'bottom' && (player.key || player.user || '').toLowerCase().trim() === currentUserTrigramme.toLowerCase().trim()">
@@ -138,7 +146,12 @@
                     }
                   </div>
                 </div>
-                <span class="row-pts text-base font-bold text-white">{{ player.point }}</span>
+                <div class="flex align-items-center gap-2">
+                  <span class="row-pts text-base font-bold text-white">{{ player.point }}</span>
+                  @if (canViewScoresheet(player)) {
+                    <span class="material-symbols-outlined text-white-alpha-50" style="font-size: 1.1rem;">chevron_right</span>
+                  }
+                </div>
               </div>
             }
           </div>
