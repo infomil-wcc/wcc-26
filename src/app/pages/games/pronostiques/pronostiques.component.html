@@ -242,7 +242,19 @@
     </div>
     }
 
-    @if (showLockPopup) {
+      @if (showSuccessToast) {
+      <div class="success-popup-toast">
+        <div class="success-popup-icon-wrapper">
+          <span class="material-symbols-outlined">check_circle</span>
+        </div>
+        <div class="success-popup-content">
+          <h4>Succès</h4>
+          <p>Vos pronostics ont été enregistrés avec succès.</p>
+        </div>
+      </div>
+      }
+  
+      @if (showLockPopup) {
     <div class="lock-popup-toast">
       <div class="lock-popup-icon-wrapper">
         <span class="material-symbols-outlined">gavel</span>

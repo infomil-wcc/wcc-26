@@ -55,6 +55,7 @@ export class PronostiquesComponent implements OnInit {
   protected todayPredictedCount: number = 0;
 
   protected showLockPopup: boolean = false;
+  showSuccessToast: boolean = false;
   protected  lockedMatchName: string = '';
   
   // Penalty Selection Popup state
@@ -455,15 +456,17 @@ export class PronostiquesComponent implements OnInit {
           this.lockedMatchName = invalidMatches.join(', ');
           this.showLockPopup = true;
           this.cdr.detectChanges();
-
-          // Automatically clear drafts that failed and don't reload page immediately 
-          // to give the user time to read the dynamic error toast.
-          this.predictionService.clearDrafts();
         } else {
-          // Clear drafts and reload clean if everything was perfectly successful
-          this.predictionService.clearDrafts();
-          this.predictionService.triggerRefresh();
+          this.showSuccessToast = true;
+          this.cdr.detectChanges();
         }
+
+        this.predictionService.clearDrafts();
+        
+        // Fallback: Full page refresh to ensure all UI elements and states are perfectly synchronized
+        setTimeout(() => {
+          window.location.reload();
+        }, 1500);
       },
       error: (err) => {
         console.error('Error during bulk submit:', err);
