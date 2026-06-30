@@ -34,14 +34,14 @@ export const routes: Routes = [
     path: 'pronostiques',
     loadComponent: () => import('./pages/games/pronostiques/pronostiques.component').then(m => m.PronostiquesComponent)
   },
-  {
-    path: 'bracket',
-    loadComponent: () => import('./pages/games/bracket-knockout/bracket-knockout.component').then(m => m.BracketKnockoutComponent)
-  },
-  {
-    path: 'bracket-challenge',
-    loadComponent: () => import('./pages/games/bracket-challenge/bracket-challenge.component').then(m => m.BracketChallengeComponent)
-  },
+  // {
+  //   path: 'bracket',
+  //   loadComponent: () => import('./pages/games/bracket-knockout/bracket-knockout.component').then(m => m.BracketKnockoutComponent)
+  // },
+  // {
+  //   path: 'bracket-challenge',
+  //   loadComponent: () => import('./pages/games/bracket-challenge/bracket-challenge.component').then(m => m.BracketChallengeComponent)
+  // },
   {
     path: 'quiz',
     loadComponent: () => import('./pages/games/quiz/quiz.component').then(m => m.QuizComponent)
