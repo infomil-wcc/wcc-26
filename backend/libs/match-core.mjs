@@ -95,21 +95,47 @@ export async function syncMatchesPipeline(dbMatches, { directusUrl, adminToken, 
 
         // Compile goals and scores considering inverted configurations
         const isReversed = (dbMatch.team_a === getNormalizedTeamName(fdMatch.awayTeam?.name));
-        const homeScore = fdMatch.score?.fullTime?.home;
-        const awayScore = fdMatch.score?.fullTime?.away;
-        const dbScoreA = isReversed ? (awayScore !== null ? Number(awayScore) : null) : (homeScore !== null ? Number(homeScore) : null);
-        const dbScoreB = isReversed ? (homeScore !== null ? Number(homeScore) : null) : (awayScore !== null ? Number(awayScore) : null);
+        
+        let fdFullHome = fdMatch.score?.fullTime?.home;
+        let fdFullAway = fdMatch.score?.fullTime?.away;
+        let fdPenHome = null;
+        let fdPenAway = null;
+
+        if (fdMatch.score?.duration === 'PENALTY_SHOOTOUT' || fdMatch.score?.duration === 'EXTRA_TIME') {
+            if (fdMatch.score?.regularTime?.home !== null && fdMatch.score?.regularTime?.home !== undefined) {
+                fdFullHome = fdMatch.score.regularTime.home + (fdMatch.score?.extraTime?.home || 0);
+                fdFullAway = fdMatch.score.regularTime.away + (fdMatch.score?.extraTime?.away || 0);
+            }
+            if (fdMatch.score?.duration === 'PENALTY_SHOOTOUT') {
+                fdPenHome = fdMatch.score?.penalties?.home;
+                fdPenAway = fdMatch.score?.penalties?.away;
+            }
+        }
+
+        const dbScoreA = isReversed ? (fdFullAway !== null && fdFullAway !== undefined ? Number(fdFullAway) : null) : (fdFullHome !== null && fdFullHome !== undefined ? Number(fdFullHome) : null);
+        const dbScoreB = isReversed ? (fdFullHome !== null && fdFullHome !== undefined ? Number(fdFullHome) : null) : (fdFullAway !== null && fdFullAway !== undefined ? Number(fdFullAway) : null);
+
+        const dbPenaltyA = isReversed ? (fdPenAway !== null && fdPenAway !== undefined ? Number(fdPenAway) : null) : (fdPenHome !== null && fdPenHome !== undefined ? Number(fdPenHome) : null);
+        const dbPenaltyB = isReversed ? (fdPenHome !== null && fdPenHome !== undefined ? Number(fdPenHome) : null) : (fdPenAway !== null && fdPenAway !== undefined ? Number(fdPenAway) : null);
 
         const htHome = fdMatch.score?.halfTime?.home;
         const htAway = fdMatch.score?.halfTime?.away;
-        const dbHalftimeA = isReversed ? (htAway !== null ? Number(htAway) : null) : (htHome !== null ? Number(htHome) : null);
-        const dbHalftimeB = isReversed ? (htHome !== null ? Number(htHome) : null) : (htAway !== null ? Number(htAway) : null);
+        const dbHalftimeA = isReversed ? (htAway !== null && htAway !== undefined ? Number(htAway) : null) : (htHome !== null && htHome !== undefined ? Number(htHome) : null);
+        const dbHalftimeB = isReversed ? (htHome !== null && htHome !== undefined ? Number(htHome) : null) : (htAway !== null && htAway !== undefined ? Number(htAway) : null);
 
         let winner_draw = null;
         if (dbScoreA !== null && dbScoreB !== null) {
             if (dbScoreA > dbScoreB) winner_draw = dbMatch.team_a;
             else if (dbScoreA < dbScoreB) winner_draw = dbMatch.team_b;
-            else winner_draw = 'Draw';
+            else {
+                if (dbPenaltyA !== null && dbPenaltyB !== null) {
+                    if (dbPenaltyA > dbPenaltyB) winner_draw = dbMatch.team_a;
+                    else if (dbPenaltyA < dbPenaltyB) winner_draw = dbMatch.team_b;
+                    else winner_draw = 'Draw';
+                } else {
+                    winner_draw = 'Draw';
+                }
+            }
         }
 
         const payload = {
@@ -123,6 +149,11 @@ export async function syncMatchesPipeline(dbMatches, { directusUrl, adminToken, 
         if (dbHalftimeA !== null && dbHalftimeB !== null) {
             payload.halftime_a = dbHalftimeA;
             payload.halftime_b = dbHalftimeB;
+        }
+
+        if (dbPenaltyA !== null && dbPenaltyB !== null) {
+            payload.penalty_a = dbPenaltyA;
+            payload.penalty_b = dbPenaltyB;
         }
 
         if (wcGame) {

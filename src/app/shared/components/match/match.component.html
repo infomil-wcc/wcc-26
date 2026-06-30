@@ -349,9 +349,19 @@
 
       <div class="score-pill-container">
         <div class="score-pill flex align-items-center justify-content-center">
-          <span class="score">{{ match.fulltime_a }}</span>
-          <span class="divider">|</span>
-          <span class="score">{{ match.fulltime_b }}</span>
+          <span class="score flex align-items-baseline">
+            {{ match.fulltime_a }}
+            @if (match.penalty_a !== null && match.penalty_a !== undefined && match.penalty_b !== null && match.penalty_b !== undefined) {
+              <span style="font-size: 0.65em; opacity: 0.85; margin-left: 2px;">({{ match.penalty_a }})</span>
+            }
+          </span>
+          <span class="divider mx-2">|</span>
+          <span class="score flex align-items-baseline">
+            {{ match.fulltime_b }}
+            @if (match.penalty_a !== null && match.penalty_a !== undefined && match.penalty_b !== null && match.penalty_b !== undefined) {
+              <span style="font-size: 0.65em; opacity: 0.85; margin-left: 2px;">({{ match.penalty_b }})</span>
+            }
+          </span>
         </div>
         @if (match.halftime_a !== null && match.halftime_b !== null) {
         <span class="halftime-score-pill">
