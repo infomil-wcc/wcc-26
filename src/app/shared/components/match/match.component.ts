@@ -436,12 +436,12 @@ export class MatchComponent implements OnInit, OnDestroy {
       const now = new Date().getTime() + this.timeOffset;
       const diff = matchTime - now;
 
-      if (this.match.fulltime_a !== null && this.match.fulltime_b !== null) {
+      if (this.match.status === 'finished' || this.match.status === 'FINISHED' || this.match.played) {
         this.countdownText = 'Match terminé';
         return;
       }
 
-      if (diff <= 0) {
+      if (this.match.status === 'live' || this.match.status === 'LIVE' || this.match.status === 'IN_PLAY' || diff <= 0) {
         this.countdownText = 'Match commencé';
         return;
       }
