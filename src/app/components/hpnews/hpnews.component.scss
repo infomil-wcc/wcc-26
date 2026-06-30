@@ -11,12 +11,12 @@
   box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
   backdrop-filter: blur(0.2px);
   border: 1px solid rgba(255, 255, 255, 0.23);
-  min-height: 45%;
-  height: auto;
+  height: 45%;
+  min-height: 400px;
 
   &.newsRotator {
-    min-height: 60%;
-    height: auto;
+    height: 60%;
+    min-height: 480px;
   }
 
   h2 {
@@ -98,8 +98,8 @@
 
   .newsPane,
   .newsPane.newsRotator {
-    min-height: 80%;
-    height: auto;
+    height: 80%;
+    min-height: 550px;
 
     // .picture {
     //   height: 85%;

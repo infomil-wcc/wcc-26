@@ -89,7 +89,7 @@ export class PronostiquesComponent implements OnInit {
           // --- FILTER BY STATUS ---
           if (isDraft(match)) return false;
 
-          const isFinished = match.fulltime_a !== null && match.fulltime_b !== null;
+          const isFinished = match.status === 'FINISHED' || match.status === 'finished' || match.played === true;
           const matchDate = new Date(match.date);
           const hasStarted = now >= matchDate;
 
@@ -121,24 +121,24 @@ export class PronostiquesComponent implements OnInit {
         Promise.resolve().then(() => {
           const now = new Date(today.dateTime.slice(0, -6));
           this.liveCount = matches.filter(m => {
-            const isFinished = m.fulltime_a !== null && m.fulltime_b !== null;
+            const isFinished = m.status === 'FINISHED' || m.status === 'finished' || m.played === true;
             const matchDate = new Date(m.date);
             const hasStarted = now >= matchDate;
             return hasStarted && !isFinished;
           }).length;
           this.upcomingCount = matches.filter(m => {
-            const isFinished = m.fulltime_a !== null && m.fulltime_b !== null;
+            const isFinished = m.status === 'FINISHED' || m.status === 'finished' || m.played === true;
             const matchDate = new Date(m.date);
             const hasStarted = now >= matchDate;
             return !hasStarted && !isFinished;
           }).length;
-          this.playedCount = matches.filter(m => m.fulltime_a !== null && m.fulltime_b !== null).length;
+          this.playedCount = matches.filter(m => m.status === 'FINISHED' || m.status === 'finished' || m.played === true).length;
 
           const todayKey = today.dateTime.split('T')[0];
           const todayMatches = matches.filter(m => m.date.split(' ')[0] === todayKey);
           this.todayTotalCount = todayMatches.length;
-          this.todayPlayedCount = todayMatches.filter(m => m.fulltime_a !== null && m.fulltime_b !== null).length;
-          this.todayMatchCount = todayMatches.filter(m => m.fulltime_a === null).length;
+          this.todayPlayedCount = todayMatches.filter(m => m.status === 'FINISHED' || m.status === 'finished' || m.played === true).length;
+          this.todayMatchCount = todayMatches.filter(m => m.status !== 'FINISHED' && m.status !== 'finished' && m.played !== true).length;
 
           const unplayedToday = todayMatches.filter(m => m.fulltime_a === null);
           if (unplayedToday.length > 0 && this.isLoggedIn) {
@@ -167,7 +167,7 @@ export class PronostiquesComponent implements OnInit {
           if (isDraft(match)) return false;
 
           // 2. Filter by Active Tab
-          const isFinished = match.fulltime_a !== null && match.fulltime_b !== null;
+          const isFinished = match.status === 'FINISHED' || match.status === 'finished' || match.played === true;
           const matchDate = new Date(match.date);
           const hasStarted = now >= matchDate;
 
@@ -246,15 +246,15 @@ export class PronostiquesComponent implements OnInit {
   }
 
   hasUpcoming(matches: Matches[]): boolean {
-    return matches.some(m => m.fulltime_a === null && m.fulltime_b === null);
+    return matches.some(m => m.status !== 'FINISHED' && m.status !== 'finished' && m.played !== true);
   }
 
   hasPlayed(matches: Matches[]): boolean {
-    return matches.some(m => m.fulltime_a !== null && m.fulltime_b !== null);
+    return matches.some(m => m.status === 'FINISHED' || m.status === 'finished' || m.played === true);
   }
 
   unpredictedCount(matches: Matches[]): number {
-    return matches.filter(m => m.fulltime_a === null && m.fulltime_b === null).length;
+    return matches.filter(m => m.status !== 'FINISHED' && m.status !== 'finished' && m.played !== true).length;
   }
 
   getDates(groupedMatches: { [key: string]: Matches[] }): string[] {
@@ -264,7 +264,7 @@ export class PronostiquesComponent implements OnInit {
   isLive(match: Matches, currentMuTimeStr: string): boolean {
     const now = new Date(currentMuTimeStr.slice(0, -6));
     const matchDate = new Date(match.date);
-    const isFinished = (match.fulltime_a !== null && match.fulltime_b !== null) || match.fulltime === true;
+    const isFinished = match.status === 'FINISHED' || match.status === 'finished' || match.played === true;
     const timeDiffMs = now.getTime() - matchDate.getTime();
     const timeDiffMins = timeDiffMs / (1000 * 60);
     return timeDiffMins >= 0 && timeDiffMins < 150 && !isFinished;
@@ -272,7 +272,7 @@ export class PronostiquesComponent implements OnInit {
 
   getSortedPlayedMatchesForDate(matches: Matches[]): Matches[] {
     return (matches || [])
-      .filter(m => m.fulltime_a !== null && m.fulltime_b !== null)
+      .filter(m => m.status === 'FINISHED' || m.status === 'finished' || m.played === true)
       .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
   }
 
@@ -283,7 +283,7 @@ export class PronostiquesComponent implements OnInit {
   }
 
   getPlayedCountForDate(matches: Matches[]): number {
-    return matches.filter(m => m.fulltime_a !== null && m.fulltime_b !== null).length;
+    return matches.filter(m => m.status === 'FINISHED' || m.status === 'finished' || m.played === true).length;
   }
 
   compareDates(date1: string, date2: string): boolean {
@@ -292,7 +292,7 @@ export class PronostiquesComponent implements OnInit {
 
   getUpcomingPhases(groupedMatches: { [key: string]: Matches[] }): typeof PHASE_CONFIG {
     const allUpcoming = Object.values(groupedMatches).flat()
-      .filter(m => m.fulltime_a === null && m.fulltime_b === null);
+      .filter(m => m.status !== 'FINISHED' && m.status !== 'finished' && m.played !== true);
     const presentKeys = new Set(allUpcoming.map(m => m.phase));
     return PHASE_CONFIG.filter(p => presentKeys.has(p.key));
   }
@@ -305,7 +305,7 @@ export class PronostiquesComponent implements OnInit {
     const dates = this.getDates(groupedMatches);
     for (const date of dates) {
       const filtered = (groupedMatches[date] || [])
-        .filter(m => m.phase === phaseKey && m.fulltime_a === null && m.fulltime_b === null);
+        .filter(m => m.phase === phaseKey && m.status !== 'FINISHED' && m.status !== 'finished' && m.played !== true);
       if (filtered.length > 0) {
         // Sort matches by time in ascending order (earliest first)
         filtered.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
