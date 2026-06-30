@@ -176,9 +176,18 @@
 .pronostiquesMain {
   // Matches height of the global app header + our unified header bar + calendar strip
   padding-top: 170px;
+  transition: padding-top 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+
+  &.calendar-collapsed {
+    padding-top: 100px;
+  }
 
   @media screen and (max-width: 640px) {
     padding-top: 220px;
+    
+    &.calendar-collapsed {
+      padding-top: 150px;
+    }
   }
 }
 

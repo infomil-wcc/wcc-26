@@ -12,7 +12,7 @@
   flex-direction: column;
   max-width: 440px;
   position: relative;
-  margin-bottom: 1.5rem;
+  margin-bottom: 0.75rem;
 
   &:hover {
     transform: translateY(-4px);
@@ -276,7 +276,7 @@
 
   // Body Segment
   .match-body {
-    padding: 0.6rem 0.8rem;
+    padding: 0.4rem 0.8rem;
     background: transparent;
     flex-grow: 1;
     box-sizing: border-box;
@@ -289,13 +289,14 @@
     }
 
     .venue {
-      font-size: 0.75rem;
+      font-size: 0.72rem;
       color: #718096;
       font-weight: 600;
     }
 
     .venue-countdown-row {
       width: 100%;
+      margin-bottom: 0.25rem !important;
     }
 
     .countdown-timer {
@@ -519,8 +520,8 @@
     background: #f8fafc;
     border: 1px solid #e2e8f0;
     border-radius: 12px;
-    padding: 8px 12px;
-    margin-top: 6px;
+    padding: 4px 10px;
+    margin-top: 3px;
     display: flex;
     flex-direction: column;
     gap: 0px;
@@ -531,7 +532,7 @@
       grid-template-columns: 95px 1fr;
       align-items: center;
       gap: 6px;
-      padding: 2px 0;
+      padding: 1px 0;
 
       &.has-both {
         grid-template-columns: 95px 1fr 1fr;

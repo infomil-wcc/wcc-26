@@ -51,12 +51,12 @@
     </div>
   </div>
 
-  <app-calendar-strip [matchDates]="$matchDates | async" [filterDate]="filterDate" (dateChange)="selectDate($event)">
+  <app-calendar-strip [matchDates]="$matchDates | async" [filterDate]="filterDate" (dateChange)="selectDate($event)" (collapseChange)="isCalendarCollapsed = $event">
   </app-calendar-strip>
 </div>
 
 
-<div class="container pronostiquesMain">
+<div class="container pronostiquesMain" [class.calendar-collapsed]="isCalendarCollapsed">
 
   @let today = $today | async;
   @let groupedMatches = $groupedMatches | async;

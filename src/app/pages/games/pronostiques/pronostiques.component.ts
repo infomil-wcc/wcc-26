@@ -55,6 +55,8 @@ export class PronostiquesComponent implements OnInit {
   protected todayPlayedCount: number = 0;
   protected todayPredictedCount: number = 0;
 
+  protected isCalendarCollapsed: boolean = false;
+
   protected showLockPopup: boolean = false;
   showSuccessToast: boolean = false;
   protected  lockedMatchName: string = '';
