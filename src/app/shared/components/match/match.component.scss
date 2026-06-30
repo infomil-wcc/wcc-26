@@ -528,13 +528,13 @@
     .grid-header-row,
     .grid-team-row {
       display: grid;
-      grid-template-columns: 80px 1fr;
+      grid-template-columns: 95px 1fr;
       align-items: center;
       gap: 6px;
       padding: 2px 0;
 
       &.has-both {
-        grid-template-columns: 80px 1fr 1fr;
+        grid-template-columns: 95px 1fr 1fr;
       }
     }
 
@@ -550,6 +550,14 @@
         font-weight: 800;
         color: #718096;
         text-align: center;
+      }
+
+      &.has-both {
+        .score-col-header:nth-child(3) {
+          border-left: 1.5px solid #cbd5e1;
+          padding-left: 10px;
+          margin-left: -5px;
+        }
       }
     }
 
@@ -580,6 +588,62 @@
         display: flex;
         justify-content: center;
         align-items: center;
+      }
+
+      &.has-both {
+        .score-col:nth-child(3) {
+          border-left: 1.5px solid #cbd5e1;
+          padding-left: 10px;
+          margin-left: -5px;
+        }
+      }
+    }
+
+    @media screen and (max-width: 400px) {
+      padding: 6px 8px;
+
+      .grid-header-row,
+      .grid-team-row {
+        grid-template-columns: 78px 1fr;
+        gap: 4px;
+
+        &.has-both {
+          grid-template-columns: 78px 1fr 1fr;
+        }
+      }
+
+      .team-col {
+        .team-abbr {
+          font-size: 0.75rem;
+        }
+        .flag-mini {
+          width: 18px;
+          height: 12px;
+          margin-right: 4px !important;
+        }
+        .custom-radio-container {
+          margin-right: 4px !important;
+        }
+      }
+
+      ::ng-deep {
+        .btnNumber {
+          width: 1.45rem !important;
+          height: 1.45rem !important;
+          span {
+            font-size: 0.8rem !important;
+          }
+        }
+        .inputNumber {
+          width: 30px !important;
+          margin-left: 2px !important;
+          margin-right: 2px !important;
+          input {
+            font-size: 0.95rem !important;
+            padding: 0.15rem 0 !important;
+            border-radius: 6px !important;
+          }
+        }
       }
     }
   }

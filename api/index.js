@@ -311,6 +311,9 @@ const proxyDirectus = async (request, response) => {
     // Manage cache control intelligently for proxy endpoints
     if (relativePath.startsWith('/assets') || relativePath.startsWith('/files')) {
         setCacheControl(request, response, 86400, 86400, true);
+    } else if (relativePath.startsWith('/items/pronostiques') && request.headers.authorization) {
+        // Authenticated pronostiques requests must never be cached — they are user-specific
+        setCacheControl(request, response, 0, 0, false);
     } else {
         // Items endpoints or others - only cached if no auth token is passed from frontend
         setCacheControl(request, response, 60, 120, false);

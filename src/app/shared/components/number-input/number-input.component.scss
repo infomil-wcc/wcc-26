@@ -13,18 +13,18 @@ input[type=number] {
 }
 
 .inputNumber {
-  width: 48px;
+  width: 38px;
   
   input {
     width: 100%;
     text-align: center;
-    font-size: 1.35rem;
+    font-size: 1.15rem;
     font-weight: 700;
     color: #0f172a;
     border: 1.5px solid #cbd5e0;
-    border-radius: 10px;
+    border-radius: 8px;
     background: #ffffff;
-    padding: 0.35rem 0;
+    padding: 0.25rem 0;
     outline: none;
     transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     box-sizing: border-box;
@@ -49,8 +49,8 @@ input[type=number] {
 .btnNumber {
   background: rgba($primaryColor, 0.08);
   color: $primaryColor;
-  width: 2.15rem;
-  height: 2.15rem;
+  width: 1.75rem;
+  height: 1.75rem;
   border-radius: 50%;
   border: 1px solid rgba($primaryColor, 0.15);
   padding: 0;
@@ -62,7 +62,7 @@ input[type=number] {
   transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 
   span {
-    font-size: 1.25rem;
+    font-size: 1rem;
     margin: 0;
     font-weight: 700;
   }

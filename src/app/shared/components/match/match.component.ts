@@ -75,6 +75,9 @@ export class MatchComponent implements OnInit, OnDestroy {
   protected fallbackPlayersList: any[] = [];
   protected loadingLineups: boolean = false;
   private refreshSub!: Subscription;
+  private savedSub!: Subscription;
+  /** Prevents stale API cache from overwriting a freshly-saved prediction */
+  private justSaved: boolean = false;
 
 
   ngOnInit(): void {
@@ -101,9 +104,44 @@ export class MatchComponent implements OnInit, OnDestroy {
     }
 
     this.refreshSub = this.predictionService.refresh$.subscribe(() => {
+      // Skip re-fetch if we just saved — the API cache may still return stale data
+      if (this.justSaved) return;
       if (this.isPronostiques && this.userId !== 0) {
         this.verfierMonPronostique();
       }
+    });
+
+    // Reactively apply saved prediction data without an API round-trip
+    this.savedSub = this.predictionService.savedPredictions$.subscribe((savedMap) => {
+      const saved = savedMap.get(this.match.id);
+      if (!saved) return;
+
+      // Block stale cache from overwriting this for 5 seconds
+      this.justSaved = true;
+      if ((this as any)._justSavedTimer) clearTimeout((this as any)._justSavedTimer);
+      (this as any)._justSavedTimer = setTimeout(() => { this.justSaved = false; }, 5000);
+
+      this.pronostiqueDone = true;
+      this.isSavedInApi = true;
+      this.isEditing = false;
+      this.donePronostique = { ...saved };
+      this.matchOutcome = saved.winner_draw ?? '';
+      this.fullTimeA = (saved.fulltime_a !== null && saved.fulltime_a !== undefined && saved.fulltime_a !== '') ? parseInt(saved.fulltime_a, 10) : null;
+      this.fullTimeB = (saved.fulltime_b !== null && saved.fulltime_b !== undefined && saved.fulltime_b !== '') ? parseInt(saved.fulltime_b, 10) : null;
+      this.halfTimeA = (saved.halftime_a !== null && saved.halftime_a !== undefined && saved.halftime_a !== '') ? parseInt(saved.halftime_a, 10) : null;
+      this.halfTimeB = (saved.halftime_b !== null && saved.halftime_b !== undefined && saved.halftime_b !== '') ? parseInt(saved.halftime_b, 10) : null;
+      this.scorer = saved.scorer ?? '';
+
+      if (this.match.phase !== 'Group Stage' && this.fullTimeA !== null && this.fullTimeA === this.fullTimeB) {
+        this.matchOutcome = 'Draw';
+        this.penaltyWinner = saved.winner_draw;
+      } else {
+        this.penaltyWinner = null;
+      }
+
+      // Force Angular to re-render synchronously in the current microtask
+      this.cdr.markForCheck();
+      this.cdr.detectChanges();
     });
 
     let matchDate = new Date(this.match.date)
@@ -150,13 +188,16 @@ export class MatchComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    if (this.countdownIntervalId) {
-      clearInterval(this.countdownIntervalId);
+      if (this.countdownIntervalId) {
+        clearInterval(this.countdownIntervalId);
+      }
+      if (this.refreshSub) {
+        this.refreshSub.unsubscribe();
+      }
+      if (this.savedSub) {
+        this.savedSub.unsubscribe();
+      }
     }
-    if (this.refreshSub) {
-      this.refreshSub.unsubscribe();
-    }
-  }
 
   subtractHours(date: Date): Date {
     const newDate = new Date(date);
@@ -361,6 +402,9 @@ export class MatchComponent implements OnInit, OnDestroy {
   }
 
   verfierMonPronostique(): void {
+    // If we just saved a prediction, don't re-fetch yet — the API proxy cache
+    // (60s TTL) would return stale data and overwrite the correct UI state.
+    if (this.justSaved) return;
 
     this.predictionService.getMyPredictions(this.match.id).subscribe({
       next: (response) => {

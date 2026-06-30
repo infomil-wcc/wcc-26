@@ -42,6 +42,7 @@ export class PronostiquesComponent implements OnInit {
   private cdr = inject(ChangeDetectorRef);
 
   protected isLoggedIn: boolean = false;
+  protected isAuthChecked: boolean = false;
   protected $today!: Observable<any>;
   protected activeTab: 'live' | 'upcoming' | 'played' = 'upcoming';
   protected draftsCount: number = 0;
@@ -234,6 +235,7 @@ export class PronostiquesComponent implements OnInit {
     this.stateService.userState.subscribe({
       next: (res) => {
         this.isLoggedIn = !!res.id;
+        this.isAuthChecked = true;
       }
     });
 
@@ -434,9 +436,18 @@ export class PronostiquesComponent implements OnInit {
       const kickoffTime = correspondingMatch ? correspondingMatch.date : new Date().toISOString();
 
       return this.predictionService.sendPrediction(draft, kickoffTime).pipe(
+        tap((savedResponse: any) => {
+          // Feed the freshly saved data into the service so match cards can reactively update
+          if (savedResponse?.data) {
+            this.predictionService.markAsSaved(draft.game_id, savedResponse.data);
+          } else {
+            // Fallback: mark with the draft data enriched with any returned id
+            const enriched = { ...draft, ...(savedResponse ?? {}) };
+            this.predictionService.markAsSaved(draft.game_id, enriched);
+          }
+        }),
         catchError(err => {
           if (err.message === 'MATCH_ALREADY_STARTED' && correspondingMatch) {
-            // Collect team names contextually
             const teamA = correspondingMatch.team_a || 'Équipe A';
             const teamB = correspondingMatch.team_b || 'Équipe B';
             invalidMatches.push(`${teamA} - ${teamB}`);
@@ -452,21 +463,23 @@ export class PronostiquesComponent implements OnInit {
         this.isSubmittingBulk = false;
 
         if (invalidMatches.length > 0) {
-          // Set context and trigger your beautiful design popup modal
           this.lockedMatchName = invalidMatches.join(', ');
           this.showLockPopup = true;
           this.cdr.detectChanges();
         } else {
           this.showSuccessToast = true;
           this.cdr.detectChanges();
+          // Auto-hide the success toast after 2s
+          setTimeout(() => {
+            this.showSuccessToast = false;
+            this.cdr.detectChanges();
+          }, 2000);
         }
 
+        // Clear drafts FIRST so verfierMonPronostique sees no draft and enters the locked branch
         this.predictionService.clearDrafts();
-        
-        // Fallback: Full page refresh to ensure all UI elements and states are perfectly synchronized
-        setTimeout(() => {
-          window.location.reload();
-        }, 1500);
+        // Then broadcast refresh so every MatchComponent re-fetches from API
+        this.predictionService.triggerRefresh();
       },
       error: (err) => {
         console.error('Error during bulk submit:', err);
@@ -477,6 +490,7 @@ export class PronostiquesComponent implements OnInit {
 
   cancelAllDrafts(): void {
     this.predictionService.clearDrafts();
+    this.predictionService.clearSavedPredictions();
     this.predictionService.triggerRefresh();
   }
 

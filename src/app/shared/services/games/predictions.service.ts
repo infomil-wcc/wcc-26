@@ -18,11 +18,32 @@ export class PredictionsService {
   private draftsSubject = new BehaviorSubject<any[]>([]);
   drafts$ = this.draftsSubject.asObservable();
 
+  // Map of game_id -> freshly saved prediction data, broadcast after a successful save
+  private savedPredictionsSubject = new BehaviorSubject<Map<string, any>>(new Map());
+  savedPredictions$ = this.savedPredictionsSubject.asObservable();
+
   private refreshSubject = new Subject<void>();
   refresh$ = this.refreshSubject.asObservable();
 
   triggerRefresh(): void {
     this.refreshSubject.next();
+  }
+
+  /** Called after a successful API save with the saved prediction object returned by Directus */
+  markAsSaved(gameId: string, savedData: any): void {
+    const current = this.savedPredictionsSubject.getValue();
+    current.set(gameId, savedData);
+    this.savedPredictionsSubject.next(new Map(current));
+  }
+
+  /** Retrieve the last saved prediction for a given game */
+  getSavedPrediction(gameId: string): any | null {
+    return this.savedPredictionsSubject.getValue().get(gameId) ?? null;
+  }
+
+  /** Clear the saved predictions map (e.g. on logout or page reset) */
+  clearSavedPredictions(): void {
+    this.savedPredictionsSubject.next(new Map());
   }
 
   addDraft(prediction: any): void {

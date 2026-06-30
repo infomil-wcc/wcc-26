@@ -331,6 +331,8 @@
     <loader [showLoader]="true" />
   }
 </div>
+} @else if (!isAuthChecked) {
+  <loader [showLoader]="true" />
 } @else {
   <modal [showModal]="!isLoggedIn" [showCloseButton]="false">
     <app-login />
