@@ -29,5 +29,6 @@ export interface Matches {
     fulltime: boolean | null;
     halftime: boolean | null;
     scorer: boolean | null;
+    penalty_shootout: boolean | null;
     winner_draw: string | null;
 }
