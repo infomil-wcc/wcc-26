@@ -204,13 +204,13 @@
             @if (match.halftime) {
             <div class="score-col" [ngClass]="{'disabled': this.userTrigramme ===''}">
               <app-number-input [(num)]="halfTimeA" (numChange)="onHalftimeScoreChanged()"
-                [disabled]="isSavedInApi "></app-number-input>
+                [disabled]="!canEditScores"></app-number-input>
             </div>
             }
             @if (match.fulltime) {
             <div class="score-col" [ngClass]="{'disabled': this.userTrigramme ===''}">
               <app-number-input [(num)]="fullTimeA" (numChange)="onScoreChanged()"
-                [disabled]="isSavedInApi"></app-number-input>
+                [disabled]="!canEditScores"></app-number-input>
             </div>
             }
           </div>
@@ -232,13 +232,13 @@
             @if (match.halftime) {
             <div class="score-col" [ngClass]="{'disabled': this.userTrigramme ===''}">
               <app-number-input [(num)]="halfTimeB" (numChange)="onHalftimeScoreChanged()"
-                [disabled]="isSavedInApi"></app-number-input>
+                [disabled]="!canEditScores"></app-number-input>
             </div>
             }
             @if (match.fulltime) {
             <div class="score-col" [ngClass]="{'disabled': this.userTrigramme ===''}">
               <app-number-input [(num)]="fullTimeB" (numChange)="onScoreChanged()"
-                [disabled]="isSavedInApi"></app-number-input>
+                [disabled]="!canEditScores"></app-number-input>
             </div>
             }
           </div>

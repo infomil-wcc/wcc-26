@@ -281,7 +281,14 @@ const handleMatchPredictionValidation = async (request, response) => {
             });
         }
 
-        // 3. If validation passes, hand over execution context to the standard Directus proxy handler
+        // 3. Strip game_id from PATCH/PUT requests to prevent Directus field-level permission errors
+        if (request.method === 'PATCH' || request.method === 'PUT') {
+            delete body.game_id;
+            delete body.user;
+            request.body = body; // Update the request body so proxyDirectus uses the stripped payload
+        }
+
+        // 4. If validation passes, hand over execution context to the standard Directus proxy handler
         return proxyDirectus(request, response);
 
     } catch (error) {

@@ -363,7 +363,8 @@ export class PronostiquesComponent implements OnInit {
       // Find drafts that require penalty winner
       this.pendingDraftsForPenalty = drafts.map(draft => {
         const match = allMatches.find((m: any) => m.id === draft.game_id);
-        if (match && match.phase !== 'Group Stage' && draft.winner_draw === 'Draw') {
+        const isTie = draft.fulltime_a !== null && draft.fulltime_b !== null && draft.fulltime_a === draft.fulltime_b;
+        if (match && match.phase !== 'Group Stage' && isTie && (!draft.winner_draw || draft.winner_draw.trim() === '' || draft.winner_draw === 'Draw')) {
           const item = { draft, match, selectedWinner: null, teamAFlag: 'assets/flags/unknown.png', teamBFlag: 'assets/flags/unknown.png' };
           
           this.teamService.getTeamByName(match.team_a).pipe(take(1)).subscribe(res => {
