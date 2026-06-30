@@ -33,6 +33,7 @@ export class MatchComponent implements OnInit, OnDestroy {
   @Input() match!: Matches;
   @Input() isPronostiques: boolean = false;
   @Input() disabled: boolean = false;
+  penaltyWinner: string | null = null;
   @Input() dateTime!: string;
   @Input() hasPlayed!: boolean;
   @Input() hidePointsBadge: boolean = false; // Flag to overlay fraud notice rather than point pill layout
@@ -247,12 +248,18 @@ export class MatchComponent implements OnInit, OnDestroy {
   }
 
   get canEditPrediction(): boolean {
-
-    // Si c'est une fraude détectée à la volée, on bloque immédiatement toute modification
     if (this.hidePointsBadge) {
       return false;
     }
     return !this.disabled && !this.isSubmitting && (!this.closed || this.isEditing) && !this.match.fulltime &&
+      (!this.isSavedInApi || this.isEditing) && !this.hidePointsBadge;
+  }
+
+  get canEditScores(): boolean {
+    if (this.hidePointsBadge) {
+      return false;
+    }
+    return !this.disabled && !this.isSubmitting && (!this.closed || this.isEditing) &&
       (!this.isSavedInApi || this.isEditing) && !this.hidePointsBadge;
   }
 
@@ -279,6 +286,17 @@ export class MatchComponent implements OnInit, OnDestroy {
       return;
     }
     this.matchOutcome = outcome;
+    if (outcome !== 'Draw') {
+      this.penaltyWinner = null;
+    }
+    this.sendBet();
+  }
+
+  selectPenaltyWinner(team: string): void {
+    if (!this.canEditScores) {
+      return;
+    }
+    this.penaltyWinner = team;
     this.sendBet();
   }
 
@@ -287,6 +305,10 @@ export class MatchComponent implements OnInit, OnDestroy {
 
     if (this.calcWinDrawOutcome) {
       currentOutcome = this.calculateWinDraw(this.match.team_a, this.match.team_b, this.fullTimeA, this.fullTimeB);
+    } else {
+      if (currentOutcome === 'Draw' && this.match.phase !== 'Group Stage' && this.penaltyWinner) {
+        currentOutcome = this.penaltyWinner;
+      }
     }
 
     let prediction: any = {
@@ -325,7 +347,13 @@ export class MatchComponent implements OnInit, OnDestroy {
     let outcome: string;
 
     (scoreA > scoreB) ? outcome = teamA : outcome = teamB;
-    (scoreA === scoreB) ? outcome = 'Draw' : '';
+    if (scoreA === scoreB) {
+      if (this.match.phase !== 'Group Stage' && this.penaltyWinner) {
+        outcome = this.penaltyWinner;
+      } else {
+        outcome = 'Draw';
+      }
+    }
 
     return outcome;
   }
@@ -375,6 +403,11 @@ export class MatchComponent implements OnInit, OnDestroy {
           this.matchOutcome = draft.winner_draw;
           this.fullTimeA = (draft.fulltime_a !== null && draft.fulltime_a !== undefined && draft.fulltime_a !== '') ? parseInt(draft.fulltime_a, 10) : null;
           this.fullTimeB = (draft.fulltime_b !== null && draft.fulltime_b !== undefined && draft.fulltime_b !== '') ? parseInt(draft.fulltime_b, 10) : null;
+          
+          if (this.match.phase !== 'Group Stage' && this.fullTimeA !== null && this.fullTimeA === this.fullTimeB) {
+            this.penaltyWinner = draft.winner_draw;
+          }
+
           this.halfTimeA = (draft.halftime_a !== null && draft.halftime_a !== undefined && draft.halftime_a !== '') ? parseInt(draft.halftime_a, 10) : null;
           this.halfTimeB = (draft.halftime_b !== null && draft.halftime_b !== undefined && draft.halftime_b !== '') ? parseInt(draft.halftime_b, 10) : null;
           this.scorer = draft.scorer || '';
@@ -395,6 +428,11 @@ export class MatchComponent implements OnInit, OnDestroy {
           this.matchOutcome = response[0].winner_draw;
           this.fullTimeA = (response[0].fulltime_a !== null && response[0].fulltime_a !== undefined && response[0].fulltime_a !== '') ? parseInt(response[0].fulltime_a, 10) : null;
           this.fullTimeB = (response[0].fulltime_b !== null && response[0].fulltime_b !== undefined && response[0].fulltime_b !== '') ? parseInt(response[0].fulltime_b, 10) : null;
+          
+          if (this.match.phase !== 'Group Stage' && this.fullTimeA !== null && this.fullTimeA === this.fullTimeB) {
+            this.penaltyWinner = response[0].winner_draw;
+          }
+
           this.halfTimeA = (response[0].halftime_a !== null && response[0].halftime_a !== undefined && response[0].halftime_a !== '') ? parseInt(response[0].halftime_a, 10) : null;
           this.halfTimeB = (response[0].halftime_b !== null && response[0].halftime_b !== undefined && response[0].halftime_b !== '') ? parseInt(response[0].halftime_b, 10) : null;
           this.scorer = response[0].scorer || '';

@@ -127,7 +127,15 @@ export async function syncMatchesPipeline(dbMatches, { directusUrl, adminToken, 
         if (dbScoreA !== null && dbScoreB !== null) {
             if (dbScoreA > dbScoreB) winner_draw = dbMatch.team_a;
             else if (dbScoreA < dbScoreB) winner_draw = dbMatch.team_b;
-            else winner_draw = 'Draw';
+            else {
+                if (dbPenaltyA !== null && dbPenaltyB !== null) {
+                    if (dbPenaltyA > dbPenaltyB) winner_draw = dbMatch.team_a;
+                    else if (dbPenaltyA < dbPenaltyB) winner_draw = dbMatch.team_b;
+                    else winner_draw = 'Draw';
+                } else {
+                    winner_draw = 'Draw';
+                }
+            }
         }
 
         const payload = {

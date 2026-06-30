@@ -188,7 +188,16 @@
           </div>
 
           <div class="grid-team-row" [class.has-both]="match.fulltime && match.halftime">
-            <div class="team-col">
+            <div class="team-col flex align-items-center">
+              @if ((matchOutcome === 'Draw' || (fullTimeA !== null && fullTimeA === fullTimeB)) && match.phase !== 'Group Stage') {
+                <label class="custom-radio-container mr-2" title="Vainqueur aux tirs au but">
+                  <input type="radio" [name]="'penalty_' + match.id" class="custom-radio"
+                    [checked]="penaltyWinner === match.team_a"
+                    (change)="selectPenaltyWinner(match.team_a)"
+                    [disabled]="!canEditScores" />
+                  <span class="radio-checkmark"></span>
+                </label>
+              }
               <span class="flag-mini mr-2" [ngStyle]="{'background-image': 'url(' + teamAFlag + ')'}"></span>
               <span class="team-abbr">{{ match.team_a | slice:0:3 | uppercase }}</span>
             </div>
@@ -207,7 +216,16 @@
           </div>
 
           <div class="grid-team-row" [class.has-both]="match.fulltime && match.halftime">
-            <div class="team-col">
+            <div class="team-col flex align-items-center">
+              @if ((matchOutcome === 'Draw' || (fullTimeA !== null && fullTimeA === fullTimeB)) && match.phase !== 'Group Stage') {
+                <label class="custom-radio-container mr-2" title="Vainqueur aux tirs au but">
+                  <input type="radio" [name]="'penalty_' + match.id" class="custom-radio"
+                    [checked]="penaltyWinner === match.team_b"
+                    (change)="selectPenaltyWinner(match.team_b)"
+                    [disabled]="!canEditScores" />
+                  <span class="radio-checkmark"></span>
+                </label>
+              }
               <span class="flag-mini mr-2" [ngStyle]="{'background-image': 'url(' + teamBFlag + ')'}"></span>
               <span class="team-abbr">{{ match.team_b | slice:0:3 | uppercase }}</span>
             </div>
