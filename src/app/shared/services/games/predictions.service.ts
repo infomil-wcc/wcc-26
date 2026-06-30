@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpHeaders, HttpClient } from '@angular/common/http';
-import { Observable, BehaviorSubject, map, throwError, tap, switchMap } from 'rxjs';
+import { Observable, BehaviorSubject, Subject, map, throwError, tap, switchMap } from 'rxjs';
 import { CookieService } from '../core/cookie.service';
 import { Pronostiques } from '../../contracts/pronostiques.contract';
 import { PredictionsApiService } from '../api/predictions-api.service';
@@ -16,6 +16,13 @@ export class PredictionsService {
 
   private draftsSubject = new BehaviorSubject<any[]>([]);
   drafts$ = this.draftsSubject.asObservable();
+
+  private refreshSubject = new Subject<void>();
+  refresh$ = this.refreshSubject.asObservable();
+
+  triggerRefresh(): void {
+    this.refreshSubject.next();
+  }
 
   addDraft(prediction: any): void {
     const current = this.draftsSubject.getValue();

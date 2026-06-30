@@ -390,7 +390,7 @@ export class PronostiquesComponent implements OnInit {
         } else {
           // Clear drafts and reload clean if everything was perfectly successful
           this.predictionService.clearDrafts();
-          location.reload();
+          this.predictionService.triggerRefresh();
         }
       },
       error: (err) => {
@@ -402,7 +402,7 @@ export class PronostiquesComponent implements OnInit {
 
   cancelAllDrafts(): void {
     this.predictionService.clearDrafts();
-    location.reload();
+    this.predictionService.triggerRefresh();
   }
 
   getNextDate(dates: string[]): string | null {

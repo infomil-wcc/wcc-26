@@ -1,6 +1,6 @@
 import { Component, EventEmitter, Input, OnInit, OnDestroy, Output, inject, ChangeDetectionStrategy } from '@angular/core';
 import { Matches } from '../../contracts/matches.contract';
-import { max, Observable } from 'rxjs';
+import { max, Observable, Subscription } from 'rxjs';
 import { TeamsService } from '../../services/content/teams.service';
 import { StateService } from '../../services/core/state.service';
 import { PredictionsService } from '../../services/games/predictions.service';
@@ -72,6 +72,7 @@ export class MatchComponent implements OnInit, OnDestroy {
   protected lineupsData: any = null;
   protected fallbackPlayersList: any[] = [];
   protected loadingLineups: boolean = false;
+  private refreshSub!: Subscription;
 
 
   ngOnInit(): void {
@@ -96,6 +97,12 @@ export class MatchComponent implements OnInit, OnDestroy {
     if (this.isPronostiques && this.userId !== 0) {
       this.verfierMonPronostique();
     }
+
+    this.refreshSub = this.predictionService.refresh$.subscribe(() => {
+      if (this.isPronostiques && this.userId !== 0) {
+        this.verfierMonPronostique();
+      }
+    });
 
     let matchDate = new Date(this.match.date)
     this.limitDate = this.subtractHours(matchDate);
@@ -143,6 +150,9 @@ export class MatchComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     if (this.countdownIntervalId) {
       clearInterval(this.countdownIntervalId);
+    }
+    if (this.refreshSub) {
+      this.refreshSub.unsubscribe();
     }
   }
 
