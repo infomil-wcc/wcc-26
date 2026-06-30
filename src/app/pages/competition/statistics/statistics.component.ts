@@ -42,6 +42,9 @@ export class StatisticsComponent {
     fulltime: true,
     halftime: true,
     scorer: true,
+    penalty_a: null,
+    penalty_b: null,
+    penalty_shootout: null,
     winner_draw: null
   }
 

@@ -20,6 +20,8 @@ export interface Matches {
     halftime_b: number | null;
     fulltime_a: number | null;
     fulltime_b: number | null;
+    penalty_a: number | null;
+    penalty_b: number | null;
     scorers: string | null;
     winner_point: number | null;
     fulltime_point: number | null;
