@@ -1,3 +1,8 @@
+// Apply black color to the headings inside this component
+h1, h4 {
+  color: #000000; 
+}
+
 .teams {
   padding: 0 0.5rem;
 }
@@ -16,7 +21,9 @@
 }
 
 .btnTeams {
-
+// Ensures the button text inherits or uses black
+  color: #000000;
+  
   &:hover .teamBadge {
     transform: scale(1.1);
     transition: all 0.3s;
