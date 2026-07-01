@@ -163,7 +163,7 @@ export async function syncMatchesPipeline(dbMatches, { directusUrl, adminToken, 
         }
 
         let directusResponseOk = true;
-        if (hasMatchChanged(dbMatch, payload)) {
+        if (hasMatchChanged(dbMatch, payload) || !dbMatch.status_updated || new Date(dbMatch.status_updated).getTime() < dbUtcTime) {
             const directusResponse = await fetch(`${directusUrl}/items/matches/${dbMatch.id}`, {
                 method: 'PATCH',
                 headers,

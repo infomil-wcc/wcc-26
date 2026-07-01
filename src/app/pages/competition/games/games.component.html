@@ -1,13 +1,12 @@
 <div class="filter w-full pt-3 pb-3 pl-2 pr-2">
-  <div class="container">
-    <h1 class="text-white flex align-items-center gap-2 mb-3">
+  <div class="container flex flex-wrap justify-content-between align-items-center gap-3 mb-3">
+    <h1 class="text-white flex align-items-center gap-2 m-0" style="font-size: 1.1rem;">
       <span class="material-symbols-outlined">calendar_month</span>
       Calendrier des matchs
     </h1>
     
     <!-- Tab Controls & Calendar Filter -->
-    <div class="tabs-and-filter flex flex-wrap justify-content-between align-items-center gap-3 pb-1">
-      <div class="tabs-container flex gap-2 overflow-x-auto">
+    <div class="tabs-container flex gap-2 overflow-x-auto">
         <button 
           class="tab-btn flex align-items-center gap-2" 
           [class.active]="activeTab === 'live'"
@@ -34,29 +33,32 @@
           Tous
         </button>
       </div>
-
-    </div>
   </div>
 
   <!-- Scrollable Modern Date Strip -->
   <app-calendar-strip 
     [matchDates]="$matchDates | async" 
     [filterDate]="filterDate" 
-    (dateChange)="selectDate($event)">
+    (dateChange)="selectDate($event)"
+    (collapseChange)="isCalendarCollapsed = $event">
   </app-calendar-strip>
 </div>
 
-<div class="container pt-4">
+<div class="container pt-4 gamesMain" [class.calendar-collapsed]="isCalendarCollapsed">
   @if ($today | async; as today) {
     @if ($groupedMatches | async; as groupedMatches) {
       @if (getDates(groupedMatches).length > 0) {
         <div>
           @for (date of getDates(groupedMatches); track date) {
-            <h3 class="capitalize">{{ date | date: 'fullDate' }}</h3>
+            <h3 class="capitalize games-date-header text-white">{{ date | date: 'fullDate' }}</h3>
             <div class="flex flex-wrap gap-2 mb-8">
               @for (match of groupedMatches[date]; track match) {
                 <div class="col-12 p-0 lg:col-4">
-                  <app-match [match]="match" [dateTime]="today.dateTime" />
+                  @defer (on viewport) {
+                    <app-match [match]="match" [dateTime]="today.dateTime" />
+                  } @placeholder {
+                    <div style="min-height: 200px" class="match-placeholder w-full h-full border-round surface-card"></div>
+                  }
                 </div>
               }
             </div>

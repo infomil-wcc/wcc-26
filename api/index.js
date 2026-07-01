@@ -281,7 +281,14 @@ const handleMatchPredictionValidation = async (request, response) => {
             });
         }
 
-        // 3. If validation passes, hand over execution context to the standard Directus proxy handler
+        // 3. Strip game_id from PATCH/PUT requests to prevent Directus field-level permission errors
+        if (request.method === 'PATCH' || request.method === 'PUT') {
+            delete body.game_id;
+            delete body.user;
+            request.body = body; // Update the request body so proxyDirectus uses the stripped payload
+        }
+
+        // 4. If validation passes, hand over execution context to the standard Directus proxy handler
         return proxyDirectus(request, response);
 
     } catch (error) {
@@ -304,6 +311,9 @@ const proxyDirectus = async (request, response) => {
     // Manage cache control intelligently for proxy endpoints
     if (relativePath.startsWith('/assets') || relativePath.startsWith('/files')) {
         setCacheControl(request, response, 86400, 86400, true);
+    } else if (relativePath.startsWith('/items/pronostiques') && request.headers.authorization) {
+        // Authenticated pronostiques requests must never be cached — they are user-specific
+        setCacheControl(request, response, 0, 0, false);
     } else {
         // Items endpoints or others - only cached if no auth token is passed from frontend
         setCacheControl(request, response, 60, 120, false);

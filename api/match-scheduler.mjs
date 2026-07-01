@@ -82,7 +82,7 @@ export function createHandler(deps = {}) {
         for (const m of allDbMatches) {
           const matchUtcTime = _getDbMatchUtcTime(m.date);
           if (matchUtcTime && matchUtcTime <= nowMs) {
-            if (!m.status_updated || new Date(m.status_updated).getTime() < matchUtcTime) {
+            if (m.current_status !== 'finished' || !m.status_updated || new Date(m.status_updated).getTime() < matchUtcTime) {
               dbMatches.push(m);
             }
           }

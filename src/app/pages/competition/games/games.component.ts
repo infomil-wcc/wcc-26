@@ -30,6 +30,7 @@ export class GamesComponent implements OnInit {
   
   protected activeTab: 'live' | 'upcoming' | 'past' | 'all' = 'upcoming';
   protected filterDate: string | null = null;
+  protected isCalendarCollapsed: boolean = false;
 
   ngOnInit(): void {
     this.$today = this.globalTime.getMuTime();

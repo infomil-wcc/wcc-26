@@ -2,17 +2,18 @@ import { Component, inject, ChangeDetectorRef, ChangeDetectionStrategy, OnInit }
 import { MatchesService } from '../../../shared/services/content/matches.service';
 import { Observable, forkJoin, of, BehaviorSubject, combineLatest } from 'rxjs';
 import { Matches } from '../../../shared/contracts/matches.contract';
-import { map, catchError, tap, switchMap } from 'rxjs/operators';
+import { map, catchError, tap, switchMap, take } from 'rxjs/operators';
 import { StateService } from '../../../shared/services/core/state.service';
 import { GlobaltimeService } from '../../../shared/services/core/globaltime.service';
 import { PredictionsService } from '../../../shared/services/games/predictions.service';
-import { NgClass, AsyncPipe, DatePipe } from '@angular/common';
+import { NgClass, NgStyle, AsyncPipe, DatePipe, UpperCasePipe, SlicePipe } from '@angular/common';
 import { MatchComponent } from '../../../shared/components/match/match.component';
 import { LoaderComponent } from '../../../shared/components/loader/loader.component';
 import { CalendarStripComponent } from '../../../shared/components/calendar-strip/calendar-strip.component';
 import { RankingsService } from '../../../shared/services/content/rankings.service';
 import { ModalComponent } from '../../../shared/components/modal/modal.component';
 import { LoginComponent } from '../../../shared/components/login/login.component';
+import { TeamsService } from '../../../shared/services/content/teams.service';
 
 const PHASE_CONFIG: { key: string; label: string; icon: string; color: string }[] = [
   { key: 'Group Stage', label: 'Phase de groupes', icon: 'groups', color: '#3b5bdb' },
@@ -28,7 +29,7 @@ const PHASE_CONFIG: { key: string; label: string; icon: string; color: string }[
   templateUrl: './pronostiques.component.html',
   styleUrl: './pronostiques.component.scss',
   changeDetection: ChangeDetectionStrategy.Eager,
-  imports: [NgClass, MatchComponent, LoaderComponent, AsyncPipe, DatePipe, CalendarStripComponent, ModalComponent, LoginComponent]
+  imports: [NgClass, NgStyle, MatchComponent, LoaderComponent, AsyncPipe, DatePipe, UpperCasePipe, SlicePipe, CalendarStripComponent, ModalComponent, LoginComponent]
 })
 export class PronostiquesComponent implements OnInit {
 
@@ -37,9 +38,11 @@ export class PronostiquesComponent implements OnInit {
   private globalTime = inject(GlobaltimeService);
   private predictionService = inject(PredictionsService);
   private rankingsService = inject(RankingsService);
+  private teamService = inject(TeamsService);
   private cdr = inject(ChangeDetectorRef);
 
   protected isLoggedIn: boolean = false;
+  protected isAuthChecked: boolean = false;
   protected $today!: Observable<any>;
   protected activeTab: 'live' | 'upcoming' | 'played' = 'upcoming';
   protected draftsCount: number = 0;
@@ -52,8 +55,16 @@ export class PronostiquesComponent implements OnInit {
   protected todayPlayedCount: number = 0;
   protected todayPredictedCount: number = 0;
 
+  protected isCalendarCollapsed: boolean = false;
+
   protected showLockPopup: boolean = false;
-  protected lockedMatchName: string = '';
+  showSuccessToast: boolean = false;
+  protected  lockedMatchName: string = '';
+  
+  // Penalty Selection Popup state
+  showPenaltyPopup = false;
+  pendingDraftsForPenalty: any[] = [];
+  allMatchesForPenalty: Matches[] = [];
 
   protected showTodayBanner: boolean = true;
   protected filterDate: string | null = null;
@@ -89,7 +100,7 @@ export class PronostiquesComponent implements OnInit {
           // --- FILTER BY STATUS ---
           if (isDraft(match)) return false;
 
-          const isFinishedStatus = match.status?.toLowerCase() === 'finished' || match.played === true;
+          const isFinishedStatus = match.current_status?.toLowerCase() === 'finished' || match.played === true;
           const matchDate = new Date(match.date);
           const timeDiffMs = now.getTime() - matchDate.getTime();
           const timeDiffMins = timeDiffMs / (1000 * 60);
@@ -126,14 +137,14 @@ export class PronostiquesComponent implements OnInit {
         Promise.resolve().then(() => {
           const now = new Date(today.dateTime.slice(0, -6));
           this.liveCount = matches.filter(m => {
-            const isFinishedStatus = m.status?.toLowerCase() === 'finished' || m.played === true;
+            const isFinishedStatus = m.current_status?.toLowerCase() === 'finished' || m.played === true;
             const matchDate = new Date(m.date);
             const timeDiffMs = now.getTime() - matchDate.getTime();
             const timeDiffMins = timeDiffMs / (1000 * 60);
             return timeDiffMins >= 0 && timeDiffMins < 150 && !isFinishedStatus;
           }).length;
           this.upcomingCount = matches.filter(m => {
-            const isFinishedStatus = m.status?.toLowerCase() === 'finished' || m.played === true;
+            const isFinishedStatus = m.current_status?.toLowerCase() === 'finished' || m.played === true;
             const matchDate = new Date(m.date);
             const timeDiffMs = now.getTime() - matchDate.getTime();
             const timeDiffMins = timeDiffMs / (1000 * 60);
@@ -142,7 +153,7 @@ export class PronostiquesComponent implements OnInit {
             return !hasStarted && !isFinished;
           }).length;
           this.playedCount = matches.filter(m => {
-            const isFinishedStatus = m.status?.toLowerCase() === 'finished' || m.played === true;
+            const isFinishedStatus = m.current_status?.toLowerCase() === 'finished' || m.played === true;
             const matchDate = new Date(m.date);
             const timeDiffMs = now.getTime() - matchDate.getTime();
             const timeDiffMins = timeDiffMs / (1000 * 60);
@@ -153,14 +164,14 @@ export class PronostiquesComponent implements OnInit {
           const todayMatches = matches.filter(m => m.date.split(' ')[0] === todayKey);
           this.todayTotalCount = todayMatches.length;
           this.todayPlayedCount = todayMatches.filter(m => {
-            const isFinishedStatus = m.status?.toLowerCase() === 'finished' || m.played === true;
+            const isFinishedStatus = m.current_status?.toLowerCase() === 'finished' || m.played === true;
             const matchDate = new Date(m.date);
             const timeDiffMs = now.getTime() - matchDate.getTime();
             const timeDiffMins = timeDiffMs / (1000 * 60);
             return isFinishedStatus || timeDiffMins >= 150;
           }).length;
           this.todayMatchCount = todayMatches.filter(m => {
-            const isFinishedStatus = m.status?.toLowerCase() === 'finished' || m.played === true;
+            const isFinishedStatus = m.current_status?.toLowerCase() === 'finished' || m.played === true;
             const matchDate = new Date(m.date);
             const timeDiffMs = now.getTime() - matchDate.getTime();
             const timeDiffMins = timeDiffMs / (1000 * 60);
@@ -194,7 +205,7 @@ export class PronostiquesComponent implements OnInit {
           if (isDraft(match)) return false;
 
           // 2. Filter by Active Tab
-          const isFinishedStatus = match.status?.toLowerCase() === 'finished' || match.played === true;
+          const isFinishedStatus = match.current_status?.toLowerCase() === 'finished' || match.played === true;
           const matchDate = new Date(match.date);
           const timeDiffMs = now.getTime() - matchDate.getTime();
           const timeDiffMins = timeDiffMs / (1000 * 60);
@@ -226,6 +237,7 @@ export class PronostiquesComponent implements OnInit {
     this.stateService.userState.subscribe({
       next: (res) => {
         this.isLoggedIn = !!res.id;
+        this.isAuthChecked = true;
       }
     });
 
@@ -296,7 +308,7 @@ export class PronostiquesComponent implements OnInit {
   isLive(match: Matches, currentMuTimeStr: string): boolean {
     const now = new Date(currentMuTimeStr.slice(0, -6));
     const matchDate = new Date(match.date);
-    const isFinishedStatus = match.status?.toLowerCase() === 'finished' || match.played === true;
+    const isFinishedStatus = match.current_status?.toLowerCase() === 'finished' || match.played === true;
     const timeDiffMs = now.getTime() - matchDate.getTime();
     const timeDiffMins = timeDiffMs / (1000 * 60);
     return timeDiffMins >= 0 && timeDiffMins < 150 && !isFinishedStatus;
@@ -351,47 +363,125 @@ export class PronostiquesComponent implements OnInit {
     if (drafts.length === 0 || this.isSubmittingBulk) return;
 
     this.isSubmittingBulk = true;
+
+    this.matchesService.getAllMatches().pipe(take(1)).subscribe((allMatches: any) => {
+      // Find drafts that require penalty winner
+      this.pendingDraftsForPenalty = drafts.map(draft => {
+        const match = allMatches.find((m: any) => m.id === draft.game_id);
+        const isTie = draft.fulltime_a !== null && draft.fulltime_b !== null && draft.fulltime_a === draft.fulltime_b;
+        if (match && match.phase !== 'Group Stage' && isTie && (!draft.winner_draw || draft.winner_draw.trim() === '' || draft.winner_draw === 'Draw')) {
+          const item = { draft, match, selectedWinner: null, teamAFlag: 'assets/flags/unknown.png', teamBFlag: 'assets/flags/unknown.png' };
+          
+          this.teamService.getTeamByName(match.team_a).pipe(take(1)).subscribe(res => {
+            if (res && res.length > 0 && res[0].flag_url) item.teamAFlag = res[0].flag_url;
+          });
+          
+          this.teamService.getTeamByName(match.team_b).pipe(take(1)).subscribe(res => {
+            if (res && res.length > 0 && res[0].flag_url) item.teamBFlag = res[0].flag_url;
+          });
+          
+          return item;
+        }
+        return null;
+      }).filter(item => item !== null);
+
+      if (this.pendingDraftsForPenalty.length > 0) {
+        this.allMatchesForPenalty = allMatches; // save for later
+        this.showPenaltyPopup = true;
+        this.isSubmittingBulk = false; // release lock until popup is confirmed
+      } else {
+        this.executeBulkSave(drafts, allMatches);
+      }
+    });
+  }
+
+  selectPenaltyWinner(draftItem: any, team: string): void {
+    draftItem.selectedWinner = team;
+  }
+
+  confirmPenaltySelections(): void {
+    // Check if all pending drafts have a selectedWinner
+    const allSelected = this.pendingDraftsForPenalty.every(item => item.selectedWinner !== null);
+    if (!allSelected) {
+      return; // Do nothing if not all selected
+    }
+
+    this.isSubmittingBulk = true;
+    this.showPenaltyPopup = false;
+    
+    // Get fresh drafts from service to update
+    const drafts = this.predictionService.getDrafts();
+    
+    // Update drafts with the selected winner
+    this.pendingDraftsForPenalty.forEach(item => {
+      const draft = drafts.find(d => d.game_id === item.draft.game_id);
+      if (draft) {
+        draft.winner_draw = item.selectedWinner;
+        // Update it in prediction service too so UI syncs if needed
+        this.predictionService.addDraft(draft);
+      }
+    });
+
+    this.executeBulkSave(this.predictionService.getDrafts(), this.allMatchesForPenalty);
+  }
+
+  cancelPenaltySelections(): void {
+    this.showPenaltyPopup = false;
+    this.pendingDraftsForPenalty = [];
+  }
+
+  executeBulkSave(drafts: any[], allMatches: Matches[]): void {
     let invalidMatches: string[] = [];
 
-    this.matchesService.getAllMatches().pipe(
-      map(allMatches => {
-        return drafts.map(draft => {
-          const correspondingMatch = allMatches.find(m => m.id === draft.game_id);
-          const kickoffTime = correspondingMatch ? correspondingMatch.date : new Date().toISOString();
+    const requests = drafts.map(draft => {
+      const correspondingMatch = allMatches.find(m => m.id === draft.game_id);
+      const kickoffTime = correspondingMatch ? correspondingMatch.date : new Date().toISOString();
 
-          return this.predictionService.sendPrediction(draft, kickoffTime).pipe(
-            catchError(err => {
-              if (err.message === 'MATCH_ALREADY_STARTED' && correspondingMatch) {
-                // Collect team names contextually (Adjust property keys depending on contract)
-                const teamA = correspondingMatch.team_a || 'Équipe A';
-                const teamB = correspondingMatch.team_b || 'Équipe B';
-                invalidMatches.push(`${teamA} - ${teamB}`);
-              }
-              console.error('Failed to send prediction for game:', draft.game_id, err);
-              return of(null);
-            })
-          );
-        });
-      }),
-      switchMap(requests => forkJoin(requests))
-    ).subscribe({
+      return this.predictionService.sendPrediction(draft, kickoffTime).pipe(
+        tap((savedResponse: any) => {
+          // Feed the freshly saved data into the service so match cards can reactively update
+          if (savedResponse?.data) {
+            this.predictionService.markAsSaved(draft.game_id, savedResponse.data);
+          } else {
+            // Fallback: mark with the draft data enriched with any returned id
+            const enriched = { ...draft, ...(savedResponse ?? {}) };
+            this.predictionService.markAsSaved(draft.game_id, enriched);
+          }
+        }),
+        catchError(err => {
+          if (err.message === 'MATCH_ALREADY_STARTED' && correspondingMatch) {
+            const teamA = correspondingMatch.team_a || 'Équipe A';
+            const teamB = correspondingMatch.team_b || 'Équipe B';
+            invalidMatches.push(`${teamA} - ${teamB}`);
+          }
+          console.error('Failed to send prediction for game:', draft.game_id, err);
+          return of(null);
+        })
+      );
+    });
+
+    forkJoin(requests).subscribe({
       next: () => {
         this.isSubmittingBulk = false;
 
         if (invalidMatches.length > 0) {
-          // Set context and trigger your beautiful design popup modal
           this.lockedMatchName = invalidMatches.join(', ');
           this.showLockPopup = true;
           this.cdr.detectChanges();
-
-          // Automatically clear drafts that failed and don't reload page immediately 
-          // to give the user time to read the dynamic error toast.
-          this.predictionService.clearDrafts();
         } else {
-          // Clear drafts and reload clean if everything was perfectly successful
-          this.predictionService.clearDrafts();
-          this.predictionService.triggerRefresh();
+          this.showSuccessToast = true;
+          this.cdr.detectChanges();
+          // Auto-hide the success toast after 2s
+          setTimeout(() => {
+            this.showSuccessToast = false;
+            this.cdr.detectChanges();
+          }, 2000);
         }
+
+        // Clear drafts FIRST so verfierMonPronostique sees no draft and enters the locked branch
+        this.predictionService.clearDrafts();
+        // Then broadcast refresh so every MatchComponent re-fetches from API
+        this.predictionService.triggerRefresh();
       },
       error: (err) => {
         console.error('Error during bulk submit:', err);
@@ -402,6 +492,7 @@ export class PronostiquesComponent implements OnInit {
 
   cancelAllDrafts(): void {
     this.predictionService.clearDrafts();
+    this.predictionService.clearSavedPredictions();
     this.predictionService.triggerRefresh();
   }
 

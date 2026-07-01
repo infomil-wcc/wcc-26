@@ -8,15 +8,18 @@ import { NgClass, UpperCasePipe, DatePipe } from '@angular/common';
 import { LoaderComponent } from '../../../shared/components/loader/loader.component';
 import { RankingsService } from '../../../shared/services/content/rankings.service';
 import { StateService } from '../../../shared/services/core/state.service';
+import { RouterModule } from '@angular/router';
+import { ScoresheetComponent } from './scoresheet/scoresheet.component';
 
 @Component({
   selector: 'app-ranking',
   templateUrl: './ranking.component.html',
   styleUrl: './ranking.component.scss',
   changeDetection: ChangeDetectionStrategy.Eager,
-  imports: [NgClass, LoaderComponent, UpperCasePipe, DatePipe]
+  imports: [NgClass, LoaderComponent, UpperCasePipe, DatePipe, RouterModule, ScoresheetComponent]
 })
 export class RankingComponent implements OnInit, OnDestroy {
+  protected selectedUserId: string | null = null;
 
   private rankingsService = inject(RankingsService);
   private stateService = inject(StateService);
@@ -192,6 +195,12 @@ export class RankingComponent implements OnInit, OnDestroy {
     return rank1Count === 1 && rank2Count === 1 && rank3Count === 1;
   }
 
+  canViewScoresheet(player: any): boolean {
+    if (!this.currentUserTrigramme) return false;
+    const name = (player.key || player.user || '').toLowerCase().trim();
+    return name === this.currentUserTrigramme.toLowerCase().trim();
+  }
+
   get shouldPinCurrentUser(): boolean {
     if (!this.currentUserTrigramme) return false;
     const list = this.activeList;
@@ -271,6 +280,11 @@ export class RankingComponent implements OnInit, OnDestroy {
     } else {
       this.pinPosition = null;
     }
+    this.cdr.detectChanges();
+  }
+
+  openScoresheet(userId: string) {
+    this.selectedUserId = userId;
     this.cdr.detectChanges();
   }
 
