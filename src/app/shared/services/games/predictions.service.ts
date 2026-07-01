@@ -129,6 +129,10 @@ getMyPredictions(gameID: string): Observable<any>{
 
   updateResults(): Observable<any> {
     // Trigger the backend ranking recalculation
-    return this.http.get('/api/match-results?points=all');
+    return this.http.get(`${environment.apiUrl}/match-results?points=all`);
+  }
+
+  updateMatchResults(matchId: string): Observable<any> {
+    return this.http.get(`${environment.apiUrl}/match-results?matches=${matchId}&points=all`);
   }
 }

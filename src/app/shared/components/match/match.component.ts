@@ -169,9 +169,34 @@ export class MatchComponent implements OnInit, OnDestroy {
     if (this.today > this.limitDate) {
       this.closed = true;
 
-      if (this.match.fulltime_a === null || this.match.fulltime_b === null) {
+      const status = this.match.status?.toLowerCase();
+      const matchStartTime = new Date(this.match.date).getTime();
+      const statusUpdatedTime = this.match.status_updated ? new Date(this.match.status_updated).getTime() : 0;
+      const diffMinutes = (statusUpdatedTime - matchStartTime) / (60 * 1000);
+
+      const isFullyUpdated = 
+        status === 'finished' && 
+        this.match.scorers !== null && 
+        (this.match.winner_draw !== null && this.match.winner_draw !== '') && 
+        (!isNaN(statusUpdatedTime) && diffMinutes >= 190);
+
+      if (!isFullyUpdated) {
         const matchTime = new Date(this.match.date).getTime();
         const nowTime = this.today.getTime();
+
+        const finishedStorageKey = `sync_match_${this.match.id}_finished`;
+        if ((this.today > matchDate || this.match.status?.toLowerCase() === 'finished') && !localStorage.getItem(finishedStorageKey)) {
+          localStorage.setItem(finishedStorageKey, 'true');
+          this.predictionService.updateMatchResults(this.match.id.toString()).subscribe({
+            next: (res) => {
+              console.log(`Automatically updated results for finished match ${this.match.id}`, res);
+              this.predictionService.triggerRefresh();
+            },
+            error: (err) => {
+              console.error('Error auto-updating finished match results:', err);
+            }
+          });
+        }
 
         const completionTime = matchTime + 120 * 60 * 1000;
         const thirtyMinsAfterTime = matchTime + 150 * 60 * 1000;
@@ -322,6 +347,13 @@ export class MatchComponent implements OnInit, OnDestroy {
     }
     return !this.disabled && !this.isSubmitting && (!this.closed || this.isEditing) &&
       (!this.isSavedInApi || this.isEditing) && !this.hidePointsBadge;
+  }
+
+  get isMatchFinishedByDate(): boolean {
+    if (!this.match || !this.match.date || !this.today) {
+      return false;
+    }
+    return new Date(this.match.date) < this.today;
   }
 
   onHalftimeScoreChanged(): void {
