@@ -36,22 +36,22 @@ export async function recalculateRankings(directusUrl, adminToken, specificUser 
 
     let bracketResults = [];
     if (bracketResultsRes && typeof bracketResultsRes.json === 'function') {
-      try { const d = await bracketResultsRes.json(); bracketResults = d.data || []; } catch (e) {}
+      try { const d = await bracketResultsRes.json(); bracketResults = d.data || []; } catch (e) { }
     }
 
     let brackets = [];
     if (bracketsRes && typeof bracketsRes.json === 'function') {
-      try { const d = await bracketsRes.json(); brackets = d.data || []; } catch (e) {}
+      try { const d = await bracketsRes.json(); brackets = d.data || []; } catch (e) { }
     }
 
     let knockoutBrackets = [];
     if (knockoutBracketsRes && typeof knockoutBracketsRes.json === 'function') {
-      try { const d = await knockoutBracketsRes.json(); knockoutBrackets = d.data || []; } catch (e) {}
+      try { const d = await knockoutBracketsRes.json(); knockoutBrackets = d.data || []; } catch (e) { }
     }
 
     let existingBracketRankings = [];
     if (bracketRankingsRes && typeof bracketRankingsRes.json === 'function') {
-      try { const d = await bracketRankingsRes.json(); existingBracketRankings = d.data || []; } catch (e) {}
+      try { const d = await bracketRankingsRes.json(); existingBracketRankings = d.data || []; } catch (e) { }
     }
 
     // Sync match point fields with the rules matrix
@@ -215,8 +215,8 @@ export async function recalculateRankings(directusUrl, adminToken, specificUser 
       }
     }
 
-    // Recalculate bracket rankings
-    if (bracketResults.length > 0 && brackets.length > 0) {
+    // didier: deactivate recalculate bracket rankings
+    if (false && bracketResults.length > 0 && brackets.length > 0) {
       const bracketResult = bracketResults[0];
       const ruleMatrixBracket = ruleMatrix.filter(r => r.game_type === 'bracket');
 
