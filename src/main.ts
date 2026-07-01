@@ -7,6 +7,8 @@ import localeFr from '@angular/common/locales/fr';
 import { DragDropModule } from '@angular/cdk/drag-drop';
 import { ServiceWorkerModule } from '@angular/service-worker';
 import { provideAnimations } from '@angular/platform-browser/animations';
+import { providePrimeNG } from 'primeng/config';
+import Aura from '@primeuix/themes/aura';
 
 import { AppComponent } from './app/app.component';
 import { cacheInterceptor } from './app/shared/services/core/cache.interceptor';
@@ -20,6 +22,11 @@ bootstrapApplication(AppComponent, {
     provideZoneChangeDetection({ eventCoalescing: true }),
     provideRouter(routes),
     provideAnimations(),
+    providePrimeNG({
+      theme: {
+        preset: Aura
+      }
+    }),
     provideHttpClient(
       withInterceptors([cacheInterceptor])
     ),

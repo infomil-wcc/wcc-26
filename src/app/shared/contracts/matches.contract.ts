@@ -34,4 +34,5 @@ export interface Matches {
     penalty_shootout: boolean | null;
     winner_draw: string | null;
     status_updated?: string;
+    current_status?: string;
 }

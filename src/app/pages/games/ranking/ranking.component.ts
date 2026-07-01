@@ -9,15 +9,17 @@ import { LoaderComponent } from '../../../shared/components/loader/loader.compon
 import { RankingsService } from '../../../shared/services/content/rankings.service';
 import { StateService } from '../../../shared/services/core/state.service';
 import { RouterModule } from '@angular/router';
+import { ScoresheetComponent } from './scoresheet/scoresheet.component';
 
 @Component({
   selector: 'app-ranking',
   templateUrl: './ranking.component.html',
   styleUrl: './ranking.component.scss',
   changeDetection: ChangeDetectionStrategy.Eager,
-  imports: [NgClass, LoaderComponent, UpperCasePipe, DatePipe, RouterModule]
+  imports: [NgClass, LoaderComponent, UpperCasePipe, DatePipe, RouterModule, ScoresheetComponent]
 })
 export class RankingComponent implements OnInit, OnDestroy {
+  protected selectedUserId: string | null = null;
 
   private rankingsService = inject(RankingsService);
   private stateService = inject(StateService);
@@ -278,6 +280,11 @@ export class RankingComponent implements OnInit, OnDestroy {
     } else {
       this.pinPosition = null;
     }
+    this.cdr.detectChanges();
+  }
+
+  openScoresheet(userId: string) {
+    this.selectedUserId = userId;
     this.cdr.detectChanges();
   }
 

@@ -11,11 +11,8 @@
   </div>
 
   <div class="container scoresheet-main pt-8 mt-6">
-    @if (loading) {
-      <div class="flex justify-content-center pt-8">
-        <i class="pi pi-spin pi-spinner" style="font-size: 2rem; color: #475569;"></i>
-      </div>
-    } @else {
+    <loader [showLoader]="loading" />
+    @if (!loading) {
       <!-- Summary Accordion -->
       <div class="mb-5 scoresheet-card overflow-hidden">
         <div class="flex justify-content-between align-items-center p-4 cursor-pointer select-none accordion-header" (click)="isSummaryExpanded = !isSummaryExpanded">
@@ -85,12 +82,156 @@
         <table class="custom-table w-full">
           <thead>
             <tr>
-              <th class="font-bold text-left">Match</th>
-              <th class="text-center font-bold">Date</th>
-              <th class="text-center font-bold">Phase</th>
-              <th class="text-center font-bold">Score Officiel</th>
-              <th class="text-center font-bold">Pronostic</th>
-              <th class="text-center font-bold">Points</th>
+              <!-- Match -->
+              <th class="font-bold text-left relative" style="cursor: default; min-width: 140px;">
+                <div class="flex align-items-center justify-content-between gap-1">
+                  <span class="cursor-pointer select-none flex-grow-1" (click)="toggleSort('match')">Match</span>
+                  <div class="flex align-items-center gap-1">
+                    <span class="material-symbols-outlined text-base font-bold cursor-pointer select-none" (click)="toggleSort('match')">{{ getSortIcon('match') }}</span>
+                    <button type="button" class="filter-menu-btn flex align-items-center justify-content-center border-none bg-transparent cursor-pointer outline-none"
+                      [class.filter-active]="isFilterActive('match')" (click)="toggleFilterMenu($event, 'match')">
+                      <span class="material-symbols-outlined text-base">filter_alt</span>
+                    </button>
+                  </div>
+                </div>
+
+                @if (activeFilterMenu === 'match') {
+                  <div class="filter-menu-popup p-3 flex flex-column gap-2" (click)="$event.stopPropagation()">
+                    <span class="text-xs font-semibold text-800 text-left">Filtrer par match</span>
+                    <input type="text" [value]="tempFilters.match" (input)="tempFilters.match = $any($event.target).value" placeholder="Équipe..." class="col-filter-input" (keyup.enter)="applyFilter('match')" />
+                    <div class="flex justify-content-between gap-2 mt-1">
+                      <button type="button" class="btn btn-secondary text-xs px-2 py-1" (click)="clearFilter('match')">Effacer</button>
+                      <button type="button" class="btn btn-primary text-xs px-2 py-1" (click)="applyFilter('match')">Appliquer</button>
+                    </div>
+                  </div>
+                }
+              </th>
+
+              <!-- Date -->
+              <th class="font-bold text-center relative" style="cursor: default; min-width: 130px;">
+                <div class="flex align-items-center justify-content-center gap-1">
+                  <span class="cursor-pointer select-none flex-grow-1 text-center" (click)="toggleSort('date')">Date</span>
+                  <div class="flex align-items-center gap-1">
+                    <span class="material-symbols-outlined text-base font-bold cursor-pointer select-none" (click)="toggleSort('date')">{{ getSortIcon('date') }}</span>
+                    <button type="button" class="filter-menu-btn flex align-items-center justify-content-center border-none bg-transparent cursor-pointer outline-none"
+                      [class.filter-active]="isFilterActive('date')" (click)="toggleFilterMenu($event, 'date')">
+                      <span class="material-symbols-outlined text-base">filter_alt</span>
+                    </button>
+                  </div>
+                </div>
+
+                @if (activeFilterMenu === 'date') {
+                  <div class="filter-menu-popup p-3 flex flex-column gap-2" (click)="$event.stopPropagation()">
+                    <span class="text-xs font-semibold text-800 text-left">Filtrer par date</span>
+                    <p-datepicker [(ngModel)]="tempFilters.date" dateFormat="dd/mm/yy" placeholder="Date..." [showIcon]="true" styleClass="w-full text-xs text-center" appendTo="body" />
+                    <div class="flex justify-content-between gap-2 mt-1">
+                      <button type="button" class="btn btn-secondary text-xs px-2 py-1" (click)="clearFilter('date')">Effacer</button>
+                      <button type="button" class="btn btn-primary text-xs px-2 py-1" (click)="applyFilter('date')">Appliquer</button>
+                    </div>
+                  </div>
+                }
+              </th>
+
+              <!-- Phase -->
+              <th class="font-bold text-center relative" style="cursor: default; min-width: 120px;">
+                <div class="flex align-items-center justify-content-center gap-1">
+                  <span class="cursor-pointer select-none flex-grow-1 text-center" (click)="toggleSort('phase')">Phase</span>
+                  <div class="flex align-items-center gap-1">
+                    <span class="material-symbols-outlined text-base font-bold cursor-pointer select-none" (click)="toggleSort('phase')">{{ getSortIcon('phase') }}</span>
+                    <button type="button" class="filter-menu-btn flex align-items-center justify-content-center border-none bg-transparent cursor-pointer outline-none"
+                      [class.filter-active]="isFilterActive('phase')" (click)="toggleFilterMenu($event, 'phase')">
+                      <span class="material-symbols-outlined text-base">filter_alt</span>
+                    </button>
+                  </div>
+                </div>
+
+                @if (activeFilterMenu === 'phase') {
+                  <div class="filter-menu-popup p-3 flex flex-column gap-2" (click)="$event.stopPropagation()">
+                    <span class="text-xs font-semibold text-800 text-left">Filtrer par phase</span>
+                    <p-select [(ngModel)]="tempFilters.phase" [options]="phasesList" optionLabel="label" optionValue="value" placeholder="Phase..." styleClass="w-full text-xs text-left" appendTo="body" />
+                    <div class="flex justify-content-between gap-2 mt-1">
+                      <button type="button" class="btn btn-secondary text-xs px-2 py-1" (click)="clearFilter('phase')">Effacer</button>
+                      <button type="button" class="btn btn-primary text-xs px-2 py-1" (click)="applyFilter('phase')">Appliquer</button>
+                    </div>
+                  </div>
+                }
+              </th>
+
+              <!-- Score Officiel -->
+              <th class="font-bold text-center relative" style="cursor: default; min-width: 140px;">
+                <div class="flex align-items-center justify-content-center gap-1">
+                  <span class="cursor-pointer select-none flex-grow-1 text-center" (click)="toggleSort('score')">Score Officiel</span>
+                  <div class="flex align-items-center gap-1">
+                    <span class="material-symbols-outlined text-base font-bold cursor-pointer select-none" (click)="toggleSort('score')">{{ getSortIcon('score') }}</span>
+                    <button type="button" class="filter-menu-btn flex align-items-center justify-content-center border-none bg-transparent cursor-pointer outline-none"
+                      [class.filter-active]="isFilterActive('score')" (click)="toggleFilterMenu($event, 'score')">
+                      <span class="material-symbols-outlined text-base">filter_alt</span>
+                    </button>
+                  </div>
+                </div>
+
+                @if (activeFilterMenu === 'score') {
+                  <div class="filter-menu-popup p-3 flex flex-column gap-2" (click)="$event.stopPropagation()">
+                    <span class="text-xs font-semibold text-800 text-left">Filtrer par score</span>
+                    <input type="text" [value]="tempFilters.score" (input)="tempFilters.score = $any($event.target).value" placeholder="Score..." class="col-filter-input text-center" (keyup.enter)="applyFilter('score')" />
+                    <div class="flex justify-content-between gap-2 mt-1">
+                      <button type="button" class="btn btn-secondary text-xs px-2 py-1" (click)="clearFilter('score')">Effacer</button>
+                      <button type="button" class="btn btn-primary text-xs px-2 py-1" (click)="applyFilter('score')">Appliquer</button>
+                    </div>
+                  </div>
+                }
+              </th>
+
+              <!-- Pronostic -->
+              <th class="font-bold text-center relative" style="cursor: default; min-width: 130px;">
+                <div class="flex align-items-center justify-content-center gap-1">
+                  <span class="cursor-pointer select-none flex-grow-1 text-center" (click)="toggleSort('prediction')">Pronostic</span>
+                  <div class="flex align-items-center gap-1">
+                    <span class="material-symbols-outlined text-base font-bold cursor-pointer select-none" (click)="toggleSort('prediction')">{{ getSortIcon('prediction') }}</span>
+                    <button type="button" class="filter-menu-btn flex align-items-center justify-content-center border-none bg-transparent cursor-pointer outline-none"
+                      [class.filter-active]="isFilterActive('prediction')" (click)="toggleFilterMenu($event, 'prediction')">
+                      <span class="material-symbols-outlined text-base">filter_alt</span>
+                    </button>
+                  </div>
+                </div>
+
+                @if (activeFilterMenu === 'prediction') {
+                  <div class="filter-menu-popup p-3 flex flex-column gap-2" (click)="$event.stopPropagation()">
+                    <span class="text-xs font-semibold text-800 text-left">Filtrer par pronostic</span>
+                    <input type="text" [value]="tempFilters.prediction" (input)="tempFilters.prediction = $any($event.target).value" placeholder="Pronostic..." class="col-filter-input text-center" (keyup.enter)="applyFilter('prediction')" />
+                    <div class="flex justify-content-between gap-2 mt-1">
+                      <button type="button" class="btn btn-secondary text-xs px-2 py-1" (click)="clearFilter('prediction')">Effacer</button>
+                      <button type="button" class="btn btn-primary text-xs px-2 py-1" (click)="applyFilter('prediction')">Appliquer</button>
+                    </div>
+                  </div>
+                }
+              </th>
+
+              <!-- Points -->
+              <th class="font-bold text-center relative" style="cursor: default; min-width: 120px;">
+                <div class="flex align-items-center justify-content-center gap-1">
+                  <span class="cursor-pointer select-none flex-grow-1 text-center" (click)="toggleSort('points')">Points</span>
+                  <div class="flex align-items-center gap-1">
+                    <span class="material-symbols-outlined text-base font-bold cursor-pointer select-none" (click)="toggleSort('points')">{{ getSortIcon('points') }}</span>
+                    <button type="button" class="filter-menu-btn flex align-items-center justify-content-center border-none bg-transparent cursor-pointer outline-none"
+                      [class.filter-active]="isFilterActive('points')" (click)="toggleFilterMenu($event, 'points')">
+                      <span class="material-symbols-outlined text-base">filter_alt</span>
+                    </button>
+                  </div>
+                </div>
+
+                @if (activeFilterMenu === 'points') {
+                  <div class="filter-menu-popup p-3 flex flex-column gap-2" (click)="$event.stopPropagation()">
+                    <span class="text-xs font-semibold text-800 text-left">Filtrer par points</span>
+                    <input type="text" [value]="tempFilters.points" (input)="tempFilters.points = $any($event.target).value" placeholder="Points..." class="col-filter-input text-center" (keyup.enter)="applyFilter('points')" />
+                    <div class="flex justify-content-between gap-2 mt-1">
+                      <button type="button" class="btn btn-secondary text-xs px-2 py-1" (click)="clearFilter('points')">Effacer</button>
+                      <button type="button" class="btn btn-primary text-xs px-2 py-1" (click)="applyFilter('points')">Appliquer</button>
+                    </div>
+                  </div>
+                }
+              </th>
+
               <th class="text-center font-bold">Détails</th>
             </tr>
           </thead>
@@ -129,7 +270,7 @@
                 </td>
                 <td class="text-center">
                   <button type="button" class="p-row-toggler" (click)="item.expanded = !item.expanded">
-                    <span class="material-symbols-outlined" style="font-size: 1.25rem;">
+                    <span class="material-symbols-outlined" style="font-size: 1.25rem; color: #000000 !important;">
                       {{ item.expanded ? 'expand_more' : 'chevron_right' }}
                     </span>
                   </button>

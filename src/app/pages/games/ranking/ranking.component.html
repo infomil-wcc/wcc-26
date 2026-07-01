@@ -18,6 +18,9 @@
   </div>
 
   <div class="container leaderboard-main flex flex-column h-full">
+    @if (selectedUserId) {
+      <app-scoresheet [userId]="selectedUserId" (close)="selectedUserId = null" />
+    } @else {
 
     <!-- Podium segment -->
     @if (showPodium) {
@@ -26,7 +29,7 @@
         @if (topThree[0]; as player) {
           <div class="podium-spot spot-2nd flex flex-column align-items-center" 
                [ngClass]="{'cursor-pointer': canViewScoresheet(player)}"
-               [routerLink]="canViewScoresheet(player) ? ['/classement/scoresheet', player.key || player.user] : null">
+               (click)="canViewScoresheet(player) ? openScoresheet(player.key || player.user) : null">
             <div class="avatar-wrapper flex align-items-center justify-content-center mb-2">
               <img [src]="getChampionFlag(player.key || player.user)" class="champion-flag" alt="" />
               <div class="podium-username text-xs font-bold text-white">
@@ -49,7 +52,7 @@
         @if (topThree[1]; as player) {
           <div class="podium-spot spot-1st flex flex-column align-items-center" 
                [ngClass]="{'cursor-pointer': canViewScoresheet(player)}"
-               [routerLink]="canViewScoresheet(player) ? ['/classement/scoresheet', player.key || player.user] : null">
+               (click)="canViewScoresheet(player) ? openScoresheet(player.key || player.user) : null">
             <div class="avatar-wrapper first-place flex align-items-center justify-content-center mb-2">
               <img [src]="getChampionFlag(player.key || player.user)" class="champion-flag" alt="" />
               <div class="podium-username text-sm font-extrabold text-white">
@@ -72,7 +75,7 @@
         @if (topThree[2]; as player) {
           <div class="podium-spot spot-3rd flex flex-column align-items-center" 
                [ngClass]="{'cursor-pointer': canViewScoresheet(player)}"
-               [routerLink]="canViewScoresheet(player) ? ['/classement/scoresheet', player.key || player.user] : null">
+               (click)="canViewScoresheet(player) ? openScoresheet(player.key || player.user) : null">
             <div class="avatar-wrapper flex align-items-center justify-content-center mb-2">
               <img [src]="getChampionFlag(player.key || player.user)" class="champion-flag" alt="" />
               <div class="podium-username text-xs font-bold text-white">
@@ -128,7 +131,7 @@
               }
               <div class="table-row flex justify-content-between align-items-center px-3 py-2.5"
                 [ngClass]="{'is-current-user': player.isCurrentUser, 'cursor-pointer': canViewScoresheet(player)}"
-                [routerLink]="canViewScoresheet(player) ? ['/classement/scoresheet', player.key || player.user] : null"
+                (click)="canViewScoresheet(player) ? openScoresheet(player.key || player.user) : null"
                 [class.pinned-user-row]="shouldPinCurrentUser && (player.key || player.user || '').toLowerCase().trim() === currentUserTrigramme.toLowerCase().trim()"
                 [class.pinned-to-top]="shouldPinCurrentUser && pinPosition === 'top' && (player.key || player.user || '').toLowerCase().trim() === currentUserTrigramme.toLowerCase().trim()"
                 [class.pinned-to-bottom]="shouldPinCurrentUser && pinPosition === 'bottom' && (player.key || player.user || '').toLowerCase().trim() === currentUserTrigramme.toLowerCase().trim()">
@@ -160,6 +163,7 @@
 
     </div>
 
+    }
   </div>
 </div>
 

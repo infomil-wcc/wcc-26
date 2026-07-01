@@ -169,7 +169,7 @@ export class MatchComponent implements OnInit, OnDestroy {
     if (this.today > this.limitDate) {
       this.closed = true;
 
-      const status = this.match.status?.toLowerCase();
+      const status = this.match.current_status?.toLowerCase();
       const matchStartTime = new Date(this.match.date).getTime();
       const statusUpdatedTime = this.match.status_updated ? new Date(this.match.status_updated).getTime() : 0;
       const diffMinutes = (statusUpdatedTime - matchStartTime) / (60 * 1000);
@@ -602,7 +602,7 @@ export class MatchComponent implements OnInit, OnDestroy {
       const now = new Date().getTime() + this.timeOffset;
       const diff = matchTime - now;
 
-      const status = this.match.status?.toLowerCase();
+      const status = this.match.current_status?.toLowerCase();
       if (status === 'finished' || this.match.played || diff <= -150 * 60 * 1000) {
         this.countdownText = 'Match terminé';
         return;

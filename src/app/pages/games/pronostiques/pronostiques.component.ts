@@ -100,7 +100,7 @@ export class PronostiquesComponent implements OnInit {
           // --- FILTER BY STATUS ---
           if (isDraft(match)) return false;
 
-          const isFinishedStatus = match.status?.toLowerCase() === 'finished' || match.played === true;
+          const isFinishedStatus = match.current_status?.toLowerCase() === 'finished' || match.played === true;
           const matchDate = new Date(match.date);
           const timeDiffMs = now.getTime() - matchDate.getTime();
           const timeDiffMins = timeDiffMs / (1000 * 60);
@@ -137,14 +137,14 @@ export class PronostiquesComponent implements OnInit {
         Promise.resolve().then(() => {
           const now = new Date(today.dateTime.slice(0, -6));
           this.liveCount = matches.filter(m => {
-            const isFinishedStatus = m.status?.toLowerCase() === 'finished' || m.played === true;
+            const isFinishedStatus = m.current_status?.toLowerCase() === 'finished' || m.played === true;
             const matchDate = new Date(m.date);
             const timeDiffMs = now.getTime() - matchDate.getTime();
             const timeDiffMins = timeDiffMs / (1000 * 60);
             return timeDiffMins >= 0 && timeDiffMins < 150 && !isFinishedStatus;
           }).length;
           this.upcomingCount = matches.filter(m => {
-            const isFinishedStatus = m.status?.toLowerCase() === 'finished' || m.played === true;
+            const isFinishedStatus = m.current_status?.toLowerCase() === 'finished' || m.played === true;
             const matchDate = new Date(m.date);
             const timeDiffMs = now.getTime() - matchDate.getTime();
             const timeDiffMins = timeDiffMs / (1000 * 60);
@@ -153,7 +153,7 @@ export class PronostiquesComponent implements OnInit {
             return !hasStarted && !isFinished;
           }).length;
           this.playedCount = matches.filter(m => {
-            const isFinishedStatus = m.status?.toLowerCase() === 'finished' || m.played === true;
+            const isFinishedStatus = m.current_status?.toLowerCase() === 'finished' || m.played === true;
             const matchDate = new Date(m.date);
             const timeDiffMs = now.getTime() - matchDate.getTime();
             const timeDiffMins = timeDiffMs / (1000 * 60);
@@ -164,14 +164,14 @@ export class PronostiquesComponent implements OnInit {
           const todayMatches = matches.filter(m => m.date.split(' ')[0] === todayKey);
           this.todayTotalCount = todayMatches.length;
           this.todayPlayedCount = todayMatches.filter(m => {
-            const isFinishedStatus = m.status?.toLowerCase() === 'finished' || m.played === true;
+            const isFinishedStatus = m.current_status?.toLowerCase() === 'finished' || m.played === true;
             const matchDate = new Date(m.date);
             const timeDiffMs = now.getTime() - matchDate.getTime();
             const timeDiffMins = timeDiffMs / (1000 * 60);
             return isFinishedStatus || timeDiffMins >= 150;
           }).length;
           this.todayMatchCount = todayMatches.filter(m => {
-            const isFinishedStatus = m.status?.toLowerCase() === 'finished' || m.played === true;
+            const isFinishedStatus = m.current_status?.toLowerCase() === 'finished' || m.played === true;
             const matchDate = new Date(m.date);
             const timeDiffMs = now.getTime() - matchDate.getTime();
             const timeDiffMins = timeDiffMs / (1000 * 60);
@@ -205,7 +205,7 @@ export class PronostiquesComponent implements OnInit {
           if (isDraft(match)) return false;
 
           // 2. Filter by Active Tab
-          const isFinishedStatus = match.status?.toLowerCase() === 'finished' || match.played === true;
+          const isFinishedStatus = match.current_status?.toLowerCase() === 'finished' || match.played === true;
           const matchDate = new Date(match.date);
           const timeDiffMs = now.getTime() - matchDate.getTime();
           const timeDiffMins = timeDiffMs / (1000 * 60);
@@ -308,7 +308,7 @@ export class PronostiquesComponent implements OnInit {
   isLive(match: Matches, currentMuTimeStr: string): boolean {
     const now = new Date(currentMuTimeStr.slice(0, -6));
     const matchDate = new Date(match.date);
-    const isFinishedStatus = match.status?.toLowerCase() === 'finished' || match.played === true;
+    const isFinishedStatus = match.current_status?.toLowerCase() === 'finished' || match.played === true;
     const timeDiffMs = now.getTime() - matchDate.getTime();
     const timeDiffMins = timeDiffMs / (1000 * 60);
     return timeDiffMins >= 0 && timeDiffMins < 150 && !isFinishedStatus;

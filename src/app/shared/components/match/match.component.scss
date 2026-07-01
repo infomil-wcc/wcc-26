@@ -1342,6 +1342,21 @@
     box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.02);
     transition: all 0.25s ease;
 
+    .text-success,
+    .text-success * {
+      color: #047857 !important;
+    }
+    .text-danger,
+    .text-danger * {
+      color: #b91c1c !important;
+    }
+    .icon-success {
+      color: #047857 !important;
+    }
+    .icon-danger {
+      color: #b91c1c !important;
+    }
+
     .label {
       color: #718096;
     }
