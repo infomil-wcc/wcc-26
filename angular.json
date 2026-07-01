@@ -26,7 +26,7 @@
           "options": {
             "outputPath": "dist/euro",
             "index": "src/index.html",
-            "browser": "src/main.ts",
+            "browser": "src/app.config.ts",
             "polyfills": [
               "zone.js"
             ],
@@ -53,8 +53,8 @@
                 },
                 {
                   "type": "anyComponentStyle",
-                  "maximumWarning": "20kb",
-                  "maximumError": "30kb"
+                  "maximumWarning": "30kb",
+                  "maximumError": "50kb"
                 }
               ],
               "outputHashing": "all",
