@@ -174,10 +174,10 @@ export class MatchComponent implements OnInit, OnDestroy {
       const statusUpdatedTime = this.match.status_updated ? new Date(this.match.status_updated).getTime() : 0;
       const diffMinutes = (statusUpdatedTime - matchStartTime) / (60 * 1000);
 
-      const isFullyUpdated = 
-        status === 'finished' && 
-        this.match.scorers !== null && 
-        (this.match.winner_draw !== null && this.match.winner_draw !== '') && 
+      const isFullyUpdated =
+        status === 'finished' &&
+        this.match.scorers !== null &&
+        (this.match.winner_draw !== null && this.match.winner_draw !== '') &&
         (!isNaN(statusUpdatedTime) && diffMinutes >= 190);
 
       if (!isFullyUpdated) {
@@ -534,7 +534,7 @@ export class MatchComponent implements OnInit, OnDestroy {
             this.penaltyWinner = response[0].winner_draw;
 
             // Auto-add to drafts if no penalty winner is selected so the floating dock appears
-            if (!this.penaltyWinner || this.penaltyWinner.trim() === '' || this.penaltyWinner === 'Draw') {
+            if (Date.parse(this.match.date) > Date.now() && (!this.penaltyWinner || this.penaltyWinner.trim() === '' || this.penaltyWinner === 'Draw')) {
               this.donePronostique.game_id = this.match.id;
               this.predictionService.addDraft(this.donePronostique);
             }
