@@ -26,11 +26,9 @@ export class PointsCalculatorService {
   isPredictionFraud(match: Matches, prediction: Pronostiques): boolean {
     if (!prediction || !match.date) return false;
     
-    // Fraud check logic exactly as it is in match.component.ts
     const dateToUse = prediction.modified_on ? prediction.modified_on : prediction.created_on;
     if (!dateToUse) return false;
 
-    // Directus stores UTC.
     let predTimeStr = dateToUse;
     if (!predTimeStr.endsWith('Z')) {
       predTimeStr += 'Z';
@@ -69,14 +67,15 @@ export class PointsCalculatorService {
 
     const isOutcomeCorrect = prediction.winner_draw === match.winner_draw;
     
-    const predFulltimeA = parseInt(prediction.fulltime_a || '', 10);
-    const predFulltimeB = parseInt(prediction.fulltime_b || '', 10);
+    // Fallback any stored null, undefined, or empty values safely to 0
+    const predFulltimeA = parseInt(prediction.fulltime_a === null || prediction.fulltime_a === undefined || prediction.fulltime_a === '' ? '0' : prediction.fulltime_a, 10);
+    const predFulltimeB = parseInt(prediction.fulltime_b === null || prediction.fulltime_b === undefined || prediction.fulltime_b === '' ? '0' : prediction.fulltime_b, 10);
     const matchFulltimeA = parseInt(match.fulltime_a as any, 10);
     const matchFulltimeB = parseInt(match.fulltime_b as any, 10);
     const isFulltimeCorrect = predFulltimeA === matchFulltimeA && predFulltimeB === matchFulltimeB;
 
-    const predHalftimeA = parseInt(prediction.halftime_a || '', 10);
-    const predHalftimeB = parseInt(prediction.halftime_b || '', 10);
+    const predHalftimeA = parseInt(prediction.halftime_a === null || prediction.halftime_a === undefined || prediction.halftime_a === '' ? '0' : prediction.halftime_a, 10);
+    const predHalftimeB = parseInt(prediction.halftime_b === null || prediction.halftime_b === undefined || prediction.halftime_b === '' ? '0' : prediction.halftime_b, 10);
     const matchHalftimeA = parseInt(match.halftime_a as any, 10);
     const matchHalftimeB = parseInt(match.halftime_b as any, 10);
     const isHalftimeCorrect = predHalftimeA === matchHalftimeA && predHalftimeB === matchHalftimeB;

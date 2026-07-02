@@ -237,7 +237,7 @@
     </div>
     }
 
-    @if (draftsCount > 0) {
+    @if (draftsCount > 0 && activeTab !== 'played') {
     <div class="viewport-dock-container">
       <button class="btn-bulk-cancel" (click)="cancelAllDrafts()">
         Réinitialiser

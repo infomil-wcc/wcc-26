@@ -50,7 +50,7 @@ export class MatchComponent implements OnInit, OnDestroy {
   penaltyWinner: string | null = null;
   @Input() dateTime!: string;
   @Input() hasPlayed!: boolean;
-  @Input() hidePointsBadge: boolean = false; // Flag to overlay fraud notice rather than point pill layout
+  @Input() hidePointsBadge: boolean = false; 
   @Input() invalidatedDate: Date = new Date();
 
   protected showTeamInfoModal: boolean = false;
@@ -59,7 +59,6 @@ export class MatchComponent implements OnInit, OnDestroy {
   protected teamPastMatches: Matches[] = [];
   protected flagsLookup: { [teamName: string]: string } = {};
   @Output() hasPlayedChange = new EventEmitter<boolean>;
-
 
   protected showLoader: boolean = false;
   protected pronostiqueDone: boolean = false;
@@ -95,12 +94,9 @@ export class MatchComponent implements OnInit, OnDestroy {
   protected loadingLineups: boolean = false;
   private refreshSub!: Subscription;
   private savedSub!: Subscription;
-  /** Prevents stale API cache from overwriting a freshly-saved prediction */
   private justSaved: boolean = false;
 
-
   ngOnInit(): void {
-
     this.today = new Date(this.dateTime.slice(0, -6));
     const serverTime = this.today.getTime();
     const localTime = new Date().getTime();
@@ -123,19 +119,16 @@ export class MatchComponent implements OnInit, OnDestroy {
     }
 
     this.refreshSub = this.predictionService.refresh$.subscribe(() => {
-      // Skip re-fetch if we just saved — the API cache may still return stale data
       if (this.justSaved) return;
       if (this.isPronostiques && this.userId !== 0) {
         this.verfierMonPronostique();
       }
     });
 
-    // Reactively apply saved prediction data without an API round-trip
     this.savedSub = this.predictionService.savedPredictions$.subscribe((savedMap) => {
       const saved = savedMap.get(this.match.id);
       if (!saved) return;
 
-      // Block stale cache from overwriting this for 5 seconds
       this.justSaved = true;
       if ((this as any)._justSavedTimer) clearTimeout((this as any)._justSavedTimer);
       (this as any)._justSavedTimer = setTimeout(() => { this.justSaved = false; }, 5000);
@@ -158,7 +151,6 @@ export class MatchComponent implements OnInit, OnDestroy {
         this.penaltyWinner = null;
       }
 
-      // Force Angular to re-render synchronously in the current microtask
       this.cdr.markForCheck();
       this.cdr.detectChanges();
     });
@@ -245,7 +237,6 @@ export class MatchComponent implements OnInit, OnDestroy {
 
   subtractHours(date: Date): Date {
     const newDate = new Date(date);
-    // 5mins
     newDate.setTime(newDate.getTime() - (5 * 60 * 1000));
     return newDate;
   }
@@ -320,10 +311,14 @@ export class MatchComponent implements OnInit, OnDestroy {
   }
 
   onScoreChanged(): void {
-    if (this.fullTimeA !== null && this.halfTimeA !== null && this.fullTimeA < this.halfTimeA) {
+    // If one of the inputs changed from null/empty, force both scores to at least 0
+    if (this.fullTimeA === null) this.fullTimeA = 0;
+    if (this.fullTimeB === null) this.fullTimeB = 0;
+
+    if (this.halfTimeA !== null && this.fullTimeA < this.halfTimeA) {
       this.halfTimeA = this.fullTimeA;
     }
-    if (this.fullTimeB !== null && this.halfTimeB !== null && this.fullTimeB < this.halfTimeB) {
+    if (this.halfTimeB !== null && this.fullTimeB < this.halfTimeB) {
       this.halfTimeB = this.fullTimeB;
     }
 
@@ -357,15 +352,15 @@ export class MatchComponent implements OnInit, OnDestroy {
   }
 
   onHalftimeScoreChanged(): void {
-    if (this.halfTimeA !== null) {
-      if (this.fullTimeA === null || this.fullTimeA < this.halfTimeA) {
-        this.fullTimeA = this.halfTimeA;
-      }
+    // If one of the inputs changed from null/empty, force both halftime scores to at least 0
+    if (this.halfTimeA === null) this.halfTimeA = 0;
+    if (this.halfTimeB === null) this.halfTimeB = 0;
+
+    if (this.fullTimeA === null || this.fullTimeA < this.halfTimeA) {
+      this.fullTimeA = this.halfTimeA;
     }
-    if (this.halfTimeB !== null) {
-      if (this.fullTimeB === null || this.fullTimeB < this.halfTimeB) {
-        this.fullTimeB = this.halfTimeB;
-      }
+    if (this.fullTimeB === null || this.fullTimeB < this.halfTimeB) {
+      this.fullTimeB = this.halfTimeB;
     }
 
     if (this.calcWinDrawOutcome) {
@@ -453,44 +448,22 @@ export class MatchComponent implements OnInit, OnDestroy {
   }
 
   verfierMonPronostique(): void {
-    // If we just saved a prediction, don't re-fetch yet — the API proxy cache
-    // (60s TTL) would return stale data and overwrite the correct UI state.
     if (this.justSaved) return;
 
     this.predictionService.getMyPredictions(this.match.id).subscribe({
       next: (response) => {
-
         const drafts = this.predictionService.getDrafts();
         const draft = drafts.find(d => d.game_id === this.match.id);
 
-        // Fonction utilitaire locale pour valider la triche à la volée
         const checkPayloadFraud = (pred: any): boolean => {
           if (!pred || !this.match.date) return false;
-
-          // 1. Récupération du timestamp technique de Directus
           const predTimeStr = pred.modified_on || pred.created_on;
-          if (!predTimeStr) {
-            return false;
-          }
+          if (!predTimeStr) return false;
 
-          // 2. Conversion sécurisée en millisecondes
           const predTimestamp = new Date(predTimeStr).getTime();
           const matchTimestamp = new Date(this.match.date).getTime();
-
           this.invalidatedDate = new Date(predTimeStr);
 
-          // 3. Log de débogage pour voir la réalité dans la console F12
-          if (predTimestamp >= matchTimestamp) {
-            console.log(`[Fraud Check] Match M${this.match.id} :`, {
-              'Joué le': new Date(predTimeStr).toLocaleString(),
-              'Coup d\'envoi': new Date(this.match.date).toLocaleString(),
-              'predTimestamp': predTimestamp,
-              'matchTimestamp': matchTimestamp,
-              'Est une fraude ?': predTimestamp >= matchTimestamp
-            });
-          }
-
-          // 4. Comparaison stricte des millisecondes UTC
           return predTimestamp >= matchTimestamp;
         };
 
@@ -512,7 +485,6 @@ export class MatchComponent implements OnInit, OnDestroy {
           this.scorer = draft.scorer || '';
           this.isSavedInApi = response.length > 0;
 
-          // Calcul à la volée du badge de fraude sans modifier Directus
           this.hidePointsBadge = checkPayloadFraud(draft);
 
           if (response.length > 0 && response[0].id && !draft.id) {
@@ -533,7 +505,6 @@ export class MatchComponent implements OnInit, OnDestroy {
             this.matchOutcome = 'Draw';
             this.penaltyWinner = response[0].winner_draw;
 
-            // Auto-add to drafts if no penalty winner is selected so the floating dock appears
             if (Date.parse(this.match.date) > Date.now() && (!this.penaltyWinner || this.penaltyWinner.trim() === '' || this.penaltyWinner === 'Draw')) {
               this.donePronostique.game_id = this.match.id;
               this.predictionService.addDraft(this.donePronostique);
@@ -544,15 +515,11 @@ export class MatchComponent implements OnInit, OnDestroy {
           this.halfTimeB = (response[0].halftime_b !== null && response[0].halftime_b !== undefined && response[0].halftime_b !== '') ? parseInt(response[0].halftime_b, 10) : null;
           this.scorer = response[0].scorer || '';
 
-          // Si le serveur renvoie un pronostic dont la date technique interne 
-          // est supérieure au coup d'envoi, on active le bandeau visuel
           this.hidePointsBadge = checkPayloadFraud(response[0]);
 
-          // 🚨 FORCE LE BLOCAGE DE L'AFFICHAGE DES POINTS SUR LES MATCHS JOUÉS TRUQUÉS
           if (this.hidePointsBadge) {
-            this.isSavedInApi = false; // Désactive l'affichage des badges de points d'API classiques
+            this.isSavedInApi = false; 
           }
-
         } else {
           this.pronostiqueDone = false;
           this.donePronostique = null;
@@ -571,7 +538,6 @@ export class MatchComponent implements OnInit, OnDestroy {
         this.cdr.detectChanges();
       },
       error: (err) => {
-        // 3. Capturer l'erreur si l'API plante (ex: 401 Unauthorized, 404, etc.)
         console.error(`[Vérification ❌ ERREUR API] Erreur sur le match M${this.match.id} :`, err);
         this.cdr.detectChanges();
       }
@@ -634,7 +600,7 @@ export class MatchComponent implements OnInit, OnDestroy {
   }
 
   isOutcomeCorrect(): boolean {
-    if (this.hidePointsBadge) return false; // 🚨 Bloque l'analyse ici - FRAUDE
+    if (this.hidePointsBadge) return false; 
     if (!this.donePronostique || !this.match || this.match.fulltime_a === null || this.match.fulltime_b === null || this.hidePointsBadge) {
       return false;
     }
@@ -799,7 +765,7 @@ export class MatchComponent implements OnInit, OnDestroy {
       if (this.isOutcomeCorrect()) {
         points += winnerPts;
         if (game.penalty_shootout) {
-          points += fulltimePts; // Award full score points if outcome is correct
+          points += fulltimePts; 
         }
       }
 
@@ -859,8 +825,6 @@ export class MatchComponent implements OnInit, OnDestroy {
   get teamBScorersGrouped(): any[] {
     return this.getGroupedScorers(this.match.team_b);
   }
-
-
 
   parseScorers(scorersVal: any): any[] {
     if (!scorersVal) return [];
@@ -957,7 +921,6 @@ export class MatchComponent implements OnInit, OnDestroy {
     this.showTeamInfoModal = true;
     this.loadingTeamInfo = true;
 
-    // Fetch flags if not loaded yet
     const loadFlags$ = Object.keys(this.flagsLookup).length > 0
       ? of(null)
       : this.teamService.getFlags().pipe(
@@ -972,13 +935,11 @@ export class MatchComponent implements OnInit, OnDestroy {
     loadFlags$.subscribe(() => {
       this.matchesService.getAllMatches().subscribe({
         next: (allMatches) => {
-          // Filter for played matches involving this team
           this.teamPastMatches = (allMatches || [])
             .filter(m =>
               m.fulltime_a !== null && m.fulltime_b !== null &&
               (m.team_a === teamName || m.team_b === teamName)
             )
-            // Sort reverse chronologically (most recent first)
             .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
           this.loadingTeamInfo = false;
@@ -1020,11 +981,11 @@ export class MatchComponent implements OnInit, OnDestroy {
     const isTeamA = pastMatch.team_a === this.selectedTeamName;
     const scoreA = Number(pastMatch.fulltime_a);
     const scoreB = Number(pastMatch.fulltime_b);
-    if (scoreA === scoreB) return '#718096'; // Gray
+    if (scoreA === scoreB) return '#718096'; 
     if (isTeamA) {
-      return scoreA > scoreB ? '#48bb78' : '#e53e3e'; // Green vs Red
+      return scoreA > scoreB ? '#48bb78' : '#e53e3e'; 
     } else {
-      return scoreB > scoreA ? '#48bb78' : '#e53e3e'; // Green vs Red
+      return scoreB > scoreA ? '#48bb78' : '#e53e3e'; 
     }
   }
 

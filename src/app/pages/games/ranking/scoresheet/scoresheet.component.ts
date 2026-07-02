@@ -418,6 +418,12 @@ export class ScoresheetComponent implements OnInit {
       const pred = predMap.get(String(match.id));
       if (!pred) continue; // no prediction for this match
 
+      // Cleanse stored null/blank database items to '0' on the fly before calculation and view binding
+      if (pred.fulltime_a === null || pred.fulltime_a === undefined || pred.fulltime_a === '') pred.fulltime_a = '0';
+      if (pred.fulltime_b === null || pred.fulltime_b === undefined || pred.fulltime_b === '') pred.fulltime_b = '0';
+      if (pred.halftime_a === null || pred.halftime_a === undefined || pred.halftime_a === '') pred.halftime_a = '0';
+      if (pred.halftime_b === null || pred.halftime_b === undefined || pred.halftime_b === '') pred.halftime_b = '0';
+
       const breakdown = this.pointsCalculator.calculatePoints(match, pred);
       
       let phaseKey = match.phase || '';
@@ -438,7 +444,7 @@ export class ScoresheetComponent implements OnInit {
           match,
           prediction: pred,
           breakdown,
-          expanded: false // For UI toggle if needed
+          expanded: false
         });
       }
     }
