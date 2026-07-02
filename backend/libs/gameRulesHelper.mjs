@@ -103,8 +103,8 @@ export async function generateGameRules(fetchInstance, directusUrl, adminToken) 
                 };
 
                 element.bareme_points_detaille.rows = [
-                    { "cat": "Trouver le bon vainqueur", "vals": targetPhases.map(p => formatCell(getDynamicCellPoints(p, 'winner_draw_points', null))) },
-                    { "cat": "Score final (jusqu'à prolongation)", "vals": targetPhases.map(p => formatCell(getDynamicCellPoints(p, 'fulltime_exact_points', 'fulltime'), "+")) },
+                    { "cat": "Trouver le bon vainqueurTrouver le bon vainqueur / Match nul(poules seulement)", "vals": targetPhases.map(p => formatCell(getDynamicCellPoints(p, 'winner_draw_points', null))) },
+                    { "cat": "Score final (jusqu'aux prolongations)", "vals": targetPhases.map(p => formatCell(getDynamicCellPoints(p, 'fulltime_exact_points', 'fulltime'), "+")) },
                     { "cat": "Score mi-temps", "vals": targetPhases.map(p => formatCell(getDynamicCellPoints(p, 'halftime_exact_points', 'halftime'), "+")) },
                     { "cat": "Nom d'un buteur", "vals": targetPhases.map(p => formatCell(getDynamicCellPoints(p, 'scorer_points', 'scorer'), "+")) },
                     { "cat": "Point de consolation (si 0 pt)", "vals": targetPhases.map(p => formatCell(getDynamicCellPoints(p, 'consolation_points', null))) },

@@ -42,10 +42,10 @@
             <tr [ngClass]="{'row-total': cat === 'total'}">
               <td class="font-bold category-name">
                 @if (cat === 'winner') {
-                <span>Trouver le bon vainqueur / Match nul</span>
+                <span>Trouver le bon vainqueur / Match nul(poules seulement)</span>
                 }
                 @if (cat === 'fulltime') {
-                <span>Score final (jusqu'à prolongation)</span>
+                <span>Score final (jusqu'aux prolongations)</span>
                 }
                 @if (cat === 'halftime') {
                 <span>Score mi-temps</span>
