@@ -54,36 +54,62 @@ export class ScoresheetComponent implements OnInit {
 
   activeFilterMenu: string | null = null;
 
+  /** Match mode for text filters: 'contains' | 'startsWith' | 'endsWith' */
+  matchModes: Record<string, 'contains' | 'startsWith' | 'endsWith'> = {
+    match: 'contains',
+    score: 'contains',
+    prediction: 'contains'
+  };
+  tempMatchModes: Record<string, 'contains' | 'startsWith' | 'endsWith'> = {
+    match: 'contains',
+    score: 'contains',
+    prediction: 'contains'
+  };
+
+  matchModeOptions = [
+    { label: 'Contient', value: 'contains' },
+    { label: 'Commence par', value: 'startsWith' },
+    { label: 'Finit par', value: 'endsWith' }
+  ];
+
   tempFilters: {
     match: string;
-    date: Date | string | null;
+    dateFrom: Date | null;
+    dateTo: Date | null;
     phase: string;
     score: string;
     prediction: string;
-    points: string;
+    pointsMin: string;
+    pointsMax: string;
   } = {
     match: '',
-    date: null,
+    dateFrom: null,
+    dateTo: null,
     phase: '',
     score: '',
     prediction: '',
-    points: ''
+    pointsMin: '',
+    pointsMax: ''
   };
 
   columnFilters: {
     match: string;
-    date: Date | string | null;
+    dateFrom: Date | null;
+    dateTo: Date | null;
     phase: string;
     score: string;
     prediction: string;
-    points: string;
+    pointsMin: string;
+    pointsMax: string;
   } = {
     match: '',
-    date: null,
+    dateFrom: null,
+    dateTo: null,
     phase: '',
     score: '',
     prediction: '',
-    points: ''
+    pointsMin: '',
+    pointsMax: ''
   };
 
   toggleFilterMenu(event: Event, field: string) {
@@ -92,31 +118,79 @@ export class ScoresheetComponent implements OnInit {
       this.activeFilterMenu = null;
     } else {
       this.activeFilterMenu = field;
-      (this.tempFilters as any)[field] = (this.columnFilters as any)[field];
+      // Sync temp filter values from active column filters
+      if (field === 'date') {
+        this.tempFilters.dateFrom = this.columnFilters.dateFrom;
+        this.tempFilters.dateTo = this.columnFilters.dateTo;
+      } else if (field === 'points') {
+        this.tempFilters.pointsMin = this.columnFilters.pointsMin;
+        this.tempFilters.pointsMax = this.columnFilters.pointsMax;
+      } else {
+        (this.tempFilters as any)[field] = (this.columnFilters as any)[field];
+      }
+      if (this.matchModes[field]) {
+        this.tempMatchModes[field] = this.matchModes[field];
+      }
     }
     this.cdr.detectChanges();
   }
 
   applyFilter(field: string) {
-    (this.columnFilters as any)[field] = (this.tempFilters as any)[field];
+    if (field === 'date') {
+      this.columnFilters.dateFrom = this.tempFilters.dateFrom;
+      this.columnFilters.dateTo = this.tempFilters.dateTo;
+    } else if (field === 'points') {
+      this.columnFilters.pointsMin = this.tempFilters.pointsMin;
+      this.columnFilters.pointsMax = this.tempFilters.pointsMax;
+    } else {
+      (this.columnFilters as any)[field] = (this.tempFilters as any)[field];
+      if (this.tempMatchModes[field]) {
+        this.matchModes[field] = this.tempMatchModes[field];
+      }
+    }
     this.activeFilterMenu = null;
     this.cdr.detectChanges();
   }
 
   clearFilter(field: string) {
     if (field === 'date') {
-      this.tempFilters.date = null;
-      this.columnFilters.date = null;
+      this.tempFilters.dateFrom = null;
+      this.tempFilters.dateTo = null;
+      this.columnFilters.dateFrom = null;
+      this.columnFilters.dateTo = null;
+    } else if (field === 'points') {
+      this.tempFilters.pointsMin = '';
+      this.tempFilters.pointsMax = '';
+      this.columnFilters.pointsMin = '';
+      this.columnFilters.pointsMax = '';
     } else {
       (this.tempFilters as any)[field] = '';
       (this.columnFilters as any)[field] = '';
+      if (this.tempMatchModes[field]) {
+        this.tempMatchModes[field] = 'contains';
+        this.matchModes[field] = 'contains';
+      }
     }
     this.activeFilterMenu = null;
     this.cdr.detectChanges();
   }
 
   isFilterActive(field: string): boolean {
+    if (field === 'date') return !!(this.columnFilters.dateFrom || this.columnFilters.dateTo);
+    if (field === 'points') return !!(this.columnFilters.pointsMin || this.columnFilters.pointsMax);
     return !!(this.columnFilters as any)[field];
+  }
+
+  /** Apply a text match based on configured match mode */
+  private applyTextMatch(value: string, filter: string, mode: 'contains' | 'startsWith' | 'endsWith'): boolean {
+    const v = value.toLowerCase();
+    const f = filter.toLowerCase().trim();
+    if (!f) return true;
+    switch (mode) {
+      case 'startsWith': return v.startsWith(f);
+      case 'endsWith':   return v.endsWith(f);
+      default:           return v.includes(f);
+    }
   }
 
   @HostListener('document:click', [])
@@ -140,11 +214,8 @@ export class ScoresheetComponent implements OnInit {
     return this.sortOrder === 'asc' ? 'arrow_upward' : 'arrow_downward';
   }
 
-  updateColumnFilter(event: Event, field: keyof typeof this.columnFilters) {
-    const input = event.target as HTMLInputElement;
-    this.columnFilters[field] = input.value;
-    this.cdr.detectChanges();
-  }
+
+
 
   // The 2D matrix structure
   summaryMatrix: Record<string, PhaseSummary> = {
@@ -229,57 +300,53 @@ export class ScoresheetComponent implements OnInit {
 
     // Apply column filters
     if (this.columnFilters.match) {
-      const f = this.columnFilters.match.toLowerCase().trim();
+      const mode = this.matchModes['match'] || 'contains';
       list = list.filter(item => {
-        const teamA = (item.match.team_a || '').toLowerCase();
-        const teamB = (item.match.team_b || '').toLowerCase();
-        return teamA.includes(f) || teamB.includes(f);
+        const teamA = item.match.team_a || '';
+        const teamB = item.match.team_b || '';
+        return this.applyTextMatch(teamA, this.columnFilters.match, mode) ||
+               this.applyTextMatch(teamB, this.columnFilters.match, mode);
       });
     }
-    if (this.columnFilters.date) {
-      const filterDate = this.columnFilters.date;
+    if (this.columnFilters.dateFrom || this.columnFilters.dateTo) {
       list = list.filter(item => {
         const d = new Date(item.match.date);
-        if (filterDate instanceof Date) {
-          return d.getFullYear() === filterDate.getFullYear() &&
-                 d.getMonth() === filterDate.getMonth() &&
-                 d.getDate() === filterDate.getDate();
-        } else {
-          const f = String(filterDate).toLowerCase().trim();
-          const day = String(d.getDate()).padStart(2, '0');
-          const month = String(d.getMonth() + 1).padStart(2, '0');
-          const year = d.getFullYear();
-          const hrs = String(d.getHours()).padStart(2, '0');
-          const mins = String(d.getMinutes()).padStart(2, '0');
-          const dateStr = `${day}/${month}/${year} ${hrs}:${mins}`;
-          return dateStr.toLowerCase().includes(f);
-        }
+        const dTime = d.getTime();
+        const from = this.columnFilters.dateFrom ? new Date(this.columnFilters.dateFrom).setHours(0,0,0,0) : null;
+        const to   = this.columnFilters.dateTo   ? new Date(this.columnFilters.dateTo).setHours(23,59,59,999) : null;
+        if (from && dTime < from) return false;
+        if (to   && dTime > to)   return false;
+        return true;
       });
     }
     if (this.columnFilters.phase) {
-      const f = this.columnFilters.phase.toLowerCase().trim();
-      list = list.filter(item => (item.match.phase || '').toLowerCase().includes(f));
+      list = list.filter(item => (item.match.phase || '') === this.columnFilters.phase);
     }
     if (this.columnFilters.score) {
-      const f = this.columnFilters.score.toLowerCase().trim();
+      const mode = this.matchModes['score'] || 'contains';
       list = list.filter(item => {
         const scoreStr = `${item.match.fulltime_a} - ${item.match.fulltime_b}`;
-        return scoreStr.includes(f);
+        return this.applyTextMatch(scoreStr, this.columnFilters.score, mode);
       });
     }
     if (this.columnFilters.prediction) {
-      const f = this.columnFilters.prediction.toLowerCase().trim();
+      const mode = this.matchModes['prediction'] || 'contains';
       list = list.filter(item => {
-        if (item.prediction.fulltime_a === null || item.prediction.fulltime_b === null) return f === '-';
+        if (item.prediction.fulltime_a === null || item.prediction.fulltime_b === null) {
+          return this.applyTextMatch('-', this.columnFilters.prediction, mode);
+        }
         const predStr = `${item.prediction.fulltime_a} - ${item.prediction.fulltime_b}`;
-        return predStr.includes(f);
+        return this.applyTextMatch(predStr, this.columnFilters.prediction, mode);
       });
     }
-    if (this.columnFilters.points) {
-      const f = this.columnFilters.points.toLowerCase().trim();
+    if (this.columnFilters.pointsMin || this.columnFilters.pointsMax) {
+      const minVal = this.columnFilters.pointsMin !== '' ? Number(this.columnFilters.pointsMin) : null;
+      const maxVal = this.columnFilters.pointsMax !== '' ? Number(this.columnFilters.pointsMax) : null;
       list = list.filter(item => {
-        const pts = item.breakdown.isFraud ? '0' : String(item.breakdown.total);
-        return pts.includes(f);
+        const pts = item.breakdown.isFraud ? 0 : item.breakdown.total;
+        if (minVal !== null && pts < minVal) return false;
+        if (maxVal !== null && pts > maxVal) return false;
+        return true;
       });
     }
 
@@ -391,5 +458,96 @@ export class ScoresheetComponent implements OnInit {
     } else {
       this.router.navigate(['/classement']);
     }
+  }
+
+  /** Parse scorers JSON from a match into a normalized array of scorer events */
+  parseMatchScorers(match: any): any[] {
+    if (!match || !match.scorers) return [];
+    const val = match.scorers;
+    let list: any[] = [];
+    if (Array.isArray(val)) {
+      list = val;
+    } else if (typeof val === 'string') {
+      const trimmed = val.trim();
+      if (trimmed.startsWith('[') && trimmed.endsWith(']')) {
+        try { list = JSON.parse(trimmed); } catch (e) { list = []; }
+      }
+    }
+    return list.map(e => {
+      let name = e.player?.name || e.scorer?.name || e.name || 'Unknown';
+      let elapsed = e.time?.elapsed ?? 0;
+      let extra = e.time?.extra ?? null;
+      let detail = e.detail || 'Normal Goal';
+      const regex = /^(.*?)\s+(\d+)'?(?:\+(\d+))?'?\s*(\((?:OG|p|CSC|PEN)\)|\[(?:OG|p|CSC|PEN)\])?$/i;
+      const m = typeof name === 'string' ? name.trim().match(regex) : null;
+      if (m) {
+        name = m[1].trim();
+        elapsed = parseInt(m[2], 10);
+        extra = m[3] ? parseInt(m[3], 10) : null;
+        if (m[4]) {
+          const dl = m[4].toLowerCase();
+          if (dl.includes('og') || dl.includes('csc')) detail = 'Own Goal';
+          else if (dl.includes('p') || dl.includes('pen')) detail = 'Penalty';
+        }
+      }
+      return { ...e, player: { name }, time: { elapsed, extra }, detail };
+    });
+  }
+
+  /** Get grouped scorers for a given team from a match */
+  getMatchScorersGrouped(match: any, teamName: string): { name: string; times: string }[] {
+    if (!match || !match.scorers || !teamName) return [];
+    const events = this.parseMatchScorers(match);
+    if (events.length === 0) return [];
+    const teamEvents = events.filter((e: any) => {
+      const eventTeam = e.team?.name || e.team;
+      return eventTeam && typeof eventTeam === 'string' &&
+        eventTeam.trim().toLowerCase() === teamName.trim().toLowerCase();
+    });
+    const groups: { [name: string]: string[] } = {};
+    for (const e of teamEvents) {
+      const name = e.player?.name || 'Unknown';
+      let timeStr = `${e.time.elapsed}`;
+      if (e.time.extra) timeStr += `+${e.time.extra}`;
+      timeStr += "'";
+      if (e.detail === 'Penalty') timeStr += ' [PEN]';
+      else if (e.detail === 'Own Goal') timeStr += ' [OG]';
+      if (!groups[name]) groups[name] = [];
+      groups[name].push(timeStr);
+    }
+    return Object.keys(groups).map(name => ({ name, times: `(${groups[name].join(', ')})` }));
+  }
+
+  /** Returns true if the match is in the Group Stage */
+  isGroupStage(item: any): boolean {
+    return item?.match?.phase === 'Group Stage';
+  }
+
+  /** Returns the winner team name based on the prediction's winner_draw field */
+  getPronosticWinnerTeamName(item: any): string {
+    const wd = item?.prediction?.winner_draw;
+    if (!wd || wd === 'draw') return 'Match Nul';
+    if (wd === 'team_a') return item?.match?.team_a || 'Équipe A';
+    if (wd === 'team_b') return item?.match?.team_b || 'Équipe B';
+    return wd;
+  }
+
+  /** Returns the actual winner team name from match result */
+  getActualWinnerTeamName(item: any): string {
+    const wd = item?.match?.winner_draw;
+    if (!wd || wd === 'draw') return 'Match Nul';
+    if (wd === 'team_a') return item?.match?.team_a || 'Équipe A';
+    if (wd === 'team_b') return item?.match?.team_b || 'Équipe B';
+    return wd;
+  }
+
+  /** Returns true if the match has penalty shootout info */
+  hasPenalty(item: any): boolean {
+    return item?.match?.penalty_a !== null && item?.match?.penalty_b !== null;
+  }
+
+  /** Check if match has scorer events (JSON format) */
+  hasScorersJson(match: any): boolean {
+    return this.parseMatchScorers(match).length > 0;
   }
 }
