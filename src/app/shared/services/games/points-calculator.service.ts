@@ -20,6 +20,21 @@ export class PointsCalculatorService {
   constructor() { }
 
   /**
+   * Helper function to append Mauritian timezone offset (+04:00) 
+   * if the ISO string has no timezone descriptor.
+   */
+  private parseMauritianDate(dateStr: string): number {
+    if (!dateStr) return 0;
+    let normalized = dateStr.trim();
+    
+    // If the string doesn't specify Z or an offset (+/-), append the Mauritian timezone offset (+04:00)
+    if (!normalized.endsWith('Z') && !/[+-]\d{2}:?\d{2}$/.test(normalized)) {
+      normalized += '+04:00';
+    }
+    return new Date(normalized).getTime();
+  }
+
+  /**
    * Checks if a prediction is considered fraudulent based on its modification date 
    * relative to the match's kickoff time.
    */
@@ -29,12 +44,11 @@ export class PointsCalculatorService {
     const dateToUse = prediction.modified_on ? prediction.modified_on : prediction.created_on;
     if (!dateToUse) return false;
 
-    // Use standard native Date parsing directly without altering timezone string suffixes
-    const predTimestamp = new Date(dateToUse).getTime();
-    const matchTimestamp = new Date(match.date).getTime();
+    const predTimestamp = this.parseMauritianDate(dateToUse);
+    const matchTimestamp = this.parseMauritianDate(match.date);
 
-    // Returns true if the prediction was made/modified AFTER the match kick-off
-    return predTimestamp > matchTimestamp;
+    // Returns true if the prediction was made/modified AFTER or AT the exact match kick-off time
+    return predTimestamp >= matchTimestamp;
   }
 
   calculatePoints(match: Matches, prediction: Pronostiques): PointsBreakdown {
