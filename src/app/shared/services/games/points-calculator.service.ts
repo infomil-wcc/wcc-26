@@ -29,15 +29,12 @@ export class PointsCalculatorService {
     const dateToUse = prediction.modified_on ? prediction.modified_on : prediction.created_on;
     if (!dateToUse) return false;
 
-    let predTimeStr = dateToUse;
-    if (!predTimeStr.endsWith('Z')) {
-      predTimeStr += 'Z';
-    }
-
-    const predTimestamp = new Date(predTimeStr).getTime();
+    // Use standard native Date parsing directly without altering timezone string suffixes
+    const predTimestamp = new Date(dateToUse).getTime();
     const matchTimestamp = new Date(match.date).getTime();
 
-    return predTimestamp >= matchTimestamp;
+    // Returns true if the prediction was made/modified AFTER the match kick-off
+    return predTimestamp > matchTimestamp;
   }
 
   calculatePoints(match: Matches, prediction: Pronostiques): PointsBreakdown {
