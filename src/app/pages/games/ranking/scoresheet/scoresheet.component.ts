@@ -82,15 +82,15 @@ export class ScoresheetComponent implements OnInit {
     pointsMin: string;
     pointsMax: string;
   } = {
-    match: '',
-    dateFrom: null,
-    dateTo: null,
-    phase: '',
-    score: '',
-    prediction: '',
-    pointsMin: '',
-    pointsMax: ''
-  };
+      match: '',
+      dateFrom: null,
+      dateTo: null,
+      phase: '',
+      score: '',
+      prediction: '',
+      pointsMin: '',
+      pointsMax: ''
+    };
 
   columnFilters: {
     match: string;
@@ -102,15 +102,15 @@ export class ScoresheetComponent implements OnInit {
     pointsMin: string;
     pointsMax: string;
   } = {
-    match: '',
-    dateFrom: null,
-    dateTo: null,
-    phase: '',
-    score: '',
-    prediction: '',
-    pointsMin: '',
-    pointsMax: ''
-  };
+      match: '',
+      dateFrom: null,
+      dateTo: null,
+      phase: '',
+      score: '',
+      prediction: '',
+      pointsMin: '',
+      pointsMax: ''
+    };
 
   toggleFilterMenu(event: Event, field: string) {
     event.stopPropagation();
@@ -188,8 +188,8 @@ export class ScoresheetComponent implements OnInit {
     if (!f) return true;
     switch (mode) {
       case 'startsWith': return v.startsWith(f);
-      case 'endsWith':   return v.endsWith(f);
-      default:           return v.includes(f);
+      case 'endsWith': return v.endsWith(f);
+      default: return v.includes(f);
     }
   }
 
@@ -230,7 +230,7 @@ export class ScoresheetComponent implements OnInit {
   // List of processed matches for detailed view
   detailedMatches: any[] = [];
   filterText: string = '';
-  
+
   phasesList = [
     { label: 'Toutes les phases', value: '' },
     { label: 'Group Stage', value: 'Group Stage' },
@@ -263,7 +263,7 @@ export class ScoresheetComponent implements OnInit {
         this.matches = res.matches;
         this.predictions = res.predictions?.data || [];
         this.teams = res.teams || [];
-        
+
         // Build map for fast lookup
         for (const t of this.teams) {
           if (t.name) {
@@ -271,7 +271,7 @@ export class ScoresheetComponent implements OnInit {
             this.teamIsoMap.set(t.name.toLowerCase().trim(), t.iso || t.name.substring(0, 3).toUpperCase());
           }
         }
-        
+
         this.calculateScoresheet();
         this.loading = false;
         this.cdr.detectChanges();
@@ -305,17 +305,17 @@ export class ScoresheetComponent implements OnInit {
         const teamA = item.match.team_a || '';
         const teamB = item.match.team_b || '';
         return this.applyTextMatch(teamA, this.columnFilters.match, mode) ||
-               this.applyTextMatch(teamB, this.columnFilters.match, mode);
+          this.applyTextMatch(teamB, this.columnFilters.match, mode);
       });
     }
     if (this.columnFilters.dateFrom || this.columnFilters.dateTo) {
       list = list.filter(item => {
         const d = new Date(item.match.date);
         const dTime = d.getTime();
-        const from = this.columnFilters.dateFrom ? new Date(this.columnFilters.dateFrom).setHours(0,0,0,0) : null;
-        const to   = this.columnFilters.dateTo   ? new Date(this.columnFilters.dateTo).setHours(23,59,59,999) : null;
+        const from = this.columnFilters.dateFrom ? new Date(this.columnFilters.dateFrom).setHours(0, 0, 0, 0) : null;
+        const to = this.columnFilters.dateTo ? new Date(this.columnFilters.dateTo).setHours(23, 59, 59, 999) : null;
         if (from && dTime < from) return false;
-        if (to   && dTime > to)   return false;
+        if (to && dTime > to) return false;
         return true;
       });
     }
@@ -425,17 +425,18 @@ export class ScoresheetComponent implements OnInit {
       if (pred.halftime_b === null || pred.halftime_b === undefined || pred.halftime_b === '') pred.halftime_b = '0';
 
       const breakdown = this.pointsCalculator.calculatePoints(match, pred);
-      
+
       let phaseKey = match.phase || '';
       if (phaseKey === 'Third Place') phaseKey = 'Final'; // Group them together for the table
 
-      if (this.summaryMatrix[phaseKey]) {
-         this.summaryMatrix[phaseKey].winner += breakdown.winner;
-         this.summaryMatrix[phaseKey].fulltime += breakdown.fulltime;
-         this.summaryMatrix[phaseKey].halftime += breakdown.halftime;
-         this.summaryMatrix[phaseKey].scorer += breakdown.scorer;
-         this.summaryMatrix[phaseKey].consolation += breakdown.consolation;
-         this.summaryMatrix[phaseKey].total += breakdown.total;
+      // 🛑 FIX: Only accumulate points if it's NOT fraudulent
+      if (this.summaryMatrix[phaseKey] && !breakdown.isFraud) {
+        this.summaryMatrix[phaseKey].winner += breakdown.winner;
+        this.summaryMatrix[phaseKey].fulltime += breakdown.fulltime;
+        this.summaryMatrix[phaseKey].halftime += breakdown.halftime;
+        this.summaryMatrix[phaseKey].scorer += breakdown.scorer;
+        this.summaryMatrix[phaseKey].consolation += breakdown.consolation;
+        this.summaryMatrix[phaseKey].total += breakdown.total;
       }
 
       // Only show matches that have been played
