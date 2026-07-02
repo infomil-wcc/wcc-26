@@ -334,7 +334,7 @@
               </td>
 
               <td class="text-center text-sm">
-                <div class="flex flex-column align-items-center gap-1">
+                <div class="flex flex-column align-items-center gap-1" [ngStyle]="{'text-decoration': item.breakdown.isFraud ? 'line-through' : 'none', 'opacity': item.breakdown.isFraud ? '0.6' : '1'}">
                   @if (isGroupStage(item)) {
                     @if (item.prediction.winner_draw) {
                     <span class="pred-winner-badge">{{ getPronosticWinnerTeamName(item) }}</span>
@@ -349,20 +349,29 @@
                     <span class="text-400">-</span>
                     }
                   }
-                  @if (item.breakdown.isFraud) {
+                </div>
+                @if (item.breakdown.isFraud) {
+                <div class="flex justify-content-center mt-1">
                   <span class="fraud-pred-badge text-xs" title="Pronostic invalidé (fraude)" style="color: #dc2626; font-weight: 600; display: inline-flex; align-items: center; gap: 2px;">
                     <span class="material-symbols-outlined text-xs">block</span>
                     Invalidé
                   </span>
-                  }
                 </div>
+                }
               </td>
 
               <td class="text-center">
-                <div class="points-badge border-round px-2 py-1 font-bold inline-block"
-                  [ngClass]="item.breakdown.isFraud ? 'bg-red-100 text-red-600' : (item.breakdown.total > 0 ? 'bg-green-100 text-green-700' : 'bg-gray-200 text-gray-500')">
-                  {{ item.breakdown.isFraud ? 0 : item.breakdown.total }} pts
+                @if (item.breakdown.isFraud) {
+                <div class="points-badge border-round px-2 py-1 font-bold inline-flex align-items-center gap-1 bg-red-100 text-red-600" title="Match invalidé (fraude)">
+                  <span class="material-symbols-outlined text-sm">gavel</span>
+                  0 pts
                 </div>
+                } @else {
+                <div class="points-badge border-round px-2 py-1 font-bold inline-block"
+                  [ngClass]="item.breakdown.total > 0 ? 'bg-green-100 text-green-700' : 'bg-gray-200 text-gray-500'">
+                  {{ item.breakdown.total }} pts
+                </div>
+                }
               </td>
 
               <td class="text-center">
