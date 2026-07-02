@@ -26,10 +26,12 @@
       color: #0f172a !important;
       font-weight: 800;
       letter-spacing: -0.5px;
+
       span.material-symbols-outlined {
         font-size: 2rem;
         color: #64748b;
         transition: color 0.2s ease;
+
         &:hover {
           color: #0f172a;
         }
@@ -52,6 +54,7 @@
 
 .accordion-header {
   transition: background-color 0.2s ease;
+
   &:hover {
     background-color: #f8fafc;
   }
@@ -60,7 +63,7 @@
 .custom-table {
   width: 100%;
   border-collapse: collapse;
-  
+
   th {
     padding: 1.25rem 1rem;
     font-size: 0.85rem;
@@ -72,7 +75,6 @@
     background: #f8fafc;
     color: #64748b;
     position: sticky;
-    top: calc(#{$pagesHeader} + 64px);
     z-index: 10;
     box-shadow: 0 1px 0px rgba(0, 0, 0, 0.05);
   }
@@ -114,7 +116,7 @@
     color: #059669;
     border-top: 2px solid #e2e8f0;
   }
-  
+
   .row-total .points-val {
     color: #059669;
   }
@@ -131,7 +133,7 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    
+
     &:hover {
       color: #0f172a;
       background: #f1f5f9;
@@ -404,7 +406,7 @@
     width: 1.2rem;
     height: auto;
     border-radius: 2px;
-    box-shadow: 0 1px 2px rgba(0,0,0,0.15);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
   }
 
   .big-score {
