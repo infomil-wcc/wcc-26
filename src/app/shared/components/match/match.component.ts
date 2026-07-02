@@ -253,32 +253,34 @@ export class MatchComponent implements OnInit, OnDestroy {
   }
 
   protected openTacticalLineup(): void {
-    if (this.disabled || this.isSubmitting || (!this.isEditing && (this.match.fulltime || this.isSavedInApi || this.closed))) {
-      return;
-    }
-    this.showTacticalModal = true;
-    this.loadingLineups = true;
+  // Use the established getter to verify if the user can make/modify predictions
+  if (!this.canEditPrediction) {
+    return;
+  }
+  
+  this.showTacticalModal = true;
+  this.loadingLineups = true;
 
-    this.teamService.getPlayersByTeamName(this.match.team_a).subscribe(playersA => {
-      this.teamService.getPlayersByTeamName(this.match.team_b).subscribe(playersB => {
-        const listA = (playersA?.players || []).map((p: any) => ({ ...p, teamName: this.match.team_a }));
-        const listB = (playersB?.players || []).map((p: any) => ({ ...p, teamName: this.match.team_b }));
-        this.fallbackPlayersList = [...listA, ...listB];
+  this.teamService.getPlayersByTeamName(this.match.team_a).subscribe(playersA => {
+    this.teamService.getPlayersByTeamName(this.match.team_b).subscribe(playersB => {
+      const listA = (playersA?.players || []).map((p: any) => ({ ...p, teamName: this.match.team_a }));
+      const listB = (playersB?.players || []).map((p: any) => ({ ...p, teamName: this.match.team_b }));
+      this.fallbackPlayersList = [...listA, ...listB];
 
-        this.lineupsService.getLineups(this.match.team_a, this.match.team_b).subscribe({
-          next: (res) => {
-            this.lineupsData = res;
-            this.loadingLineups = false;
-          },
-          error: (err) => {
-            console.error('Error fetching lineups from football-data:', err);
-            this.lineupsData = null;
-            this.loadingLineups = false;
-          }
-        });
+      this.lineupsService.getLineups(this.match.team_a, this.match.team_b).subscribe({
+        next: (res) => {
+          this.lineupsData = res;
+          this.loadingLineups = false;
+        },
+        error: (err) => {
+          console.error('Error fetching lineups from football-data:', err);
+          this.lineupsData = null;
+          this.loadingLineups = false;
+        }
       });
     });
-  }
+  });
+}
 
   protected selectTacticalScorer(playerName: string) {
     this.scorer = playerName;

@@ -278,7 +278,7 @@
           <div class="flex flex-column align-items-center gap-1" [ngClass]="{'disabled': this.userTrigramme ===''}">
             <button class="btn btn-select-scorer w-full flex align-items-center justify-content-center gap-2 py-2"
               [ngClass]="{'btn-warning-outline': !scorer || scorer === '-'}" (click)="openTacticalLineup()"
-              [disabled]="isSavedInApi">
+              [disabled]="!canEditPrediction">
               <span class="material-symbols-outlined"
                 style="font-size: 1.1rem; vertical-align: middle;">sports_soccer</span>
               Choisir un buteur
@@ -384,7 +384,8 @@
         }
 
         @if(isSavedInApi && donePronostique && match.fulltime_a === null && match.fulltime_b === null && !isEditing &&
-        match.phase !== 'Group Stage' && !hidePointsBadge && countdownText !== 'Match commencé' && !isMatchFinishedByDate) {
+        match.phase !== 'Group Stage' && !hidePointsBadge && countdownText !== 'Match commencé' &&
+        !isMatchFinishedByDate) {
         <button class="btnEditpronostic flex align-items-center" (click)="modifierPronostic()">Modifier mon pronostic<i
             class="material-symbols-outlined">edit</i></button>
         }
@@ -581,15 +582,19 @@
                     <div class="score-pill flex align-items-center justify-content-center">
                       <span class="score flex align-items-baseline">
                         {{ pastMatch.fulltime_a }}
-                        @if (pastMatch.penalty_a !== null && pastMatch.penalty_a !== undefined && pastMatch.penalty_b !== null && pastMatch.penalty_b !== undefined) {
-                          <span style="font-size: 0.65em; opacity: 0.85; margin-left: 2px;">({{ pastMatch.penalty_a }})</span>
+                        @if (pastMatch.penalty_a !== null && pastMatch.penalty_a !== undefined && pastMatch.penalty_b
+                        !== null && pastMatch.penalty_b !== undefined) {
+                        <span style="font-size: 0.65em; opacity: 0.85; margin-left: 2px;">({{ pastMatch.penalty_a
+                          }})</span>
                         }
                       </span>
                       <span class="divider mx-2">|</span>
                       <span class="score flex align-items-baseline">
                         {{ pastMatch.fulltime_b }}
-                        @if (pastMatch.penalty_a !== null && pastMatch.penalty_a !== undefined && pastMatch.penalty_b !== null && pastMatch.penalty_b !== undefined) {
-                          <span style="font-size: 0.65em; opacity: 0.85; margin-left: 2px;">({{ pastMatch.penalty_b }})</span>
+                        @if (pastMatch.penalty_a !== null && pastMatch.penalty_a !== undefined && pastMatch.penalty_b
+                        !== null && pastMatch.penalty_b !== undefined) {
+                        <span style="font-size: 0.65em; opacity: 0.85; margin-left: 2px;">({{ pastMatch.penalty_b
+                          }})</span>
                         }
                       </span>
                     </div>
