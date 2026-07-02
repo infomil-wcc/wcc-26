@@ -9,6 +9,10 @@
   border-radius: 16px;
   padding: 1rem;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  max-height: min(80vh, 900px);
+  overflow-y: auto;
+  position: relative;
+  scrollbar-gutter: stable;
 }
 
 .teams-header {
@@ -16,30 +20,69 @@
   justify-content: space-between;
   align-items: center;
   width: 100%;
-  margin-bottom: 1.5rem;
-  padding-bottom: 0.75rem;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  padding: 0.75rem 0.25rem 0.75rem;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  background: linear-gradient(180deg, #111b21 0%, rgba(17, 27, 33, 0.95) 100%);
+  backdrop-filter: blur(8px);
 
-  .team-title {
-    font-size: 1.1rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    flex: 1;
+  .team-tabs {
     display: flex;
-    align-items: center;
-    gap: 8px;
+    gap: 0.5rem;
+    width: 100%;
+  }
 
-    &.home-title {
-      text-align: left;
-      justify-content: flex-start;
-      color: #3b5bdb;
-    }
-    &.away-title {
-      text-align: right;
-      justify-content: flex-end;
-      color: #f76707;
-    }
+  .team-tab {
+    flex: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: 999px;
+    padding: 0.8rem 0.9rem;
+    font-size: 0.85rem;
+    font-weight: 700;
+    letter-spacing: 0.7px;
+    text-transform: uppercase;
+    color: #f8f9fa;
+    cursor: pointer;
+    transition: background 0.2s ease, transform 0.2s ease;
+  }
+
+  .team-tab:hover {
+    background: rgba(255, 255, 255, 0.12);
+    transform: translateY(-1px);
+  }
+
+  .team-tab.active {
+    background: rgba(255, 255, 255, 0.18);
+    border-color: rgba(255, 255, 255, 0.26);
+  }
+
+  .header-flag {
+    width: 18px;
+    height: 12px;
+    border-radius: 4px;
+    object-fit: cover;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+  }
+
+  .vs-badge {
+    background: rgba(255, 255, 255, 0.08);
+    padding: 0.4rem 0.8rem;
+    border-radius: 999px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    color: #e4e7eb;
+    min-width: 92px;
+    text-align: center;
   }
 
   .header-flag {
@@ -64,17 +107,16 @@
 .pitch {
   position: relative;
   width: 100%;
-  max-width: 420px;
-  height: 680px;
-  background: radial-gradient(circle, #2e7d32 30%, #1b5e20 100%);
-  border: 3px solid rgba(255, 255, 255, 0.6);
-  border-radius: 12px;
-  overflow: hidden;
-  padding: 15px 0;
+  max-width: 520px;
+  height: 640px;
+  background: #6ea56b;
+  border: 1.5px solid #ffffff;
+  border-radius: 28px;
+  overflow: visible;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
-  box-shadow: inset 0 0 40px rgba(0, 0, 0, 0.3);
+  justify-content: flex-start;
+  box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.12);
 }
 
 .court-team-bar {
@@ -88,6 +130,8 @@
   border-radius: 6px;
   border: 1px solid rgba(255, 255, 255, 0.15);
   pointer-events: none;
+  width: fit-content;
+  align-self: flex-start;
 
   .court-flag {
     width: 18px;
@@ -116,207 +160,263 @@
 
 .pitch-lines {
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  inset: 0;
   pointer-events: none;
+
+  .top-line {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1.5px;
+    background: #ffffff;
+  }
+
+  &::after {
+    content: '';
+    position: absolute;
+    top: 16%;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: #ffffff;
+  }
+
+  .center-circle {
+    position: absolute;
+    bottom: 49%;
+    left: 50%;
+    width: 120px;
+    height: 120px;
+    border: 2px solid #ffffff;
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    clip-path: inset(50% 0 0 0);
+    overflow: hidden;
+
+    &::before {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 10px;
+      height: 10px;
+      background: #ffffff;
+      border-radius: 50%;
+      transform: translate(-50%, -50%);
+    }
+  }
 
   .penalty-area {
     position: absolute;
     left: 50%;
-    transform: translateX(-50%);
-    width: 60%;
-    height: 18%;
-    border: 3px solid rgba(255, 255, 255, 0.4);
-
-    &.top {
-      top: -3px;
-      border-top: none;
-    }
-    &.bottom {
-      bottom: -3px;
-      border-bottom: none;
-    }
+    width: 50%;
+    height: 70px;
+    transform: translateX(-50%) rotate(360deg);
+    border: 2px solid #ffffff;
+    border-radius: 16px 16px 0 0;
+    bottom: 0px;
+    background: transparent;
   }
 
-  .halfway-line {
+  .penalty-arc {
     position: absolute;
-    top: 50%;
-    left: 0;
-    right: 0;
-    height: 3px;
-    background: rgba(255, 255, 255, 0.4);
-    transform: translateY(-50%);
+    left: 50%;
+    bottom: 70px;
+    width: 50px;
+    height: 20px;
+    transform: translateX(-50%) rotate(180deg);
+    border-left: 2px solid #ffffff;
+    border-right: 2px solid #ffffff;
+    border-bottom: 0px solid #ffffff;
+    border-top: none;
+    border-radius: 0 0 100px 100px;
+    background: transparent;
+  }
 
-    .center-circle {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      width: 80px;
-      height: 80px;
-      border: 3px solid rgba(255, 255, 255, 0.4);
-      border-radius: 50%;
-      transform: translate(-50%, -50%);
-    }
+  .goal-area {
+    position: absolute;
+    left: 50%;
+    width: 24%;
+    height: 25px;
+    transform: translateX(-50%);
+    border-left: 1.5px solid #ffffff;
+    border-right: 1.5px solid #ffffff;
+    bottom: 0px;
+    background: transparent;
+  }
+
+  .goal-crossbar {
+    position: absolute;
+    left: 0;
+    bottom: 24px;
+    width: 100%;
+    height: 1.5px;
+    background: #ffffff;
+    border-radius: 1px;
   }
 }
 
 .team-half {
   display: flex;
   flex-direction: column;
-  justify-content: space-around;
-  height: 48%;
+  justify-content: space-between;
+  height: 100%;
+  gap: 0.8rem;
   z-index: 2;
   position: relative;
-
+  padding: 80px 12px 16px;
+  overflow: visible;
   .formation-label {
     position: absolute;
+    top:10px;
     right: 8px;
-    background: rgba(0, 0, 0, 0.7);
+    background: rgba(0, 0, 0, 0.65);
     color: #ffd600;
-    font-size: 0.7rem;
+    font-size: 0.74rem;
     font-weight: 800;
-    padding: 2px 6px;
-    border-radius: 4px;
-    border: 1px solid rgba(255, 255, 255, 0.15);
+    padding: 4px 8px;
+    border-radius: 6px;
+    border: 1px solid rgba(255, 255, 255, 0.18);
     z-index: 10;
     letter-spacing: 0.5px;
     pointer-events: none;
-
-    &.home-formation {
-      top: 4px;
-    }
-
-    &.away-formation {
-      bottom: 4px;
-    }
   }
 
   &.home-half {
     flex-direction: column;
   }
+
   &.away-half {
     flex-direction: column;
   }
 }
 
+.team-half .formation-label.home-formation {
+  top: 4px;
+}
+
+.team-half .formation-label.away-formation {
+  bottom: 4px;
+}
+
 .pitch-row {
   display: flex;
   justify-content: space-around;
-  align-items: center;
+  align-items: flex-end;
   width: 100%;
+  gap: 0.24rem;
+  min-height: 44px;
+  max-height: 52px;
+  padding: 0 4px;
 }
 
 .player-card {
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: flex-end;
   cursor: pointer;
   transition: transform 0.2s ease, filter 0.2s ease;
   width: 70px;
+  min-height: 76px;
 
   &:hover {
-    transform: scale(1.1);
-    filter: brightness(1.2);
+    transform: scale(1.06);
+    filter: brightness(1.18);
   }
 
   .jersey-wrapper {
     position: relative;
-    width: 42px;
-    height: 42px;
+    width: 44px;
+    height: 44px;
     display: flex;
     align-items: center;
     justify-content: center;
     filter: drop-shadow(0 3px 5px rgba(0, 0, 0, 0.3));
 
-    .jersey-svg {
-      width: 100%;
-      height: 100%;
-      
-      .jersey-sleeve {
-        fill: var(--secondary-color, #ffffff);
-        transition: fill 0.3s ease;
-      }
-      
-      .jersey-body {
-        fill: var(--primary-color, #ffffff);
-        transition: fill 0.3s ease;
-      }
-      
-      .jersey-collar {
-        fill: none;
-        stroke: var(--secondary-color, #ffffff);
-        stroke-width: 3px;
-      }
+    .jersey-sleeve {
+      fill: var(--secondary-color, #ffffff);
+      transition: fill 0.3s ease;
     }
 
-    .position-label {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -35%);
-      font-size: 0.65rem;
-      font-weight: 800;
-      color: #ffffff;
-      text-shadow: 0 1px 2px rgba(0,0,0,0.8);
-      pointer-events: none;
-      user-select: none;
+    .jersey-body {
+      fill: var(--primary-color, #ffffff);
+      transition: fill 0.3s ease;
     }
 
-    /* Team Specific Jersey Colors */
-    &.shirt-gk {
-      .jersey-sleeve, .jersey-body { fill: #1e3c72; }
-      .jersey-collar { fill: #ffeb3b; }
-    }
-
-    &.shirt-brazil {
-      .jersey-sleeve, .jersey-body { fill: #ffdc02; }
-      .jersey-collar { fill: #00a85d; }
-      .position-label {
-        color: #002c13;
-        text-shadow: none;
-      }
-    }
-
-    &.shirt-scotland {
-      .jersey-sleeve, .jersey-body { fill: #0c2340; }
-      .jersey-collar { fill: #ffffff; }
-    }
-
-    &.shirt-argentina {
-      .jersey-sleeve, .jersey-body { fill: #74acdf; }
-      .jersey-collar { fill: #ffffff; }
-    }
-
-    &.shirt-spain {
-      .jersey-sleeve, .jersey-body { fill: #e4010b; }
-      .jersey-collar { fill: #ffd600; }
-    }
-
-    &.shirt-austria {
-      .jersey-sleeve, .jersey-body { fill: #e4010b; }
-      .jersey-collar { fill: #ffffff; }
-    }
-
-    &.shirt-home-default {
-      .jersey-sleeve, .jersey-body { fill: #3b5bdb; }
-      .jersey-collar { fill: #ffffff; }
-    }
-
-    &.shirt-away-default {
-      .jersey-sleeve, .jersey-body { fill: #f76707; }
-      .jersey-collar { fill: #ffffff; }
+    .jersey-collar {
+      fill: none;
+      stroke: var(--secondary-color, #ffffff);
+      stroke-width: 3px;
     }
   }
 
+  .position-label {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -35%);
+    font-size: 0.7rem;
+    font-weight: 800;
+    color: #ffffff;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.8);
+    pointer-events: none;
+    user-select: none;
+  }
+
+  /* Team Specific Jersey Colors */
+  &.shirt-gk {
+    .jersey-sleeve, .jersey-body { fill: #1e3c72; }
+    .jersey-collar { fill: #ffeb3b; }
+  }
+
+  &.shirt-brazil {
+    .jersey-sleeve, .jersey-body { fill: #ffdc02; }
+    .jersey-collar { fill: #00a85d; }
+    .position-label {
+      color: #002c13;
+      text-shadow: none;
+    }
+  }
+
+  &.shirt-scotland {
+    .jersey-sleeve, .jersey-body { fill: #0c2340; }
+    .jersey-collar { fill: #ffffff; }
+  }
+
+  &.shirt-argentina {
+    .jersey-sleeve, .jersey-body { fill: #74acdf; }
+    .jersey-collar { fill: #ffffff; }
+  }
+
+  &.shirt-spain {
+    .jersey-sleeve, .jersey-body { fill: #e4010b; }
+    .jersey-collar { fill: #ffd600; }
+  }
+
+  &.shirt-austria {
+    .jersey-sleeve, .jersey-body { fill: #e4010b; }
+    .jersey-collar { fill: #ffffff; }
+  }
+
+  &.shirt-home-default {
+    .jersey-sleeve, .jersey-body { fill: #3b5bdb; }
+    .jersey-collar { fill: #ffffff; }
+  }
+
+  &.shirt-away-default {
+    .jersey-sleeve, .jersey-body { fill: #f76707; }
+    .jersey-collar { fill: #ffffff; }
+  }
+
   .player-name {
-    font-size: 0.65rem;
+    font-size: 0.75rem;
     font-weight: 600;
     text-align: center;
-    margin-top: 4px;
+    margin-top: 6px;
     background: rgba(0, 0, 0, 0.6);
-    padding: 2px 6px;
+    padding: 3px 8px;
     border-radius: 10px;
     width: max-content;
     white-space: nowrap;
@@ -348,8 +448,8 @@
 
 .bench-grids {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1.5rem;
+  grid-template-columns: 1fr;
+  gap: 1rem;
 }
 
 .bench-column {
@@ -369,7 +469,7 @@
     display: flex;
     flex-direction: column;
     gap: 4px;
-    max-height: 180px;
+    max-height: 220px;
     overflow-y: auto;
     padding-right: 4px;
 
@@ -427,29 +527,43 @@
   }
 
   .teams-header {
+    flex-direction: column;
+    align-items: stretch;
     margin-bottom: 1rem;
-    .team-title {
-      font-size: 0.9rem;
+    .team-tabs {
+      flex-direction: column;
+    }
+    .team-tab {
+      width: 100%;
     }
   }
 
+  .team-half {
+    height: 100%;
+    gap: 0.25rem;
+  }
+
+  .pitch {
+    height: 340px;
+  }
+
   .player-card {
-    width: 55px;
+    width: 56px;
     .jersey-wrapper {
-      width: 32px;
-      height: 32px;
+      width: 30px;
+      height: 30px;
       .position-label {
         font-size: 0.55rem;
       }
     }
     .player-name {
-      font-size: 0.55rem;
+      font-size: 0.45rem;
       padding: 1px 4px;
     }
   }
 
   .pitch {
-    height: 560px; /* Reduced height on mobile to fit nicely within standard modals */
+    height: 640px;
   }
 
   .bench-grids {

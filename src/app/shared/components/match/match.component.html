@@ -278,7 +278,7 @@
           <div class="flex flex-column align-items-center gap-1" [ngClass]="{'disabled': this.userTrigramme ===''}">
             <button class="btn btn-select-scorer w-full flex align-items-center justify-content-center gap-2 py-2"
               [ngClass]="{'btn-warning-outline': !scorer || scorer === '-'}" (click)="openTacticalLineup()"
-              [disabled]="!canEditPrediction">
+              [disabled]="!canSelectScorer">
               <span class="material-symbols-outlined"
                 style="font-size: 1.1rem; vertical-align: middle;">sports_soccer</span>
               Choisir un buteur

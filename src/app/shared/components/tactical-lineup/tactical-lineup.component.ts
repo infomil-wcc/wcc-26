@@ -39,6 +39,8 @@ export class TacticalLineupComponent implements OnInit {
   protected homeFormation: string = '4-3-3';
   protected awayFormation: string = '4-3-3';
 
+  protected activeTeam: 'home' | 'away' = 'home';
+
   protected homeColors: string[] = ['#3b5bdb', '#ffffff'];
   protected awayColors: string[] = ['#f76707', '#ffffff'];
 
@@ -126,11 +128,11 @@ export class TacticalLineupComponent implements OnInit {
     this.homeFormation = this.lineupsData?.homeTeam?.formation || '4-3-3';
     this.awayFormation = this.lineupsData?.awayTeam?.formation || '4-3-3';
 
-    this.homeRows = this.buildTeamRows(this.homeStarters, this.homeFormation, true);
-    this.awayRows = this.buildTeamRows(this.awayStarters, this.awayFormation, false);
+    this.homeRows = this.buildTeamRows(this.homeStarters, this.homeFormation);
+    this.awayRows = this.buildTeamRows(this.awayStarters, this.awayFormation);
   }
 
-  private buildTeamRows(starters: LineupPlayer[], formationStr: string, isHome: boolean): LineupPlayer[][] {
+  private buildTeamRows(starters: LineupPlayer[], formationStr: string): LineupPlayer[][] {
     const gk = starters.find(p => p.position.toUpperCase().includes('GK') || p.position.toUpperCase().includes('GOAL') || p.position.toUpperCase().includes('GARDIEN'));
     const gkList = gk ? [gk] : [];
 
@@ -138,7 +140,7 @@ export class TacticalLineupComponent implements OnInit {
 
     const getPosOrder = (pos: string) => {
       const p = pos.toUpperCase();
-      if (p.includes('DF') || p.includes('DEF') || p.includes('BACK') || p.includes('DÉFENSE')) return 1;
+      if (p.includes('FW') || p.includes('OFF') || p.includes('ATT') || p.includes('ATTAQUE')) return 1;
       if (p.includes('MF') || p.includes('MID') || p.includes('MILIEU')) return 2;
       return 3;
     };
@@ -156,20 +158,44 @@ export class TacticalLineupComponent implements OnInit {
         index += count;
       }
     } else {
-      outfieldRows.push(outfield.slice(0, 4));
-      outfieldRows.push(outfield.slice(4, 7));
+      outfieldRows.push(outfield.slice(0, 3));
+      outfieldRows.push(outfield.slice(3, 7));
       outfieldRows.push(outfield.slice(7));
     }
 
-    if (isHome) {
-      return [gkList, ...outfieldRows];
-    } else {
-      return [...outfieldRows.reverse(), gkList];
-    }
+    return [...outfieldRows, gkList];
   }
 
   protected selectPlayer(player: LineupPlayer) {
     this.playerSelected.emit(player.name);
+  }
+
+  protected switchTeam(team: 'home' | 'away'): void {
+    this.activeTeam = team;
+  }
+
+  protected get displayedRows(): LineupPlayer[][] {
+    return this.activeTeam === 'home' ? this.homeRows : this.awayRows;
+  }
+
+  protected get displayedBench(): LineupPlayer[] {
+    return this.activeTeam === 'home' ? this.homeBench : this.awayBench;
+  }
+
+  protected get displayedFormation(): string {
+    return this.activeTeam === 'home' ? this.homeFormation : this.awayFormation;
+  }
+
+  protected get displayedTeamName(): string {
+    return this.activeTeam === 'home' ? this.teamA : this.teamB;
+  }
+
+  protected get displayedTeamFlag(): string {
+    return this.activeTeam === 'home' ? this.teamAFlag : this.teamBFlag;
+  }
+
+  protected get displayedTeamColors(): string[] {
+    return this.activeTeam === 'home' ? this.homeColors : this.awayColors;
   }
 
   protected getPositionAbbreviation(pos: string): string {
@@ -220,6 +246,18 @@ export class TacticalLineupComponent implements OnInit {
       return 'shirt-gk';
     }
     return isHome ? 'shirt-home' : 'shirt-away';
+  }
+
+  protected getLastName(name: string): string {
+    if (!name) return '';
+    const parts = name.trim().split(/\s+/);
+    return parts.length > 1 ? parts[parts.length - 1] : name;
+  }
+
+  protected getFirstName(name: string): string {
+    if (!name) return '';
+    const parts = name.trim().split(/\s+/);
+    return parts[0] || '';
   }
 
   protected getInitials(name: string): string {

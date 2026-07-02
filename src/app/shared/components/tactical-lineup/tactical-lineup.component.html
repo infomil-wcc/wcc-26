@@ -1,47 +1,47 @@
 <div class="tactical-lineup-container">
   <div class="teams-header">
-    <div class="team-title home-title" [style.color]="homeColors[0]">
-      @if (teamAFlag) {
-        <img [src]="teamAFlag" class="header-flag" alt="" />
-      }
-      {{ teamA }}
+    <div class="team-tabs">
+      <button type="button" class="team-tab" [ngClass]="{'active': activeTeam === 'home'}" (click)="switchTeam('home')">
+        @if (teamAFlag) {
+          <img [src]="teamAFlag" class="header-flag" alt="" />
+        }
+        {{ teamA }}
+      </button>
+      <button type="button" class="team-tab" [ngClass]="{'active': activeTeam === 'away'}" (click)="switchTeam('away')">
+        @if (teamBFlag) {
+          <img [src]="teamBFlag" class="header-flag" alt="" />
+        }
+        {{ teamB }}
+      </button>
     </div>
-    <div class="vs-badge">VS</div>
-    <div class="team-title away-title" [style.color]="awayColors[0]">
-      {{ teamB }}
-      @if (teamBFlag) {
-        <img [src]="teamBFlag" class="header-flag" alt="" />
-      }
-    </div>
+    <div class="vs-badge">{{ displayedFormation }}</div>
   </div>
 
   <!-- Soccer Pitch Visualizer -->
   <div class="pitch">
     <div class="pitch-lines">
-      <div class="penalty-area top"></div>
-      <div class="halfway-line">
-        <div class="center-circle"></div>
+      <div class="center-circle"></div>
+      <div class="penalty-area"></div>
+      <div class="penalty-arc"></div>
+      <div class="goal-area">
+        <div class="goal-crossbar"></div>
       </div>
-      <div class="penalty-area bottom"></div>
     </div>
 
-    <!-- Home Team Flag & Name (Top of court) -->
     <div class="court-team-bar court-top-bar">
-      @if (teamAFlag) {
-        <img [src]="teamAFlag" class="court-flag" alt="" />
+      @if (displayedTeamFlag) {
+        <img [src]="displayedTeamFlag" class="court-flag" alt="" />
       }
-      <span class="court-team-name">{{ teamA }}</span>
+      <span class="court-team-name">{{ displayedTeamName }}</span>
     </div>
 
-    <!-- Home Team Half (Top) -->
-    <div class="team-half home-half">
-      <div class="formation-label home-formation">{{ homeFormation }}</div>
-      
-      @for (row of homeRows; track $index) {
+    <div class="team-half">
+      <div class="formation-label">{{ displayedFormation }}</div>
+      @for (row of displayedRows; track $index) {
         <div class="pitch-row">
           @for (player of row; track player.name) {
             <div class="player-card starter" (click)="selectPlayer(player)">
-              <div class="jersey-wrapper" [ngClass]="getShirtClass(player, true)" [ngStyle]="getTeamJerseyStyle(player, true)">
+              <div class="jersey-wrapper" [ngClass]="getShirtClass(player, activeTeam === 'home')" [ngStyle]="getTeamJerseyStyle(player, activeTeam === 'home')">
                 <svg viewBox="0 0 64 64" class="jersey-svg" xmlns="http://www.w3.org/2000/svg">
                   <path d="M16 16 L2 28 L10 34 L20 24 Z" class="jersey-sleeve" fill="var(--secondary-color)" />
                   <path d="M48 16 L62 28 L54 34 L44 24 Z" class="jersey-sleeve" fill="var(--secondary-color)" />
@@ -50,43 +50,11 @@
                 </svg>
                 <div class="position-label" style="color: var(--text-color);">{{ getPositionAbbreviation(player.position) }}</div>
               </div>
-              <div class="player-name">{{ player.name }}</div>
+              <div class="player-name">{{ getFirstName(player.name) }}</div>
             </div>
           }
         </div>
       }
-    </div>
-
-    <!-- Away Team Half (Bottom) -->
-    <div class="team-half away-half">
-      <div class="formation-label away-formation">{{ awayFormation }}</div>
-      
-      @for (row of awayRows; track $index) {
-        <div class="pitch-row">
-          @for (player of row; track player.name) {
-            <div class="player-card starter" (click)="selectPlayer(player)">
-              <div class="jersey-wrapper" [ngClass]="getShirtClass(player, false)" [ngStyle]="getTeamJerseyStyle(player, false)">
-                <svg viewBox="0 0 64 64" class="jersey-svg" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M16 16 L2 28 L10 34 L20 24 Z" class="jersey-sleeve" fill="var(--secondary-color)" />
-                  <path d="M48 16 L62 28 L54 34 L44 24 Z" class="jersey-sleeve" fill="var(--secondary-color)" />
-                  <path d="M20 16 L44 16 L48 54 L16 54 Z" class="jersey-body" fill="var(--primary-color)" />
-                  <path d="M26 16 C26 22 38 22 38 16" class="jersey-collar" fill="none" stroke="var(--secondary-color)" stroke-width="3" />
-                </svg>
-                <div class="position-label" style="color: var(--text-color);">{{ getPositionAbbreviation(player.position) }}</div>
-              </div>
-              <div class="player-name">{{ player.name }}</div>
-            </div>
-          }
-        </div>
-      }
-    </div>
-
-    <!-- Away Team Flag & Name (Bottom of court) -->
-    <div class="court-team-bar court-bottom-bar">
-      @if (teamBFlag) {
-        <img [src]="teamBFlag" class="court-flag" alt="" />
-      }
-      <span class="court-team-name">{{ teamB }}</span>
     </div>
   </div>
 
@@ -96,28 +64,13 @@
       <span class="material-symbols-outlined">airline_seat_recline_normal</span>
       Remplaçants / Bench
     </div>
-    
-    <div class="bench-grids">
-      <!-- Home Bench -->
+    <div class="bench-grids single">
       <div class="bench-column">
-        <div class="bench-team-name" [style.color]="homeColors[0]">{{ teamA }}</div>
+        <div class="bench-team-name" [style.color]="displayedTeamColors[0]">{{ displayedTeamName }}</div>
         <div class="bench-list">
-          @for (player of homeBench; track player.name) {
+          @for (player of displayedBench; track player.name) {
             <div class="bench-player-row" (click)="selectPlayer(player)">
-              <span class="bench-shirt" [style.color]="homeColors[0]">{{ getPositionAbbreviation(player.position) }}</span>
-              <span class="bench-name">{{ player.name }}</span>
-            </div>
-          }
-        </div>
-      </div>
-
-      <!-- Away Bench -->
-      <div class="bench-column">
-        <div class="bench-team-name" [style.color]="awayColors[0]">{{ teamB }}</div>
-        <div class="bench-list">
-          @for (player of awayBench; track player.name) {
-            <div class="bench-player-row" (click)="selectPlayer(player)">
-              <span class="bench-shirt" [style.color]="awayColors[0]">{{ getPositionAbbreviation(player.position) }}</span>
+              <span class="bench-shirt" [style.color]="displayedTeamColors[0]">{{ getPositionAbbreviation(player.position) }}</span>
               <span class="bench-name">{{ player.name }}</span>
             </div>
           }

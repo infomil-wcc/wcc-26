@@ -253,8 +253,7 @@ export class MatchComponent implements OnInit, OnDestroy {
   }
 
   protected openTacticalLineup(): void {
-  // Use the established getter to verify if the user can make/modify predictions
-  if (!this.canEditPrediction) {
+  if (!this.canSelectScorer) {
     return;
   }
   
@@ -336,6 +335,13 @@ export class MatchComponent implements OnInit, OnDestroy {
     }
     return !this.disabled && !this.isSubmitting && (!this.closed || this.isEditing) && !this.match.fulltime &&
       (!this.isSavedInApi || this.isEditing) && !this.hidePointsBadge;
+  }
+
+  get canSelectScorer(): boolean {
+    if (this.hidePointsBadge) {
+      return false;
+    }
+    return !this.disabled && !this.isSubmitting && (!this.closed || this.isEditing) && !this.hidePointsBadge;
   }
 
   get canEditScores(): boolean {
