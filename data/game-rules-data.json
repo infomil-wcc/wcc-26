@@ -68,12 +68,12 @@
           "scenario": "Un joueur pronostique sur un match de 1/4 de finale",
           "details": [
             {
-              "prediction": "Bon vainqueur",
+              "prediction": "Bon vainqueur France après les tirs aux buts",
               "field": "winner_draw_points",
               "phase": "Quarter-finals"
             },
             {
-              "prediction": "Score exact du match",
+              "prediction": "Score exact du match 2-2 après prolongation",
               "field": "fulltime_exact_points",
               "phase": "Quarter-finals"
             },
@@ -83,7 +83,7 @@
               "phase": "Quarter-finals"
             },
             {
-              "prediction": "Buteur correct (Kylian Mbappé)",
+              "prediction": "Nom d'un buteur du match (Kylian Mbappé)",
               "field": "scorer_points",
               "phase": "Quarter-finals"
             }
