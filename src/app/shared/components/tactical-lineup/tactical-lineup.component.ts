@@ -50,14 +50,15 @@ export class TacticalLineupComponent implements OnInit {
   }
 
   private fetchTeamColors() {
-    this.teamsService.getTeamByName(this.teamA).subscribe(res => {
-      if (res && res.length > 0 && (res[0] as any).colors) {
-        this.homeColors = (res[0] as any).colors;
+    this.teamsService.getTeamColors(this.teamA).subscribe(colors => {
+      if (colors && colors.length) {
+        this.homeColors = colors;
       }
     });
-    this.teamsService.getTeamByName(this.teamB).subscribe(res => {
-      if (res && res.length > 0 && (res[0] as any).colors) {
-        this.awayColors = (res[0] as any).colors;
+
+    this.teamsService.getTeamColors(this.teamB).subscribe(colors => {
+      if (colors && colors.length) {
+        this.awayColors = colors;
       }
     });
   }

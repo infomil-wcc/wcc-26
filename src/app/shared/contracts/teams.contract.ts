@@ -30,6 +30,7 @@ export interface Teams {
   forme3: string;
   forme4: string;
   forme5: string;
+  colors?: string[];
 }
 
 export interface Coach {

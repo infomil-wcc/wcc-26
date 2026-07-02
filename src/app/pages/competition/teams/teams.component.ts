@@ -21,8 +21,6 @@ export class TeamsComponent implements OnInit {
 
   private euroService = inject(TeamsService);
 
-  private stateService = inject(StateService);
-
   private globalTime = inject(GlobaltimeService);
 
   protected $teamsData?: Observable<Teams[]>;

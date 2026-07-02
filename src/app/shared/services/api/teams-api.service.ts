@@ -16,4 +16,8 @@ export class TeamsApiService {
   getTeamsInfo(teamisoname: string, options: any): Observable<any> {
     return this.http.get<any>(`${environment.apiUrl}/teams?iso=${teamisoname}`, options);
   }
+
+  getTeamsJSON(queryParams: string = ''): Observable<any> {
+    return this.http.get<any>(`${environment.apiUrl}/teams${queryParams}`);
+  }
 }

@@ -49,6 +49,10 @@ export class TeamsService {
     );
   }
 
+  getTeamColors(teamName: string): Observable<string[]> {
+    return this.teamsApiService.getTeamsJSON(`?name=${teamName}&select=colors`);
+  }
+
   getGroups(): Observable<Group[]> {
     return this.groupsApiService.getGroups().pipe(
       map(response => response?.data || []),
