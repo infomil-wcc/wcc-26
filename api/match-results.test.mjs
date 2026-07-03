@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert';
 
 // Import target calculation engines
-import { createHandler } from './match-results.mjs';
+import { createHandler, autoAdvanceKnockoutStages } from './match-results.mjs';
 import { calcBracketPoints } from '../backend/libs/calc-bracket-stage.mjs';
 
 // ==========================================================================
@@ -169,6 +169,26 @@ test('Should accurately calculate and display points across all separate Knockou
     console.log("            STRATEGY MODULE: calcKnockoutStagePoints BREAKDOWN            ");
     console.log("==========================================================================");
     console.table(breakdown);
+});
+
+test('Should not auto advance a knockout placeholder when referenced match is still playing', async () => {
+    const mockMatches = [
+        { id: 1, phase: 'Round of 16', team_a: 'Team A', team_b: 'Team B', fulltime_a: null, fulltime_b: null, current_status: 'live' },
+        { id: 2, phase: 'Quarter-finals', team_a: 'Winner Match 1', team_b: 'Team C', status: 'draft', current_status: 'draft', fulltime_a: null, fulltime_b: null }
+    ];
+
+    const mockFetch = async (url, options) => {
+        if (url.includes('/items/matches?limit=-1')) {
+            return { ok: true, json: async () => ({ data: mockMatches }) };
+        }
+        if (options && options.method === 'PATCH') {
+            return { ok: true, json: async () => ({ data: mockMatches[1] }) };
+        }
+        return { ok: false, statusText: 'Not Found' };
+    };
+
+    const updates = await autoAdvanceKnockoutStages('https://example.com', 'dummy-admin-token', { fetch: mockFetch });
+    assert.strictEqual(updates.length, 0, 'No updates should be made when referenced match is still playing');
 });
 
 // ==========================================================================
