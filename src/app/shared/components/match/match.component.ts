@@ -53,7 +53,7 @@ export class MatchComponent implements OnInit, OnDestroy {
   lineupsService = inject(LineupsApiService);
   matchesService = inject(MatchesService);
   playersApi = inject(PlayersApiService);
-
+  scorerMatchingService = inject(ScorerMatchingService);
   cdr = inject(ChangeDetectorRef);
 
   @Input() match!: Matches;
@@ -1034,23 +1034,17 @@ export class MatchComponent implements OnInit, OnDestroy {
   }
 
   async testScorerMatching() {
-    console.log('🚀 Testing scorer matching...');
+  console.log('🚀 Testing scorer matching...');
 
-    const res = await firstValueFrom(this.playersApi.getPlayers());
+  const apiScorers = [
+    "Kylian Mbappé 45'",
+    "Mbappe 67'",
+    "Aïssa Mandi 12'",
+    "UNKNOWN PLAYER 10'"
+  ];
 
-    const dbPlayers = res.data ?? res; // Directus format safe fallback
+  const result = await this.scorerMatchingService.resolveScorers(apiScorers);
 
-    const matcher = new ScorerMatchingService(dbPlayers);
-
-    const apiScorers = [
-      "Kylian Mbappé 45'",
-      "Mbappe 67'",
-      "Aïssa Mandi 12'",
-      "UNKNOWN PLAYER 10'"
-    ];
-
-    const result = matcher.resolveScorers(apiScorers);
-
-    console.log('✅ MATCH RESULTS:', result);
-  }
+  console.log('✅ MATCH RESULTS:', result);
+}
 }

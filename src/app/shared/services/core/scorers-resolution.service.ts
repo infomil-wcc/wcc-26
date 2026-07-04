@@ -1,13 +1,6 @@
-import { Injectable } from '@angular/core';
-import { PlayersApiService } from '../api/players-api.service';
+import { Injectable, inject } from '@angular/core';
+import { PlayersService, DbPlayer } from '../content/players-service';
 import { firstValueFrom } from 'rxjs';
-
-export interface DbPlayer {
-  id: number;
-  player_name: string;
-  country: string;
-  aliases?: string[];
-}
 
 export interface ApiScorerMatch {
   apiName: string;
@@ -18,10 +11,10 @@ export interface ApiScorerMatch {
 @Injectable({ providedIn: 'root' })
 export class ScorerMatchingService {
 
+  private playersService = inject(PlayersService);
+
   private players: DbPlayer[] = [];
   private loaded = false;
-
-  constructor(private playersApi: PlayersApiService) { }
 
   // =========================
   // PUBLIC ENTRY
@@ -32,19 +25,14 @@ export class ScorerMatchingService {
   }
 
   // =========================
-  // LOAD DB PLAYERS
+  // LOAD DB PLAYERS (CACHED)
   // =========================
   private async loadPlayersIfNeeded(): Promise<void> {
     if (this.loaded) return;
 
-    const res = await firstValueFrom(this.playersApi.getPlayers());
+    const res = await firstValueFrom(this.playersService.getAllPlayers());
 
-    this.players = (res?.data || []).map((p: any) => ({
-      id: p.id,
-      player_name: p.player_name,
-      country: p.country,
-      aliases: p.aliases || []
-    }));
+    this.players = res || [];
 
     this.loaded = true;
   }
@@ -141,10 +129,6 @@ export class ScorerMatchingService {
     if (parts.length > 1) {
       variants.add([...parts].reverse().join(' '));
       variants.add(`${parts[0]} ${parts[1][0]}`);
-    }
-
-    for (const a of player.aliases || []) {
-      variants.add(this.cleanScorerName(a));
     }
 
     return [...variants];
