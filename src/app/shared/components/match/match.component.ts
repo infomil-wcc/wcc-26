@@ -17,13 +17,6 @@ import { TeamperformanceComponent } from '../teamperformance/teamperformance.com
 import { MatchesService } from '../../services/content/matches.service';
 import { ScorerMatchingService } from '../../services/core/scorers-resolution.service';
 import { PlayersApiService } from '../../services/api/players-api-service';
-import {
-  getNormalizedTeamName,
-  getNormalizedPhase,
-  getFdMatchUtcTime,
-  getWcGameApproxUtcTime,
-  parseScorersString
-} 
 
 const PHASE_CONFIG: { key: string; label: string; icon: string; color: string }[] = [
   { key: 'Group Stage', label: 'Phase de groupes', icon: 'groups', color: '#3b5bdb' },
