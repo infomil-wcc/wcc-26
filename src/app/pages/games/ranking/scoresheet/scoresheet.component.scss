@@ -183,6 +183,100 @@
   }
 }
 
+.match-filters {
+  .match-filters-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 0.75rem 1rem;
+    align-items: end;
+  }
+
+  .filter-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    min-width: 0;
+  }
+
+  .filter-field-points {
+    grid-column: span 1;
+  }
+
+  .filter-label {
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    color: #64748b;
+  }
+}
+
+.detailed-matches {
+  padding: 0 0.5rem 0.5rem;
+
+  ::ng-deep .scoresheet-match-table {
+    background: #ffffff;
+    border-radius: 0 0 8px 8px;
+    overflow: hidden;
+
+    .p-datatable-table-container,
+    .p-datatable-table {
+      background: #ffffff;
+    }
+
+    .p-datatable-thead > tr > th {
+      background: #f8fafc !important;
+      color: #64748b !important;
+      border-color: #e2e8f0 !important;
+      font-size: 0.85rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      padding: 1rem 0.75rem;
+    }
+
+    .p-datatable-tbody > tr {
+      background: #ffffff !important;
+      color: #475569 !important;
+
+      > td {
+        background: #ffffff !important;
+        color: #475569 !important;
+        border-color: #f1f5f9 !important;
+        padding: 1rem 0.75rem;
+      }
+
+      &:hover > td {
+        background: #f8fafc !important;
+      }
+
+      &.bg-red-50 > td {
+        background: #fef2f2 !important;
+      }
+    }
+
+    .p-paginator {
+      background: #f8fafc !important;
+      border-color: #e2e8f0 !important;
+      color: #475569 !important;
+      padding: 0.75rem;
+    }
+
+    .p-paginator-page,
+    .p-paginator-first,
+    .p-paginator-prev,
+    .p-paginator-next,
+    .p-paginator-last {
+      color: #475569 !important;
+    }
+
+    .p-paginator-page.p-paginator-page-selected {
+      background: #e0f2fe !important;
+      color: #0284c7 !important;
+    }
+  }
+}
+
 .filter-menu-btn {
   color: #64748b;
   padding: 4px;

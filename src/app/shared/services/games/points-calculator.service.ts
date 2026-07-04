@@ -90,6 +90,7 @@ export class PointsCalculatorService {
     const matchHalftimeA = parseInt(match.halftime_a as any, 10);
     const matchHalftimeB = parseInt(match.halftime_b as any, 10);
     const isHalftimeCorrect = predHalftimeA === matchHalftimeA && predHalftimeB === matchHalftimeB;
+    const shouldEvaluateHalftime = (match.phase || '') !== 'Round of 32';
 
     let isScorerCorrect = false;
     if (prediction.scorer && match.scorers) {
@@ -119,7 +120,7 @@ export class PointsCalculatorService {
       breakdown.fulltime += fulltimePts;
     }
 
-    if (isHalftimeCorrect && halftimePts > 0) {
+    if (shouldEvaluateHalftime && isHalftimeCorrect && halftimePts > 0) {
       breakdown.halftime += halftimePts;
     }
 

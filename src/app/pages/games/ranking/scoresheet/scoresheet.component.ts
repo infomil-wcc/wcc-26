@@ -2,8 +2,11 @@ import { Component, OnInit, inject, Input, Output, EventEmitter, ChangeDetectorR
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { DatePicker } from 'primeng/datepicker';
-import { Select } from 'primeng/select';
+import { DatePickerModule } from 'primeng/datepicker';
+import { SelectModule } from 'primeng/select';
+import { TableModule } from 'primeng/table';
+import { InputTextModule } from 'primeng/inputtext';
+import { PaginatorModule } from 'primeng/paginator';
 import { MatchesService } from '../../../../shared/services/content/matches.service';
 import { PredictionsApiService } from '../../../../shared/services/api/predictions-api.service';
 import { PointsCalculatorService, PointsBreakdown } from '../../../../shared/services/games/points-calculator.service';
@@ -26,7 +29,7 @@ interface PhaseSummary {
 @Component({
   selector: 'app-scoresheet',
   standalone: true,
-  imports: [CommonModule, RouterModule, LoaderComponent, FormsModule, DatePicker, Select],
+  imports: [CommonModule, RouterModule, LoaderComponent, FormsModule, DatePickerModule, SelectModule, TableModule, InputTextModule, PaginatorModule],
   templateUrl: './scoresheet.component.html',
   styleUrls: ['./scoresheet.component.scss']
 })
@@ -50,7 +53,7 @@ export class ScoresheetComponent implements OnInit {
   loading = true;
 
   sortField: string = '';
-  sortOrder: 'asc' | 'desc' = 'asc';
+  sortOrder: 'asc' | 'desc' = 'desc';
 
   activeFilterMenu: string | null = null;
 
@@ -193,25 +196,38 @@ export class ScoresheetComponent implements OnInit {
     }
   }
 
-  @HostListener('document:click', [])
-  closeFilterMenus() {
-    this.activeFilterMenu = null;
-    this.cdr.detectChanges();
+  isRoundOf32(item: any): boolean {
+    return item?.match?.phase === 'Round of 32';
   }
 
-  toggleSort(field: string) {
-    if (this.sortField === field) {
-      this.sortOrder = this.sortOrder === 'asc' ? 'desc' : 'asc';
-    } else {
-      this.sortField = field;
-      this.sortOrder = 'asc';
+  onTableSort(event: { field?: string; order?: number }) {
+    if (event.field) {
+      this.sortField = event.field;
     }
-    this.cdr.detectChanges();
+    if (event.order != null) {
+      this.sortOrder = event.order === 1 ? 'asc' : 'desc';
+    }
   }
 
-  getSortIcon(field: string): string {
-    if (this.sortField !== field) return 'unfold_more';
-    return this.sortOrder === 'asc' ? 'arrow_upward' : 'arrow_downward';
+  private getSortValue(item: any, field: string): string | number {
+    switch (field) {
+      case '_id':
+        return item._id ?? item.match?.id ?? 0;
+      case '_matchLabel':
+        return item._matchLabel ?? '';
+      case '_dateTs':
+        return item._dateTs ?? 0;
+      case 'phase':
+        return item.phase ?? item.match?.phase ?? '';
+      case '_scoreNum':
+        return item._scoreNum ?? 0;
+      case '_predictionNum':
+        return item._predictionNum ?? 0;
+      case '_points':
+        return item._points ?? 0;
+      default:
+        return item._dateTs ?? 0;
+    }
   }
 
 
@@ -273,6 +289,9 @@ export class ScoresheetComponent implements OnInit {
         }
 
         this.calculateScoresheet();
+        // Default: sort by date descending (p-table uses computed _dateTs)
+        this.sortField = '_dateTs';
+        this.sortOrder = 'desc';
         this.loading = false;
         this.cdr.detectChanges();
       },
@@ -332,10 +351,12 @@ export class ScoresheetComponent implements OnInit {
     if (this.columnFilters.prediction) {
       const mode = this.matchModes['prediction'] || 'contains';
       list = list.filter(item => {
-        if (item.prediction.fulltime_a === null || item.prediction.fulltime_b === null) {
-          return this.applyTextMatch('-', this.columnFilters.prediction, mode);
+        let predStr = '-';
+        if (item.prediction.fulltime_a !== null && item.prediction.fulltime_b !== null) {
+          predStr = `${item.prediction.fulltime_a} - ${item.prediction.fulltime_b}`;
+        } else if (this.isGroupStage(item) && item.prediction.winner_draw) {
+          predStr = this.getPronosticWinnerTeamName(item);
         }
-        const predStr = `${item.prediction.fulltime_a} - ${item.prediction.fulltime_b}`;
         return this.applyTextMatch(predStr, this.columnFilters.prediction, mode);
       });
     }
@@ -350,33 +371,13 @@ export class ScoresheetComponent implements OnInit {
       });
     }
 
-    // Apply sorting
+    // Apply sorting (field names align with pSortableColumn / computed row fields)
     if (this.sortField) {
       const order = this.sortOrder === 'asc' ? 1 : -1;
+      const field = this.sortField;
       list = [...list].sort((a, b) => {
-        let valA: any = '';
-        let valB: any = '';
-
-        if (this.sortField === 'match') {
-          valA = (a.match.team_a || '') + ' ' + (a.match.team_b || '');
-          valB = (b.match.team_a || '') + ' ' + (b.match.team_b || '');
-        } else if (this.sortField === 'date') {
-          valA = new Date(a.match.date).getTime();
-          valB = new Date(b.match.date).getTime();
-        } else if (this.sortField === 'phase') {
-          valA = a.match.phase || '';
-          valB = b.match.phase || '';
-        } else if (this.sortField === 'score') {
-          valA = (a.match.fulltime_a ?? 0) * 100 + (a.match.fulltime_b ?? 0);
-          valB = (b.match.fulltime_a ?? 0) * 100 + (b.match.fulltime_b ?? 0);
-        } else if (this.sortField === 'prediction') {
-          valA = (a.prediction.fulltime_a ?? -1) * 100 + (a.prediction.fulltime_b ?? -1);
-          valB = (b.prediction.fulltime_a ?? -1) * 100 + (b.prediction.fulltime_b ?? -1);
-        } else if (this.sortField === 'points') {
-          valA = a.breakdown.isFraud ? 0 : a.breakdown.total;
-          valB = b.breakdown.isFraud ? 0 : b.breakdown.total;
-        }
-
+        const valA = this.getSortValue(a, field);
+        const valB = this.getSortValue(b, field);
         if (valA < valB) return -1 * order;
         if (valA > valB) return 1 * order;
         return 0;
@@ -439,18 +440,27 @@ export class ScoresheetComponent implements OnInit {
         this.summaryMatrix[phaseKey].total += breakdown.total;
       }
 
-      // Only show matches that have been played
-      if (match.fulltime_a !== null && match.fulltime_b !== null) {
-        this.detailedMatches.push({
-          match,
-          prediction: pred,
-          breakdown,
-          expanded: false
-        });
-      }
+      // Show all predicted matches in the history table, even if the official result isn't available yet.
+      this.detailedMatches.push({
+        match,
+        prediction: pred,
+        breakdown,
+        expanded: false
+      });
     }
 
-    this.detailedMatches.sort((a, b) => new Date(a.match.date).getTime() - new Date(b.match.date).getTime());
+    // Ensure matches include convenient computed fields for p-table and sort by date desc by default
+    this.detailedMatches = this.detailedMatches.map(dm => ({
+      ...dm,
+      _id: dm.match.id,
+      _matchLabel: `${dm.match.team_a || ''} ${dm.match.team_b || ''}`,
+      _dateTs: new Date(dm.match.date).getTime(),
+      phase: dm.match.phase || '',
+      _scoreNum: (dm.match.fulltime_a ?? 0) * 100 + (dm.match.fulltime_b ?? 0),
+      _predictionNum: (dm.prediction.fulltime_a ?? -1) * 100 + (dm.prediction.fulltime_b ?? -1),
+      _points: dm.breakdown.isFraud ? 0 : dm.breakdown.total
+    }));
+    this.detailedMatches.sort((a, b) => new Date(b.match.date).getTime() - new Date(a.match.date).getTime());
   }
 
   getSummaryValue(phase: string, category: string): number {
