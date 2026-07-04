@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
-import { PlayersService, DbPlayer } from '../content/players-service';
+import { PlayersService } from '../content/players-service';
 import { firstValueFrom } from 'rxjs';
+import { DbPlayer } from '../../../models/db-player.model';
 
 export interface ApiScorerMatch {
   apiName: string;

@@ -17,7 +17,6 @@ import { TeamperformanceComponent } from '../teamperformance/teamperformance.com
 import { MatchesService } from '../../services/content/matches.service';
 import { ScorerMatchingService } from '../../services/core/scorers-resolution.service';
 import { PlayersApiService } from '../../services/api/players-api-service';
-import { DbPlayer } from '../../services/core/scorers-resolution.service';
 import {
   getNormalizedTeamName,
   getNormalizedPhase,

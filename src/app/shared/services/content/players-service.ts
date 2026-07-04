@@ -1,13 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { map, Observable, catchError, of } from 'rxjs';
 import { PlayersApiService } from '../api/players-api-service';
-
-export interface DbPlayer {
-  player_id: number;
-  player_name: string;
-  country: string;
-  aliases?: string[];
-}
+import { DbPlayer } from '../../../models/db-player.model';
 
 @Injectable({
   providedIn: 'root'
