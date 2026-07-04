@@ -1,7 +1,7 @@
 import { Component, EventEmitter, Input, OnInit, OnDestroy, Output, inject, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
 import { Matches } from '../../contracts/matches.contract';
 import { max, Observable, Subscription } from 'rxjs';
-import { map, of } from 'rxjs';
+import { map, of, firstValueFrom } from 'rxjs';
 import { TeamsService } from '../../services/content/teams.service';
 import { StateService } from '../../services/core/state.service';
 import { PredictionsService } from '../../services/games/predictions.service';
@@ -15,6 +15,16 @@ import { TacticalLineupComponent } from '../tactical-lineup/tactical-lineup.comp
 import { LineupsApiService } from '../../services/api/lineups-api.service';
 import { TeamperformanceComponent } from '../teamperformance/teamperformance.component';
 import { MatchesService } from '../../services/content/matches.service';
+import { ScorerMatchingService } from '../../services/core/scorers-resolution.service';
+import { PlayersApiService } from '../../services/api/players-api-service';
+import { DbPlayer } from '../../services/core/scorers-resolution.service';
+import {
+  getNormalizedTeamName,
+  getNormalizedPhase,
+  getFdMatchUtcTime,
+  getWcGameApproxUtcTime,
+  parseScorersString
+} 
 
 const PHASE_CONFIG: { key: string; label: string; icon: string; color: string }[] = [
   { key: 'Group Stage', label: 'Phase de groupes', icon: 'groups', color: '#3b5bdb' },
@@ -42,6 +52,8 @@ export class MatchComponent implements OnInit, OnDestroy {
   stadiumsService = inject(StadiumsService);
   lineupsService = inject(LineupsApiService);
   matchesService = inject(MatchesService);
+  playersApi = inject(PlayersApiService);
+
   cdr = inject(ChangeDetectorRef);
 
   @Input() match!: Matches;
@@ -50,7 +62,7 @@ export class MatchComponent implements OnInit, OnDestroy {
   penaltyWinner: string | null = null;
   @Input() dateTime!: string;
   @Input() hasPlayed!: boolean;
-  @Input() hidePointsBadge: boolean = false; 
+  @Input() hidePointsBadge: boolean = false;
   @Input() invalidatedDate: Date = new Date();
 
   protected showTeamInfoModal: boolean = false;
@@ -253,33 +265,33 @@ export class MatchComponent implements OnInit, OnDestroy {
   }
 
   protected openTacticalLineup(): void {
-  if (!this.canSelectScorer) {
-    return;
-  }
-  
-  this.showTacticalModal = true;
-  this.loadingLineups = true;
+    if (!this.canSelectScorer) {
+      return;
+    }
 
-  this.teamService.getPlayersByTeamName(this.match.team_a).subscribe(playersA => {
-    this.teamService.getPlayersByTeamName(this.match.team_b).subscribe(playersB => {
-      const listA = (playersA?.players || []).map((p: any) => ({ ...p, teamName: this.match.team_a }));
-      const listB = (playersB?.players || []).map((p: any) => ({ ...p, teamName: this.match.team_b }));
-      this.fallbackPlayersList = [...listA, ...listB];
+    this.showTacticalModal = true;
+    this.loadingLineups = true;
 
-      this.lineupsService.getLineups(this.match.team_a, this.match.team_b).subscribe({
-        next: (res) => {
-          this.lineupsData = res;
-          this.loadingLineups = false;
-        },
-        error: (err) => {
-          console.error('Error fetching lineups from football-data:', err);
-          this.lineupsData = null;
-          this.loadingLineups = false;
-        }
+    this.teamService.getPlayersByTeamName(this.match.team_a).subscribe(playersA => {
+      this.teamService.getPlayersByTeamName(this.match.team_b).subscribe(playersB => {
+        const listA = (playersA?.players || []).map((p: any) => ({ ...p, teamName: this.match.team_a }));
+        const listB = (playersB?.players || []).map((p: any) => ({ ...p, teamName: this.match.team_b }));
+        this.fallbackPlayersList = [...listA, ...listB];
+
+        this.lineupsService.getLineups(this.match.team_a, this.match.team_b).subscribe({
+          next: (res) => {
+            this.lineupsData = res;
+            this.loadingLineups = false;
+          },
+          error: (err) => {
+            console.error('Error fetching lineups from football-data:', err);
+            this.lineupsData = null;
+            this.loadingLineups = false;
+          }
+        });
       });
     });
-  });
-}
+  }
 
   protected selectTacticalScorer(playerName: string) {
     this.scorer = playerName;
@@ -526,7 +538,7 @@ export class MatchComponent implements OnInit, OnDestroy {
           this.hidePointsBadge = checkPayloadFraud(response[0]);
 
           if (this.hidePointsBadge) {
-            this.isSavedInApi = false; 
+            this.isSavedInApi = false;
           }
         } else {
           this.pronostiqueDone = false;
@@ -608,7 +620,7 @@ export class MatchComponent implements OnInit, OnDestroy {
   }
 
   isOutcomeCorrect(): boolean {
-    if (this.hidePointsBadge) return false; 
+    if (this.hidePointsBadge) return false;
     if (!this.donePronostique || !this.match || this.match.fulltime_a === null || this.match.fulltime_b === null || this.hidePointsBadge) {
       return false;
     }
@@ -773,7 +785,7 @@ export class MatchComponent implements OnInit, OnDestroy {
       if (this.isOutcomeCorrect()) {
         points += winnerPts;
         if (game.penalty_shootout) {
-          points += fulltimePts; 
+          points += fulltimePts;
         }
       }
 
@@ -989,11 +1001,11 @@ export class MatchComponent implements OnInit, OnDestroy {
     const isTeamA = pastMatch.team_a === this.selectedTeamName;
     const scoreA = Number(pastMatch.fulltime_a);
     const scoreB = Number(pastMatch.fulltime_b);
-    if (scoreA === scoreB) return '#718096'; 
+    if (scoreA === scoreB) return '#718096';
     if (isTeamA) {
-      return scoreA > scoreB ? '#48bb78' : '#e53e3e'; 
+      return scoreA > scoreB ? '#48bb78' : '#e53e3e';
     } else {
-      return scoreB > scoreA ? '#48bb78' : '#e53e3e'; 
+      return scoreB > scoreA ? '#48bb78' : '#e53e3e';
     }
   }
 
@@ -1019,5 +1031,26 @@ export class MatchComponent implements OnInit, OnDestroy {
     } else {
       return scoreB > scoreA ? '#48bb78' : '#f56565';
     }
+  }
+
+  async testScorerMatching() {
+    console.log('🚀 Testing scorer matching...');
+
+    const res = await firstValueFrom(this.playersApi.getPlayers());
+
+    const dbPlayers = res.data ?? res; // Directus format safe fallback
+
+    const matcher = new ScorerMatchingService(dbPlayers);
+
+    const apiScorers = [
+      "Kylian Mbappé 45'",
+      "Mbappe 67'",
+      "Aïssa Mandi 12'",
+      "UNKNOWN PLAYER 10'"
+    ];
+
+    const result = matcher.resolveScorers(apiScorers);
+
+    console.log('✅ MATCH RESULTS:', result);
   }
 }
