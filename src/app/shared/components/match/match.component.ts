@@ -15,8 +15,6 @@ import { TacticalLineupComponent } from '../tactical-lineup/tactical-lineup.comp
 import { LineupsApiService } from '../../services/api/lineups-api.service';
 import { TeamperformanceComponent } from '../teamperformance/teamperformance.component';
 import { MatchesService } from '../../services/content/matches.service';
-import { ScorerMatchingService } from '../../services/core/scorers-resolution.service';
-import { PlayersApiService } from '../../services/api/players-api-service';
 
 const PHASE_CONFIG: { key: string; label: string; icon: string; color: string }[] = [
   { key: 'Group Stage', label: 'Phase de groupes', icon: 'groups', color: '#3b5bdb' },
@@ -44,8 +42,6 @@ export class MatchComponent implements OnInit, OnDestroy {
   stadiumsService = inject(StadiumsService);
   lineupsService = inject(LineupsApiService);
   matchesService = inject(MatchesService);
-  playersApi = inject(PlayersApiService);
-  scorerMatchingService = inject(ScorerMatchingService);
   cdr = inject(ChangeDetectorRef);
 
   @Input() match!: Matches;
@@ -1025,18 +1021,4 @@ export class MatchComponent implements OnInit, OnDestroy {
     }
   }
 
-  async testScorerMatching() {
-  console.log('🚀 Testing scorer matching...');
-
-  const apiScorers = [
-    "Kylian Mbappé 45'",
-    "Mbappe 67'",
-    "Aïssa Mandi 12'",
-    "UNKNOWN PLAYER 10'"
-  ];
-
-  const result = await this.scorerMatchingService.resolveScorers(apiScorers);
-
-  console.log('✅ MATCH RESULTS:', result);
-}
 }
