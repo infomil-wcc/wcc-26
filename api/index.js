@@ -240,6 +240,18 @@ const handleMatchPredictionValidation = async (request, response) => {
     const adminToken = process.env.DIRECTUS_ADMIN_TOKEN;
 
     try {
+        const allowedOrigins = [
+            'http://localhost:4200',
+            'https://euro.omediainteractive.net',
+            'https://wcc-26.vercel.app'
+        ];
+        const origin = request.headers.origin || request.headers.Origin;
+        
+        // If it's a cross-origin request (has an origin header) and it's not in our explicit whitelist, reject it.
+        if (origin && !allowedOrigins.includes(origin)) {
+            return response.status(403).json({ error: "Forbidden: Cross-origin access to this endpoint is strictly disallowed." });
+        }
+
         // Parse the body to extract game_id
         let body = request.body;
         if (typeof body === 'string') {
