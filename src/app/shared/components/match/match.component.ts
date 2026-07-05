@@ -741,8 +741,21 @@ export class MatchComponent implements OnInit, OnDestroy {
       }
     }
 
-    const lowerScorers = scorersList.map(name => name.toLowerCase());
-    return lowerScorers.includes(predScorer.trim().toLowerCase());
+    const normalizeName = (name: string) => {
+      return name
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .toLowerCase()
+        .trim()
+        .split(/\s+/)
+        .sort()
+        .join(' ');
+    };
+
+    const normalizedPredScorer = normalizeName(predScorer);
+    const normalizedScorersList = scorersList.map(name => normalizeName(name));
+
+    return normalizedScorersList.includes(normalizedPredScorer);
   }
 
   modifierPronostic(): void {
