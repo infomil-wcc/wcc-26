@@ -157,6 +157,7 @@ export async function syncMatchesPipeline(dbMatches, { directusUrl, adminToken, 
         }
 
         if (wcGame) {
+            console.log("here");
             const homeScorers = parseScorersString(wcGame.home_scorers, getNormalizedTeamName(wcGame.home_team_name_en));
             const awayScorers = parseScorersString(wcGame.away_scorers, getNormalizedTeamName(wcGame.away_team_name_en));
 
