@@ -39,7 +39,7 @@ export async function syncMatchesPipeline(dbMatches, { directusUrl, adminToken, 
     };
 
     const dbPlayers = await loadDbPlayers(directusUrl, adminToken);
-    console.log("dbplayers:" + dbPlayers);
+    console.log("dbPlayers sample:", dbPlayers.slice(0, 3));
 
     for (const dbMatch of dbMatches) {
         const dbUtcTime = new Date(dbMatch.date.trim().replace(' ', 'T') + '+04:00').getTime();
@@ -162,26 +162,36 @@ export async function syncMatchesPipeline(dbMatches, { directusUrl, adminToken, 
         }
 
         if (wcGame) {
-            const homeScorers = parseScorersString(wcGame.home_scorers, getNormalizedTeamName(wcGame.home_team_name_en));
-            const awayScorers = parseScorersString(wcGame.away_scorers, getNormalizedTeamName(wcGame.away_team_name_en));
+            const homeScorers = parseScorersString(
+                wcGame.home_scorers,
+                getNormalizedTeamName(wcGame.home_team_name_en)
+            );
 
-            console.log("home" + wcGame.home_team_name_en);
-            console.log("away"+ wcGame.away_team_name_en);
+            const awayScorers = parseScorersString(
+                wcGame.away_scorers,
+                getNormalizedTeamName(wcGame.away_team_name_en)
+            );
 
-            if (wcGame.home_team_name_en === "Paraguay" && wcGame.away_team_name_en === "France") {
-                const rawScorers = [...homeScorers, ...awayScorers];
+            const rawScorers = [...homeScorers, ...awayScorers];
 
+            // 👇 ALWAYS TEST (not only Paraguay/France for now)
+            console.log("⚽ WC GAME:", wcGame.home_team_name_en, "vs", wcGame.away_team_name_en);
+            console.log("⚽ RAW SCORERS:", rawScorers);
+
+            if (dbPlayers?.length) {
                 const matchedScorers = resolveScorers(rawScorers, dbPlayers);
 
-                console.log("🔍 SCORER MATCH DEBUG:");
-                console.log(matchedScorers.map(m => ({
-                    api: m.apiName,
-                    match: m.matchedPlayer?.player_name ?? "NOT FOUND",
-                    confidence: m.confidence.toFixed(2)
-                })));
+                console.log("🔍 MATCH RESULTS:");
+                console.table(
+                    matchedScorers.map(m => ({
+                        api: m.apiName,
+                        match: m.matchedPlayer?.player_name ?? "NOT FOUND",
+                        confidence: Number(m.confidence.toFixed(2))
+                    }))
+                );
             }
 
-            payload.scorers = [...homeScorers, ...awayScorers];
+            payload.scorers = rawScorers;
         }
 
         let directusResponseOk = true;
