@@ -32,9 +32,14 @@ export function getWcGameApproxUtcTime(localDateStr) {
 }
 
 export function parseScorersString(scorersStr, teamName) {
-    if (!scorersStr || scorersStr === 'null' || scorersStr === '') return [];
-    let cleanStr = scorersStr.replace(/[“”]/g, '"');
+    // 1. If it's already an array of goal objects, return it directly
+    if (Array.isArray(scorersStr)) {
+        return scorersStr;
+    }
 
+    if (!scorersStr || scorersStr === 'null' || scorersStr === '') return [];
+    
+    let cleanStr = scorersStr.replace(/[“”]/g, '"');
     let arr = [];
     try {
         const parsed = JSON.parse(cleanStr);
@@ -86,7 +91,16 @@ export function parseScorersString(scorersStr, teamName) {
 }
 
 export function parseScorersStringForRanking(scorersStr) {
+    // 1. If it's an array of goal objects, map out the player names directly
+    if (Array.isArray(scorersStr)) {
+        return scorersStr
+            .map(e => e?.player?.name || e?.scorer?.name || (typeof e === 'string' ? e : null))
+            .filter(Boolean)
+            .map(s => s.trim());
+    }
+
     if (!scorersStr || scorersStr === 'null' || scorersStr === '') return [];
+    
     let cleanStr = scorersStr.replace(/[“”]/g, '"');
     let arr = [];
     try {
