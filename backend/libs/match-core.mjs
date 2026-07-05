@@ -8,6 +8,8 @@ import {
     parseScorersString
 } from './match-mappings.mjs';
 import { hasMatchChanged } from './match-calculations.mjs';
+import { loadDbPlayers } from './players-loader.mjs';
+import { resolveScorers } from './scorer-matcher.mjs';
 
 /**
  * Core orchestrator to sync a list of Directus matches against external APIs
@@ -35,6 +37,9 @@ export async function syncMatchesPipeline(dbMatches, { directusUrl, adminToken, 
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${adminToken}`
     };
+
+    const dbPlayers = await loadDbPlayers(directusUrl, adminToken);
+    console.log("dbplayers:" + dbPlayers);
 
     for (const dbMatch of dbMatches) {
         const dbUtcTime = new Date(dbMatch.date.trim().replace(' ', 'T') + '+04:00').getTime();
@@ -95,7 +100,7 @@ export async function syncMatchesPipeline(dbMatches, { directusUrl, adminToken, 
 
         // Compile goals and scores considering inverted configurations
         const isReversed = (dbMatch.team_a === getNormalizedTeamName(fdMatch.awayTeam?.name));
-        
+
         let fdFullHome = fdMatch.score?.fullTime?.home;
         let fdFullAway = fdMatch.score?.fullTime?.away;
         let fdPenHome = null;
@@ -159,6 +164,23 @@ export async function syncMatchesPipeline(dbMatches, { directusUrl, adminToken, 
         if (wcGame) {
             const homeScorers = parseScorersString(wcGame.home_scorers, getNormalizedTeamName(wcGame.home_team_name_en));
             const awayScorers = parseScorersString(wcGame.away_scorers, getNormalizedTeamName(wcGame.away_team_name_en));
+
+            console.log(wcGame.home_team_name_en);
+            console.log(wcGame.away_team_name_en);
+
+            if (wcGame.home_team_name_en === "Paraguay" && wcGame.away_team_name_en === "France") {
+                const rawScorers = [...homeScorers, ...awayScorers];
+
+                const matchedScorers = resolveScorers(rawScorers, dbPlayers);
+
+                console.log("🔍 SCORER MATCH DEBUG:");
+                console.log(matchedScorers.map(m => ({
+                    api: m.apiName,
+                    match: m.matchedPlayer?.player_name ?? "NOT FOUND",
+                    confidence: m.confidence.toFixed(2)
+                })));
+            }
+
             payload.scorers = [...homeScorers, ...awayScorers];
         }
 
