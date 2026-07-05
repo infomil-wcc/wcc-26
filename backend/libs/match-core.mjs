@@ -165,8 +165,8 @@ export async function syncMatchesPipeline(dbMatches, { directusUrl, adminToken, 
             const homeScorers = parseScorersString(wcGame.home_scorers, getNormalizedTeamName(wcGame.home_team_name_en));
             const awayScorers = parseScorersString(wcGame.away_scorers, getNormalizedTeamName(wcGame.away_team_name_en));
 
-            console.log(wcGame.home_team_name_en);
-            console.log(wcGame.away_team_name_en);
+            console.log("home" + wcGame.home_team_name_en);
+            console.log("away"+ wcGame.away_team_name_en);
 
             if (wcGame.home_team_name_en === "Paraguay" && wcGame.away_team_name_en === "France") {
                 const rawScorers = [...homeScorers, ...awayScorers];
