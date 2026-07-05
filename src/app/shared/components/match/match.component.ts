@@ -62,6 +62,7 @@ export class MatchComponent implements OnInit, OnDestroy {
 
   protected showLoader: boolean = false;
   protected pronostiqueDone: boolean = false;
+  forceEnableScorerButton: boolean = false;
 
   protected userId: number = 0;
   protected userTrigramme: string = '';
@@ -283,6 +284,7 @@ export class MatchComponent implements OnInit, OnDestroy {
 
   protected selectTacticalScorer(playerName: string) {
     this.scorer = playerName;
+    this.forceEnableScorerButton = false;
     this.showTacticalModal = false;
     this.sendBet();
   }
@@ -343,6 +345,10 @@ export class MatchComponent implements OnInit, OnDestroy {
 
   get canSelectScorer(): boolean {
     if (this.hidePointsBadge) {
+      return false;
+    }
+    // If a scorer is already chosen (and not empty or '-'), disable the button
+    if (this.scorer && this.scorer !== '-' && !this.forceEnableScorerButton) {
       return false;
     }
     return !this.disabled && !this.isSubmitting && (!this.closed || this.isEditing) && !this.hidePointsBadge;
@@ -747,6 +753,7 @@ export class MatchComponent implements OnInit, OnDestroy {
     this.isEditing = true;
     this.disabled = false;
     this.isSavedInApi = false;
+    this.forceEnableScorerButton = true;
 
     if (this.donePronostique) {
       this.donePronostique.game_id = this.match.id;

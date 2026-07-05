@@ -142,12 +142,9 @@
             @if (matchOutcome === 'Draw') {
             <span class="material-symbols-outlined winner-tick">check_circle</span>
             }
-            @if (match.phase === 'Group Stage') {
+            @if (match.phase === 'Group Stage' || matchOutcome !== 'Draw') {
             <div class="draw-vs-box flex align-items-center justify-content-center">
               <span>VS</span>
-            </div>
-            <div class="mt-2 text-center teamName">
-              <strong>DRAW</strong>
             </div>
             } @else {
             <div class="draw-vs-box flex align-items-center justify-content-center"
