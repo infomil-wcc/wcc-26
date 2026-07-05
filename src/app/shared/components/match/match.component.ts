@@ -316,6 +316,10 @@ export class MatchComponent implements OnInit, OnDestroy {
     if (this.fullTimeA === null) this.fullTimeA = 0;
     if (this.fullTimeB === null) this.fullTimeB = 0;
 
+    // Force halftime scores to 0 if they are null to prevent them from staying as '-'
+    if (this.halfTimeA === null) this.halfTimeA = 0;
+    if (this.halfTimeB === null) this.halfTimeB = 0;
+
     if (this.halfTimeA !== null && this.fullTimeA < this.halfTimeA) {
       this.halfTimeA = this.fullTimeA;
     }
