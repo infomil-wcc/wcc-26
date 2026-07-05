@@ -159,7 +159,14 @@ export async function syncMatchesPipeline(dbMatches, { directusUrl, adminToken, 
         if (wcGame) {
             const homeScorers = parseScorersString(wcGame.home_scorers, getNormalizedTeamName(wcGame.home_team_name_en));
             const awayScorers = parseScorersString(wcGame.away_scorers, getNormalizedTeamName(wcGame.away_team_name_en));
-            payload.scorers = [...homeScorers, ...awayScorers];
+            
+            const homePenaltyScorers = parseScorersString(wcGame.home_penalty_scorers, getNormalizedTeamName(wcGame.home_team_name_en));
+            homePenaltyScorers.forEach(s => s.detail = 'Penalty Shootout');
+
+            const awayPenaltyScorers = parseScorersString(wcGame.away_penalty_scorers, getNormalizedTeamName(wcGame.away_team_name_en));
+            awayPenaltyScorers.forEach(s => s.detail = 'Penalty Shootout');
+
+            payload.scorers = [...homeScorers, ...awayScorers, ...homePenaltyScorers, ...awayPenaltyScorers];
         }
 
         let directusResponseOk = true;

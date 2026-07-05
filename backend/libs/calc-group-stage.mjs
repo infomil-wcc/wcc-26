@@ -23,11 +23,13 @@ export function calcGroupStagePoints(game, pronostique, ruleMatrix = []) {
 
     let accurateFieldsCount = 0;
 
+    const getScore = (val) => (val === '-' || val === null || val === undefined) ? 0 : parseInt(val);
+
     const isWinnerDrawCorrect = game.winner_draw === pronostique.winner_draw;
-    const isFulltimeExact = parseInt(game.fulltime_a) === parseInt(pronostique.fulltime_a) &&
-        parseInt(game.fulltime_b) === parseInt(pronostique.fulltime_b);
-    const isHalftimeExact = parseInt(game.halftime_a) === parseInt(pronostique.halftime_a) &&
-        parseInt(game.halftime_b) === parseInt(pronostique.halftime_b);
+    const isFulltimeExact = getScore(game.fulltime_a) === getScore(pronostique.fulltime_a) &&
+        getScore(game.fulltime_b) === getScore(pronostique.fulltime_b);
+    const isHalftimeExact = getScore(game.halftime_a) === getScore(pronostique.halftime_a) &&
+        getScore(game.halftime_b) === getScore(pronostique.halftime_b);
 
     if (isWinnerDrawCorrect && rule.winner_draw_points > 0) {
         breakdown.winner = Number(rule.winner_draw_points);
