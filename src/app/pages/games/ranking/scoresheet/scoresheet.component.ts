@@ -6,7 +6,7 @@ import { DatePicker } from 'primeng/datepicker';
 import { Select } from 'primeng/select';
 import { MatchesService } from '../../../../shared/services/content/matches.service';
 import { PredictionsApiService } from '../../../../shared/services/api/predictions-api.service';
-import { PointsCalculatorService, PointsBreakdown } from '../../../../shared/services/games/points-calculator.service';
+import { PronosticsRankingsApiService } from '../../../../shared/services/api/pronostics-rankings-api.service';
 import { TeamsService } from '../../../../shared/services/content/teams.service';
 import { Matches } from '../../../../shared/contracts/matches.contract';
 import { Pronostiques } from '../../../../shared/contracts/pronostiques.contract';
@@ -35,7 +35,7 @@ export class ScoresheetComponent implements OnInit {
   private router = inject(Router);
   private matchesService = inject(MatchesService);
   private predictionsApiService = inject(PredictionsApiService);
-  private pointsCalculator = inject(PointsCalculatorService);
+  private pronosticsRankingsApiService = inject(PronosticsRankingsApiService);
   private teamsService = inject(TeamsService);
   private cdr = inject(ChangeDetectorRef);
 
@@ -257,12 +257,25 @@ export class ScoresheetComponent implements OnInit {
     forkJoin({
       matches: this.matchesService.getAllMatches(),
       predictions: this.predictionsApiService.getPredictions(`?filter[user]=${this.userId}&limit=-1`),
+      rankings: this.pronosticsRankingsApiService.getRankings(`?filter[user]=${this.userId}`),
       teams: this.teamsService.getAllTeams()
     }).subscribe({
       next: (res) => {
         this.matches = res.matches;
         this.predictions = res.predictions?.data || [];
         this.teams = res.teams || [];
+
+        const rankingRow = res.rankings?.data?.[0];
+        const rankingPronos = rankingRow?.pronostiques || [];
+        const rankingBreakdownMap = new Map();
+        for (const rp of rankingPronos) {
+           rankingBreakdownMap.set(String(rp.game_id), rp.breakdown);
+        }
+
+        // Apply breakdown to each prediction
+        for (const p of this.predictions as any[]) {
+           p.breakdown = rankingBreakdownMap.get(String(p.game_id)) || { winner: 0, fulltime: 0, halftime: 0, scorer: 0, consolation: 0, total: 0, isFraud: false };
+        }
 
         // Build map for fast lookup
         for (const t of this.teams) {
@@ -418,13 +431,13 @@ export class ScoresheetComponent implements OnInit {
       const pred = predMap.get(String(match.id));
       if (!pred) continue; // no prediction for this match
 
-      // Cleanse stored null/blank database items to '0' on the fly before calculation and view binding
+      // Cleanse stored null/blank database items to '0' on the fly before view binding
       if (pred.fulltime_a === null || pred.fulltime_a === undefined || pred.fulltime_a === '') pred.fulltime_a = '0';
       if (pred.fulltime_b === null || pred.fulltime_b === undefined || pred.fulltime_b === '') pred.fulltime_b = '0';
       if (pred.halftime_a === null || pred.halftime_a === undefined || pred.halftime_a === '') pred.halftime_a = '0';
       if (pred.halftime_b === null || pred.halftime_b === undefined || pred.halftime_b === '') pred.halftime_b = '0';
 
-      const breakdown = this.pointsCalculator.calculatePoints(match, pred);
+      const breakdown = (pred as any).breakdown;
 
       let phaseKey = match.phase || '';
       if (phaseKey === 'Third Place') phaseKey = 'Final'; // Group them together for the table

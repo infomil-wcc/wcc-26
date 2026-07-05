@@ -111,7 +111,8 @@ export async function recalculateRankings(directusUrl, adminToken, specificUser 
         fulltime_b: prono.fulltime_b,
         halftime_a: prono.halftime_a,
         halftime_b: prono.halftime_b,
-        scorer: prono.scorer
+        scorer: prono.scorer,
+        breakdown: { winner: 0, fulltime: 0, halftime: 0, scorer: 0, consolation: 0, total: 0, isFraud: false }
       }));
 
       for (const prono of userPredictions[username]) {
@@ -126,13 +127,18 @@ export async function recalculateRankings(directusUrl, adminToken, specificUser 
           if (predictionCreated && predictionCreated > matchKickoff) isInvalidated = true;
           if (predictionModified && predictionModified > matchKickoff) isInvalidated = true;
 
-          let pts = 0;
+          let pts = { winner: 0, fulltime: 0, halftime: 0, scorer: 0, consolation: 0, total: 0, isFraud: false };
           if (isInvalidated) {
+            pts.isFraud = true;
             apiLogs.push(`⚠️ FRAUD DETECTED | User: ${username} | Match ID: ${game.id} submitted or edited late! Points forced to 0.`);
           } else {
             pts = calcResultForRanking(game, prono, ruleMatrix);
-            totalPoints += pts;
-            apiLogs.push(`User: ${username} | Match ID: ${game.id} | Earned: ${pts} pts`);
+            totalPoints += pts.total;
+            apiLogs.push(`User: ${username} | Match ID: ${game.id} | Earned: ${pts.total} pts`);
+          }
+          const userPronoIndex = userPronos.findIndex(p => p.id === prono.id);
+          if (userPronoIndex > -1) {
+             userPronos[userPronoIndex].breakdown = pts;
           }
         }
       }
@@ -179,13 +185,14 @@ export async function recalculateRankings(directusUrl, adminToken, specificUser 
         key: player.key,
         point: player.point,
         rank: player.rank,
-        status: 'published'
+        status: 'published',
+        pronostiques: player.pronostiques
       };
 
       const existingRow = existingRankings.find(item => item.key === player.key);
 
       if (existingRow) {
-        if (Number(existingRow.point) === Number(rankingRow.point) && Number(existingRow.rank) === Number(rankingRow.rank)) {
+        if (Number(existingRow.point) === Number(rankingRow.point) && Number(existingRow.rank) === Number(rankingRow.rank) && JSON.stringify(existingRow.pronostiques) === JSON.stringify(rankingRow.pronostiques)) {
           continue;
         }
         await fetch(`${directusUrl}/items/pronostics_rankings/${existingRow.id}`, {

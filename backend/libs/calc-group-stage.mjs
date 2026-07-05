@@ -11,7 +11,16 @@ export function calcGroupStagePoints(game, pronostique, ruleMatrix = []) {
         r.game_type === 'pronostics' && r.phase === 'Group Stage'
     ) || { winner_draw_points: 0, fulltime_exact_points: 0, halftime_exact_points: 0, scorer_points: 0, consolation_points: 0 };
 
-    let earnedPoints = 0;
+    const breakdown = {
+        winner: 0,
+        fulltime: 0,
+        halftime: 0,
+        scorer: 0,
+        consolation: 0,
+        total: 0,
+        isFraud: false
+    };
+
     let accurateFieldsCount = 0;
 
     const isWinnerDrawCorrect = game.winner_draw === pronostique.winner_draw;
@@ -21,15 +30,15 @@ export function calcGroupStagePoints(game, pronostique, ruleMatrix = []) {
         parseInt(game.halftime_b) === parseInt(pronostique.halftime_b);
 
     if (isWinnerDrawCorrect && rule.winner_draw_points > 0) {
-        earnedPoints += Number(rule.winner_draw_points);
+        breakdown.winner = Number(rule.winner_draw_points);
         accurateFieldsCount++;
     }
     if (isFulltimeExact && rule.fulltime_exact_points > 0) {
-        earnedPoints += Number(rule.fulltime_exact_points);
+        breakdown.fulltime = Number(rule.fulltime_exact_points);
         accurateFieldsCount++;
     }
     if (isHalftimeExact && rule.halftime_exact_points > 0) {
-        earnedPoints += Number(rule.halftime_exact_points);
+        breakdown.halftime = Number(rule.halftime_exact_points);
         accurateFieldsCount++;
     }
     if (pronostique.scorer && rule.scorer_points > 0) {
@@ -38,14 +47,16 @@ export function calcGroupStagePoints(game, pronostique, ruleMatrix = []) {
         const matchFound = gamescorers.some(s => normalizePlayerName(s) === normalizedPronoScorer);
         
         if (matchFound) {
-            earnedPoints += Number(rule.scorer_points);
+            breakdown.scorer = Number(rule.scorer_points);
             accurateFieldsCount++;
         }
     }
 
     if (accurateFieldsCount === 0 && rule.consolation_points > 0) {
-        earnedPoints += Number(rule.consolation_points);
+        breakdown.consolation = Number(rule.consolation_points);
     }
 
-    return earnedPoints;
+    breakdown.total = breakdown.winner + breakdown.fulltime + breakdown.halftime + breakdown.scorer + breakdown.consolation;
+
+    return breakdown;
 }
