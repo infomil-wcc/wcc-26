@@ -157,6 +157,8 @@ export async function syncMatchesPipeline(dbMatches, { directusUrl, adminToken, 
         }
 
         if (wcGame) {
+            console.log("🟡 WC GAME DEBUG 1");
+
             const homeScorers = parseScorersString(wcGame.home_scorers, getNormalizedTeamName(wcGame.home_team_name_en));
             const awayScorers = parseScorersString(wcGame.away_scorers, getNormalizedTeamName(wcGame.away_team_name_en));
 
@@ -166,13 +168,13 @@ export async function syncMatchesPipeline(dbMatches, { directusUrl, adminToken, 
             const awayPenaltyScorers = parseScorersString(wcGame.away_penalty_scorers, getNormalizedTeamName(wcGame.away_team_name_en));
             awayPenaltyScorers.forEach(s => s.detail = 'Penalty Shootout');
 
-            console.log("🟡 WC GAME DEBUG");
+            console.log("🟡 WC GAME DEBUG 2");
             console.log("Home scorers raw:", wcGame.home_scorers);
             console.log("Away scorers raw:", wcGame.away_scorers);
             console.log("Home penalties raw:", wcGame.home_penalty_scorers);
             console.log("Away penalties raw:", wcGame.away_penalty_scorers);
 
-            const matchedScorers = resolveScorers("Away scorers raw:", wcGame.away_scorers, dbPlayers);
+            //const matchedScorers = resolveScorers("Away scorers raw:", wcGame.away_scorers, dbPlayers);
 
             console.log("🔴 MATCH RESULTS:");
             console.log(
