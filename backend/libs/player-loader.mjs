@@ -1,5 +1,5 @@
 export async function loadDbPlayers(directusUrl, adminToken) {
-    const res = await fetch(`${directusUrl}/items/players`, {
+    const res = await fetch(`${directusUrl}/items/wcc_players`, {
         headers: {
             Authorization: `Bearer ${adminToken}`
         }
