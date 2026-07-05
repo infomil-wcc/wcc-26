@@ -79,7 +79,7 @@ export class ScoresheetComponent implements OnInit {
     match: string;
     dateFrom: Date | null;
     dateTo: Date | null;
-    phase: string;
+    phase: string | null;
     score: string;
     prediction: string;
     pointsMin: string;
@@ -88,7 +88,7 @@ export class ScoresheetComponent implements OnInit {
       match: '',
       dateFrom: null,
       dateTo: null,
-      phase: '',
+      phase: null,
       score: '',
       prediction: '',
       pointsMin: '',
@@ -99,7 +99,7 @@ export class ScoresheetComponent implements OnInit {
     match: string;
     dateFrom: Date | null;
     dateTo: Date | null;
-    phase: string;
+    phase: string | null;
     score: string;
     prediction: string;
     pointsMin: string;
@@ -108,7 +108,7 @@ export class ScoresheetComponent implements OnInit {
       match: '',
       dateFrom: null,
       dateTo: null,
-      phase: '',
+      phase: null,
       score: '',
       prediction: '',
       pointsMin: '',
@@ -248,7 +248,7 @@ export class ScoresheetComponent implements OnInit {
   filterText: string = '';
 
   phasesList = [
-    { label: 'Toutes les phases', value: '' },
+    { label: 'Toutes les phases', value: null },
     { label: 'Group Stage', value: 'Group Stage' },
     { label: 'Round of 32', value: 'Round of 32' },
     { label: 'Round of 16', value: 'Round of 16' },
@@ -273,7 +273,7 @@ export class ScoresheetComponent implements OnInit {
     forkJoin({
       matches: this.matchesService.getAllMatches(),
       predictions: this.predictionsApiService.getPredictions(`?filter[user]=${this.userId}&limit=-1`),
-      rankings: this.pronosticsRankingsApiService.getRankings(`?filter[user]=${this.userId}`),
+      rankings: this.pronosticsRankingsApiService.getRankings(`?filter[key]=${this.userId}`),
       teams: this.teamsService.getAllTeams()
     }).subscribe({
       next: (res) => {
@@ -316,7 +316,22 @@ export class ScoresheetComponent implements OnInit {
     });
   }
 
+  private _lastFilteredMatches: any[] = [];
+  private _lastFilterState: string = '';
+
   get filteredMatches() {
+    const currentState = JSON.stringify({
+      dt: this.detailedMatches.length,
+      ft: this.filterText,
+      cf: this.columnFilters,
+      sf: this.sortField,
+      so: this.sortOrder
+    });
+
+    if (this._lastFilterState === currentState) {
+      return this._lastFilteredMatches;
+    }
+
     let list = this.detailedMatches;
 
     // Apply global text filter
@@ -397,6 +412,8 @@ export class ScoresheetComponent implements OnInit {
       });
     }
 
+    this._lastFilterState = currentState;
+    this._lastFilteredMatches = list;
     return list;
   }
 

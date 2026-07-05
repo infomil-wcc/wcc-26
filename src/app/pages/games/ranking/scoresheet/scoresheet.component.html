@@ -102,17 +102,17 @@
           <div class="filter-field">
             <label class="filter-label">Date du</label>
             <p-datepicker [(ngModel)]="columnFilters.dateFrom" dateFormat="dd/mm/yy" placeholder="Du"
-              appendTo="body" styleClass="w-full" />
+              appendTo="body" class="w-full" />
           </div>
           <div class="filter-field">
             <label class="filter-label">Date au</label>
             <p-datepicker [(ngModel)]="columnFilters.dateTo" dateFormat="dd/mm/yy" placeholder="Au"
-              appendTo="body" styleClass="w-full" />
+              appendTo="body" class="w-full" />
           </div>
           <div class="filter-field">
             <label class="filter-label">Phase</label>
             <p-select [options]="phasesList" [(ngModel)]="columnFilters.phase" optionLabel="label"
-              optionValue="value" placeholder="Toutes les phases" appendTo="body" styleClass="w-full" />
+              optionValue="value" placeholder="Toutes les phases" appendTo="body" class="w-full" />
           </div>
           <div class="filter-field">
             <label class="filter-label">Score officiel</label>
@@ -303,18 +303,17 @@
                     </div>
                   </div>
 
-                  <div *ngIf="!isGroupStage(item)"
-                    class="knockout-detail-card p-3 border-round-xl border-1 border-300 bg-white shadow-1">
+                  <div class="knockout-detail-card p-3 border-round-xl border-1 border-300 bg-white shadow-1">
                     <span class="section-title block mb-3">📊 Résultats officiels</span>
-                    <!-- kept the same detailed scores layout inside -->
+
                     <div class="scores-detail-grid mb-4">
+
                       <div class="score-detail-block">
                         <span class="score-label">Mi-temps</span>
                         <div class="score-vs-row">
                           <div class="score-team-cell">
                             <div class="team-mini-label">
-                              <img *ngIf="getTeamFlag(item.match.team_a)" [src]="getTeamFlag(item.match.team_a)"
-                                class="flag-mini" alt="">
+                              <img *ngIf="getTeamFlag(item.match.team_a)" [src]="getTeamFlag(item.match.team_a)" class="flag-mini" alt="">
                               <span style="color:#000;font-weight:700;">{{ getTeamNameShort(item.match.team_a) }}</span>
                             </div>
                             <span class="big-score">{{ item.match.halftime_a ?? '-' }}</span>
@@ -324,14 +323,92 @@
                             <span class="big-score">{{ item.match.halftime_b ?? '-' }}</span>
                             <div class="team-mini-label">
                               <span style="color:#000;font-weight:700;">{{ getTeamNameShort(item.match.team_b) }}</span>
-                              <img *ngIf="getTeamFlag(item.match.team_b)" [src]="getTeamFlag(item.match.team_b)"
-                                class="flag-mini" alt="">
+                              <img *ngIf="getTeamFlag(item.match.team_b)" [src]="getTeamFlag(item.match.team_b)" class="flag-mini" alt="">
                             </div>
                           </div>
                         </div>
                       </div>
-                      <!-- remaining blocks omitted for brevity but preserved in original -->
+
+                      <div class="score-detail-block">
+                        <span class="score-label">Temps réglementaire</span>
+                        <div class="score-vs-row">
+                          <div class="score-team-cell">
+                            <div class="team-mini-label">
+                              <img *ngIf="getTeamFlag(item.match.team_a)" [src]="getTeamFlag(item.match.team_a)" class="flag-mini" alt="">
+                              <span style="color:#000;font-weight:700;">{{ getTeamNameShort(item.match.team_a) }}</span>
+                            </div>
+                            <span class="big-score">{{ item.match.fulltime_a ?? '-' }}</span>
+                          </div>
+                          <span class="vs-sep">–</span>
+                          <div class="score-team-cell score-team-cell-right">
+                            <span class="big-score">{{ item.match.fulltime_b ?? '-' }}</span>
+                            <div class="team-mini-label">
+                              <span style="color:#000;font-weight:700;">{{ getTeamNameShort(item.match.team_b) }}</span>
+                              <img *ngIf="getTeamFlag(item.match.team_b)" [src]="getTeamFlag(item.match.team_b)" class="flag-mini" alt="">
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div *ngIf="hasPenalty(item)" class="score-detail-block score-detail-block-penalty">
+                        <span class="score-label">Tirs au but</span>
+                        <div class="score-vs-row">
+                          <div class="score-team-cell">
+                            <div class="team-mini-label">
+                              <img *ngIf="getTeamFlag(item.match.team_a)" [src]="getTeamFlag(item.match.team_a)" class="flag-mini" alt="">
+                              <span style="color:#000;font-weight:700;">{{ getTeamNameShort(item.match.team_a) }}</span>
+                            </div>
+                            <span class="big-score penalty-score">{{ item.match.penalty_a }}</span>
+                          </div>
+                          <span class="vs-sep">–</span>
+                          <div class="score-team-cell score-team-cell-right">
+                            <span class="big-score penalty-score">{{ item.match.penalty_b }}</span>
+                            <div class="team-mini-label">
+                              <span style="color:#000;font-weight:700;">{{ getTeamNameShort(item.match.team_b) }}</span>
+                              <img *ngIf="getTeamFlag(item.match.team_b)" [src]="getTeamFlag(item.match.team_b)" class="flag-mini" alt="">
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
                     </div>
+
+                    <div *ngIf="hasScorersJson(item.match)" class="scorers-section">
+                      <span class="scorers-title">⚽ Buteurs</span>
+                      <div class="scorers-two-cols">
+                        <div class="scorer-col">
+                          <div class="scorer-col-header">
+                            <img *ngIf="getTeamFlag(item.match.team_a)" [src]="getTeamFlag(item.match.team_a)" class="flag-mini" alt="">
+                            <span style="color:#000;font-weight:700;">{{ getTeamNameShort(item.match.team_a) }}</span>
+                          </div>
+                          <ng-container *ngIf="getMatchScorersGrouped(item.match, item.match.team_a).length > 0; else noScorerA">
+                            <div *ngFor="let s of getMatchScorersGrouped(item.match, item.match.team_a)" class="scorer-line">
+                              <span class="scorer-name">{{ s.name }}</span>
+                              <span class="scorer-time">{{ s.times }}</span>
+                            </div>
+                          </ng-container>
+                          <ng-template #noScorerA>
+                            <span class="no-scorer">Aucun buteur</span>
+                          </ng-template>
+                        </div>
+                        <div class="scorer-col">
+                          <div class="scorer-col-header">
+                            <img *ngIf="getTeamFlag(item.match.team_b)" [src]="getTeamFlag(item.match.team_b)" class="flag-mini" alt="">
+                            <span style="color:#000;font-weight:700;">{{ getTeamNameShort(item.match.team_b) }}</span>
+                          </div>
+                          <ng-container *ngIf="getMatchScorersGrouped(item.match, item.match.team_b).length > 0; else noScorerB">
+                            <div *ngFor="let s of getMatchScorersGrouped(item.match, item.match.team_b)" class="scorer-line">
+                              <span class="scorer-name">{{ s.name }}</span>
+                              <span class="scorer-time">{{ s.times }}</span>
+                            </div>
+                          </ng-container>
+                          <ng-template #noScorerB>
+                            <span class="no-scorer">Aucun buteur</span>
+                          </ng-template>
+                        </div>
+                      </div>
+                    </div>
+
                   </div>
                 </div>
               </td>

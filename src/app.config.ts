@@ -24,7 +24,10 @@ bootstrapApplication(AppComponent, {
     provideAnimations(),
     providePrimeNG({
       theme: {
-        preset: Aura
+        preset: Aura,
+        options: {
+          darkModeSelector: '.p-dark'
+        }
       },
       license: "eyJpZCI6ImIyNzZkOTI5LWViNDMtNDBmNi1iYTMzLWQzNmQyOWE2ZmI0MCIsInByb2R1Y3QiOiJwcmltZXVpIiwidGllciI6ImNvbW11bml0eSIsInR5cGUiOiJkZXYiLCJpYXQiOjE3ODI4NzM4NDYsImV4cCI6MTgxNDQwOTg0Nn0.R0pBHpD6IKdwUY1ScagfO1gna44cPxfkClRAj1IQs8XTNgKZPFkmGAjtJoUx6m5uSO_beHmqrnmsNupAUEX5DQ"
     }),
