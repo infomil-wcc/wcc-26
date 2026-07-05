@@ -1,4 +1,4 @@
-import { parseScorersStringForRanking } from './match-mappings.mjs';
+import { parseScorersStringForRanking, normalizePlayerName } from './match-mappings.mjs';
 
 /**
  * Strategy to calculate points for the Group Stage phase
@@ -34,7 +34,10 @@ export function calcGroupStagePoints(game, pronostique, ruleMatrix = []) {
     }
     if (pronostique.scorer && rule.scorer_points > 0) {
         const gamescorers = game.scorers ? parseScorersStringForRanking(game.scorers) : [];
-        if (gamescorers.includes(pronostique.scorer.trim())) {
+        const normalizedPronoScorer = normalizePlayerName(pronostique.scorer);
+        const matchFound = gamescorers.some(s => normalizePlayerName(s) === normalizedPronoScorer);
+        
+        if (matchFound) {
             earnedPoints += Number(rule.scorer_points);
             accurateFieldsCount++;
         }

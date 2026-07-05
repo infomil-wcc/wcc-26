@@ -1,6 +1,6 @@
 import { calcGroupStagePoints } from './calc-group-stage.mjs';
 import { calcKnockoutStagePoints } from './calc-knockout-stage.mjs';
-import { parseScorersStringForRanking } from './match-mappings.mjs';
+import { parseScorersStringForRanking, normalizePlayerName } from './match-mappings.mjs';
 
 /**
  * Checks if key match attributes have changed to avoid unnecessary database patches
@@ -79,7 +79,10 @@ export function calcResultForRankingGeneric(game, pronostique, ruleMatrix = []) 
 
     if (pronostique.scorer && rule.scorer_points > 0) {
         const gamescorers = game.scorers ? parseScorersStringForRanking(game.scorers) : [];
-        if (gamescorers.includes(pronostique.scorer.trim())) {
+        const normalizedPronoScorer = normalizePlayerName(pronostique.scorer);
+        const matchFound = gamescorers.some(s => normalizePlayerName(s) === normalizedPronoScorer);
+        
+        if (matchFound) {
             earnedPoints += Number(rule.scorer_points);
             accurateFieldsCount++;
         }

@@ -1,6 +1,21 @@
 import { teamNameMap, phaseMap } from './mappings.mjs'; // Path changed to parent directory
 
+export function normalizePlayerName(name) {
+    if (!name || typeof name !== 'string') return '';
+    return name
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "") // Remove accents
+        .toLowerCase()
+        .replace(/[^a-z0-9\s]/g, "") // Remove punctuation
+        .split(/\s+/)
+        .filter(Boolean)
+        .sort()
+        .join(' ')
+        .trim();
+}
+
 export function getNormalizedTeamName(externalName) {
+
     if (!externalName) return null;
     const trimmedName = externalName.trim();
     return teamNameMap[trimmedName] || trimmedName;
