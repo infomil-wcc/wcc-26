@@ -93,7 +93,22 @@ export class PointsCalculatorService {
 
     let isScorerCorrect = false;
     if (prediction.scorer && match.scorers) {
-       const predictedScorer = prediction.scorer.trim().toLowerCase();
+       // Replicate backend normalization: remove accents, lowercase, remove punctuation, split, sort, join
+       const normalizeName = (name: string) => {
+         if (!name || typeof name !== 'string') return '';
+         return name
+           .normalize("NFD")
+           .replace(/[\u0300-\u036f]/g, "")
+           .toLowerCase()
+           .replace(/[^a-z0-9\s]/g, "")
+           .split(/\s+/)
+           .filter(Boolean)
+           .sort()
+           .join(' ')
+           .trim();
+       };
+
+       const predictedScorer = normalizeName(prediction.scorer);
        let matchScorersNames: string[] = [];
        if (Array.isArray(match.scorers)) {
           matchScorersNames = match.scorers.map((s: any) => typeof s === 'string' ? s : (s.player?.name || s.scorer?.name || '')).filter(Boolean);
@@ -108,7 +123,7 @@ export class PointsCalculatorService {
           }
        }
        
-       isScorerCorrect = matchScorersNames.some(s => s.trim().toLowerCase() === predictedScorer);
+       isScorerCorrect = matchScorersNames.some(s => normalizeName(s) === predictedScorer);
     }
 
     if (isOutcomeCorrect && winnerPts > 0) {
