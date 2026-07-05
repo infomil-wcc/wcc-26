@@ -5,6 +5,7 @@ import { map, of } from 'rxjs';
 import { TeamsService } from '../../services/content/teams.service';
 import { StateService } from '../../services/core/state.service';
 import { PredictionsService } from '../../services/games/predictions.service';
+import Fuse from 'fuse.js';
 import { GlobaltimeService } from '../../services/core/globaltime.service';
 import { StadiumsService } from '../../services/content/stadiums.service';
 import { NgClass, NgStyle, AsyncPipe, UpperCasePipe, SlicePipe, DatePipe } from '@angular/common';
@@ -702,60 +703,46 @@ export class MatchComponent implements OnInit, OnDestroy {
     if (!predScorer || predScorer === '-') return false;
 
     let scorersList: string[] = [];
-    const scorersVal = this.match.scorers;
-    if (Array.isArray(scorersVal)) {
-      scorersList = scorersVal.map(e => {
-        let name = e.player?.name || e.scorer?.name;
-        if (name) {
+    if (this.isScorersJson) {
+      scorersList = this.parsedScorersEvents.map(e => e.player?.name).filter(Boolean);
+    } else {
+      const scorersVal = this.match.scorers;
+      if (typeof scorersVal === 'string') {
+        scorersList = scorersVal.split(',').map(name => {
+          let trimmed = name.trim();
           const regex = /^(.*?)\s+(\d+)'?(?:\+(\d+))?'?\s*(\((?:OG|p|CSC|PEN)\)|\[(?:OG|p|CSC|PEN)\])?$/i;
-          const match = name.trim().match(regex);
-          if (match) {
-            name = match[1].trim();
-          }
-        }
-        return name;
-      }).filter(Boolean);
-    } else if (typeof scorersVal === 'string') {
-      const trimmed = scorersVal.trim();
-      if (trimmed.startsWith('[') && trimmed.endsWith(']')) {
-        try {
-          const parsed = JSON.parse(trimmed);
-          if (Array.isArray(parsed)) {
-            scorersList = parsed.map(e => {
-              let name = e.player?.name || e.scorer?.name;
-              if (name) {
-                const regex = /^(.*?)\s+(\d+)'?(?:\+(\d+))?'?\s*(\((?:OG|p|CSC|PEN)\)|\[(?:OG|p|CSC|PEN)\])?$/i;
-                const match = name.trim().match(regex);
-                if (match) {
-                  name = match[1].trim();
-                }
-              }
-              return name;
-            }).filter(Boolean);
-          }
-        } catch (e) {
-          scorersList = trimmed.split(',').map(name => name.trim());
-        }
-      } else {
-        scorersList = trimmed.split(',').map(name => name.trim());
+          const match = trimmed.match(regex);
+          return match ? match[1].trim() : trimmed;
+        });
       }
     }
 
     const normalizeName = (name: string) => {
+      if (!name || typeof name !== 'string') return '';
       return name
         .normalize("NFD")
         .replace(/[\u0300-\u036f]/g, "")
         .toLowerCase()
-        .trim()
+        .replace(/[^a-z0-9\s]/g, "")
         .split(/\s+/)
+        .filter(Boolean)
         .sort()
-        .join(' ');
+        .join(' ')
+        .trim();
     };
 
     const normalizedPredScorer = normalizeName(predScorer);
     const normalizedScorersList = scorersList.map(name => normalizeName(name));
 
-    return normalizedScorersList.includes(normalizedPredScorer);
+    const fuse = new Fuse(normalizedScorersList, {
+      includeScore: true,
+      threshold: 0.4
+    });
+
+    const results = fuse.search(normalizedPredScorer);
+    const isMatch = results.length > 0;
+
+    return isMatch;
   }
 
   modifierPronostic(): void {
