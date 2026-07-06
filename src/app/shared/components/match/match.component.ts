@@ -792,10 +792,8 @@ export class MatchComponent implements OnInit, OnDestroy {
         points += fulltimePts;
       }
 
-      if (['Quarter-finals', 'Semi-finals', 'Third Place', 'Final'].includes(game.phase)) {
-        if (this.isHalftimeCorrect()) points += halftimePts;
-        if (this.isScorerCorrect()) points += scorerPts;
-      }
+      if (this.isHalftimeCorrect()) points += halftimePts;
+      if (this.isScorerCorrect()) points += scorerPts;
     }
 
     return points;
