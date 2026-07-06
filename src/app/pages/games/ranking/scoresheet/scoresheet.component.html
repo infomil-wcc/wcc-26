@@ -59,10 +59,14 @@
                 <span>Total points gagnés</span>
                 }
               </td>
-              <td class="text-center font-semibold points-val">{{ getSummaryValue('Group Stage', cat) > 0 ? '+' +
-                getSummaryValue('Group Stage', cat) : '-' }}</td>
-              <td class="text-center font-semibold points-val">{{ getSummaryValue('Round of 32', cat) > 0 ? '+' +
-                getSummaryValue('Round of 32', cat) : '-' }}</td>
+              <td class="text-center font-semibold points-val">
+                @if (cat === 'consolation') { N/A }
+                @else { {{ getSummaryValue('Group Stage', cat) > 0 ? '+' + getSummaryValue('Group Stage', cat) : '-' }} }
+              </td>
+              <td class="text-center font-semibold points-val">
+                @if (cat === 'consolation') { N/A }
+                @else { {{ getSummaryValue('Round of 32', cat) > 0 ? '+' + getSummaryValue('Round of 32', cat) : '-' }} }
+              </td>
               <td class="text-center font-semibold points-val">{{ getSummaryValue('Round of 16', cat) > 0 ? '+' +
                 getSummaryValue('Round of 16', cat) : '-' }}</td>
               <td class="text-center font-semibold points-val">{{ getSummaryValue('Quarter-finals', cat) > 0 ? '+' +
