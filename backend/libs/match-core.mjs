@@ -8,6 +8,8 @@ import {
     parseScorersString
 } from './match-mappings.mjs';
 import { hasMatchChanged } from './match-calculations.mjs';
+import { resolveScorers } from './scorer-matcher.mjs';
+import { loadDbPlayers } from './player-loader.mjs';
 
 /**
  * Core orchestrator to sync a list of Directus matches against external APIs
@@ -172,7 +174,9 @@ export async function syncMatchesPipeline(dbMatches, { directusUrl, adminToken, 
             console.log("Away scorers raw:", wcGame.away_scorers);
             console.log("Home penalties raw:", wcGame.home_penalty_scorers);
             console.log("Away penalties raw:", wcGame.away_penalty_scorers);
-
+            
+            const dbPlayers = await loadDbPlayers(directusUrl, adminToken);
+            
             const matchedScorersAway = resolveScorers(wcGame.away_scorers, dbPlayers);
             const matchedScorersHome = resolveScorers(wcGame.home_scorers, dbPlayers);
 
