@@ -61,6 +61,14 @@ export class PredictionsService {
     return this.draftsSubject.getValue();
   }
 
+  removeDraft(gameId: number | string): void {
+    const current = this.draftsSubject.getValue();
+    const updated = current.filter(p => p.game_id !== gameId && p.game_id !== Number(gameId) && String(p.game_id) !== String(gameId));
+    if (current.length !== updated.length) {
+      this.draftsSubject.next(updated);
+    }
+  }
+
   clearDrafts(): void {
     this.draftsSubject.next([]);
   }
@@ -103,7 +111,27 @@ export class PredictionsService {
           };
           return this.predictionsApiService.updatePrediction(predictions.id, updatePayload, httpOptions);
         } else {
-          return this.predictionsApiService.createPrediction(predictions, httpOptions);
+          // Extra validation to prevent duplicate records
+          return this.getMyPredictions(predictions.game_id).pipe(
+            switchMap((existingPreds) => {
+              if (existingPreds && existingPreds.length > 0) {
+                // A prediction already exists, use its ID and update instead
+                const existingId = existingPreds[0].id;
+                const updatePayload = {
+                  game_id: predictions.game_id,
+                  halftime_a: predictions.halftime_a,
+                  halftime_b: predictions.halftime_b,
+                  fulltime_a: predictions.fulltime_a,
+                  fulltime_b: predictions.fulltime_b,
+                  scorer: predictions.scorer,
+                  winner_draw: predictions.winner_draw
+                };
+                return this.predictionsApiService.updatePrediction(existingId, updatePayload, httpOptions);
+              } else {
+                return this.predictionsApiService.createPrediction(predictions, httpOptions);
+              }
+            })
+          );
         }
       })
     );

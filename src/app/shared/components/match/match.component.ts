@@ -162,6 +162,7 @@ export class MatchComponent implements OnInit, OnDestroy {
 
     if (this.today > this.limitDate) {
       this.closed = true;
+      this.predictionService.removeDraft(this.match.id);
 
       const status = this.match.current_status?.toLowerCase();
       const matchStartTime = new Date(this.match.date).getTime();
@@ -590,11 +591,19 @@ export class MatchComponent implements OnInit, OnDestroy {
       const status = this.match.current_status?.toLowerCase();
       if (status === 'finished' || this.match.played || diff <= -150 * 60 * 1000) {
         this.countdownText = 'Match terminé';
+        if (!this.closed) {
+          this.closed = true;
+          this.predictionService.removeDraft(this.match.id);
+        }
         return;
       }
 
       if (status === 'live' || status === 'in_play' || diff <= 0) {
         this.countdownText = 'Match commencé';
+        if (!this.closed) {
+          this.closed = true;
+          this.predictionService.removeDraft(this.match.id);
+        }
         return;
       }
 
