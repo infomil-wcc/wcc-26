@@ -90,6 +90,9 @@ export async function autoAdvanceKnockoutStages(directusUrl, adminToken, deps = 
       }
 
       if (updatedPayload) {
+        if (r32.manual_override) {
+          continue;
+        }
         const finalTeamA = updatedPayload.team_a || r32.team_a;
         const finalTeamB = updatedPayload.team_b || r32.team_b;
         if (!isPlaceholder(finalTeamA) && !isPlaceholder(finalTeamB) && r32.status === 'draft') {
@@ -171,6 +174,9 @@ export async function autoAdvanceKnockoutStages(directusUrl, adminToken, deps = 
       }
 
       if (updatedPayload) {
+        if (match.manual_override) {
+          continue;
+        }
         const finalTeamA = updatedPayload.team_a || match.team_a;
         const finalTeamB = updatedPayload.team_b || match.team_b;
         if (!isPlaceholder(finalTeamA) && !isPlaceholder(finalTeamB) && match.status === 'draft') {

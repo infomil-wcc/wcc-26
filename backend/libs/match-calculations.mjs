@@ -7,12 +7,14 @@ import Fuse from 'fuse.js';
  * Checks if key match attributes have changed to avoid unnecessary database patches
  */
 export function hasMatchChanged(dbMatch, payload) {
-    if (dbMatch.fulltime_a != payload.fulltime_a) return true;
-    if (dbMatch.fulltime_b != payload.fulltime_b) return true;
-    if (dbMatch.halftime_a != payload.halftime_a) return true;
-    if (dbMatch.halftime_b != payload.halftime_b) return true;
-    if (dbMatch.winner_draw != payload.winner_draw) return true;
-    if (dbMatch.current_status != payload.current_status) return true;
+    if ('fulltime_a' in payload && dbMatch.fulltime_a != payload.fulltime_a) return true;
+    if ('fulltime_b' in payload && dbMatch.fulltime_b != payload.fulltime_b) return true;
+    if ('halftime_a' in payload && dbMatch.halftime_a != payload.halftime_a) return true;
+    if ('halftime_b' in payload && dbMatch.halftime_b != payload.halftime_b) return true;
+    if ('penalty_a' in payload && dbMatch.penalty_a != payload.penalty_a) return true;
+    if ('penalty_b' in payload && dbMatch.penalty_b != payload.penalty_b) return true;
+    if ('winner_draw' in payload && dbMatch.winner_draw != payload.winner_draw) return true;
+    if ('current_status' in payload && dbMatch.current_status != payload.current_status) return true;
 
     if (payload.scorers) {
         const dbScorers = dbMatch.scorers || [];
