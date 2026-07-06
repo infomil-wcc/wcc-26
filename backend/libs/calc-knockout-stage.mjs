@@ -78,16 +78,20 @@ export function calcKnockoutStagePoints(game, pronostique, ruleMatrix = []) {
         }
     }
 
-    if (accurateFieldsCount === 0 && rule.consolation_points > 0) {
-        breakdown.consolation = Number(rule.consolation_points);
-    }
+    if (game.phase !== 'Round of 32') {
+        if (accurateFieldsCount === 0 && rule.consolation_points > 0) {
+            breakdown.consolation = Number(rule.consolation_points);
+        }
 
-    breakdown.total = breakdown.winner + breakdown.fulltime + breakdown.halftime + breakdown.scorer + breakdown.consolation;
-    
-    // Knockout phases have a guaranteed minimum of 1 point if consolation logic allows
-    if (breakdown.total === 0) {
-        breakdown.consolation = 1;
-        breakdown.total = 1;
+        breakdown.total = breakdown.winner + breakdown.fulltime + breakdown.halftime + breakdown.scorer + breakdown.consolation;
+        
+        // Knockout phases have a guaranteed minimum of 1 point if consolation logic allows
+        if (breakdown.total === 0) {
+            breakdown.consolation = 1;
+            breakdown.total = 1;
+        }
+    } else {
+        breakdown.total = breakdown.winner + breakdown.fulltime + breakdown.halftime + breakdown.scorer;
     }
 
     return breakdown;

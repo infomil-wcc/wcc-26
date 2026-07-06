@@ -116,11 +116,14 @@ export function calcResultForRankingGeneric(game, pronostique, ruleMatrix = []) 
         }
     }
 
-    if (accurateFieldsCount === 0 && rule.consolation_points > 0) {
-        breakdown.consolation = Number(rule.consolation_points);
+    if (game.phase !== 'Group Stage' && game.phase !== 'Round of 32') {
+        if (accurateFieldsCount === 0 && rule.consolation_points > 0) {
+            breakdown.consolation = Number(rule.consolation_points);
+        }
+        breakdown.total = breakdown.winner + breakdown.fulltime + breakdown.halftime + breakdown.scorer + breakdown.consolation;
+    } else {
+        breakdown.total = breakdown.winner + breakdown.fulltime + breakdown.halftime + breakdown.scorer;
     }
-
-    breakdown.total = breakdown.winner + breakdown.fulltime + breakdown.halftime + breakdown.scorer + breakdown.consolation;
     return breakdown;
 }
 

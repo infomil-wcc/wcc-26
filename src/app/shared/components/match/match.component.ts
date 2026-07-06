@@ -813,6 +813,9 @@ export class MatchComponent implements OnInit, OnDestroy {
       this.match.fulltime_a === null || this.match.fulltime_b === null || this.hidePointsBadge) {
       return false;
     }
+    if (this.match.phase === 'Group Stage' || this.match.phase === 'Round of 32') {
+      return false;
+    }
     return this.matchPoints === 0;
   }
 
