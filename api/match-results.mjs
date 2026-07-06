@@ -60,6 +60,7 @@ export function createHandler(deps = {}) {
     let syncResults = [];
     let calculationLogs = [];
     let knockoutUpdates = [];
+    let matchingResults = [];
 
     try {
       const headers = { 'Authorization': `Bearer ${adminToken}` };
@@ -79,6 +80,7 @@ export function createHandler(deps = {}) {
         // Forward injected fetch context downward
         const pipeline = await _syncMatchesPipeline(dbMatches, { directusUrl, adminToken, apiKey }, { fetch });
         syncResults = pipeline.updates;
+        matchingResults = pipeline.apiLogs;
 
         try {
           knockoutUpdates = await _autoAdvanceKnockoutStages(directusUrl, adminToken, { fetch });
@@ -112,7 +114,8 @@ export function createHandler(deps = {}) {
       message: finalMsg,
       updates: syncResults,
       knockoutUpdates,
-      calculationLogs
+      calculationLogs,
+      matchingResults
     });
   };
 }
