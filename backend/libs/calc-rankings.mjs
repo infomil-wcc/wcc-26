@@ -115,6 +115,13 @@ export async function recalculateRankings(directusUrl, adminToken, specificUser 
         breakdown: { winner: 0, fulltime: 0, halftime: 0, scorer: 0, consolation: 0, total: 0, isFraud: false }
       }));
 
+      // Sort by created_on ascending to ensure we take the first occurrence of multiple records
+      userPredictions[username].sort((a, b) => {
+        const dateA = a.created_on ? new Date(a.created_on).getTime() : 0;
+        const dateB = b.created_on ? new Date(b.created_on).getTime() : 0;
+        return dateA - dateB;
+      });
+
       const processedGames = new Set();
 
       for (const prono of userPredictions[username]) {

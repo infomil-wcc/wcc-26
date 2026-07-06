@@ -97,7 +97,7 @@
       <div class="grid justify-content-center align-items-center min-h mb-1">
         <div class="col-4">
           <div
-            class="team-option-btn teamA flex flex-column align-items-center justify-content-center position-relative"
+            class="team-option-btn teamA flex flex-column align-items-center justify-content-center relative"
             [ngClass]="{'active': matchOutcome === match.team_a, 'disabled': !canEditPrediction}"
             (click)="selectWinner(match.team_a)">
             <span class="flex flagContainer"
@@ -122,7 +122,7 @@
             }
           </div>
         </div>
-        <div class="col-4 flex flex-column justify-content-center align-items-center px-1 gap-2 position-relative">
+        <div class="col-4 flex flex-column justify-content-center align-items-center px-1 gap-2 relative">
           @if (isSavedInApi && (match.fulltime_a === null || match.fulltime_b === null) && !isEditing) {
           <div class="lock-overlay">
             <span class="material-symbols-outlined lock-icon">lock</span>
@@ -136,7 +136,7 @@
           </div>
           } @else if (!closed) {
           <div
-            class="team-option-btn draw flex flex-column align-items-center justify-content-center position-relative w-full"
+            class="team-option-btn draw flex flex-column align-items-center justify-content-center relative w-full"
             [ngClass]="{'active': matchOutcome === 'Draw', 'disabled': !canEditPrediction}"
             (click)="selectWinner('Draw')">
             @if (matchOutcome === 'Draw') {
@@ -173,7 +173,7 @@
         </div>
         <div class="col-4">
           <div
-            class="team-option-btn teamB flex flex-column align-items-center justify-content-center position-relative"
+            class="team-option-btn teamB flex flex-column align-items-center justify-content-center relative"
             [ngClass]="{'active': matchOutcome === match.team_b, 'disabled': !canEditPrediction}"
             (click)="selectWinner(match.team_b)">
             <span class="flex flagContainer"
