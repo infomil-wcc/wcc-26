@@ -171,18 +171,15 @@ export async function syncMatchesPipeline(dbMatches, { directusUrl, adminToken, 
 
             const dbPlayers = await loadDbPlayers(directusUrl, adminToken);
 
-            const testApiScorers = [
-                "Kylian Mbappé 45'",
-                "Mbappe 67'",
-                "Ousmane Dembélé 12'",
-                "Aïssa Mandi 30'",
-                "UNKNOWN PLAYER 10'"
-            ];
+            const homeNames = homeScorers.map(s => s.player.name);
+            const awayNames = awayScorers.map(s => s.player.name);
+            const awayPenaltyNames = awayPenaltyScorers.map(s => s.player.name);
+            const homePenaltyNames = homePenaltyScorers.map(s => s.player.name);
 
-            const matchedScorersAway = resolveScorers(awayScorers, dbPlayers);
-            const matchedScorersHome = resolveScorers(homeScorers, dbPlayers);
-            const matchedPenaltyScorersHome = resolveScorers(homePenaltyScorers, dbPlayers);
-            const matchedPenaltyScorersAway = resolveScorers(awayPenaltyScorers, dbPlayers);
+            const matchedScorersAway = resolveScorers(awayNames, dbPlayers);
+            const matchedScorersHome = resolveScorers(homeNames, dbPlayers);
+            const matchedPenaltyScorersHome = resolveScorers(homePenaltyNames, dbPlayers);
+            const matchedPenaltyScorersAway = resolveScorers(awayPenaltyNames, dbPlayers);
 
             apiLogs.push(
                 matchedScorersAway.map(m => ({

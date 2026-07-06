@@ -1,3 +1,5 @@
+import Fuse from 'fuse.js';
+
 export function resolveScorers(apiScorers, dbPlayers) {
     if (!Array.isArray(apiScorers) || !Array.isArray(dbPlayers)) return [];
 
@@ -21,6 +23,22 @@ function matchSingle(apiRaw, dbPlayers) {
             bestScore = score;
             best = player;
         }
+    }
+
+    if (bestScore >= 0.6) {
+        return {
+            apiName: apiRaw,
+            matchedPlayer: best,
+            confidence: bestScore
+        };
+    }
+
+    // Try Fuse as fallback
+    const fuseResult = fuseMatch(apiClean, dbPlayers);
+
+    if (fuseResult && fuseResult.score > bestScore) {
+        best = fuseResult.player;
+        bestScore = fuseResult.score;
     }
 
     return {
@@ -150,4 +168,42 @@ function tokenSimilarity(a, b) {
     const union = new Set([...aSet, ...bSet]).size;
 
     return union === 0 ? 0 : intersection / union;
+}
+
+function fuseMatch(apiName, dbPlayers) {
+
+    const searchList = [];
+
+    for (const player of dbPlayers) {
+
+        searchList.push({
+            player,
+            name: cleanName(player.player_name)
+        });
+
+        for (const alias of player.aliases || []) {
+            searchList.push({
+                player,
+                name: cleanName(alias)
+            });
+        }
+    }
+
+    const fuse = new Fuse(searchList, {
+        keys: ['name'],
+        includeScore: true,
+        threshold: 0.35
+    });
+
+    const results = fuse.search(apiName);
+
+    if (!results.length)
+        return null;
+
+    const best = results[0];
+
+    return {
+        player: best.item.player,
+        score: 1 - best.score
+    };
 }
