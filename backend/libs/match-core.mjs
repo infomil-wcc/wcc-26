@@ -167,6 +167,40 @@ export async function syncMatchesPipeline(dbMatches, { directusUrl, adminToken, 
             awayPenaltyScorers.forEach(s => s.detail = 'Penalty Shootout');
 
             payload.scorers = [...homeScorers, ...awayScorers, ...homePenaltyScorers, ...awayPenaltyScorers];
+        } else {
+            payload.scorers = [];
+        }
+
+        // Fallback to football-data.org and cross-check penalty scorers
+        if (fdMatch && fdMatch.goals && Array.isArray(fdMatch.goals)) {
+            const fdScorers = fdMatch.goals.map(g => {
+                let detail = 'Normal Goal';
+                if (g.type === 'PENALTY') detail = 'Penalty';
+                else if (g.type === 'OWN_GOAL') detail = 'Own Goal';
+                return {
+                    time: { elapsed: g.minute, extra: g.injuryTime },
+                    team: { name: getNormalizedTeamName(g.team?.name) },
+                    player: { name: g.scorer?.name },
+                    detail
+                };
+            });
+
+            if (payload.scorers.length === 0) {
+                payload.scorers = fdScorers;
+            } else {
+                // Cross check penalty scorers
+                const fdPenalties = fdScorers.filter(s => s.detail === 'Penalty');
+                for (const fdPen of fdPenalties) {
+                    const exists = payload.scorers.some(s => 
+                        s.detail === 'Penalty' && 
+                        s.player.name === fdPen.player.name && 
+                        s.time.elapsed === fdPen.time.elapsed
+                    );
+                    if (!exists) {
+                        payload.scorers.push(fdPen);
+                    }
+                }
+            }
         }
 
         let directusResponseOk = true;
