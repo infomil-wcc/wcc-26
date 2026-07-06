@@ -14,6 +14,7 @@ import { hasMatchChanged } from './match-calculations.mjs';
  */
 export async function syncMatchesPipeline(dbMatches, { directusUrl, adminToken, apiKey }) {
     const updates = [];
+    const apiLogs = [];
     const nowIso = new Date().toISOString();
     let anyMatchJustFinished = false;
 
@@ -184,7 +185,23 @@ export async function syncMatchesPipeline(dbMatches, { directusUrl, adminToken, 
                 }))
             );
 
+            apiLogs.push(
+                matchedScorersAway.map(m => ({
+                    api: m.apiName,
+                    match: m.matchedPlayer?.player_name ?? "NOT FOUND",
+                    confidence: Number(m.confidence.toFixed(2))
+                }))
+            );
+
              console.log(
+                matchedScorersHome.map(m => ({
+                    api: m.apiName,
+                    match: m.matchedPlayer?.player_name ?? "NOT FOUND",
+                    confidence: Number(m.confidence.toFixed(2))
+                }))
+            );
+
+             apiLogs.push(
                 matchedScorersHome.map(m => ({
                     api: m.apiName,
                     match: m.matchedPlayer?.player_name ?? "NOT FOUND",
@@ -259,7 +276,7 @@ export async function syncMatchesPipeline(dbMatches, { directusUrl, adminToken, 
         });
     }
 
-    return { updates, anyMatchJustFinished };
+    return { updates, anyMatchJustFinished, apiLogs };
 }
 
 async function fetchFootballData(baseUrl, apiKey) {
