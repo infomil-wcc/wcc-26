@@ -43,7 +43,7 @@ function matchSingle(apiRaw, dbPlayers) {
 
     return {
         apiName: apiRaw,
-        matchedPlayer: bestScore >= 0.55 ? best : null,
+        matchedPlayer: bestScore >= 0.35 ? best : null,
         confidence: bestScore
     };
 }
