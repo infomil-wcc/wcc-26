@@ -75,7 +75,7 @@ export function parseScorersString(scorersStr, teamName) {
             events.push(goalStr);
             continue;
         }
-        const regex = /^(.*?)\s+(\d+)'?(?:\+(\d+))?'?\s*(\((?:OG|p|CSC|PEN)\)|\[(?:OG|p|CSC|PEN)\])?$/i;
+        const regex = /^(.*?)\s+(\d+)'?(?:\+(\d+))?'?\s*(\((?:OG|p|CSC|PEN|PENALTY)\)|\[(?:OG|p|CSC|PEN|PENALTY)\])?'?$/i;
         const match = goalStr.trim().match(regex);
         if (match) {
             const playerName = match[1].trim();
