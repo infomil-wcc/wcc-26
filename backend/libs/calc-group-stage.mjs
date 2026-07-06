@@ -24,7 +24,7 @@ export function calcGroupStagePoints(game, pronostique, ruleMatrix = []) {
 
     let accurateFieldsCount = 0;
 
-    const getScore = (val) => (val === '-' || val === null || val === undefined) ? 0 : parseInt(val);
+    const getScore = (val) => (val === '-' || val === null || val === undefined || val === '') ? 0 : parseInt(val);
 
     const isWinnerDrawCorrect = game.winner_draw === pronostique.winner_draw;
     const isFulltimeExact = getScore(game.fulltime_a) === getScore(pronostique.fulltime_a) &&

@@ -25,9 +25,23 @@ export function calcKnockoutStagePoints(game, pronostique, ruleMatrix = []) {
 
     let accurateFieldsCount = 0;
 
-    const getScore = (val) => (val === '-' || val === null || val === undefined) ? 0 : parseInt(val);
+    const getScore = (val) => (val === '-' || val === null || val === undefined || val === '') ? 0 : parseInt(val);
 
-    const isWinnerDrawCorrect = game.winner_draw === pronostique.winner_draw;
+    let inferredWinnerDraw = pronostique.winner_draw;
+    if (!inferredWinnerDraw || inferredWinnerDraw.trim() === '') {
+        const hasScoreA = (pronostique.fulltime_a !== null && pronostique.fulltime_a !== undefined && pronostique.fulltime_a !== '' && pronostique.fulltime_a !== '-');
+        const hasScoreB = (pronostique.fulltime_b !== null && pronostique.fulltime_b !== undefined && pronostique.fulltime_b !== '' && pronostique.fulltime_b !== '-');
+        
+        if (hasScoreA || hasScoreB) {
+            const pScoreA = getScore(pronostique.fulltime_a);
+            const pScoreB = getScore(pronostique.fulltime_b);
+            if (pScoreA > pScoreB) inferredWinnerDraw = game.team_a;
+            else if (pScoreA < pScoreB) inferredWinnerDraw = game.team_b;
+            else inferredWinnerDraw = 'Draw';
+        }
+    }
+
+    const isWinnerDrawCorrect = game.winner_draw === inferredWinnerDraw;
     const isFulltimeExact = getScore(game.fulltime_a) === getScore(pronostique.fulltime_a) &&
         getScore(game.fulltime_b) === getScore(pronostique.fulltime_b);
     const isHalftimeExact = getScore(game.halftime_a) === getScore(pronostique.halftime_a) &&
