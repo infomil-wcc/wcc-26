@@ -204,6 +204,18 @@ export async function syncMatchesPipeline(dbMatches, { directusUrl, adminToken, 
         }
 
         let directusResponseOk = true;
+
+        if (dbMatch.manual_override) {
+            delete payload.fulltime_a;
+            delete payload.fulltime_b;
+            delete payload.halftime_a;
+            delete payload.halftime_b;
+            delete payload.penalty_a;
+            delete payload.penalty_b;
+            delete payload.scorers;
+            delete payload.winner_draw;
+        }
+
         if (hasMatchChanged(dbMatch, payload) || !dbMatch.status_updated || new Date(dbMatch.status_updated).getTime() < dbUtcTime) {
             const directusResponse = await fetch(`${directusUrl}/items/matches/${dbMatch.id}`, {
                 method: 'PATCH',
