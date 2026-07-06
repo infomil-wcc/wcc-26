@@ -170,7 +170,7 @@
     }
 
     // Zero points — cool silver tone instead of gold
-    &.points-zero {
+      &.points-zero {
       .points-value {
         background: linear-gradient(180deg,
             #e2e8f0 0%,
@@ -190,6 +190,28 @@
         background-clip: text;
         -webkit-text-fill-color: transparent;
         filter: none;
+      }
+    }
+
+    &.points-consolation {
+      background: linear-gradient(160deg, #14532d 0%, #064e3b 100%);
+      border: 1px solid rgba(132, 204, 22, 0.4);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(132, 204, 22, 0.2);
+
+      .points-value {
+        background: linear-gradient(180deg, #bef264 0%, #a3e635 35%, #84cc16 70%, #65a30d 100%);
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+        filter: drop-shadow(0 1px 0 rgba(255, 255, 255, 0.2)) drop-shadow(0 2px 5px rgba(0, 0, 0, 0.5));
+      }
+
+      .points-unit {
+        background: linear-gradient(90deg, #a3e635, #84cc16, #a3e635);
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+        filter: drop-shadow(0 0 4px rgba(132, 204, 22, 0.4));
       }
     }
   }

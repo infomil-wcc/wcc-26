@@ -579,6 +579,28 @@ export class ScoresheetComponent implements OnInit {
     return wd;
   }
 
+  /** Returns the inferred winner team name from fulltime score if missing in prediction */
+  getInferredWinnerTeamName(item: any): string | null {
+    if (item?.prediction?.winner_draw) {
+      return this.getPronosticWinnerTeamName(item);
+    }
+    
+    if (!this.isGroupStage(item)) {
+      const getScore = (val: any) => (val === '-' || val === null || val === undefined || val === '') ? 0 : parseInt(val, 10);
+      const hasScoreA = item?.prediction?.fulltime_a !== null && item?.prediction?.fulltime_a !== undefined && item?.prediction?.fulltime_a !== '' && item?.prediction?.fulltime_a !== '-';
+      const hasScoreB = item?.prediction?.fulltime_b !== null && item?.prediction?.fulltime_b !== undefined && item?.prediction?.fulltime_b !== '' && item?.prediction?.fulltime_b !== '-';
+      
+      if (hasScoreA || hasScoreB) {
+        const pScoreA = getScore(item?.prediction?.fulltime_a);
+        const pScoreB = getScore(item?.prediction?.fulltime_b);
+        if (pScoreA > pScoreB) return item?.match?.team_a || 'Équipe A';
+        if (pScoreA < pScoreB) return item?.match?.team_b || 'Équipe B';
+        return 'Match Nul';
+      }
+    }
+    return null;
+  }
+
   /** Returns the actual winner team name from match result */
   getActualWinnerTeamName(item: any): string {
     const wd = item?.match?.winner_draw;

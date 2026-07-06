@@ -159,10 +159,17 @@
           } @else {
           @if (isSavedInApi && match.fulltime_a !== null && match.fulltime_b !== null && matchPoints !== null &&
           !hidePointsBadge) {
-          <div class="points-overlay" [ngClass]="{'points-zero': matchPoints === 0}">
-            <span class="points-value">{{ matchPoints > 0 ? '+' + matchPoints : matchPoints }}</span>
-            <span class="points-unit">pts</span>
-          </div>
+            @if (isConsolationPointAwarded) {
+            <div class="points-overlay points-consolation" title="Point de consolation">
+              <span class="points-value">+1</span>
+              <span class="points-unit">pt</span>
+            </div>
+            } @else {
+            <div class="points-overlay" [ngClass]="{'points-zero': matchPoints === 0}">
+              <span class="points-value">{{ matchPoints > 0 ? '+' + matchPoints : matchPoints }}</span>
+              <span class="points-unit">pts</span>
+            </div>
+            }
           } @else if (donePronostique && match.fulltime && (match.phase !== 'Group Stage' && match.phase !== 'Round of 32')) {
           <div class="flex align-items-center gap-2 font-bold text-xl predicted-scores">
             <span class="score-box">{{ donePronostique.fulltime_a }}</span>

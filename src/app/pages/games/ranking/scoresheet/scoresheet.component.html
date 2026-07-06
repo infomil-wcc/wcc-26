@@ -270,10 +270,10 @@
                     <div class="pred-grid">
                       <div class="pred-block">
                         <span class="pred-block-label">Vainqueur prédit</span>
-                        <span *ngIf="item.prediction.winner_draw" class="pred-block-value"
+                        <span *ngIf="getInferredWinnerTeamName(item)" class="pred-block-value"
                           [ngClass]="!item.breakdown.isFraud && item.breakdown.winner > 0 ? 'pred-ok' : 'pred-ko'">{{
-                          getPronosticWinnerTeamName(item) }}</span>
-                        <span *ngIf="!item.prediction.winner_draw" class="pred-block-empty">Non renseigné</span>
+                          getInferredWinnerTeamName(item) }}</span>
+                        <span *ngIf="!getInferredWinnerTeamName(item)" class="pred-block-empty">Non renseigné</span>
                       </div>
                       <div *ngIf="!isRoundOf32(item)" class="pred-block">
                         <span class="pred-block-label">Score mi-temps</span>

@@ -808,6 +808,14 @@ export class MatchComponent implements OnInit, OnDestroy {
     return points;
   }
 
+  get isConsolationPointAwarded(): boolean {
+    if (!this.donePronostique || !this.match ||
+      this.match.fulltime_a === null || this.match.fulltime_b === null || this.hidePointsBadge) {
+      return false;
+    }
+    return this.matchPoints === 0;
+  }
+
   getGroupedScorers(teamName: string): any[] {
     if (!this.match || !this.match.scorers) return [];
     const events = this.parsedScorersEvents;
