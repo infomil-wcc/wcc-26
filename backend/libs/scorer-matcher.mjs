@@ -8,7 +8,7 @@ export function resolveScorers(apiScorers, dbPlayers) {
 // SINGLE MATCH
 // =========================
 function matchSingle(apiRaw, dbPlayers) {
-    const apiClean = cleanName(apiRaw);
+    const apiClean = cleanName(extractName(apiRaw));
     const apiParts = splitName(apiClean);
 
     let best = null;
@@ -112,6 +112,21 @@ function cleanName(name) {
         .replace(/['".]/g, '')
         .replace(/\s+/g, ' ')
         .trim();
+}
+
+function extractName(input) {
+    if (!input) return '';
+
+    if (typeof input === 'string') return input;
+
+    if (typeof input === 'object') {
+        return input.player?.name
+            || input.name
+            || input.scorer?.name
+            || '';
+    }
+
+    return String(input);
 }
 
 function splitName(name) {
