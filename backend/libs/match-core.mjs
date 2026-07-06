@@ -174,10 +174,17 @@ export async function syncMatchesPipeline(dbMatches, { directusUrl, adminToken, 
             console.log("Away scorers raw:", wcGame.away_scorers);
             console.log("Home penalties raw:", wcGame.home_penalty_scorers);
             console.log("Away penalties raw:", wcGame.away_penalty_scorers);
-            
+
             const dbPlayers = await loadDbPlayers(directusUrl, adminToken);
-            
-            const matchedScorersAway = resolveScorers(wcGame.away_scorers, dbPlayers);
+            const testApiScorers = [
+                "Kylian Mbappé 45'",
+                "Mbappe 67'",
+                "Ousmane Dembélé 12'",
+                "Aïssa Mandi 30'",
+                "UNKNOWN PLAYER 10'"
+            ];
+
+            const matchedScorersAway = resolveScorers(testApiScorers, dbPlayers);
             const matchedScorersHome = resolveScorers(wcGame.home_scorers, dbPlayers);
 
             console.log("🔴 MATCH RESULTS:");
@@ -197,7 +204,7 @@ export async function syncMatchesPipeline(dbMatches, { directusUrl, adminToken, 
                 }))
             );
 
-             console.log(
+            console.log(
                 matchedScorersHome.map(m => ({
                     api: m.apiName,
                     match: m.matchedPlayer?.player_name ?? "NOT FOUND",
@@ -205,7 +212,7 @@ export async function syncMatchesPipeline(dbMatches, { directusUrl, adminToken, 
                 }))
             );
 
-             apiLogs.push(
+            apiLogs.push(
                 matchedScorersHome.map(m => ({
                     api: m.apiName,
                     match: m.matchedPlayer?.player_name ?? "NOT FOUND",
