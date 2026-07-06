@@ -115,8 +115,16 @@ export async function recalculateRankings(directusUrl, adminToken, specificUser 
         breakdown: { winner: 0, fulltime: 0, halftime: 0, scorer: 0, consolation: 0, total: 0, isFraud: false }
       }));
 
+      const processedGames = new Set();
+
       for (const prono of userPredictions[username]) {
-        const game = playedMatches.find(m => String(m.id) === String(prono.game_id));
+        const gameIdStr = String(prono.game_id);
+        const isDuplicate = processedGames.has(gameIdStr);
+        if (!isDuplicate) {
+          processedGames.add(gameIdStr);
+        }
+
+        const game = playedMatches.find(m => String(m.id) === gameIdStr);
         if (game) {
           // 🚨 TIMESTAMP FRAUD CHECK
           const predictionCreated = prono.created_on ? new Date(prono.created_on) : null;
@@ -128,7 +136,11 @@ export async function recalculateRankings(directusUrl, adminToken, specificUser 
           if (predictionModified && predictionModified > matchKickoff) isInvalidated = true;
 
           let pts = { winner: 0, fulltime: 0, halftime: 0, scorer: 0, consolation: 0, total: 0, isFraud: false };
-          if (isInvalidated) {
+          if (isDuplicate) {
+            // Already processed this game, give 0 points to duplicates
+            pts.isFraud = true;
+            apiLogs.push(`⚠️ DUPLICATE DETECTED | User: ${username} | Match ID: ${game.id} | Points forced to 0 for duplicate record.`);
+          } else if (isInvalidated) {
             pts.isFraud = true;
             apiLogs.push(`⚠️ FRAUD DETECTED | User: ${username} | Match ID: ${game.id} submitted or edited late! Points forced to 0.`);
           } else {

@@ -1165,10 +1165,9 @@
     animation: popLock 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 
     .lock-icon {
-      font-size: 9rem;
+      font-size: 3rem;
       color: rgba(0, 30, 80, 0.35);
       font-variation-settings: 'FILL' 1, 'wght' 700;
-      margin-top: -35px;
     }
 
     &:hover:not(:disabled) {
@@ -1426,7 +1425,7 @@
     animation: popLock 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 
     .lock-icon {
-      font-size: 9rem;
+      font-size: 3rem;
       color: rgba(0, 30, 80, 0.35);
       font-variation-settings: 'FILL' 1, 'wght' 700;
     }
