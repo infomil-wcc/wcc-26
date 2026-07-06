@@ -1,4 +1,5 @@
 import { parseScorersStringForRanking, normalizePlayerName } from './match-mappings.mjs';
+import Fuse from 'fuse.js';
 
 /**
  * Strategy to calculate points for the Group Stage phase
@@ -46,7 +47,15 @@ export function calcGroupStagePoints(game, pronostique, ruleMatrix = []) {
     if (pronostique.scorer && rule.scorer_points > 0) {
         const gamescorers = game.scorers ? parseScorersStringForRanking(game.scorers) : [];
         const normalizedPronoScorer = normalizePlayerName(pronostique.scorer);
-        const matchFound = gamescorers.some(s => normalizePlayerName(s) === normalizedPronoScorer);
+        const normalizedGameScorers = gamescorers.map(s => normalizePlayerName(s));
+
+        const fuse = new Fuse(normalizedGameScorers, {
+            includeScore: true,
+            threshold: 0.4
+        });
+
+        const results = fuse.search(normalizedPronoScorer);
+        const matchFound = results.length > 0;
         
         if (matchFound) {
             breakdown.scorer = Number(rule.scorer_points);
