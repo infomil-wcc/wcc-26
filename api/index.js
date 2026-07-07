@@ -395,7 +395,7 @@ router.get('/api/admin/migrate-scorers', async (request, response) => {
         // optional protection
         const secret = request.query.secret;
 
-        if (secret !== process.env.MIGRATION_SECRET) {
+        if (secret !== process.env.SCORER_MIGRATION_SECRET) {
             return response.status(403).json({
                 error: "Forbidden"
             });
