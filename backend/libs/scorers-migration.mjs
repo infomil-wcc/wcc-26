@@ -1,7 +1,7 @@
 import { fetchWithBypass } from './utils.mjs';
 const fetch = fetchWithBypass;
 
-import { loadDbPlayers } from './players-loader.mjs';
+import { loadDbPlayers } from './player-loader.mjs';
 import { resolveScorers } from './scorer-matcher.mjs';
 
 const DRY_RUN = true; // Change to false to execute PATCH updates
