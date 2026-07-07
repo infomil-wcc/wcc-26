@@ -30,7 +30,7 @@ export async function migrateScorerNames({
     console.log("Loading matches...");
 
     const response = await fetch(
-        `${directusUrl}/items/matches?limit=-1&fields=id,scorers`,
+        `${directusUrl}/items/matches/1`,
         {
             headers
         }
@@ -40,8 +40,9 @@ export async function migrateScorerNames({
         throw new Error("Unable to load matches.");
     }
 
-    const match = (await response.json()).data;
-    const matches = [match];
+    const json = await response.json();
+
+    const matches = [json.data];
 
     console.log(`Loaded ${matches.length} matches.`);
 
