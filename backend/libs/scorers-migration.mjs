@@ -48,7 +48,7 @@ export async function migrateScorerNames({
     let updated = 0;
 
     const unmatched = [];
-
+    const matchedResults = [];
 
     for (const match of matches) {
 
@@ -105,11 +105,21 @@ export async function migrateScorerNames({
             }
 
 
+            const oldName = scorer.player?.name;
+            const newName = result.matchedPlayer.player_name;
+
+            matchedResults.push({
+                matchId: match.id,
+                original: oldName,
+                matched: newName,
+                confidence: Number(result.confidence.toFixed(2))
+            });
+
             return {
                 ...scorer,
                 player: {
                     ...scorer.player,
-                    name: result.matchedPlayer.player_name
+                    name: newName
                 }
             };
 
@@ -204,5 +214,15 @@ export async function migrateScorerNames({
         console.table(unmatched);
 
     }
+
+    return {
+        totalMatches: matches.length,
+        updated,
+        matchedCount: matchedResults.length,
+        matchedResults,
+        unmatchedCount: unmatched.length,
+        unmatched,
+        dryRun
+    };
 
 }
