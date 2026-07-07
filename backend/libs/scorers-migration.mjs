@@ -49,13 +49,13 @@ export async function migrateScorerNames({
 
     const unmatched = [];
     const matchedResults = [];
+    const changedMatches = [];
 
     for (const match of matches) {
 
         if (!match.scorers) {
             continue;
         }
-
 
         let scorers;
 
@@ -75,12 +75,10 @@ export async function migrateScorerNames({
             continue;
         }
 
-
         const resolved = resolveScorers(
             scorers,
             dbPlayers
         );
-
 
         const updatedScorers = scorers.map((scorer, index) => {
 
@@ -104,7 +102,6 @@ export async function migrateScorerNames({
                 };
             }
 
-
             const oldName = scorer.player?.name;
             const newName = result.matchedPlayer.player_name;
 
@@ -125,35 +122,45 @@ export async function migrateScorerNames({
 
         });
 
-
+        // Check if at least one scorer name changed
+        const hasChanges = scorers.some((oldScorer, index) =>
+            oldScorer.player?.name !== updatedScorers[index].player?.name
+        );
 
         if (dryRun) {
 
-            console.log("\n==============================");
-            console.log(`DRY RUN - MATCH ${match.id}`);
-            console.log("==============================");
+
+            if (hasChanges) {
+
+                changedMatches.push(match.id);
 
 
-            scorers.forEach((oldScorer, index) => {
-
-                const newScorer = updatedScorers[index];
-
-
-                if (
-                    oldScorer.player?.name !==
-                    newScorer.player?.name
-                ) {
-
-                    console.log(
-                        `${oldScorer.player?.name} ---> ${newScorer.player?.name}`
-                    );
-
-                }
-
-            });
+                console.log("\n==============================");
+                console.log(`DRY RUN - MATCH ${match.id}`);
+                console.log("==============================");
 
 
-        } else {
+                scorers.forEach((oldScorer, index) => {
+
+                    const newScorer = updatedScorers[index];
+
+
+                    if (
+                        oldScorer.player?.name !==
+                        newScorer.player?.name
+                    ) {
+
+                        console.log(
+                            `${oldScorer.player?.name} ---> ${newScorer.player?.name}`
+                        );
+
+                    }
+
+                });
+
+            }
+
+        } else if (hasChanges) {
 
 
             const patchResponse = await fetch(
@@ -167,10 +174,11 @@ export async function migrateScorerNames({
                 }
             );
 
-
             if (patchResponse.ok) {
 
                 updated++;
+
+                changedMatches.push(match.id);
 
                 console.log(
                     `✓ Updated match ${match.id}`
@@ -184,12 +192,15 @@ export async function migrateScorerNames({
 
             }
 
+        } else {
+
+            console.log(
+                `No changes needed for match ${match.id}`
+            );
+
         }
 
     }
-
-
-
     console.log("\n==============================");
 
     if (dryRun) {
@@ -203,26 +214,25 @@ export async function migrateScorerNames({
         console.log(
             `MIGRATION COMPLETE - ${updated} matches updated.`
         );
-
     }
-
-
 
     if (unmatched.length > 0) {
 
         console.log("\nUNMATCHED PLAYERS:");
         console.table(unmatched);
-
     }
 
     return {
         totalMatches: matches.length,
         updated,
+        changedMatchesCount: changedMatches.length,
+        changedMatches,
         matchedCount: matchedResults.length,
         matchedResults,
         unmatchedCount: unmatched.length,
         unmatched,
         dryRun
+
     };
 
 }
