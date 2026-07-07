@@ -4,7 +4,7 @@ import { generateGameRules } from '../backend/libs/gameRulesHelper.mjs';
 import { getMatchLineups } from '../backend/libs/lineupsHelper.mjs';
 import { getRegisteredUserCount, registerNewUser } from '../backend/libs/usersHelper.mjs';
 import { getTeamsOrSquads } from '../backend/libs/teamsSquadsHelper.mjs';
-import { migrateScorers } from '../backend/libs/scorers-migration.mjs';
+import { migrateScorerNames } from '../backend/libs/scorers-migration.mjs';
 
 // 1. Initialisation du routeur centralisé pour l'API Infomil
 const router = Router();
@@ -404,7 +404,7 @@ router.get('/api/admin/migrate-scorers', async (request, response) => {
 
         const dryRun = request.query.dryRun !== 'false';
 
-        const result = await migrateScorers({
+        const result = await migrateScorerNames({
             directusUrl,
             adminToken,
             dryRun
