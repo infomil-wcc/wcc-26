@@ -30,7 +30,7 @@ export async function migrateScorerNames({
     console.log("Loading matches...");
 
     const response = await fetch(
-        `${directusUrl}/items/matches/88`,
+        `${directusUrl}/items/matches/?limit=-1`,
         {
             headers
         }
@@ -40,9 +40,9 @@ export async function migrateScorerNames({
         throw new Error("Unable to load matches.");
     }
 
-    const json = await response.json();
-
-    const matches = [json.data];
+    const { data: matches } = await response.json();
+    const MIN_MATCH_ID = 90;
+    const filteredMatches = matches.filter(match => match.id >= MIN_MATCH_ID);
 
     console.log(`Loaded ${matches.length} matches.`);
 
@@ -54,7 +54,7 @@ export async function migrateScorerNames({
     const changedMatches = [];
     const debug = [];
 
-    for (const match of matches) {
+    for (const match of filteredMatches) {
 
         debug.push({
             matchId: match.id,
@@ -244,7 +244,7 @@ export async function migrateScorerNames({
     }
 
     return {
-        totalMatches: matches.length,
+        totalMatches: filteredMatches.length,
         updated,
         changedMatchesCount: changedMatches.length,
         changedMatches,
