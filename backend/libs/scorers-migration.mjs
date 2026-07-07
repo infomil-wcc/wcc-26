@@ -40,7 +40,8 @@ export async function migrateScorerNames({
         throw new Error("Unable to load matches.");
     }
 
-    const { data: matches } = await response.json();
+    const match = (await response.json()).data;
+    const matches = [match];
 
     console.log(`Loaded ${matches.length} matches.`);
 
