@@ -382,6 +382,49 @@ const proxyDirectus = async (request, response) => {
     }
 };
 
+// ----------------------------------------------------------------------
+// TEMP ROUTE: MIGRATE SCORERS
+// ----------------------------------------------------------------------
+router.get('/api/admin/migrate-scorers', async (request, response) => {
+
+    const directusUrl = process.env.DIRECTUS_URL || 'https://euro.omediainteractive.net/imleuro';
+    const adminToken = process.env.DIRECTUS_ADMIN_TOKEN;
+
+    try {
+
+        // optional protection
+        const secret = request.query.secret;
+
+        if (secret !== process.env.MIGRATION_SECRET) {
+            return response.status(403).json({
+                error: "Forbidden"
+            });
+        }
+
+        const dryRun = request.query.dryRun !== 'false';
+
+        const result = await migrateScorers({
+            directusUrl,
+            adminToken,
+            dryRun
+        });
+
+        return response.status(200).json({
+            success: true,
+            dryRun,
+            result
+        });
+
+    } catch (error) {
+        console.error("Scorer migration failed:", error);
+
+        return response.status(500).json({
+            success: false,
+            error: error.message
+        });
+    }
+});
+
 
 // Intercept both creations (POST) and updates (PATCH/PUT) for the collection
 router.post('/api/items/pronostiques', handleMatchPredictionValidation);
