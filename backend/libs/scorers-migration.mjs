@@ -51,8 +51,16 @@ export async function migrateScorerNames({
     const unmatched = [];
     const matchedResults = [];
     const changedMatches = [];
+    const debug = [];
 
     for (const match of matches) {
+
+        debug.push({
+            matchId: match.id,
+            hasScorers: !!match.scorers,
+            scorersType: typeof match.scorers,
+            scorersValue: match.scorers
+        });
 
         if (!match.scorers) {
             continue;
@@ -65,6 +73,12 @@ export async function migrateScorerNames({
             scorers = Array.isArray(match.scorers)
                 ? match.scorers
                 : JSON.parse(match.scorers);
+
+            debug.push({
+                matchId: match.id,
+                parsedScorersCount: scorers.length,
+                parsedScorers: scorers
+            });
 
         } catch (err) {
 
@@ -80,6 +94,11 @@ export async function migrateScorerNames({
             scorers,
             dbPlayers
         );
+
+        debug.push({
+            matchId: match.id,
+            resolved
+        });
 
         const updatedScorers = scorers.map((scorer, index) => {
 
@@ -232,7 +251,8 @@ export async function migrateScorerNames({
         matchedResults,
         unmatchedCount: unmatched.length,
         unmatched,
-        dryRun
+        dryRun,
+        debug
 
     };
 
