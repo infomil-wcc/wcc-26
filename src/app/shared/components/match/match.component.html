@@ -462,7 +462,7 @@
         @if (isScorersJson) {
         @for (scorer of teamBScorersGrouped; track scorer.name) {
         <div style="margin-bottom: 2px; display: flex; align-items: center; gap: 4px; justify-content: flex-end;">
-          <span style="font-weight: 700; color: #e2e8f0;">{{ scorer.name }}</span>
+          <span style="font-weight: 700; color: #e2e8f0;">{{ scorer.name | titlecase }}</span>
           <span style="color: #a0aec0;" [innerHTML]="scorer.times"></span>
           <span class="material-symbols-outlined" style="font-size: 0.8rem; color: #8a99ad;">sports_soccer</span>
         </div>
