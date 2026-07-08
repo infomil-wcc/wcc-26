@@ -404,15 +404,21 @@ router.get('/api/admin/migrate-scorers', async (request, response) => {
 
         const dryRun = request.query.dryRun !== 'false';
 
+         const minMatchId = request.query.minMatchId
+            ? Number(request.query.minMatchId)
+            : null;
+
         const result = await migrateScorerNames({
             directusUrl,
             adminToken,
-            dryRun
+            dryRun,
+            minMatchId
         });
 
         return response.status(200).json({
             success: true,
             dryRun,
+            minMatchId,
             result
         });
 

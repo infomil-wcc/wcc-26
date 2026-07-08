@@ -9,7 +9,8 @@ const DRY_RUN = true; // Change to false to execute PATCH updates
 export async function migrateScorerNames({
     directusUrl,
     adminToken,
-    dryRun = true
+    dryRun = true,
+    minMatchId = null
 }) {
 
     const headers = {
@@ -41,8 +42,9 @@ export async function migrateScorerNames({
     }
 
     const { data: matches } = await response.json();
-    const MIN_MATCH_ID = 90;
-    const filteredMatches = matches.filter(match => match.id >= MIN_MATCH_ID);
+    const filteredMatches = minMatchId !== null
+        ? matches.filter(match => match.id >= Number(minMatchId))
+        : matches;
 
     console.log(`Loaded ${matches.length} matches.`);
 
