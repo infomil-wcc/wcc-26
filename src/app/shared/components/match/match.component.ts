@@ -17,13 +17,11 @@ import { MatchCountdownService } from '../../services/games/match-countdown.serv
 import { TeamHistoryService, PHASE_CONFIG } from '../../services/games/team-history.service';
 import { GlobaltimeService } from '../../services/core/globaltime.service';
 import { StadiumsService } from '../../services/content/stadiums.service';
-import { NgClass, NgStyle, AsyncPipe, UpperCasePipe, SlicePipe, DatePipe } from '@angular/common';
-import { NumberInputComponent } from '../number-input/number-input.component';
-import { ReactiveFormsModule, FormsModule } from '@angular/forms';
+import { NgClass, NgStyle } from '@angular/common';
 import { LoaderComponent } from '../loader/loader.component';
 import { TacticalLineupComponent } from '../tactical-lineup/tactical-lineup.component';
 import { LineupsApiService } from '../../services/api/lineups-api.service';
-import { TeamperformanceComponent } from '../teamperformance/teamperformance.component';
+
 import { MatchesService } from '../../services/content/matches.service';
 
 
@@ -33,7 +31,7 @@ import { MatchesService } from '../../services/content/matches.service';
   templateUrl: './match.component.html',
   styleUrl: './match.component.scss',
   changeDetection: ChangeDetectionStrategy.Eager,
-  imports: [NgClass, NgStyle, TeamperformanceComponent, NumberInputComponent, ReactiveFormsModule, FormsModule, LoaderComponent, UpperCasePipe, SlicePipe, DatePipe, TacticalLineupComponent, MatchHeaderComponent, MatchInfoComponent, MatchPredictionEditComponent, MatchPredictionSavedComponent, MatchOfficialScoreComponent, TeamInfoModalComponent]
+  imports: [NgClass, NgStyle, LoaderComponent, TacticalLineupComponent, MatchHeaderComponent, MatchInfoComponent, MatchPredictionEditComponent, MatchPredictionSavedComponent, MatchOfficialScoreComponent, TeamInfoModalComponent]
 })
 export class MatchComponent implements OnInit, OnDestroy {
 
@@ -56,7 +54,7 @@ export class MatchComponent implements OnInit, OnDestroy {
   penaltyWinner: string | null = null;
   @Input() dateTime!: string;
   @Input() hasPlayed!: boolean;
-  @Input() hidePointsBadge: boolean = false; 
+  @Input() hidePointsBadge: boolean = false;
   @Input() invalidatedDate: Date = new Date();
 
   protected showTeamInfoModal: boolean = false;
@@ -261,33 +259,33 @@ export class MatchComponent implements OnInit, OnDestroy {
   }
 
   protected openTacticalLineup(): void {
-  if (!this.canSelectScorer) {
-    return;
-  }
-  
-  this.showTacticalModal = true;
-  this.loadingLineups = true;
+    if (!this.canSelectScorer) {
+      return;
+    }
 
-  this.teamService.getPlayersByTeamName(this.match.team_a).subscribe(playersA => {
-    this.teamService.getPlayersByTeamName(this.match.team_b).subscribe(playersB => {
-      const listA = (playersA?.players || []).map((p: any) => ({ ...p, teamName: this.match.team_a }));
-      const listB = (playersB?.players || []).map((p: any) => ({ ...p, teamName: this.match.team_b }));
-      this.fallbackPlayersList = [...listA, ...listB];
+    this.showTacticalModal = true;
+    this.loadingLineups = true;
 
-      this.lineupsService.getLineups(this.match.team_a, this.match.team_b).subscribe({
-        next: (res) => {
-          this.lineupsData = res;
-          this.loadingLineups = false;
-        },
-        error: (err) => {
-          console.error('Error fetching lineups from football-data:', err);
-          this.lineupsData = null;
-          this.loadingLineups = false;
-        }
+    this.teamService.getPlayersByTeamName(this.match.team_a).subscribe(playersA => {
+      this.teamService.getPlayersByTeamName(this.match.team_b).subscribe(playersB => {
+        const listA = (playersA?.players || []).map((p: any) => ({ ...p, teamName: this.match.team_a }));
+        const listB = (playersB?.players || []).map((p: any) => ({ ...p, teamName: this.match.team_b }));
+        this.fallbackPlayersList = [...listA, ...listB];
+
+        this.lineupsService.getLineups(this.match.team_a, this.match.team_b).subscribe({
+          next: (res) => {
+            this.lineupsData = res;
+            this.loadingLineups = false;
+          },
+          error: (err) => {
+            console.error('Error fetching lineups from football-data:', err);
+            this.lineupsData = null;
+            this.loadingLineups = false;
+          }
+        });
       });
     });
-  });
-}
+  }
 
   protected selectTacticalScorer(playerName: string) {
     this.scorer = playerName;
@@ -399,7 +397,7 @@ export class MatchComponent implements OnInit, OnDestroy {
     }
 
     if (this.calcWinDrawOutcome) {
-      this.matchOutcome = this.calculateWinDraw(this.match.team_a, this.match.team_b, this.fullTimeA, this.fullTimeB);
+      this.matchOutcome = this.matchOutcomeService.calculateWinDraw(this.match.phase, this.penaltyWinner, this.match.team_a, this.match.team_b, this.fullTimeA, this.fullTimeB);
     }
     this.sendBet();
   }
@@ -543,7 +541,7 @@ export class MatchComponent implements OnInit, OnDestroy {
           this.hidePointsBadge = checkPayloadFraud(response[0]);
 
           if (this.hidePointsBadge) {
-            this.isSavedInApi = false; 
+            this.isSavedInApi = false;
           }
         } else {
           this.pronostiqueDone = false;
@@ -687,6 +685,12 @@ export class MatchComponent implements OnInit, OnDestroy {
         }
       });
     });
+  }
+
+  closeTeamInfoModal(): void {
+    this.showTeamInfoModal = false;
+    this.selectedTeamName = '';
+    this.teamPastMatches = [];
   }
 
   protected getTeamFlagUrl(teamName: string): string {

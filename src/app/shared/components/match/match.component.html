@@ -2,7 +2,7 @@
   'stadium-bg': isPronostiques && stadiumImageUrl,
   'match-editable': isPronostiques,
   'match-closed': closed || isSavedInApi,
-  'match-finished': match?.fulltime_a !== null && match?.fulltime_b !== null
+  'match-finished': match.fulltime_a !== null && match.fulltime_b !== null
 }">
 
   @if (isPronostiques && stadiumImageUrl) {
@@ -102,7 +102,7 @@
     }
   </div>
 
-  @if (match?.fulltime_a !== null && match?.fulltime_b !== null) {
+  @if (match.fulltime_a !== null && match.fulltime_b !== null) {
   <app-match-official-score
     [match]="match"
     [teamAFlag]="teamAFlag"

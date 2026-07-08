@@ -3,7 +3,7 @@
     <div class="team-info left flex align-items-center justify-content-end gap-2">
       <span class="flag-wrapper"
         [ngStyle]="{'background-image': match?.team_a ? 'url(' + teamAFlag + ')'  : 'url(assets/flags/unknown.png)'}"></span>
-      <span class="team-name">{{ match?.team_a | slice:0:3 | uppercase }}</span>
+      <span class="team-name">{{ match?.team_a | uppercase | slice:0:3 }}</span>
     </div>
 
     <div class="score-pill-container">
@@ -32,7 +32,7 @@
     </div>
 
     <div class="team-info right flex align-items-center justify-content-start gap-2">
-      <span class="team-name">{{ match?.team_b | slice:0:3 | uppercase }}</span>
+      <span class="team-name">{{ match?.team_b | uppercase | slice:0:3 }}</span>
       <span class="flag-wrapper"
         [ngStyle]="{'background-image': match?.team_b ? 'url(' + teamBFlag + ')'  : 'url(assets/flags/unknown.png)'}"></span>
     </div>

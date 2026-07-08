@@ -13,7 +13,10 @@
     "build-cloud": "ng build --base-href /browser/",
     "build-prod": "ng build --base-href /wcc-26/",
     "start:api": "node server.mjs",
-    "dev": "concurrently \"npm run start\" \"npm run start:api\""
+    "dev": "concurrently \"npm run start\" \"npm run start:api\"",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "test:e2e:update": "playwright test --update-snapshots"
   },
   "private": true,
   "dependencies": {
@@ -44,6 +47,7 @@
     "@angular/build": "^22.0.4",
     "@angular/cli": "^22.0.4",
     "@angular/compiler-cli": "^22.0.4",
+    "@playwright/test": "^1.61.1",
     "@types/jasmine": "^6.0.0",
     "concurrently": "^10.0.3",
     "dotenv": "^17.4.2",
