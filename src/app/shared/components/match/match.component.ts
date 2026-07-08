@@ -32,7 +32,7 @@ const PHASE_CONFIG: { key: string; label: string; icon: string; color: string }[
   templateUrl: './match.component.html',
   styleUrl: './match.component.scss',
   changeDetection: ChangeDetectionStrategy.Eager,
-  imports: [NgClass, NgStyle, TeamperformanceComponent, NumberInputComponent, ReactiveFormsModule, FormsModule, LoaderComponent, UpperCasePipe, SlicePipe, DatePipe, TacticalLineupComponent]
+  imports: [NgClass, NgStyle, TeamperformanceComponent, NumberInputComponent, ReactiveFormsModule, FormsModule, LoaderComponent, UpperCasePipe, SlicePipe, DatePipe, TacticalLineupComponent, TitleCasePipe]
 })
 export class MatchComponent implements OnInit, OnDestroy {
 
