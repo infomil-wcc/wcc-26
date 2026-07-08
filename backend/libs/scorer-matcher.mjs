@@ -6,6 +6,31 @@ export function resolveScorers(apiScorers, dbPlayers) {
     return apiScorers.map(api => matchSingle(api, dbPlayers));
 }
 
+export function replaceScorerNames(scorers, matches) {
+    return scorers.map((scorer, index) => {
+
+        const result = matches[index];
+
+        if (!result?.matchedPlayer) {
+            return {
+                ...scorer,
+                player: {
+                    ...scorer.player,
+                    name: `NOT FOUND: ${scorer.player?.name}`
+                }
+            };
+        }
+
+        return {
+            ...scorer,
+            player: {
+                ...scorer.player,
+                name: result.matchedPlayer.player_name
+            }
+        };
+    });
+}
+
 // =========================
 // SINGLE MATCH
 // =========================

@@ -8,7 +8,7 @@ import {
     parseScorersString
 } from './match-mappings.mjs';
 import { hasMatchChanged } from './match-calculations.mjs';
-import { resolveScorers } from './scorer-matcher.mjs';
+import { resolveScorers, replaceScorerNames } from './scorer-matcher.mjs';
 import { loadDbPlayers } from './player-loader.mjs';
 
 /**
@@ -38,6 +38,8 @@ export async function syncMatchesPipeline(dbMatches, { directusUrl, adminToken, 
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${adminToken}`
     };
+
+    const dbPlayers = await loadDbPlayers(directusUrl, adminToken);
 
     for (const dbMatch of dbMatches) {
         const dbUtcTime = new Date(dbMatch.date.trim().replace(' ', 'T') + '+04:00').getTime();
@@ -169,8 +171,6 @@ export async function syncMatchesPipeline(dbMatches, { directusUrl, adminToken, 
             const awayPenaltyScorers = parseScorersString(wcGame.away_penalty_scorers, getNormalizedTeamName(wcGame.away_team_name_en));
             awayPenaltyScorers.forEach(s => s.detail = 'Penalty');
 
-            const dbPlayers = await loadDbPlayers(directusUrl, adminToken);
-
             const homeNames = homeScorers.map(s => s.player.name);
             const awayNames = awayScorers.map(s => s.player.name);
             const awayPenaltyNames = awayPenaltyScorers.map(s => s.player.name);
@@ -184,7 +184,7 @@ export async function syncMatchesPipeline(dbMatches, { directusUrl, adminToken, 
             apiLogs.push(
                 matchedScorersAway.map(m => ({
                     api: m.apiName,
-                    match: m.matchedPlayer?.player_name ?? "NOT FOUND",
+                    match: m.matchedPlayer?.player_name ?? `NOT FOUND: ${m.apiName}`,
                     confidence: Number(m.confidence.toFixed(2))
                 }))
             );
@@ -192,7 +192,7 @@ export async function syncMatchesPipeline(dbMatches, { directusUrl, adminToken, 
             apiLogs.push(
                 matchedScorersHome.map(m => ({
                     api: m.apiName,
-                    match: m.matchedPlayer?.player_name ?? "NOT FOUND",
+                    match: m.matchedPlayer?.player_name ?? `NOT FOUND: ${m.apiName}`,
                     confidence: Number(m.confidence.toFixed(2))
                 }))
             );
@@ -200,7 +200,7 @@ export async function syncMatchesPipeline(dbMatches, { directusUrl, adminToken, 
             apiLogs.push(
                 matchedPenaltyScorersHome.map(m => ({
                     api: m.apiName,
-                    match: m.matchedPlayer?.player_name ?? "NOT FOUND",
+                    match: m.matchedPlayer?.player_name ?? `NOT FOUND: ${m.apiName}`,
                     confidence: Number(m.confidence.toFixed(2))
                 }))
             );
@@ -208,12 +208,38 @@ export async function syncMatchesPipeline(dbMatches, { directusUrl, adminToken, 
             apiLogs.push(
                 matchedPenaltyScorersAway.map(m => ({
                     api: m.apiName,
-                    match: m.matchedPlayer?.player_name ?? "NOT FOUND",
+                    match: m.matchedPlayer?.player_name ?? `NOT FOUND: ${m.apiName}`,
                     confidence: Number(m.confidence.toFixed(2))
                 }))
             );
 
-            payload.scorers = [...homeScorers, ...awayScorers, ...homePenaltyScorers, ...awayPenaltyScorers];
+            // Replace API names with DB canonical names
+            const resolvedHomeScorers = replaceScorerNames(
+                homeScorers,
+                matchedScorersHome
+            );
+
+            const resolvedAwayScorers = replaceScorerNames(
+                awayScorers,
+                matchedScorersAway
+            );
+
+            const resolvedHomePenaltyScorers = replaceScorerNames(
+                homePenaltyScorers,
+                matchedPenaltyScorersHome
+            );
+
+            const resolvedAwayPenaltyScorers = replaceScorerNames(
+                awayPenaltyScorers,
+                matchedPenaltyScorersAway
+            );
+
+            payload.scorers = [
+                ...resolvedHomeScorers,
+                ...resolvedAwayScorers,
+                ...resolvedHomePenaltyScorers,
+                ...resolvedAwayPenaltyScorers
+            ];
         } else {
             payload.scorers = [];
         }
