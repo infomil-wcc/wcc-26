@@ -8,7 +8,7 @@ import { PredictionsService } from '../../services/games/predictions.service';
 import Fuse from 'fuse.js';
 import { GlobaltimeService } from '../../services/core/globaltime.service';
 import { StadiumsService } from '../../services/content/stadiums.service';
-import { NgClass, NgStyle, AsyncPipe, UpperCasePipe, SlicePipe, DatePipe } from '@angular/common';
+import { NgClass, NgStyle, AsyncPipe, UpperCasePipe, SlicePipe, DatePipe, TitleCasePipe } from '@angular/common';
 import { NumberInputComponent } from '../number-input/number-input.component';
 import { ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { LoaderComponent } from '../loader/loader.component';
