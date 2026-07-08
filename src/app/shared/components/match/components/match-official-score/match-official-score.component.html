@@ -1,0 +1,73 @@
+<div class="official-score-board">
+  <div class="score-board-container flex align-items-center justify-content-between">
+    <div class="team-info left flex align-items-center justify-content-end gap-2">
+      <span class="flag-wrapper"
+        [ngStyle]="{'background-image': match?.team_a ? 'url(' + teamAFlag + ')'  : 'url(assets/flags/unknown.png)'}"></span>
+      <span class="team-name">{{ match?.team_a | slice:0:3 | uppercase }}</span>
+    </div>
+
+    <div class="score-pill-container">
+      <div class="score-pill flex align-items-center justify-content-center">
+        <span class="score flex align-items-baseline">
+          {{ match?.fulltime_a }}
+          @if (match?.penalty_a !== null && match?.penalty_a !== undefined && match?.penalty_b !== null &&
+          match?.penalty_b !== undefined) {
+          <span style="font-size: 0.65em; opacity: 0.85; margin-left: 2px;">({{ match?.penalty_a }})</span>
+          }
+        </span>
+        <span class="divider mx-2">|</span>
+        <span class="score flex align-items-baseline">
+          {{ match?.fulltime_b }}
+          @if (match?.penalty_a !== null && match?.penalty_a !== undefined && match?.penalty_b !== null &&
+          match?.penalty_b !== undefined) {
+          <span style="font-size: 0.65em; opacity: 0.85; margin-left: 2px;">({{ match?.penalty_b }})</span>
+          }
+        </span>
+      </div>
+      @if (match?.halftime_a !== null && match?.halftime_b !== null) {
+      <span class="halftime-score-pill">
+        HT : {{ match?.halftime_a }} - {{ match?.halftime_b }}
+      </span>
+      }
+    </div>
+
+    <div class="team-info right flex align-items-center justify-content-start gap-2">
+      <span class="team-name">{{ match?.team_b | slice:0:3 | uppercase }}</span>
+      <span class="flag-wrapper"
+        [ngStyle]="{'background-image': match?.team_b ? 'url(' + teamBFlag + ')'  : 'url(assets/flags/unknown.png)'}"></span>
+    </div>
+  </div>
+
+  <div class="scorers-split-grid"
+    style="display: grid; grid-template-columns: 1fr 1fr; background: #202734; border-top: 1px solid rgba(255, 255, 255, 0.05); padding: 8px 12px; font-size: 0.72rem; color: #a0aec0; min-height: 64px;">
+    <div class="text-left" style="border-right: 1px solid rgba(255, 255, 255, 0.05); padding-right: 8px;">
+      @if (isScorersJson) {
+      @for (scorer of teamAScorersGrouped; track scorer.name) {
+      <div style="margin-bottom: 2px; display: flex; align-items: center; gap: 4px; justify-content: flex-start;">
+        <span class="material-symbols-outlined" style="font-size: 0.8rem; color: #8a99ad;">sports_soccer</span>
+        <span style="font-weight: 700; color: #e2e8f0;">{{ scorer.name }}</span>
+        <span style="color: #a0aec0;" [innerHTML]="scorer.times"></span>
+      </div>
+      }
+      } @else if (match?.scorers && !isScorersJson) {
+      <div style="display: flex; align-items: center; gap: 4px; justify-content: flex-start;">
+        <span class="material-symbols-outlined" style="font-size: 0.8rem; color: #ffeb3b;">sports_soccer</span>
+        <span class="align-middle" style="color: #e2e8f0; font-style: italic;">{{ match?.scorers }}</span>
+      </div>
+      }
+    </div>
+    <div class="text-right" style="padding-left: 8px;">
+      @if (isScorersJson) {
+      @for (scorer of teamBScorersGrouped; track scorer.name) {
+      <div style="margin-bottom: 2px; display: flex; align-items: center; gap: 4px; justify-content: flex-end;">
+        <span style="font-weight: 700; color: #e2e8f0;">{{ scorer.name }}</span>
+        <span style="color: #a0aec0;" [innerHTML]="scorer.times"></span>
+        <span class="material-symbols-outlined" style="font-size: 0.8rem; color: #8a99ad;">sports_soccer</span>
+      </div>
+      }
+      }
+    </div>
+  </div>
+
+  <div class="stripe-bar"></div>
+</div>

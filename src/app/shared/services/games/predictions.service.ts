@@ -34,6 +34,14 @@ export class PredictionsService {
     const current = this.savedPredictionsSubject.getValue();
     current.set(gameId, savedData);
     this.savedPredictionsSubject.next(new Map(current));
+    
+    // Also update the draft so subsequent UI edits don't lose the newly created ID, which causes duplicates
+    const currentDrafts = this.draftsSubject.getValue();
+    const index = currentDrafts.findIndex(p => String(p.game_id) === String(gameId));
+    if (index > -1) {
+      currentDrafts[index] = { ...currentDrafts[index], id: savedData.id };
+      this.draftsSubject.next([...currentDrafts]);
+    }
   }
 
   /** Retrieve the last saved prediction for a given game */

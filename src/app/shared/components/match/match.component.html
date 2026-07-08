@@ -1,689 +1,133 @@
-<div class="match"
-  [ngClass]="{'donePronostique': pronostiqueDone, 'pronostiqueMode': isPronostiques, 'closed': !pronostiqueDone && closed, 'matchPlayed' : match.fulltime_a !== null && match.fulltime_b !== null }">
+<div class="match" [ngClass]="{
+  'stadium-bg': isPronostiques && stadiumImageUrl,
+  'match-editable': isPronostiques,
+  'match-closed': closed || isSavedInApi,
+  'match-finished': match?.fulltime_a !== null && match?.fulltime_b !== null
+}">
+
   @if (isPronostiques && stadiumImageUrl) {
   <div class="match-bg-overlay" [ngStyle]="{'background-image': 'url(' + stadiumImageUrl + ')'}"></div>
   }
 
+  <app-match-header
+    [match]="match"
+    [closed]="closed"
+    [pronostiqueDone]="pronostiqueDone"
+    [isSavedInApi]="isSavedInApi"
+    [countdownText]="countdownText">
+  </app-match-header>
 
-
-  <div class="match-header flex justify-content-between align-items-center">
-    <div class="header-left">
-      @if (match.group) {
-      <span class="phase">{{ match.group }} - M{{ match.id }}</span>
-      } @else {
-      <span class="phase">{{ match.phase }} - M{{ match.id }}</span>
-      }
-      <div class="date-time">{{ match.date | date: 'EEEE d MMMM yyyy | HH:mm' }}</div>
-    </div>
-    <div class="header-right">
-      <span class="badge"
-        [ngClass]="{'scheduled': !closed && !pronostiqueDone, 'predicted': pronostiqueDone && !isSavedInApi, 'closed': closed && !pronostiqueDone, 'locked': isSavedInApi}">
-        @if (isSavedInApi) {
-        <span class="material-symbols-outlined align-middle mr-1"
-          style="font-size: 0.85rem; vertical-align: middle;">lock</span>
-        <span class="align-middle">LOCKED</span>
-        } @else {
-        {{ pronostiqueDone ? 'Prédit' : (closed ? 'Clos' : 'Scheduled') }}
-        }
-      </span>
-    </div>
-  </div>
   <div class="match-body">
-    <div class="flex justify-content-between align-items-center mb-2 venue-countdown-row">
-      @if (match.stadium) {
-      <div class="venue">{{ match.stadium }}</div>
-      }
-      @if (countdownText) {
-      <div class="countdown-timer text-xs font-semibold px-2 py-0.5 rounded flex align-items-center"
-        [ngClass]="{'active-countdown': countdownText !== 'Match commencé' && countdownText !== 'Match terminé'}">
-        <span class="material-symbols-outlined mr-1" style="font-size: 0.95rem;">schedule</span>
-        <span>{{ countdownText }}</span>
-      </div>
-      }
-    </div>
-
     @if (!isPronostiques) {
-    <div class="flex align-items-center justify-content-center mb-3">
-      <div class="col-5 p-0 teamDetails">
-        <span class="flex align-items-center justify-content-center">
-          <span class="mr-2 flex flagContainer"
-            [ngStyle]="{'background-image': match.team_a ? 'url(' + teamAFlag + ')'  : 'url(assets/flags/unknown.png)'}">
-          </span>
-          <span class="teamName">{{ match.team_a }}</span>
-        </span>
-        @if (match.team_a !== null) {
-        <button class="info-btn-bottom flex align-items-center justify-content-center mt-2"
-          (click)="showTeamDetails(match.team_a, $event)" title="Historique de l'équipe">
-          <span class="material-symbols-outlined mr-1" style="font-size: 0.95rem;">info</span>
-          <span>INFO</span>
-        </button>
-        }
-        @if (match.team_a !== null ) {
-        <span class="flex align-items-center justify-content-center mt-4">
-          <teamperformance [teamName]="match.team_a" />
-        </span>
-        }
-      </div>
-      <div class="col-2  p-0">
-        <div class="flex align-items-center justify-content-center pb-6">
-          vs
-        </div>
-      </div>
-      <div class="col-5 p-0 teamDetails">
-        <span class="flex align-items-center justify-content-center">
-          <span class="teamName">{{ match.team_b }}</span>
-          <span class="ml-2 flex flagContainer"
-            [ngStyle]="{'background-image': match.team_b ? 'url(' + teamBFlag + ')'  : 'url(assets/flags/unknown.png)'}">
-          </span>
-        </span>
-        @if (match.team_b !== null) {
-        <button class="info-btn-bottom flex align-items-center justify-content-center mt-2"
-          (click)="showTeamDetails(match.team_b, $event)" title="Historique de l'équipe">
-          <span class="material-symbols-outlined mr-1" style="font-size: 0.95rem;">info</span>
-          <span>INFO</span>
-        </button>
-        }
-        @if (match.team_b !== null ) {
-        <span class="flex align-items-center justify-content-center mt-4">
-          <teamperformance [teamName]="match.team_b" />
-        </span>
-        }
-      </div>
-    </div>
+    <app-match-info
+      [match]="match"
+      [teamAFlag]="teamAFlag"
+      [teamBFlag]="teamBFlag"
+      (onShowTeamDetails)="showTeamDetails($event.team, $event.event)">
+    </app-match-info>
     }
 
     @if (isPronostiques) {
     <div class="pronostiques">
-      <div class="grid justify-content-center align-items-center min-h mb-1">
-        <div class="col-4">
-          <div
-            class="team-option-btn teamA flex flex-column align-items-center justify-content-center relative"
-            [ngClass]="{'active': matchOutcome === match.team_a, 'disabled': !canEditPrediction}"
-            (click)="selectWinner(match.team_a)">
-            <span class="flex flagContainer"
-              [ngStyle]="{'background-image': match.team_a ? 'url(' + teamAFlag + ')'  : 'url(assets/flags/unknown.png)'}"></span>
-            @if (matchOutcome === match.team_a) {
-            <span class="material-symbols-outlined winner-tick">check_circle</span>
-            }
-            <div class="mt-2 text-center teamName">
-              <strong>{{ match.team_a | slice:0:3 | uppercase }}</strong>
-            </div>
-            @if (match.team_a !== null) {
-            <button class="info-btn-bottom flex align-items-center justify-content-center mt-2"
-              (click)="showTeamDetails(match.team_a, $event)" title="Historique de l'équipe">
-              <span class="material-symbols-outlined mr-1" style="font-size: 0.95rem;">info</span>
-              <span>INFO</span>
-            </button>
-            }
-            @if (match.team_a !== null) {
-            <div class="mt-2 flex justify-content-center w-full" style="transform: scale(0.95);">
-              <teamperformance [teamName]="match.team_a" />
-            </div>
-            }
-          </div>
-        </div>
-        <div class="col-4 flex flex-column justify-content-center align-items-center px-1 gap-2 relative">
-          @if (isSavedInApi && (match.fulltime_a === null || match.fulltime_b === null) && !isEditing) {
-          <div class="lock-overlay">
-            <span class="material-symbols-outlined lock-icon">lock</span>
-          </div>
-          }
-          @if (hidePointsBadge) {
-          <div class="fraud-card-center-badge flex flex-column align-items-center justify-content-center text-center">
-            <span class="material-symbols-outlined gavel-icon">gavel</span>
-            <span class="invalid-title">Invalidé</span>
-            <span class="played-date">Joué le :<br><strong>{{ invalidatedDate | date: 'dd/MM HH:mm' }}</strong></span>
-          </div>
-          } @else if (!closed) {
-          <div
-            class="team-option-btn draw flex flex-column align-items-center justify-content-center relative w-full"
-            [ngClass]="{'active': matchOutcome === 'Draw', 'disabled': !canEditPrediction}"
-            (click)="selectWinner('Draw')">
-            @if (matchOutcome === 'Draw') {
-            <span class="material-symbols-outlined winner-tick">check_circle</span>
-            }
-            @if (match.phase === 'Group Stage' || matchOutcome !== 'Draw') {
-            <div class="draw-vs-box flex align-items-center justify-content-center">
-              <span>VS</span>
-            </div>
-            } @else {
-            <div class="draw-vs-box flex align-items-center justify-content-center"
-              style="background: transparent; border: 1px dashed #ffffff55; border-radius: 50%;">
-              <span class="material-symbols-outlined" style="font-size: 1.5rem; color: #ff9800;">sports_soccer</span>
-            </div>
-            <div class="mt-2 text-center teamName">
-              <strong style="color: #ff9800;">PENALTY</strong>
-            </div>
-            }
-          </div>
-          } @else {
-          @if (isSavedInApi && match.fulltime_a !== null && match.fulltime_b !== null && matchPoints !== null &&
-          !hidePointsBadge) {
-            @if (isConsolationPointAwarded) {
-            <div class="points-overlay points-consolation" title="Point de consolation">
-              <span class="points-value">+1</span>
-              <span class="points-unit">pt</span>
-            </div>
-            } @else {
-            <div class="points-overlay" [ngClass]="{'points-zero': matchPoints === 0}">
-              <span class="points-value">{{ matchPoints > 0 ? '+' + matchPoints : matchPoints }}</span>
-              <span class="points-unit">pts</span>
-            </div>
-            }
-          } @else if (donePronostique && match.fulltime && (match.phase !== 'Group Stage' && match.phase !== 'Round of 32')) {
-          <div class="flex align-items-center gap-2 font-bold text-xl predicted-scores">
-            <span class="score-box">{{ donePronostique.fulltime_a }}</span>
-            <span class="score-box">{{ donePronostique.fulltime_b }}</span>
-          </div>
-          }
-          }
-        </div>
-        <div class="col-4">
-          <div
-            class="team-option-btn teamB flex flex-column align-items-center justify-content-center relative"
-            [ngClass]="{'active': matchOutcome === match.team_b, 'disabled': !canEditPrediction}"
-            (click)="selectWinner(match.team_b)">
-            <span class="flex flagContainer"
-              [ngStyle]="{'background-image': match.team_b ? 'url(' + teamBFlag + ')'  : 'url(assets/flags/unknown.png)'}"></span>
-            @if (matchOutcome === match.team_b) {
-            <span class="material-symbols-outlined winner-tick">check_circle</span>
-            }
-            <div class="mt-2 text-center teamName">
-              <strong>{{ match.team_b | slice:0:3 | uppercase }}</strong>
-            </div>
-            @if (match.team_b !== null) {
-            <button class="info-btn-bottom flex align-items-center justify-content-center mt-2"
-              (click)="showTeamDetails(match.team_b, $event)" title="Historique de l'équipe">
-              <span class="material-symbols-outlined mr-1" style="font-size: 0.95rem;">info</span>
-              <span>INFO</span>
-            </button>
-            }
-            @if (match.team_b !== null) {
-            <div class="mt-2 flex justify-content-center w-full" style="transform: scale(0.95);">
-              <teamperformance [teamName]="match.team_b" />
-            </div>
-            }
-          </div>
-        </div>
-      </div>
-      @if (!closed && !hidePointsBadge) {
-      <div class="pronostiqueWrapper">
-        @if (match.fulltime || match.halftime) {
-        <div class="scores-compact-grid mt-1 mb-1">
-          <div class="grid-header-row" [class.has-both]="match.fulltime && match.halftime">
-            <div class="team-col"></div>
-            @if (match.halftime) {
-            <div class="score-col-header">Mi-temps</div>
-            }
-            @if (match.fulltime) {
-            <div class="score-col-header">Final</div>
-            }
-          </div>
-
-          <div class="grid-team-row" [class.has-both]="match.fulltime && match.halftime">
-            <div class="team-col flex align-items-center">
-              @if ((matchOutcome === 'Draw' || (fullTimeA !== null && fullTimeA === fullTimeB)) && match.phase !==
-              'Group Stage') {
-              <label class="custom-radio-container mr-2" title="Vainqueur aux tirs au but">
-                <input type="radio" [name]="'penalty_' + match.id" class="custom-radio"
-                  [checked]="penaltyWinner === match.team_a" (change)="selectPenaltyWinner(match.team_a)"
-                  [disabled]="!canEditScores" />
-                <span class="radio-checkmark"></span>
-              </label>
-              }
-              <span class="flag-mini mr-2" [ngStyle]="{'background-image': 'url(' + teamAFlag + ')'}"></span>
-              <span class="team-abbr">{{ match.team_a | slice:0:3 | uppercase }}</span>
-            </div>
-            @if (match.halftime) {
-            <div class="score-col" [ngClass]="{'disabled': this.userTrigramme ===''}">
-              <app-number-input [(num)]="halfTimeA" (numChange)="onHalftimeScoreChanged()"
-                [disabled]="!canEditScores"></app-number-input>
-            </div>
-            }
-            @if (match.fulltime) {
-            <div class="score-col" [ngClass]="{'disabled': this.userTrigramme ===''}">
-              <app-number-input [(num)]="fullTimeA" (numChange)="onScoreChanged()"
-                [disabled]="!canEditScores"></app-number-input>
-            </div>
-            }
-          </div>
-
-          <div class="grid-team-row" [class.has-both]="match.fulltime && match.halftime">
-            <div class="team-col flex align-items-center">
-              @if ((matchOutcome === 'Draw' || (fullTimeA !== null && fullTimeA === fullTimeB)) && match.phase !==
-              'Group Stage') {
-              <label class="custom-radio-container mr-2" title="Vainqueur aux tirs au but">
-                <input type="radio" [name]="'penalty_' + match.id" class="custom-radio"
-                  [checked]="penaltyWinner === match.team_b" (change)="selectPenaltyWinner(match.team_b)"
-                  [disabled]="!canEditScores" />
-                <span class="radio-checkmark"></span>
-              </label>
-              }
-              <span class="flag-mini mr-2" [ngStyle]="{'background-image': 'url(' + teamBFlag + ')'}"></span>
-              <span class="team-abbr">{{ match.team_b | slice:0:3 | uppercase }}</span>
-            </div>
-            @if (match.halftime) {
-            <div class="score-col" [ngClass]="{'disabled': this.userTrigramme ===''}">
-              <app-number-input [(num)]="halfTimeB" (numChange)="onHalftimeScoreChanged()"
-                [disabled]="!canEditScores"></app-number-input>
-            </div>
-            }
-            @if (match.fulltime) {
-            <div class="score-col" [ngClass]="{'disabled': this.userTrigramme ===''}">
-              <app-number-input [(num)]="fullTimeB" (numChange)="onScoreChanged()"
-                [disabled]="!canEditScores"></app-number-input>
-            </div>
-            }
-          </div>
-        </div>
-        }
-        @if (match.scorer) {
-        <div class="scorerContainer mt-1 mb-1">
-          <div class="flex flex-column align-items-center gap-1" [ngClass]="{'disabled': this.userTrigramme ===''}">
-            <button class="btn btn-select-scorer w-full flex align-items-center justify-content-center gap-2 py-2"
-              [ngClass]="{'btn-warning-outline': !scorer || scorer === '-'}" (click)="openTacticalLineup()"
-              [disabled]="!canSelectScorer">
-              <span class="material-symbols-outlined"
-                style="font-size: 1.1rem; vertical-align: middle;">sports_soccer</span>
-              Choisir un buteur
-            </button>
-            @if (!scorer || scorer === '-') {
-            <div class="text-xs flex align-items-center justify-content-center gap-1 font-semibold mt-1"
-              style="color: #ef4444;">
-              <span class="material-symbols-outlined" style="font-size: 0.95rem;">error</span>
-              <span>Buteur requis</span>
-            </div>
-            }
-          </div>
-        </div>
-        }
-      </div>
-      }
+      <app-match-prediction-edit
+        [match]="match"
+        [teamAFlag]="teamAFlag"
+        [teamBFlag]="teamBFlag"
+        [matchOutcome]="matchOutcome"
+        [canEditPrediction]="canEditPrediction"
+        [canEditScores]="canEditScores"
+        [canSelectScorer]="canSelectScorer"
+        [hidePointsBadge]="hidePointsBadge"
+        [closed]="closed"
+        [donePronostique]="donePronostique"
+        [halfTimeA]="halfTimeA"
+        [halfTimeB]="halfTimeB"
+        [fullTimeA]="fullTimeA"
+        [fullTimeB]="fullTimeB"
+        [scorer]="scorer"
+        [penaltyWinner]="penaltyWinner"
+        [invalidatedDate]="invalidatedDate"
+        [matchPoints]="matchPoints"
+        [isConsolationPointAwarded]="isConsolationPointAwarded"
+        [userTrigramme]="userTrigramme"
+        [isSavedInApi]="isSavedInApi"
+        [isEditing]="isEditing"
+        (onSelectWinner)="selectWinner($event)"
+        (onSelectPenaltyWinner)="selectPenaltyWinner($event)"
+        (halfTimeAChange)="halfTimeA = $event"
+        (halfTimeBChange)="halfTimeB = $event"
+        (fullTimeAChange)="fullTimeA = $event"
+        (fullTimeBChange)="fullTimeB = $event"
+        (onScoreChanged)="onScoreChanged()"
+        (onHalftimeScoreChanged)="onHalftimeScoreChanged()"
+        (onOpenTacticalLineup)="openTacticalLineup()"
+        (onShowTeamDetails)="showTeamDetails($event.team, $event.event)">
+      </app-match-prediction-edit>
 
       @if (pronostiqueDone && !hidePointsBadge) {
-      <div class="pronostiqueDone flex flex-column align-items-center mt-2"
-        [ngClass]="(match.fulltime_a !== null && match.fulltime_b !== null) ? (isOutcomeCorrect() ? 'bg-success-box' : 'bg-danger-box') : ''">
-        <span class="label text-xs uppercase font-semibold text-center mb-1"
-          style="letter-spacing: 1.5px; font-size: 0.75rem;">Mon Pronostic</span>
-
-        <h4 class="mt-0 mb-2 text-2xl font-bold text-center flex align-items-center justify-content-center gap-2">
-          <strong class="flex align-items-center gap-2"
-            [ngClass]="(match.fulltime_a !== null && match.fulltime_b !== null) ? (isOutcomeCorrect() ? 'text-success' : 'text-danger') : ''">
-            @if (match.fulltime_a !== null && match.fulltime_b !== null) {
-            <span class="material-symbols-outlined align-middle" style="font-size: 1.5rem;"
-              [ngClass]="isOutcomeCorrect() ? 'icon-success' : 'icon-danger'">{{ isOutcomeCorrect() ? 'check_circle' :
-              'cancel' }}</span>
-            }
-            @if (donePronostique.winner_draw === 'Draw') {
-            @if (match.phase === 'Group Stage') {
-            <span class="material-symbols-outlined"
-              style="font-size: 1.65rem; color: #3f51b5; vertical-align: middle;">handshake</span>
-            <span style="vertical-align: middle;">Draw</span>
-            } @else {
-            <span class="material-symbols-outlined"
-              style="font-size: 1.65rem; color: #ff9800; vertical-align: middle;">sports_soccer</span>
-            <span style="vertical-align: middle; color: #ff9800;">Penalty</span>
-            }
-            } @else {
-            <span style="vertical-align: middle;">{{ donePronostique.winner_draw }}</span>
-            @if (!(match.fulltime_a !== null && match.fulltime_b !== null)) { 🏆 }
-            }
-          </strong>
-        </h4>
-
-        @if (!closed && donePronostique.scorer && donePronostique.scorer !== '-' && !hidePointsBadge) {
-        <div
-          class="flex align-items-center justify-content-center gap-2 mt-0 mb-2 text-md font-bold text-center text-indigo-900">
-          <span class="material-symbols-outlined align-middle"
-            style="font-size: 1.25rem; color: #3f51b5; vertical-align: middle;">sports_soccer</span>
-          <span class="align-middle" style="vertical-align: middle;">Buteur : {{ donePronostique.scorer }}</span>
-          @if (!isSavedInApi) {
-          <button class="clear-scorer-btn flex align-items-center justify-content-center" (click)="clearScorer()"
-            [disabled]="disabled || isSubmitting"
-            style="background: none; border: none; padding: 0; cursor: pointer; color: #ef4444; margin-left: 2px; vertical-align: middle; display: inline-flex;">
-            <span class="material-symbols-outlined" style="font-size: 1.2rem;">cancel</span>
-          </button>
-          }
-        </div>
-        }
-
-        @if (closed) {
-        @if (match.fulltime && (match.phase !== 'Group Stage' || match.id === '1')) {
-        <h4 class="mt-0 mb-2 text-xl font-bold text-center flex align-items-center justify-content-center gap-2"
-          [ngClass]="(match.fulltime_a !== null && match.fulltime_b !== null) ? (isFulltimeCorrect() ? 'text-success' : 'text-danger') : ''">
-          @if (match.fulltime_a !== null && match.fulltime_b !== null) {
-          <span class="material-symbols-outlined align-middle" style="font-size: 1.25rem;"
-            [ngClass]="isFulltimeCorrect() ? 'icon-success' : 'icon-danger'">{{ isFulltimeCorrect() ? 'check_circle' :
-            'cancel' }}</span>
-          }
-          <strong class="align-middle">Score final :</strong> <span class="align-middle">{{ donePronostique.fulltime_a
-            }} - {{ donePronostique.fulltime_b }}</span>
-        </h4>
-        }
-
-        @if (match.halftime && donePronostique.halftime_a !== null && donePronostique.halftime_a !== undefined) {
-        <h4 class="mt-0 mb-2 text-lg font-bold text-center flex align-items-center justify-content-center gap-2"
-          [ngClass]="(match.fulltime_a !== null && match.fulltime_b !== null) ? (isHalftimeCorrect() ? 'text-success' : 'text-danger') : ''">
-          @if (match.fulltime_a !== null && match.fulltime_b !== null) {
-          <span class="material-symbols-outlined align-middle" style="font-size: 1.15rem;"
-            [ngClass]="isHalftimeCorrect() ? 'icon-success' : 'icon-danger'">{{ isHalftimeCorrect() ? 'check_circle' :
-            'cancel' }}</span>
-          }
-          <strong class="align-middle">Score mi-temps :</strong> <span class="align-middle">{{
-            donePronostique.halftime_a }} - {{ donePronostique.halftime_b }}</span>
-        </h4>
-        }
-
-        @if (donePronostique.scorer && donePronostique.scorer !== '-') {
-        <h5 class="mt-0 mb-2 text-md text-center flex align-items-center justify-content-center gap-2"
-          [ngClass]="(match.fulltime_a !== null && match.fulltime_b !== null) ? (isScorerCorrect() ? 'text-success' : 'text-danger') : ''">
-          @if (match.fulltime_a !== null && match.fulltime_b !== null) {
-          <span class="material-symbols-outlined align-middle" style="font-size: 1.1rem;"
-            [ngClass]="isScorerCorrect() ? 'icon-success' : 'icon-danger'">{{ isScorerCorrect() ? 'check_circle' :
-            'cancel' }}</span>
-          }
-          <strong class="align-middle">Buteur :</strong> <span class="align-middle">{{ donePronostique.scorer }}</span>
-        </h5>
-        }
-        }
-
-        @if(isSavedInApi && donePronostique && match.fulltime_a === null && match.fulltime_b === null && !isEditing &&
-        match.phase !== 'Group Stage' && !hidePointsBadge && countdownText !== 'Match commencé' &&
-        !isMatchFinishedByDate) {
-        <button class="btnEditpronostic flex align-items-center" (click)="modifierPronostic()">Modifier mon pronostic<i
-            class="material-symbols-outlined">edit</i></button>
-        }
-      </div>
+      <app-match-prediction-saved
+        [match]="match"
+        [donePronostique]="donePronostique"
+        [closed]="closed"
+        [isSavedInApi]="isSavedInApi"
+        [isEditing]="isEditing"
+        [hidePointsBadge]="hidePointsBadge"
+        [countdownText]="countdownText"
+        [isMatchFinishedByDate]="isMatchFinishedByDate"
+        [disabled]="disabled"
+        [isSubmitting]="isSubmitting"
+        [isOutcomeCorrectVal]="isOutcomeCorrect()"
+        [isFulltimeCorrectVal]="isFulltimeCorrect()"
+        [isHalftimeCorrectVal]="isHalftimeCorrect()"
+        [isScorerCorrectVal]="isScorerCorrect()"
+        (onClearScorer)="clearScorer()"
+        (onModifierPronostic)="modifierPronostic()">
+      </app-match-prediction-saved>
       }
     </div>
+
+    @if (isEditing || (!isSavedInApi && !closed)) {
+    <div class="mt-4 w-full flex justify-content-center" [ngClass]="{'disabled': userTrigramme ===''}">
+      <button class="btnSubmit w-full flex align-items-center justify-content-center gap-2" (click)="sendBet()"
+        [disabled]="disabled || isSubmitting" [ngClass]="{'opacity-50 cursor-not-allowed': disabled || isSubmitting}">
+        @if (isSubmitting) {
+        <span class="material-symbols-outlined spin" style="font-size: 1.25rem;">sync</span>
+        } @else {
+        <span class="material-symbols-outlined" style="font-size: 1.25rem;">send</span>
+        }
+        {{ isSubmitting ? 'Envoi en cours...' : 'Envoyer mon pronostic' }}
+      </button>
+    </div>
+    }
     }
   </div>
 
-  @if (match.fulltime_a !== null && match.fulltime_b !== null) {
-  <div class="official-score-board">
-    <div class="score-board-container flex align-items-center justify-content-between">
-      <div class="team-info left flex align-items-center justify-content-end gap-2">
-        <span class="flag-wrapper"
-          [ngStyle]="{'background-image': match.team_a ? 'url(' + teamAFlag + ')'  : 'url(assets/flags/unknown.png)'}"></span>
-        <span class="team-name">{{ match.team_a | slice:0:3 | uppercase }}</span>
-      </div>
-
-      <div class="score-pill-container">
-        <div class="score-pill flex align-items-center justify-content-center">
-          <span class="score flex align-items-baseline">
-            {{ match.fulltime_a }}
-            @if (match.penalty_a !== null && match.penalty_a !== undefined && match.penalty_b !== null &&
-            match.penalty_b !== undefined) {
-            <span style="font-size: 0.65em; opacity: 0.85; margin-left: 2px;">({{ match.penalty_a }})</span>
-            }
-          </span>
-          <span class="divider mx-2">|</span>
-          <span class="score flex align-items-baseline">
-            {{ match.fulltime_b }}
-            @if (match.penalty_a !== null && match.penalty_a !== undefined && match.penalty_b !== null &&
-            match.penalty_b !== undefined) {
-            <span style="font-size: 0.65em; opacity: 0.85; margin-left: 2px;">({{ match.penalty_b }})</span>
-            }
-          </span>
-        </div>
-        @if (match.halftime_a !== null && match.halftime_b !== null) {
-        <span class="halftime-score-pill">
-          HT : {{ match.halftime_a }} - {{ match.halftime_b }}
-        </span>
-        }
-      </div>
-
-      <div class="team-info right flex align-items-center justify-content-start gap-2">
-        <span class="team-name">{{ match.team_b | slice:0:3 | uppercase }}</span>
-        <span class="flag-wrapper"
-          [ngStyle]="{'background-image': match.team_b ? 'url(' + teamBFlag + ')'  : 'url(assets/flags/unknown.png)'}"></span>
-      </div>
-    </div>
-
-    <div class="scorers-split-grid"
-      style="display: grid; grid-template-columns: 1fr 1fr; background: #202734; border-top: 1px solid rgba(255, 255, 255, 0.05); padding: 8px 12px; font-size: 0.72rem; color: #a0aec0; min-height: 64px;">
-      <div class="text-left" style="border-right: 1px solid rgba(255, 255, 255, 0.05); padding-right: 8px;">
-        @if (isScorersJson) {
-        @for (scorer of teamAScorersGrouped; track scorer.name) {
-        <div style="margin-bottom: 2px; display: flex; align-items: center; gap: 4px; justify-content: flex-start;">
-          <span class="material-symbols-outlined" style="font-size: 0.8rem; color: #8a99ad;">sports_soccer</span>
-          <span style="font-weight: 700; color: #e2e8f0;">{{ scorer.name }}</span>
-          <span style="color: #a0aec0;" [innerHTML]="scorer.times"></span>
-        </div>
-        }
-        } @else if (match.scorers && !isScorersJson) {
-        <div style="display: flex; align-items: center; gap: 4px; justify-content: flex-start;">
-          <span class="material-symbols-outlined" style="font-size: 0.8rem; color: #ffeb3b;">sports_soccer</span>
-          <span class="align-middle" style="color: #e2e8f0; font-style: italic;">{{ match.scorers }}</span>
-        </div>
-        }
-      </div>
-      <div class="text-right" style="padding-left: 8px;">
-        @if (isScorersJson) {
-        @for (scorer of teamBScorersGrouped; track scorer.name) {
-        <div style="margin-bottom: 2px; display: flex; align-items: center; gap: 4px; justify-content: flex-end;">
-          <span style="font-weight: 700; color: #e2e8f0;">{{ scorer.name }}</span>
-          <span style="color: #a0aec0;" [innerHTML]="scorer.times"></span>
-          <span class="material-symbols-outlined" style="font-size: 0.8rem; color: #8a99ad;">sports_soccer</span>
-        </div>
-        }
-        }
-      </div>
-    </div>
-
-    <div class="stripe-bar"></div>
-  </div>
+  @if (match?.fulltime_a !== null && match?.fulltime_b !== null) {
+  <app-match-official-score
+    [match]="match"
+    [teamAFlag]="teamAFlag"
+    [teamBFlag]="teamBFlag"
+    [isScorersJson]="isScorersJson"
+    [teamAScorersGrouped]="teamAScorersGrouped"
+    [teamBScorersGrouped]="teamBScorersGrouped">
+  </app-match-official-score>
   }
 </div>
 
 <loader [showLoader]="showLoader" />
 
 @if (showTacticalModal) {
-<div class="tactical-modal-overlay">
-  <div class="tactical-modal-container">
-    <div class="tactical-modal-header flex justify-content-between align-items-center px-3 py-2">
-      <h3 class="m-0 text-white font-bold flex align-items-center gap-2 text-base">
-        <span class="material-symbols-outlined">tactic</span>
-        Choisir le buteur
-      </h3>
-      <button class="modal-close-btn flex align-items-center justify-content-center"
-        (click)="showTacticalModal = false">
-        <span class="material-symbols-outlined" style="font-size: 1.2rem;">close</span>
-      </button>
-    </div>
-
-    <div class="tactical-modal-body p-2">
-      @if (loadingLineups) {
-      <div class="flex flex-column align-items-center justify-content-center py-6 gap-3">
-        <div class="lds-ripple">
-          <div></div>
-          <div></div>
-        </div>
-        <p class="text-white-alpha-70 text-sm">Chargement des compositions...</p>
-      </div>
-      } @else {
-      <app-tactical-lineup [teamA]="match.team_a" [teamB]="match.team_b" [teamAFlag]="teamAFlag" [teamBFlag]="teamBFlag"
-        [lineupsData]="lineupsData" [fallbackPlayers]="fallbackPlayersList"
-        (playerSelected)="selectTacticalScorer($event)">
-      </app-tactical-lineup>
-      }
-    </div>
-  </div>
-</div>
+<app-tactical-lineup [teamA]="match.team_a" [teamB]="match.team_b" [teamAFlag]="teamAFlag" [teamBFlag]="teamBFlag"
+  (onClose)="closeTacticalLineup()" (playerSelected)="selectScorer($event)">
+</app-tactical-lineup>
 }
 
-<!-- Team Past Matches Info Modal -->
 @if (showTeamInfoModal) {
-<div class="tactical-modal-overlay" (click)="showTeamInfoModal = false">
-  <div class="tactical-modal-container team-info-modal-container" (click)="$event.stopPropagation()">
-    <div class="tactical-modal-header flex justify-content-between align-items-center px-3 py-2">
-      <h3 class="m-0 text-white font-bold flex align-items-center gap-2 text-base">
-        <span class="material-symbols-outlined">analytics</span>
-        Historique : {{ selectedTeamName }}
-      </h3>
-      <button class="modal-close-btn flex align-items-center justify-content-center"
-        (click)="showTeamInfoModal = false">
-        <span class="material-symbols-outlined" style="font-size: 1.2rem;">close</span>
-      </button>
-    </div>
-
-    <div class="tactical-modal-body p-3">
-      @if (loadingTeamInfo) {
-      <div class="flex flex-column align-items-center justify-content-center py-6 gap-3">
-        <div class="lds-ripple">
-          <div></div>
-          <div></div>
-        </div>
-        <p class="text-white-alpha-70 text-sm">Chargement des matchs passés...</p>
-      </div>
-      } @else {
-      @if (teamPastMatches.length === 0) {
-      <div class="text-center py-5 text-white-alpha-60">
-        <span class="material-symbols-outlined"
-          style="font-size: 2.5rem; display: block; margin-bottom: 8px;">sports_soccer</span>
-        Aucun match jou├® dans ce tournoi.
-      </div>
-      } @else {
-      <div class="past-matches-list flex flex-column gap-3">
-        @for (phase of getPastMatchesPhases(); track phase.key) {
-        <div class="phase-section" [style.--phase-color]="phase.color">
-          <div class="phase-header">
-            <div class="phase-header-inner">
-              <span class="material-symbols-outlined phase-icon">{{ phase.icon }}</span>
-              <span class="phase-label">{{ phase.label }}</span>
-            </div>
-          </div>
-
-          <div class="flex flex-column gap-3">
-            @for (pastMatch of getPastMatchesByPhase(phase.key); track pastMatch.id) {
-            <div class="past-match-card rounded flex flex-column overflow-hidden"
-              style="background: #1a202c; border: 1px solid rgba(255, 255, 255, 0.08); margin-bottom: 4px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);">
-
-              <!-- Past Match Header -->
-              <div class="past-match-header flex justify-content-between align-items-center px-3 py-2"
-                style="background: rgba(255, 255, 255, 0.02); border-bottom: 1px solid rgba(255, 255, 255, 0.08); font-size: 0.75rem; color: rgba(255, 255, 255, 0.85);">
-                <span class="font-bold uppercase tracking-wider">Match M{{ pastMatch.id }}</span>
-                <span>{{ pastMatch.date | date: 'EEEE d MMMM yyyy | HH:mm' }}</span>
-              </div>
-
-              <!-- Past Match Body (official-score-board style layout) -->
-              <div class="official-score-board">
-                <div class="score-board-container flex align-items-center justify-content-between">
-                  <div class="team-info left flex flex-column align-items-end justify-content-center gap-1">
-                    <div class="flex align-items-center gap-2">
-                      <span class="flag-wrapper"
-                        [style.background-image]="'url(' + getTeamFlagUrl(pastMatch.team_a) + ')'"></span>
-                      <span class="team-name" style="font-size: 1.05rem;">{{ pastMatch.team_a | slice:0:3 | uppercase
-                        }}</span>
-                    </div>
-                    <div class="flex justify-content-end w-full mt-1"
-                      style="transform: scale(0.75); transform-origin: right center;">
-                      <teamperformance [teamName]="pastMatch.team_a" />
-                    </div>
-                  </div>
-
-                  <div class="score-pill-container">
-                    <div class="score-pill flex align-items-center justify-content-center">
-                      <span class="score flex align-items-baseline">
-                        {{ pastMatch.fulltime_a }}
-                        @if (pastMatch.penalty_a !== null && pastMatch.penalty_a !== undefined && pastMatch.penalty_b
-                        !== null && pastMatch.penalty_b !== undefined) {
-                        <span style="font-size: 0.65em; opacity: 0.85; margin-left: 2px;">({{ pastMatch.penalty_a
-                          }})</span>
-                        }
-                      </span>
-                      <span class="divider mx-2">|</span>
-                      <span class="score flex align-items-baseline">
-                        {{ pastMatch.fulltime_b }}
-                        @if (pastMatch.penalty_a !== null && pastMatch.penalty_a !== undefined && pastMatch.penalty_b
-                        !== null && pastMatch.penalty_b !== undefined) {
-                        <span style="font-size: 0.65em; opacity: 0.85; margin-left: 2px;">({{ pastMatch.penalty_b
-                          }})</span>
-                        }
-                      </span>
-                    </div>
-                    @if (pastMatch.halftime_a !== null && pastMatch.halftime_b !== null) {
-                    <span class="halftime-score-pill">
-                      HT : {{ pastMatch.halftime_a }} - {{ pastMatch.halftime_b }}
-                    </span>
-                    }
-                  </div>
-
-                  <div class="team-info right flex flex-column align-items-start justify-content-center gap-1">
-                    <div class="flex align-items-center gap-2">
-                      <span class="team-name" style="font-size: 1.05rem;">{{ pastMatch.team_b | slice:0:3 | uppercase
-                        }}</span>
-                      <span class="flag-wrapper"
-                        [style.background-image]="'url(' + getTeamFlagUrl(pastMatch.team_b) + ')'"></span>
-                    </div>
-                    <div class="flex justify-content-start w-full mt-1"
-                      style="transform: scale(0.75); transform-origin: left center;">
-                      <teamperformance [teamName]="pastMatch.team_b" />
-                    </div>
-                  </div>
-                </div>
-
-                <!-- Scorers Split Grid -->
-                @if (isMatchScorersJson(pastMatch)) {
-                <div class="scorers-split-grid"
-                  style="display: grid; grid-template-columns: 1fr 1fr; background: #202734; border-top: 1px solid rgba(255, 255, 255, 0.05); padding: 8px 12px; font-size: 0.72rem; color: #a0aec0; min-height: 48px;">
-                  <!-- Team A Scorers -->
-                  <div class="text-left" style="border-right: 1px solid rgba(255, 255, 255, 0.05); padding-right: 8px;">
-                    @for (scorer of getMatchScorersGrouped(pastMatch, pastMatch.team_a); track scorer.name) {
-                    <div
-                      style="margin-bottom: 2px; display: flex; align-items: center; gap: 4px; justify-content: flex-start;">
-                      <span class="material-symbols-outlined"
-                        style="font-size: 0.8rem; color: #8a99ad;">sports_soccer</span>
-                      <span style="font-weight: 700; color: #e2e8f0;">{{ scorer.name }}</span>
-                      <span style="color: #a0aec0;" [innerHTML]="scorer.times"></span>
-                    </div>
-                    }
-                  </div>
-                  <!-- Team B Scorers -->
-                  <div class="text-right" style="padding-left: 8px;">
-                    @for (scorer of getMatchScorersGrouped(pastMatch, pastMatch.team_b); track scorer.name) {
-                    <div
-                      style="margin-bottom: 2px; display: flex; align-items: center; gap: 4px; justify-content: flex-end;">
-                      <span style="font-weight: 700; color: #e2e8f0;">{{ scorer.name }}</span>
-                      <span style="color: #a0aec0;" [innerHTML]="scorer.times"></span>
-                      <span class="material-symbols-outlined"
-                        style="font-size: 0.8rem; color: #8a99ad;">sports_soccer</span>
-                    </div>
-                    }
-                  </div>
-                </div>
-                } @else if (pastMatch.scorers) {
-                <div class="scorers-split-grid"
-                  style="display: flex; justify-content: center; align-items: center; background: #202734; border-top: 1px solid rgba(255, 255, 255, 0.05); padding: 8px 12px; font-size: 0.72rem; color: #a0aec0; min-height: 48px;">
-                  <span class="material-symbols-outlined"
-                    style="font-size: 0.8rem; color: #ffeb3b; margin-right: 4px;">sports_soccer</span>
-                  <span style="color: #e2e8f0; font-style: italic;">{{ pastMatch.scorers }}</span>
-                </div>
-                }
-
-                <div class="stripe-bar"></div>
-              </div>
-
-              <!-- Outcome Ribbon / Accent Stripe at bottom -->
-              <div class="past-match-footer flex justify-content-between align-items-center px-3 py-1.5"
-                style="background: rgba(0, 0, 0, 0.15); border-top: 1px solid rgba(255, 255, 255, 0.04); font-size: 0.68rem; border-bottom-left-radius: 10px; border-bottom-right-radius: 10px;">
-                <span class="result-badge px-2 py-0.5 rounded font-semibold"
-                  [style.background-color]="getMatchResultBgColor(pastMatch)"
-                  [style.color]="getMatchResultTextColor(pastMatch)">
-                  {{ getMatchResultLabel(pastMatch) }}
-                </span>
-                <span style="color: #718096; font-size: 0.68rem;">M{{ pastMatch.id }}</span>
-              </div>
-
-            </div>
-            }
-          </div>
-        </div>
-        }
-      </div>
-      }
-      }
-    </div>
-  </div>
-</div>
+<app-team-info-modal
+  [showTeamInfoModal]="showTeamInfoModal"
+  [selectedTeamName]="selectedTeamName"
+  [loadingTeamInfo]="loadingTeamInfo"
+  [teamPastMatches]="teamPastMatches"
+  (onCloseModal)="closeTeamInfoModal()">
+</app-team-info-modal>
 }

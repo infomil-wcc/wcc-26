@@ -1,0 +1,36 @@
+<div class="match-header flex justify-content-between align-items-center">
+  <div class="header-left">
+    @if (match?.group) {
+    <span class="phase">{{ match.group }} - M{{ match.id }}</span>
+    } @else {
+    <span class="phase">{{ match?.phase }} - M{{ match?.id }}</span>
+    }
+    <div class="date-time">{{ match?.date | date: 'EEEE d MMMM yyyy | HH:mm' }}</div>
+  </div>
+  <div class="header-right">
+    <span class="badge"
+      [ngClass]="{'scheduled': !closed && !pronostiqueDone, 'predicted': pronostiqueDone && !isSavedInApi, 'closed': closed && !pronostiqueDone, 'locked': isSavedInApi}">
+      @if (isSavedInApi) {
+      <span class="material-symbols-outlined align-middle mr-1"
+        style="font-size: 0.85rem; vertical-align: middle;">lock</span>
+      <span class="align-middle">LOCKED</span>
+      } @else {
+      {{ pronostiqueDone ? 'Prédit' : (closed ? 'Clos' : 'Scheduled') }}
+      }
+    </span>
+  </div>
+</div>
+<div class="match-body">
+  <div class="flex justify-content-between align-items-center mb-2 venue-countdown-row">
+    @if (match?.stadium) {
+    <div class="venue">{{ match.stadium }}</div>
+    }
+    @if (countdownText) {
+    <div class="countdown-timer text-xs font-semibold px-2 py-0.5 rounded flex align-items-center"
+      [ngClass]="{'active-countdown': countdownText !== 'Match commencé' && countdownText !== 'Match terminé'}">
+      <span class="material-symbols-outlined mr-1" style="font-size: 0.95rem;">schedule</span>
+      <span>{{ countdownText }}</span>
+    </div>
+    }
+  </div>
+</div>

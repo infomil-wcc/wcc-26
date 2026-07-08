@@ -489,16 +489,25 @@ export class ScoresheetComponent implements OnInit {
     }
 
     // Ensure matches include convenient computed fields for p-table and sort by date desc by default
-    this.detailedMatches = this.detailedMatches.map(dm => ({
-      ...dm,
-      _id: dm.match.id,
-      _matchLabel: `${dm.match.team_a || ''} ${dm.match.team_b || ''}`,
-      _dateTs: new Date(dm.match.date).getTime(),
-      phase: dm.match.phase || '',
-      _scoreNum: (dm.match.fulltime_a ?? 0) * 100 + (dm.match.fulltime_b ?? 0),
-      _predictionNum: (dm.prediction.fulltime_a ?? -1) * 100 + (dm.prediction.fulltime_b ?? -1),
-      _points: dm.breakdown.isFraud ? 0 : dm.breakdown.total
-    }));
+    this.detailedMatches = this.detailedMatches.map(dm => {
+      let normalizedDate = dm.match.date.trim();
+      if (!normalizedDate.endsWith('Z') && !/[+-]\d{2}:?\d{2}$/.test(normalizedDate)) {
+        normalizedDate += '+04:00';
+      }
+      normalizedDate = normalizedDate.replace(' ', 'T');
+
+      return {
+        ...dm,
+        _id: dm.match.id,
+        _matchLabel: `${dm.match.team_a || ''} ${dm.match.team_b || ''}`,
+        _dateTs: new Date(normalizedDate).getTime(),
+        phase: dm.match.phase || '',
+        _scoreNum: (dm.match.fulltime_a ?? 0) * 100 + (dm.match.fulltime_b ?? 0),
+        _predictionNum: (dm.prediction.fulltime_a ?? -1) * 100 + (dm.prediction.fulltime_b ?? -1),
+        _points: dm.breakdown.isFraud ? 0 : dm.breakdown.total,
+        match: { ...dm.match, date: normalizedDate }
+      };
+    });
     this.detailedMatches.sort((a, b) => new Date(b.match.date).getTime() - new Date(a.match.date).getTime());
   }
 

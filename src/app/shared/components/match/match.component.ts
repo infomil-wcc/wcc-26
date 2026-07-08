@@ -5,7 +5,16 @@ import { map, of } from 'rxjs';
 import { TeamsService } from '../../services/content/teams.service';
 import { StateService } from '../../services/core/state.service';
 import { PredictionsService } from '../../services/games/predictions.service';
-import Fuse from 'fuse.js';
+import { MatchHeaderComponent } from './components/match-header/match-header.component';
+import { MatchInfoComponent } from './components/match-info/match-info.component';
+import { MatchPredictionEditComponent } from './components/match-prediction-edit/match-prediction-edit.component';
+import { MatchPredictionSavedComponent } from './components/match-prediction-saved/match-prediction-saved.component';
+import { MatchOfficialScoreComponent } from './components/match-official-score/match-official-score.component';
+import { TeamInfoModalComponent } from './components/team-info-modal/team-info-modal.component';
+import { MatchScorersService } from '../../services/games/match-scorers.service';
+import { MatchOutcomeService } from '../../services/games/match-outcome.service';
+import { MatchCountdownService } from '../../services/games/match-countdown.service';
+import { TeamHistoryService, PHASE_CONFIG } from '../../services/games/team-history.service';
 import { GlobaltimeService } from '../../services/core/globaltime.service';
 import { StadiumsService } from '../../services/content/stadiums.service';
 import { NgClass, NgStyle, AsyncPipe, UpperCasePipe, SlicePipe, DatePipe } from '@angular/common';
@@ -17,22 +26,14 @@ import { LineupsApiService } from '../../services/api/lineups-api.service';
 import { TeamperformanceComponent } from '../teamperformance/teamperformance.component';
 import { MatchesService } from '../../services/content/matches.service';
 
-const PHASE_CONFIG: { key: string; label: string; icon: string; color: string }[] = [
-  { key: 'Group Stage', label: 'Phase de groupes', icon: 'groups', color: '#3b5bdb' },
-  { key: 'Round of 32', label: 'Seizièmes de finale', icon: 'filter_none', color: '#7048e8' },
-  { key: 'Round of 16', label: 'Huitièmes de finale', icon: 'filter_8', color: '#9c36b5' },
-  { key: 'Quarter-finals', label: 'Quarts de finale', icon: 'emoji_events', color: '#d6336c' },
-  { key: 'Semi-finals', label: 'Demi-finales', icon: 'military_tech', color: '#f76707' },
-  { key: 'Third Place', label: 'Troisième place', icon: 'looks_3', color: '#0ca678' },
-  { key: 'Final', label: 'Finale', icon: 'workspace_premium', color: '#f59f00' }
-];
+
 
 @Component({
   selector: 'app-match',
   templateUrl: './match.component.html',
   styleUrl: './match.component.scss',
   changeDetection: ChangeDetectionStrategy.Eager,
-  imports: [NgClass, NgStyle, TeamperformanceComponent, NumberInputComponent, ReactiveFormsModule, FormsModule, LoaderComponent, UpperCasePipe, SlicePipe, DatePipe, TacticalLineupComponent]
+  imports: [NgClass, NgStyle, TeamperformanceComponent, NumberInputComponent, ReactiveFormsModule, FormsModule, LoaderComponent, UpperCasePipe, SlicePipe, DatePipe, TacticalLineupComponent, MatchHeaderComponent, MatchInfoComponent, MatchPredictionEditComponent, MatchPredictionSavedComponent, MatchOfficialScoreComponent, TeamInfoModalComponent]
 })
 export class MatchComponent implements OnInit, OnDestroy {
 
@@ -44,6 +45,10 @@ export class MatchComponent implements OnInit, OnDestroy {
   lineupsService = inject(LineupsApiService);
   matchesService = inject(MatchesService);
   cdr = inject(ChangeDetectorRef);
+  matchScorersService = inject(MatchScorersService);
+  matchOutcomeService = inject(MatchOutcomeService);
+  matchCountdownService = inject(MatchCountdownService);
+  teamHistoryService = inject(TeamHistoryService);
 
   @Input() match!: Matches;
   @Input() isPronostiques: boolean = false;
@@ -291,6 +296,19 @@ export class MatchComponent implements OnInit, OnDestroy {
     this.sendBet();
   }
 
+  closeTacticalLineup(): void {
+    this.showTacticalModal = false;
+  }
+
+  selectScorer(scorer: string): void {
+    if (!this.canEditScores) {
+      return;
+    }
+    this.scorer = scorer;
+    this.showTacticalModal = false;
+    this.sendBet();
+  }
+
   protected clearScorer(): void {
     if (!this.canEditScores) {
       return;
@@ -332,7 +350,7 @@ export class MatchComponent implements OnInit, OnDestroy {
     }
 
     if (this.calcWinDrawOutcome) {
-      this.matchOutcome = this.calculateWinDraw(this.match.team_a, this.match.team_b, this.fullTimeA, this.fullTimeB);
+      this.matchOutcome = this.matchOutcomeService.calculateWinDraw(this.match.phase, this.penaltyWinner, this.match.team_a, this.match.team_b, this.fullTimeA, this.fullTimeB);
     }
     this.sendBet();
   }
@@ -365,10 +383,7 @@ export class MatchComponent implements OnInit, OnDestroy {
   }
 
   get isMatchFinishedByDate(): boolean {
-    if (!this.match || !this.match.date || !this.today) {
-      return false;
-    }
-    return new Date(this.match.date) < this.today;
+    return this.matchOutcomeService.isMatchFinishedByDate(this.match?.date, this.today);
   }
 
   onHalftimeScoreChanged(): void {
@@ -412,7 +427,7 @@ export class MatchComponent implements OnInit, OnDestroy {
     let currentOutcome = this.matchOutcome;
 
     if (this.calcWinDrawOutcome) {
-      currentOutcome = this.calculateWinDraw(this.match.team_a, this.match.team_b, this.fullTimeA, this.fullTimeB);
+      currentOutcome = this.matchOutcomeService.calculateWinDraw(this.match.phase, this.penaltyWinner, this.match.team_a, this.match.team_b, this.fullTimeA, this.fullTimeB);
     }
 
     if (currentOutcome === 'Draw' && this.match.phase !== 'Group Stage' && this.penaltyWinner) {
@@ -449,23 +464,7 @@ export class MatchComponent implements OnInit, OnDestroy {
     this.isSubmitting = false;
   }
 
-  calculateWinDraw(teamA: string, teamB: string, scoreA: number | null, scoreB: number | null): string {
-    if (scoreA === null || scoreA === undefined || scoreB === null || scoreB === undefined) {
-      return '';
-    }
-    let outcome: string;
 
-    (scoreA > scoreB) ? outcome = teamA : outcome = teamB;
-    if (scoreA === scoreB) {
-      if (this.match.phase !== 'Group Stage' && this.penaltyWinner) {
-        outcome = this.penaltyWinner;
-      } else {
-        outcome = 'Draw';
-      }
-    }
-
-    return outcome;
-  }
 
   verfierMonPronostique(): void {
     if (this.justSaved) return;
@@ -480,8 +479,14 @@ export class MatchComponent implements OnInit, OnDestroy {
           const predTimeStr = pred.modified_on || pred.created_on;
           if (!predTimeStr) return false;
 
+          let normalizedMatchDate = this.match.date.trim();
+          if (!normalizedMatchDate.endsWith('Z') && !/[+-]\d{2}:?\d{2}$/.test(normalizedMatchDate)) {
+            normalizedMatchDate += '+04:00';
+          }
+          normalizedMatchDate = normalizedMatchDate.replace(' ', 'T');
+
           const predTimestamp = new Date(predTimeStr).getTime();
-          const matchTimestamp = new Date(this.match.date).getTime();
+          const matchTimestamp = new Date(normalizedMatchDate).getTime();
           this.invalidatedDate = new Date(predTimeStr);
 
           return predTimestamp >= matchTimestamp;
@@ -582,45 +587,13 @@ export class MatchComponent implements OnInit, OnDestroy {
   }
 
   startCountdown(): void {
-    const matchTime = new Date(this.match.date).getTime();
-
     const updateCountdown = () => {
-      const now = new Date().getTime() + this.timeOffset;
-      const diff = matchTime - now;
-
-      const status = this.match.current_status?.toLowerCase();
-      if (status === 'finished' || this.match.played || diff <= -150 * 60 * 1000) {
-        this.countdownText = 'Match terminé';
-        if (!this.closed) {
-          this.closed = true;
-          this.predictionService.removeDraft(this.match.id);
-        }
-        return;
+      const state = this.matchCountdownService.getCountdownState(this.match.date, this.match.current_status, this.match.played, this.timeOffset);
+      this.countdownText = state.text;
+      if (state.isClosed && !this.closed) {
+        this.closed = true;
+        this.predictionService.removeDraft(this.match.id);
       }
-
-      if (status === 'live' || status === 'in_play' || diff <= 0) {
-        this.countdownText = 'Match commencé';
-        if (!this.closed) {
-          this.closed = true;
-          this.predictionService.removeDraft(this.match.id);
-        }
-        return;
-      }
-
-      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-      const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-      const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-      const seconds = Math.floor((diff % (1000 * 60)) / 1000);
-
-      let text = '';
-      if (days > 0) {
-        text += `${days}j ${hours}h ${minutes}m`;
-      } else if (hours > 0) {
-        text += `${hours}h ${minutes}m ${seconds}s`;
-      } else {
-        text += `${minutes}m ${seconds}s`;
-      }
-      this.countdownText = text;
     };
 
     updateCountdown();
@@ -628,130 +601,23 @@ export class MatchComponent implements OnInit, OnDestroy {
   }
 
   isOutcomeCorrect(): boolean {
-    if (this.hidePointsBadge) return false; 
-    if (!this.donePronostique || !this.match || this.match.fulltime_a === null || this.match.fulltime_b === null || this.hidePointsBadge) {
-      return false;
-    }
-    return this.donePronostique.winner_draw === this.match.winner_draw;
+    return this.matchOutcomeService.isOutcomeCorrect(this.donePronostique, this.match, this.hidePointsBadge);
   }
 
   isFulltimeCorrect(): boolean {
-    if (!this.donePronostique || !this.match || this.match.fulltime_a === null || this.match.fulltime_b === null || this.hidePointsBadge) {
-      return false;
-    }
-    const predA = parseInt(this.donePronostique.fulltime_a, 10);
-    const predB = parseInt(this.donePronostique.fulltime_b, 10);
-    return predA === this.match.fulltime_a && predB === this.match.fulltime_b;
+    return this.matchOutcomeService.isFulltimeCorrect(this.donePronostique, this.match, this.hidePointsBadge);
   }
 
   isHalftimeCorrect(): boolean {
-    if (!this.donePronostique || !this.match || this.match.halftime_a === null || this.match.halftime_b === null || this.hidePointsBadge) {
-      return false;
-    }
-    const predA = parseInt(this.donePronostique.halftime_a, 10);
-    const predB = parseInt(this.donePronostique.halftime_b, 10);
-    return predA === this.match.halftime_a && predB === this.match.halftime_b;
-  }
-
-  get parsedScorersEvents(): any[] {
-    if (!this.match || !this.match.scorers) return [];
-    const val = this.match.scorers;
-    let list: any[] = [];
-    if (Array.isArray(val)) {
-      list = val;
-    } else if (typeof val === 'string') {
-      const trimmed = val.trim();
-      if (trimmed.startsWith('[') && trimmed.endsWith(']')) {
-        try {
-          list = JSON.parse(trimmed);
-        } catch (e) {
-          list = [];
-        }
-      }
-    }
-
-    return list.map(e => {
-      let name = e.player?.name || 'Unknown';
-      let elapsed = e.time?.elapsed ?? 0;
-      let extra = e.time?.extra ?? null;
-      let detail = e.detail || 'Normal Goal';
-
-      const regex = /^(.*?)\s+(\d+)'?(?:\+(\d+))?'?\s*(\((?:OG|p|CSC|PEN)\)|\[(?:OG|p|CSC|PEN)\])?$/i;
-      const match = name.trim().match(regex);
-      if (match) {
-        name = match[1].trim();
-        elapsed = parseInt(match[2], 10);
-        extra = match[3] ? parseInt(match[3], 10) : null;
-        if (match[4]) {
-          const detailLower = match[4].toLowerCase();
-          if (detailLower.includes('og') || detailLower.includes('csc')) {
-            detail = 'Own Goal';
-          } else if (detailLower.includes('p') || detailLower.includes('pen')) {
-            detail = 'Penalty';
-          }
-        }
-      }
-      return {
-        ...e,
-        player: { ...e.player, name },
-        time: { elapsed, extra },
-        detail
-      };
-    });
+    return this.matchOutcomeService.isHalftimeCorrect(this.donePronostique, this.match, this.hidePointsBadge);
   }
 
   get isScorersJson(): boolean {
-    return this.parsedScorersEvents.length > 0;
+    return this.matchScorersService.isMatchScorersJson(this.match);
   }
 
   isScorerCorrect(): boolean {
-    if (!this.donePronostique || !this.match || !this.match.scorers || this.hidePointsBadge) {
-      return false;
-    }
-    const predScorer = this.donePronostique.scorer;
-    if (!predScorer || predScorer === '-') return false;
-
-    let scorersList: string[] = [];
-    if (this.isScorersJson) {
-      scorersList = this.parsedScorersEvents.map(e => e.player?.name).filter(Boolean);
-    } else {
-      const scorersVal = this.match.scorers;
-      if (typeof scorersVal === 'string') {
-        scorersList = scorersVal.split(',').map(name => {
-          let trimmed = name.trim();
-          const regex = /^(.*?)\s+(\d+)'?(?:\+(\d+))?'?\s*(\((?:OG|p|CSC|PEN)\)|\[(?:OG|p|CSC|PEN)\])?$/i;
-          const match = trimmed.match(regex);
-          return match ? match[1].trim() : trimmed;
-        });
-      }
-    }
-
-    const normalizeName = (name: string) => {
-      if (!name || typeof name !== 'string') return '';
-      return name
-        .normalize("NFD")
-        .replace(/[\u0300-\u036f]/g, "")
-        .toLowerCase()
-        .replace(/[^a-z0-9\s]/g, "")
-        .split(/\s+/)
-        .filter(Boolean)
-        .sort()
-        .join(' ')
-        .trim();
-    };
-
-    const normalizedPredScorer = normalizeName(predScorer);
-    const normalizedScorersList = scorersList.map(name => normalizeName(name));
-
-    const fuse = new Fuse(normalizedScorersList, {
-      includeScore: true,
-      threshold: 0.4
-    });
-
-    const results = fuse.search(normalizedPredScorer);
-    const isMatch = results.length > 0;
-
-    return isMatch;
+    return this.matchScorersService.isScorerCorrect(this.donePronostique?.scorer, this.match);
   }
 
   modifierPronostic(): void {
@@ -771,185 +637,19 @@ export class MatchComponent implements OnInit, OnDestroy {
   }
 
   get matchPoints(): number | null {
-    if (!this.donePronostique || !this.match ||
-      this.match.fulltime_a === null || this.match.fulltime_b === null || this.hidePointsBadge) {
-      return null;
-    }
-    const game = this.match;
-    let points = 0;
-    const winnerPts = Number(game.winner_point) || 0;
-    const fulltimePts = Number(game.fulltime_point) || 0;
-    const halftimePts = Number(game.halftime_point) || 0;
-    const scorerPts = Number(game.scorer_point) || 0;
-
-    if (game.phase === 'Group Stage') {
-      if (this.isOutcomeCorrect()) points += winnerPts;
-      if (game.id === '1' && this.isFulltimeCorrect()) points += fulltimePts;
-    }
-
-    const isKnockout = ['Round of 32', 'Round of 16', 'Quarter-finals', 'Semi-finals', 'Third Place', 'Final'].includes(game.phase);
-
-    if (isKnockout) {
-      if (this.isOutcomeCorrect()) {
-        points += winnerPts;
-        if (game.penalty_shootout) {
-          points += fulltimePts; 
-        }
-      }
-
-      if (!game.penalty_shootout && this.isFulltimeCorrect()) {
-        points += fulltimePts;
-      }
-
-      if (this.isHalftimeCorrect()) points += halftimePts;
-      if (this.isScorerCorrect()) points += scorerPts;
-    }
-
-    return points;
+    return this.matchOutcomeService.getMatchPoints(this.donePronostique, this.match, this.hidePointsBadge);
   }
 
   get isConsolationPointAwarded(): boolean {
-    if (!this.donePronostique || !this.match ||
-      this.match.fulltime_a === null || this.match.fulltime_b === null || this.hidePointsBadge) {
-      return false;
-    }
-    if (this.match.phase === 'Group Stage' || this.match.phase === 'Round of 32') {
-      return false;
-    }
-    return this.matchPoints === 0;
-  }
-
-  getGroupedScorers(teamName: string): any[] {
-    if (!this.match || !this.match.scorers) return [];
-    const events = this.parsedScorersEvents;
-    if (events.length === 0) return [];
-
-    const teamEvents = events.filter(e => {
-      const eventTeam = e.team?.name;
-      return eventTeam && eventTeam.trim().toLowerCase() === teamName.trim().toLowerCase();
-    });
-
-    const groups: { [name: string]: string[] } = {};
-    for (const e of teamEvents) {
-      const name = e.player?.name || 'Unknown';
-      let timeStr = `${e.time.elapsed}`;
-      if (e.time.extra) {
-        timeStr += `+${e.time.extra}`;
-      }
-      timeStr += "'";
-      if (e.detail === 'Penalty') {
-        timeStr += ' <sup>[PEN]</sup>';
-      } else if (e.detail === 'Own Goal') {
-        timeStr += ' <sup>[OG]</sup>';
-      }
-
-      if (!groups[name]) {
-        groups[name] = [];
-      }
-      groups[name].push(timeStr);
-    }
-
-    return Object.keys(groups).map(name => ({
-      name,
-      times: `(${groups[name].join(', ')})`
-    }));
+    return this.matchOutcomeService.isConsolationPointAwarded(this.donePronostique, this.match, this.hidePointsBadge);
   }
 
   get teamAScorersGrouped(): any[] {
-    return this.getGroupedScorers(this.match.team_a);
+    return this.matchScorersService.getMatchScorersGrouped(this.match, this.match.team_a);
   }
 
   get teamBScorersGrouped(): any[] {
-    return this.getGroupedScorers(this.match.team_b);
-  }
-
-  parseScorers(scorersVal: any): any[] {
-    if (!scorersVal) return [];
-    let list: any[] = [];
-    if (Array.isArray(scorersVal)) {
-      list = scorersVal;
-    } else if (typeof scorersVal === 'string') {
-      const trimmed = scorersVal.trim();
-      if (trimmed.startsWith('[') && trimmed.endsWith(']')) {
-        try {
-          list = JSON.parse(trimmed);
-        } catch (e) {
-          list = [];
-        }
-      }
-    }
-
-    return list.map(e => {
-      let name = e.player?.name || e.scorer?.name || e.name || 'Unknown';
-      let elapsed = e.time?.elapsed ?? 0;
-      let extra = e.time?.extra ?? null;
-      let detail = e.detail || 'Normal Goal';
-
-      const regex = /^(.*?)\s+(\d+)'?(?:\+(\d+))?'?\s*(\((?:OG|p|CSC|PEN)\)|\[(?:OG|p|CSC|PEN)\])?$/i;
-      const match = typeof name === 'string' ? name.trim().match(regex) : null;
-      if (match) {
-        name = match[1].trim();
-        elapsed = parseInt(match[2], 10);
-        extra = match[3] ? parseInt(match[3], 10) : null;
-        if (match[4]) {
-          const detailLower = match[4].toLowerCase();
-          if (detailLower.includes('og') || detailLower.includes('csc')) {
-            detail = 'Own Goal';
-          } else if (detailLower.includes('p') || detailLower.includes('pen')) {
-            detail = 'Penalty';
-          }
-        }
-      }
-      return {
-        ...e,
-        player: { name },
-        time: { elapsed, extra },
-        detail
-      };
-    });
-  }
-
-  isMatchScorersJson(m: Matches): boolean {
-    if (!m || !m.scorers) return false;
-    const events = this.parseScorers(m.scorers);
-    return events.length > 0;
-  }
-
-  getMatchScorersGrouped(m: Matches, teamName: string): any[] {
-    if (!m || !m.scorers) return [];
-    const events = this.parseScorers(m.scorers);
-    if (events.length === 0) return [];
-
-    const teamEvents = events.filter(e => {
-      const eventTeam = e.team?.name || e.team;
-      return eventTeam && typeof eventTeam === 'string' && eventTeam.trim().toLowerCase() ===
-        teamName.trim().toLowerCase();
-    });
-
-    const groups: { [name: string]: string[] } = {};
-    for (const e of teamEvents) {
-      const name = e.player?.name || 'Unknown';
-      let timeStr = `${e.time.elapsed}`;
-      if (e.time.extra) {
-        timeStr += `+${e.time.extra}`;
-      }
-      timeStr += "'";
-      if (e.detail === 'Penalty') {
-        timeStr += ' <sup>[PEN]</sup>';
-      } else if (e.detail === 'Own Goal') {
-        timeStr += ' <sup>[OG]</sup>';
-      }
-
-      if (!groups[name]) {
-        groups[name] = [];
-      }
-      groups[name].push(timeStr);
-    }
-
-    return Object.keys(groups).map(name => ({
-      name,
-      times: `(${groups[name].join(', ')})`
-    }));
+    return this.matchScorersService.getMatchScorersGrouped(this.match, this.match.team_b);
   }
 
   protected showTeamDetails(teamName: string, event: Event): void {
@@ -993,60 +693,5 @@ export class MatchComponent implements OnInit, OnDestroy {
     return this.flagsLookup[teamName] || 'assets/flags/unknown.png';
   }
 
-  protected getPastMatchesPhases(): typeof PHASE_CONFIG {
-    const presentKeys = new Set(this.teamPastMatches.map(m => m.phase));
-    return PHASE_CONFIG.filter(p => presentKeys.has(p.key));
-  }
 
-  protected getPastMatchesByPhase(phaseKey: string): Matches[] {
-    return this.teamPastMatches.filter(m => m.phase === phaseKey);
-  }
-
-  protected getMatchResultLabel(pastMatch: Matches): string {
-    const isTeamA = pastMatch.team_a === this.selectedTeamName;
-    const scoreA = Number(pastMatch.fulltime_a);
-    const scoreB = Number(pastMatch.fulltime_b);
-    if (scoreA === scoreB) return 'NUL';
-    if (isTeamA) {
-      return scoreA > scoreB ? 'VICTOIRE' : 'DÉFAITE';
-    } else {
-      return scoreB > scoreA ? 'VICTOIRE' : 'DÉFAITE';
-    }
-  }
-
-  protected getMatchResultColor(pastMatch: Matches): string {
-    const isTeamA = pastMatch.team_a === this.selectedTeamName;
-    const scoreA = Number(pastMatch.fulltime_a);
-    const scoreB = Number(pastMatch.fulltime_b);
-    if (scoreA === scoreB) return '#718096'; 
-    if (isTeamA) {
-      return scoreA > scoreB ? '#48bb78' : '#e53e3e'; 
-    } else {
-      return scoreB > scoreA ? '#48bb78' : '#e53e3e'; 
-    }
-  }
-
-  protected getMatchResultBgColor(pastMatch: Matches): string {
-    const isTeamA = pastMatch.team_a === this.selectedTeamName;
-    const scoreA = Number(pastMatch.fulltime_a);
-    const scoreB = Number(pastMatch.fulltime_b);
-    if (scoreA === scoreB) return 'rgba(113, 128, 150, 0.15)';
-    if (isTeamA) {
-      return scoreA > scoreB ? 'rgba(72, 187, 120, 0.15)' : 'rgba(229, 62, 62, 0.15)';
-    } else {
-      return scoreB > scoreA ? 'rgba(72, 187, 120, 0.15)' : 'rgba(229, 62, 62, 0.15)';
-    }
-  }
-
-  protected getMatchResultTextColor(pastMatch: Matches): string {
-    const isTeamA = pastMatch.team_a === this.selectedTeamName;
-    const scoreA = Number(pastMatch.fulltime_a);
-    const scoreB = Number(pastMatch.fulltime_b);
-    if (scoreA === scoreB) return '#a0aec0';
-    if (isTeamA) {
-      return scoreA > scoreB ? '#48bb78' : '#f56565';
-    } else {
-      return scoreB > scoreA ? '#48bb78' : '#f56565';
-    }
-  }
 }

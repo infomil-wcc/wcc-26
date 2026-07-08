@@ -2,6 +2,16 @@ import { fetchWithBypass } from './utils.mjs';
 import { calcResultForRanking } from './match-calculations.mjs';
 import { calcBracketPoints } from './calc-bracket-stage.mjs';
 
+function parseMauritianDate(dateStr) {
+  if (!dateStr) return 0;
+  let normalized = dateStr.trim();
+  if (!normalized.endsWith('Z') && !/[+-]\d{2}:?\d{2}$/.test(normalized)) {
+    normalized += '+04:00';
+  }
+  normalized = normalized.replace(' ', 'T');
+  return new Date(normalized).getTime();
+}
+
 /**
  * USER LEADERBOARD RANKING CALCULATIONS
  * Validates timestamps to eliminate post-kickoff submissions or modifications.
@@ -134,13 +144,13 @@ export async function recalculateRankings(directusUrl, adminToken, specificUser 
         const game = playedMatches.find(m => String(m.id) === gameIdStr);
         if (game) {
           // 🚨 TIMESTAMP FRAUD CHECK
-          const predictionCreated = prono.created_on ? new Date(prono.created_on) : null;
-          const predictionModified = prono.modified_on ? new Date(prono.modified_on) : null;
-          const matchKickoff = new Date(game.date);
+          const predictionCreated = prono.created_on ? new Date(prono.created_on).getTime() : null;
+          const predictionModified = prono.modified_on ? new Date(prono.modified_on).getTime() : null;
+          const matchKickoff = parseMauritianDate(game.date);
 
           let isInvalidated = false;
-          if (predictionCreated && predictionCreated > matchKickoff) isInvalidated = true;
-          if (predictionModified && predictionModified > matchKickoff) isInvalidated = true;
+          if (predictionCreated && predictionCreated >= matchKickoff) isInvalidated = true;
+          if (predictionModified && predictionModified >= matchKickoff) isInvalidated = true;
 
           let pts = { winner: 0, fulltime: 0, halftime: 0, scorer: 0, consolation: 0, total: 0, isFraud: false };
           if (isDuplicate) {

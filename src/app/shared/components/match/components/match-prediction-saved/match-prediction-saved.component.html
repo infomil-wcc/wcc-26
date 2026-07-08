@@ -1,0 +1,93 @@
+<div class="pronostiqueDone flex flex-column align-items-center mt-2"
+  [ngClass]="(match?.fulltime_a !== null && match?.fulltime_b !== null) ? (isOutcomeCorrectVal ? 'bg-success-box' : 'bg-danger-box') : ''">
+  <span class="label text-xs uppercase font-semibold text-center mb-1"
+    style="letter-spacing: 1.5px; font-size: 0.75rem;">Mon Pronostic</span>
+
+  <h4 class="mt-0 mb-2 text-2xl font-bold text-center flex align-items-center justify-content-center gap-2">
+    <strong class="flex align-items-center gap-2"
+      [ngClass]="(match?.fulltime_a !== null && match?.fulltime_b !== null) ? (isOutcomeCorrectVal ? 'text-success' : 'text-danger') : ''">
+      @if (match?.fulltime_a !== null && match?.fulltime_b !== null) {
+      <span class="material-symbols-outlined align-middle" style="font-size: 1.5rem;"
+        [ngClass]="isOutcomeCorrectVal ? 'icon-success' : 'icon-danger'">{{ isOutcomeCorrectVal ? 'check_circle' :
+        'cancel' }}</span>
+      }
+      @if (donePronostique?.winner_draw === 'Draw') {
+      @if (match?.phase === 'Group Stage') {
+      <span class="material-symbols-outlined"
+        style="font-size: 1.65rem; color: #3f51b5; vertical-align: middle;">handshake</span>
+      <span style="vertical-align: middle;">Draw</span>
+      } @else {
+      <span class="material-symbols-outlined"
+        style="font-size: 1.65rem; color: #ff9800; vertical-align: middle;">sports_soccer</span>
+      <span style="vertical-align: middle; color: #ff9800;">Penalty</span>
+      }
+      } @else {
+      <span style="vertical-align: middle;">{{ donePronostique?.winner_draw }}</span>
+      @if (!(match?.fulltime_a !== null && match?.fulltime_b !== null)) { 🏆 }
+      }
+    </strong>
+  </h4>
+
+  @if (!closed && donePronostique?.scorer && donePronostique.scorer !== '-' && !hidePointsBadge) {
+  <div
+    class="flex align-items-center justify-content-center gap-2 mt-0 mb-2 text-md font-bold text-center text-indigo-900">
+    <span class="material-symbols-outlined align-middle"
+      style="font-size: 1.25rem; color: #3f51b5; vertical-align: middle;">sports_soccer</span>
+    <span class="align-middle" style="vertical-align: middle;">Buteur : {{ donePronostique.scorer }}</span>
+    @if (!isSavedInApi) {
+    <button class="clear-scorer-btn flex align-items-center justify-content-center" (click)="clearScorer()"
+      [disabled]="disabled || isSubmitting"
+      style="background: none; border: none; padding: 0; cursor: pointer; color: #ef4444; margin-left: 2px; vertical-align: middle; display: inline-flex;">
+      <span class="material-symbols-outlined" style="font-size: 1.2rem;">cancel</span>
+    </button>
+    }
+  </div>
+  }
+
+  @if (closed) {
+  @if (match?.fulltime && (match?.phase !== 'Group Stage' || match?.id === '1')) {
+  <h4 class="mt-0 mb-2 text-xl font-bold text-center flex align-items-center justify-content-center gap-2"
+    [ngClass]="(match?.fulltime_a !== null && match?.fulltime_b !== null) ? (isFulltimeCorrectVal ? 'text-success' : 'text-danger') : ''">
+    @if (match?.fulltime_a !== null && match?.fulltime_b !== null) {
+    <span class="material-symbols-outlined align-middle" style="font-size: 1.25rem;"
+      [ngClass]="isFulltimeCorrectVal ? 'icon-success' : 'icon-danger'">{{ isFulltimeCorrectVal ? 'check_circle' :
+      'cancel' }}</span>
+    }
+    <strong class="align-middle">Score final :</strong> <span class="align-middle">{{ donePronostique?.fulltime_a
+      }} - {{ donePronostique?.fulltime_b }}</span>
+  </h4>
+  }
+
+  @if (match?.halftime && donePronostique?.halftime_a !== null && donePronostique?.halftime_a !== undefined) {
+  <h4 class="mt-0 mb-2 text-lg font-bold text-center flex align-items-center justify-content-center gap-2"
+    [ngClass]="(match?.fulltime_a !== null && match?.fulltime_b !== null) ? (isHalftimeCorrectVal ? 'text-success' : 'text-danger') : ''">
+    @if (match?.fulltime_a !== null && match?.fulltime_b !== null) {
+    <span class="material-symbols-outlined align-middle" style="font-size: 1.15rem;"
+      [ngClass]="isHalftimeCorrectVal ? 'icon-success' : 'icon-danger'">{{ isHalftimeCorrectVal ? 'check_circle' :
+      'cancel' }}</span>
+    }
+    <strong class="align-middle">Score mi-temps :</strong> <span class="align-middle">{{
+      donePronostique?.halftime_a }} - {{ donePronostique?.halftime_b }}</span>
+  </h4>
+  }
+
+  @if (donePronostique?.scorer && donePronostique.scorer !== '-') {
+  <h5 class="mt-0 mb-2 text-md text-center flex align-items-center justify-content-center gap-2"
+    [ngClass]="(match?.fulltime_a !== null && match?.fulltime_b !== null) ? (isScorerCorrectVal ? 'text-success' : 'text-danger') : ''">
+    @if (match?.fulltime_a !== null && match?.fulltime_b !== null) {
+    <span class="material-symbols-outlined align-middle" style="font-size: 1.1rem;"
+      [ngClass]="isScorerCorrectVal ? 'icon-success' : 'icon-danger'">{{ isScorerCorrectVal ? 'check_circle' :
+      'cancel' }}</span>
+    }
+    <strong class="align-middle">Buteur :</strong> <span class="align-middle">{{ donePronostique?.scorer }}</span>
+  </h5>
+  }
+  }
+
+  @if(isSavedInApi && donePronostique && match?.fulltime_a === null && match?.fulltime_b === null && !isEditing &&
+  match?.phase !== 'Group Stage' && !hidePointsBadge && countdownText !== 'Match commencé' &&
+  !isMatchFinishedByDate) {
+  <button class="btnEditpronostic flex align-items-center" (click)="modifierPronostic()">Modifier mon pronostic<i
+      class="material-symbols-outlined">edit</i></button>
+  }
+</div>
