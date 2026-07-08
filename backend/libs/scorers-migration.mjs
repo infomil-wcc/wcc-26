@@ -31,7 +31,7 @@ export async function migrateScorerNames({
     console.log("Loading matches...");
 
     const response = await fetch(
-        `${directusUrl}/items/matches/?limit=-1`,
+        `${directusUrl}/items/matches?limit=-1`,
         {
             headers
         }
