@@ -54,11 +54,86 @@
             Email / Mot de passe incorrecte, veuillez re-essayer. Si vous n'arrivez toujours pas a vous identifiez, veuillez vous rapproché de l'équipe organisateur.
           </span>
         }
+        <div class="registerText text-right mb-2">
+          <button tabindex="5" type="button" class="link" (click)="toggleForgotPassword()">Mot de passe oublié ?</button>
+        </div>
         <div class="flex flex-column align-items-end justify-content-between pt-2 pb-2 md:flex-row md:align-items-center md:mt-3">
           <div class="registerText mb-3 sm:mb-0">
-            <span>Pas de compte? <button tabindex="4" class="link ml-2" (click)="toggleRegister()">M'en créer un</button></span>
+            <span>Pas de compte? <button tabindex="4" type="button" class="link ml-2" (click)="toggleRegister()">M'en créer un</button></span>
           </div>
-          <button tabindex="3" class="btn btn-primary" (click)="verifyLogin(email.value, pass.value)" [disabled]="!loginForm.valid">Connexion</button>
+          <button tabindex="3" type="button" class="btn btn-primary" (click)="verifyLogin(email.value, pass.value)" [disabled]="!loginForm.valid">Connexion</button>
+        </div>
+      </form>
+    </div>
+  }
+
+  @if (forgotPasswordView) {
+    <div class="forgotPasswordFlow w-full">
+      <form [formGroup]="forgotPasswordForm">
+        <h3 class="flex align-items-center"> <span class="material-symbols-outlined icone">
+          lock_reset
+        </span>
+        Mot de passe oublié</h3>
+        <p>Entrez votre adresse email pour recevoir un lien de réinitialisation.</p>
+        
+        <div class="input mt-4">
+          <input tabindex="1" type="email" id="forgotEmail" name="forgotEmail" #emailForgot placeholder="Adresse mail &#64;infomil.mu" autocomplete="email" formControlName="email" (input)="onEmailInput('forgot')" (blur)="autocompleteEmail('forgot')" />
+          <label for="forgotEmail">*Email (&#64;infomil.mu)</label>
+          @if (forgotPasswordForm.get('email')?.invalid && forgotPasswordForm.get('email')?.touched) {
+            <span class="error mt-2 mb-2">
+              @if (forgotPasswordForm.get('email')?.errors?.['required']) {
+                Ce champ est obligatoire
+              }
+              @if (forgotPasswordForm.get('email')?.errors?.['pattern']) {
+                L'email doit se terminer par &#64;infomil.mu
+              }
+            </span>
+          }
+        </div>
+
+        @if (forgotPassMsg) {
+          <div class="successMsg mt-3 mb-3" style="color: #4caf50; font-weight: 500;">
+            {{ forgotPassMsg }}
+          </div>
+        }
+
+        <div class="flex flex-column align-items-end justify-content-between pt-2 pb-2 md:flex-row md:align-items-center md:mt-3">
+          <div class="registerText mb-3 sm:mb-0">
+            <span><button tabindex="3" type="button" class="link mr-2" (click)="toggleForgotPassword()">Retour à la connexion</button></span>
+          </div>
+          <button tabindex="2" type="button" class="btn btn-primary" (click)="requestReset(emailForgot.value)" [disabled]="!forgotPasswordForm.valid">Envoyer le lien</button>
+        </div>
+      </form>
+    </div>
+  }
+
+  @if (resetPasswordView) {
+    <div class="resetPasswordFlow w-full">
+      <form [formGroup]="resetPasswordForm">
+        <h3 class="flex align-items-center"> <span class="material-symbols-outlined icone">
+          key
+        </span>
+        Nouveau mot de passe</h3>
+        <p>Veuillez choisir votre nouveau mot de passe.</p>
+        
+        <div class="input mt-4">
+          <input tabindex="1" type="{{ passType }}" id="resetPass" name="resetPass" #passReset placeholder="Nouveau mot de passe" autocomplete="new-password" formControlName="pass" (keydown.enter)="submitNewPassword(passReset.value)" />
+          <label for="resetPass">*Nouveau mot de passe</label>
+          <span class="material-symbols-outlined togglePass" (click)="toggleType()">{{ visibility }}</span>
+          @if (resetPasswordForm.get('pass')?.invalid && resetPasswordForm.get('pass')?.touched) {
+            <span class="error mt-2 mb-2">
+              @if (resetPasswordForm.get('pass')?.errors?.['required']) {
+                Ce champ est obligatoire
+              }
+              @if (resetPasswordForm.get('pass')?.errors?.['minlength']) {
+                Mot de passe trop court
+              }
+            </span>
+          }
+        </div>
+
+        <div class="flex flex-column align-items-end justify-content-between pt-2 pb-2 md:flex-row md:align-items-center md:mt-3">
+          <button tabindex="2" type="button" class="btn btn-primary" (click)="submitNewPassword(passReset.value)" [disabled]="!resetPasswordForm.valid">Valider le mot de passe</button>
         </div>
       </form>
     </div>
@@ -153,10 +228,10 @@
       <p>{{ issueMsg }}</p>
     </div>
     <div class="registerText mb-3">
-      <span>Pour réessayer de créer un compte : <button class="link ml-2" (click)="register = true; issueHandling = false">Cliquer ici</button></span>
+      <span>Pour réessayer de créer un compte : <button type="button" class="link ml-2" (click)="register = true; issueHandling = false">Cliquer ici</button></span>
     </div>
     <div class="registerText mb-3">
-      <span>Se connecter avec un autre compte: <button class="link ml-2 mr-2" (click)="login = true; issueHandling = false">Cliquer ici</button></span>
+      <span>Se connecter avec un compte existant: <button type="button" class="link ml-2 mr-2" (click)="login = true; issueHandling = false">Cliquer ici</button></span>
     </div>
   </div>
 }

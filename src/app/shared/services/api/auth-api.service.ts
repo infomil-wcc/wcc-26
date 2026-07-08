@@ -16,4 +16,12 @@ export class AuthApiService {
   refresh(refreshDetails: any, options?: any): Observable<any> {
     return this.http.post<any>(`${environment.apiBaseUrl}/auth/refresh`, refreshDetails, options);
   }
+
+  requestPasswordReset(payload: any, options?: any): Observable<any> {
+    return this.http.post<any>(`${environment.apiBaseUrl}/auth/password/request`, payload, options);
+  }
+
+  resetPassword(payload: any, options?: any): Observable<any> {
+    return this.http.post<any>(`${environment.apiBaseUrl}/auth/password/reset`, payload, options);
+  }
 }

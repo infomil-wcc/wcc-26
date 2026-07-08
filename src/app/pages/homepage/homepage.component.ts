@@ -1,4 +1,5 @@
 import { Component, inject, ChangeDetectionStrategy } from '@angular/core';
+import { ActivatedRoute } from '@angular/router';
 import { TeamsService } from '../../shared/services/content/teams.service';
 import { Group, Teams } from '../../shared/contracts/teams.contract';
 import { Observable } from 'rxjs';
@@ -25,12 +26,20 @@ export class HomepageComponent {
   protected showLogin: boolean = false;
   protected isLoggedIn: boolean = false;
 
+  private route = inject(ActivatedRoute);
+
   ngOnInit(): void {
     this.$wcGroups = this.teamService.getGroups();
     this.$teamsFlags = this.teamService.getFlags();
     
     let currentUser = this.cookieService.get('currentUser');
     (currentUser) ? this.isLoggedIn = true : this.isLoggedIn = false;
+
+    this.route.queryParams.subscribe(params => {
+      if (params['token']) {
+        this.showLogin = true;
+      }
+    });
   }
 
 }

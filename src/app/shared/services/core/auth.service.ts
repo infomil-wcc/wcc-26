@@ -41,6 +41,14 @@ export class AuthService {
     return this.authApiService.refresh(refreshdetails, this.httpOptions);
   }
 
+  requestPasswordReset(email: string, reset_url: string): Observable<any> {
+    return this.authApiService.requestPasswordReset({ email, reset_url }, this.httpOptions);
+  }
+
+  resetPassword(token: string, pass: string): Observable<any> {
+    return this.authApiService.resetPassword({ token, password: pass }, this.httpOptions);
+  }
+
   refreshToken(token: string){
     let refreshdetails = {'token': token}
     this.authApiService.refresh(refreshdetails, this.httpOptions)
