@@ -241,9 +241,16 @@
                 <div class="detail-content p-4">
                   <!-- details preserved from previous template -->
                   <div *ngIf="item.breakdown.isFraud"
-                    class="bg-red-50 border-red-200 border-1 text-red-700 font-bold p-3 border-round-xl flex align-items-center gap-2 shadow-1 mb-4">
-                    <span class="material-symbols-outlined text-2xl">gavel</span>
-                    <span>Match invalidé (Fraude) : Le pronostic a été modifié après le coup d'envoi.</span>
+                    class="bg-red-50 border-red-200 border-1 text-red-700 font-bold p-3 border-round-xl flex flex-column gap-2 shadow-1 mb-4">
+                    <div class="flex align-items-center gap-2">
+                      <span class="material-symbols-outlined text-2xl">gavel</span>
+                      <span>Match invalidé (Fraude) : Le pronostic a été soumis ou modifié après le coup d'envoi.</span>
+                    </div>
+                    <div class="text-sm font-medium mt-1 flex flex-column gap-1" style="padding-left: 2.1rem;">
+                      <div><span class="font-bold">Début du match :</span> {{ item.match.date | date: 'dd/MM/yyyy HH:mm' }}</div>
+                      <div *ngIf="item.prediction.created_on"><span class="font-bold">Création :</span> {{ item.prediction.created_on | date: 'dd/MM/yyyy HH:mm' }}</div>
+                      <div *ngIf="item.prediction.modified_on"><span class="font-bold">Modification :</span> {{ item.prediction.modified_on | date: 'dd/MM/yyyy HH:mm' }}</div>
+                    </div>
                   </div>
 
                   <div *ngIf="!item.breakdown.isFraud && item.breakdown.total > 0"

@@ -31,6 +31,10 @@ export class PointsCalculatorService {
     if (!normalized.endsWith('Z') && !/[+-]\d{2}:?\d{2}$/.test(normalized)) {
       normalized += '+04:00';
     }
+    
+    // Replace space with T for cross-browser support (e.g., Safari/Firefox)
+    normalized = normalized.replace(' ', 'T');
+
     return new Date(normalized).getTime();
   }
 

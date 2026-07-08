@@ -95,7 +95,7 @@ export async function syncMatchesPipeline(dbMatches, { directusUrl, adminToken, 
 
         // Compile goals and scores considering inverted configurations
         const isReversed = (dbMatch.team_a === getNormalizedTeamName(fdMatch.awayTeam?.name));
-        
+
         let fdFullHome = fdMatch.score?.fullTime?.home;
         let fdFullAway = fdMatch.score?.fullTime?.away;
         let fdPenHome = null;
@@ -159,12 +159,12 @@ export async function syncMatchesPipeline(dbMatches, { directusUrl, adminToken, 
         if (wcGame) {
             const homeScorers = parseScorersString(wcGame.home_scorers, getNormalizedTeamName(wcGame.home_team_name_en));
             const awayScorers = parseScorersString(wcGame.away_scorers, getNormalizedTeamName(wcGame.away_team_name_en));
-            
+
             const homePenaltyScorers = parseScorersString(wcGame.home_penalty_scorers, getNormalizedTeamName(wcGame.home_team_name_en));
-            homePenaltyScorers.forEach(s => s.detail = 'Penalty Shootout');
+            homePenaltyScorers.forEach(s => s.detail = 'Penalty');
 
             const awayPenaltyScorers = parseScorersString(wcGame.away_penalty_scorers, getNormalizedTeamName(wcGame.away_team_name_en));
-            awayPenaltyScorers.forEach(s => s.detail = 'Penalty Shootout');
+            awayPenaltyScorers.forEach(s => s.detail = 'Penalty');
 
             payload.scorers = [...homeScorers, ...awayScorers, ...homePenaltyScorers, ...awayPenaltyScorers];
         } else {
@@ -191,9 +191,9 @@ export async function syncMatchesPipeline(dbMatches, { directusUrl, adminToken, 
                 // Cross check penalty scorers
                 const fdPenalties = fdScorers.filter(s => s.detail === 'Penalty');
                 for (const fdPen of fdPenalties) {
-                    const exists = payload.scorers.some(s => 
-                        s.detail === 'Penalty' && 
-                        s.player.name === fdPen.player.name && 
+                    const exists = payload.scorers.some(s =>
+                        s.detail === 'Penalty' &&
+                        s.player.name === fdPen.player.name &&
                         s.time.elapsed === fdPen.time.elapsed
                     );
                     if (!exists) {

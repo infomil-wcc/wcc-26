@@ -285,7 +285,9 @@ export class ScoresheetComponent implements OnInit {
         const rankingPronos = rankingRow?.pronostiques || [];
         const rankingBreakdownMap = new Map();
         for (const rp of rankingPronos) {
-           rankingBreakdownMap.set(String(rp.game_id), rp.breakdown);
+           if (!rankingBreakdownMap.has(String(rp.game_id))) {
+               rankingBreakdownMap.set(String(rp.game_id), rp.breakdown);
+           }
         }
 
         // Apply breakdown to each prediction
@@ -437,9 +439,16 @@ export class ScoresheetComponent implements OnInit {
   }
 
   calculateScoresheet() {
+    // Sort predictions by created_on ascending to match backend duplicate logic
+    this.predictions.sort((a, b) => {
+      const dateA = a.created_on ? new Date(a.created_on).getTime() : 0;
+      const dateB = b.created_on ? new Date(b.created_on).getTime() : 0;
+      return dateA - dateB;
+    });
+
     const predMap = new Map<string, Pronostiques>();
     for (const p of this.predictions) {
-      if (p.game_id) {
+      if (p.game_id && !predMap.has(String(p.game_id))) {
         predMap.set(String(p.game_id), p);
       }
     }
