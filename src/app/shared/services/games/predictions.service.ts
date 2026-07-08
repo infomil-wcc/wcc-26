@@ -48,7 +48,7 @@ export class PredictionsService {
 
   addDraft(prediction: any): void {
     const current = this.draftsSubject.getValue();
-    const index = current.findIndex(p => p.game_id === prediction.game_id);
+    const index = current.findIndex(p => String(p.game_id) === String(prediction.game_id));
     if (index > -1) {
       current[index] = prediction;
     } else {
@@ -147,7 +147,9 @@ getMyPredictions(gameID: string): Observable<any>{
           'Authorization': `Bearer ${token}`
         })
       };
-      return this.predictionsApiService.getPredictions(`?filter[game_id]=${gameID}`, httpOptions).pipe(
+      const gameIDStr = String(gameID);
+      const queryString = gameIDStr.startsWith('[') ? `?filter[game_id]${gameIDStr}` : `?filter[game_id]=${gameIDStr}`;
+      return this.predictionsApiService.getPredictions(queryString, httpOptions).pipe(
         map(response => response.data)
       );
     } else {

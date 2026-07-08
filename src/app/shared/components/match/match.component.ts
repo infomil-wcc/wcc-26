@@ -292,10 +292,10 @@ export class MatchComponent implements OnInit, OnDestroy {
   }
 
   protected clearScorer(): void {
-    if (!this.canEditPrediction) {
+    if (!this.canEditScores) {
       return;
     }
-    this.scorer = '';
+    this.scorer = '-';
     this.sendBet();
   }
 
@@ -430,7 +430,7 @@ export class MatchComponent implements OnInit, OnDestroy {
       winner_draw: currentOutcome,
     }
 
-    const existingDraft = this.predictionService.getDrafts().find(d => d.game_id === this.match.id);
+    const existingDraft = this.predictionService.getDrafts().find(d => String(d.game_id) === String(this.match.id));
     if (existingDraft?.id) {
       prediction.id = existingDraft.id;
     } else if (this.donePronostique && this.donePronostique.id) {
