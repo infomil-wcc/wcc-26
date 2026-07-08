@@ -1,12 +1,12 @@
-<div class="login flex flex-column sm:flex-row">
+<div class="login flex flex-col sm:flex-row">
 
   <div class="left desktop">
     <img src="assets/vertical-banner-login-campaign.png" alt="" />
   </div>
 
-  <div class="right w-full pl-4 pr-4 pt-3 pb-2 relative">
+  <div class="right w-full pl-6 pr-6 pt-4 pb-2 relative">
     @if (loginLoader) {
-      <div class="loginLoader flex align-items-center justify-content-center absolute">
+      <div class="loginLoader flex items-center justify-center absolute">
         <div class="loader">
           <div class="lds-ripple"><div></div><div></div></div>
         </div>
@@ -15,12 +15,12 @@
     @if (login) {
       <div class="loginFlow">
         <form [formGroup]="loginForm">
-          <h3 class="flex align-items-center"> <span class="material-symbols-outlined icone">
+          <h3 class="flex items-center"> <span class="material-symbols-outlined icone">
             account_circle
           </span>
         Authentification</h3>
         <p>Veuillez saisir vos identifiants pour participer aux différents jeux proposés</p>
-        <div class="input mt-4">
+        <div class="input mt-6">
           <input tabindex="1" type="email" id="loginEmail" name="loginEmail" #email value="" autocomplete="email" placeholder="Veuillez renseigner votre email @infomil.mu" formControlName="email" (input)="onEmailInput('login')" (blur)="autocompleteEmail('login')" />
           <label for="loginEmail">EMAIL (&#64;infomil.mu)</label>
           @if (loginForm.get('email')?.invalid && loginForm.get('email')?.touched) {
@@ -50,15 +50,15 @@
           }
         </div>
         @if (otherError) {
-          <span class="error mt-4 mb-2">
+          <span class="error mt-6 mb-2">
             Email / Mot de passe incorrecte, veuillez re-essayer. Si vous n'arrivez toujours pas a vous identifiez, veuillez vous rapproché de l'équipe organisateur.
           </span>
         }
         <div class="registerText text-right mb-2">
           <button tabindex="5" type="button" class="link" (click)="toggleForgotPassword()">Mot de passe oublié ?</button>
         </div>
-        <div class="flex flex-column align-items-end justify-content-between pt-2 pb-2 md:flex-row md:align-items-center md:mt-3">
-          <div class="registerText mb-3 sm:mb-0">
+        <div class="flex flex-col items-end justify-between pt-2 pb-2 md:flex-row md:items-center md:mt-6">
+          <div class="registerText mb-4 sm:mb-0">
             <span>Pas de compte? <button tabindex="4" type="button" class="link ml-2" (click)="toggleRegister()">M'en créer un</button></span>
           </div>
           <button tabindex="3" type="button" class="btn btn-primary" (click)="verifyLogin(email.value, pass.value)" [disabled]="!loginForm.valid">Connexion</button>
@@ -70,13 +70,13 @@
   @if (forgotPasswordView) {
     <div class="forgotPasswordFlow w-full">
       <form [formGroup]="forgotPasswordForm">
-        <h3 class="flex align-items-center"> <span class="material-symbols-outlined icone">
+        <h3 class="flex items-center"> <span class="material-symbols-outlined icone">
           lock_reset
         </span>
         Mot de passe oublié</h3>
         <p>Entrez votre adresse email pour recevoir un lien de réinitialisation.</p>
         
-        <div class="input mt-4">
+        <div class="input mt-6">
           <input tabindex="1" type="email" id="forgotEmail" name="forgotEmail" #emailForgot placeholder="Adresse mail &#64;infomil.mu" autocomplete="email" formControlName="email" (input)="onEmailInput('forgot')" (blur)="autocompleteEmail('forgot')" />
           <label for="forgotEmail">*Email (&#64;infomil.mu)</label>
           @if (forgotPasswordForm.get('email')?.invalid && forgotPasswordForm.get('email')?.touched) {
@@ -92,13 +92,13 @@
         </div>
 
         @if (forgotPassMsg) {
-          <div class="successMsg mt-3 mb-3" style="color: #4caf50; font-weight: 500;">
+          <div class="successMsg mt-4 mb-4" style="color: #4caf50; font-weight: 500;">
             {{ forgotPassMsg }}
           </div>
         }
 
-        <div class="flex flex-column align-items-end justify-content-between pt-2 pb-2 md:flex-row md:align-items-center md:mt-3">
-          <div class="registerText mb-3 sm:mb-0">
+        <div class="flex flex-col items-end justify-between pt-2 pb-2 md:flex-row md:items-center md:mt-6">
+          <div class="registerText mb-4 sm:mb-0">
             <span><button tabindex="3" type="button" class="link mr-2" (click)="toggleForgotPassword()">Retour à la connexion</button></span>
           </div>
           <button tabindex="2" type="button" class="btn btn-primary" (click)="requestReset(emailForgot.value)" [disabled]="!forgotPasswordForm.valid">Envoyer le lien</button>
@@ -110,13 +110,13 @@
   @if (resetPasswordView) {
     <div class="resetPasswordFlow w-full">
       <form [formGroup]="resetPasswordForm">
-        <h3 class="flex align-items-center"> <span class="material-symbols-outlined icone">
+        <h3 class="flex items-center"> <span class="material-symbols-outlined icone">
           key
         </span>
         Nouveau mot de passe</h3>
         <p>Veuillez choisir votre nouveau mot de passe.</p>
         
-        <div class="input mt-4">
+        <div class="input mt-6">
           <input tabindex="1" type="{{ passType }}" id="resetPass" name="resetPass" #passReset placeholder="Nouveau mot de passe" autocomplete="new-password" formControlName="pass" (keydown.enter)="submitNewPassword(passReset.value)" />
           <label for="resetPass">*Nouveau mot de passe</label>
           <span class="material-symbols-outlined togglePass" (click)="toggleType()">{{ visibility }}</span>
@@ -132,7 +132,7 @@
           }
         </div>
 
-        <div class="flex flex-column align-items-end justify-content-between pt-2 pb-2 md:flex-row md:align-items-center md:mt-3">
+        <div class="flex flex-col items-end justify-between pt-2 pb-2 md:flex-row md:items-center md:mt-6">
           <button tabindex="2" type="button" class="btn btn-primary" (click)="submitNewPassword(passReset.value)" [disabled]="!resetPasswordForm.valid">Valider le mot de passe</button>
         </div>
       </form>
@@ -142,12 +142,12 @@
   @if (register) {
     <div class="registerFlow w-full" [ngClass]="{'hidden': confirmation}">
       <form [formGroup]="registerForm">
-        <h3 class="flex align-items-center"> <span class="material-symbols-outlined icone">
+        <h3 class="flex items-center"> <span class="material-symbols-outlined icone">
           person_add
         </span>
       Créer mon compte</h3>
       <p>Veuillez insérer les informations ci-dessous</p>
-      <div class="input mt-4">
+      <div class="input mt-6">
         <input tabindex="1" type="email" id="regEmail" name="regEmail" #emailReg placeholder="Adresse mail &#64;infomil.mu" autocomplete="email" formControlName="email" (input)="onEmailInput('register')" (blur)="autocompleteEmail('register')" />
         <label for="regEmail">*Email (&#64;infomil.mu)</label>
         @if (registerForm.get('email')?.invalid && registerForm.get('email')?.touched) {
@@ -190,8 +190,8 @@
           </span>
         }
       </div>
-      <div class="flex flex-column align-items-end justify-content-between pt-2 pb-2 md:flex-row md:align-items-center md:mt-3">
-        <div class="registerText mb-3 sm:mb-0">
+      <div class="flex flex-col items-end justify-between pt-2 pb-2 md:flex-row md:items-center md:mt-6">
+        <div class="registerText mb-4 sm:mb-0">
           <span>Déja inscrit ? <button tabindex="5" class="link ml-2 mr-2" (click)="toggleRegister()">Se connecter</button></span>
         </div>
         <button tabindex="4" class="btn btn-primary" (click)="registerAccount(emailReg.value, trigrammeReg.value, passReg.value)" [disabled]="!registerForm.valid">Créer mon compte</button>
@@ -203,16 +203,16 @@
 @if (confirmation) {
   <div class="registerFlow w-full">
     <form [formGroup]="confirmationForm">
-      <h3 class="flex align-items-center"> <span class="material-symbols-outlined icone">
+      <h3 class="flex items-center"> <span class="material-symbols-outlined icone">
         email
       </span>
     Confirmation de votre compte</h3>
     <p>Veuillez insérer le code de confirmation envoyé à votre adresse email</p>
-    <div class="input mt-4">
+    <div class="input mt-6">
       <input tabindex="1" type="text" id="confCode" name="confCode" #inputConfcode value="" placeholder="Code de confirmation"  autocomplete="one-time-code" (input)="inputConfcode.value !== confirmationCode.toString() ? disableConfirm = true : disableConfirm = false" />
       <label for="confCode">*Code de confirmation</label>
     </div>
-    <div class="flex flex-column align-items-end justify-content-between pt-2 pb-2 md:flex-row md:align-items-center md:mt-3">
+    <div class="flex flex-col items-end justify-between pt-2 pb-2 md:flex-row md:items-center md:mt-6">
       <button tabindex="2" class="btn btn-primary" [disabled]="disableConfirm" (click)="confirmRegistration(userData[0].email, userData[0].trigramme, userData[0].pass)">Confirmer mon compte</button>
     </div>
   </form>
@@ -220,17 +220,17 @@
 }
 
 @if (issueHandling) {
-  <div class="issueHandling pt-4">
-    <h3 class="flex align-items-center"><span class="material-symbols-outlined icone mr-2">
+  <div class="issueHandling pt-6">
+    <h3 class="flex items-center"><span class="material-symbols-outlined icone mr-2">
       sentiment_dissatisfied
     </span> Oops..</h3>
-    <div class="issueMessage mb-3">
+    <div class="issueMessage mb-4">
       <p>{{ issueMsg }}</p>
     </div>
-    <div class="registerText mb-3">
+    <div class="registerText mb-4">
       <span>Pour réessayer de créer un compte : <button type="button" class="link ml-2" (click)="register = true; issueHandling = false">Cliquer ici</button></span>
     </div>
-    <div class="registerText mb-3">
+    <div class="registerText mb-4">
       <span>Se connecter avec un compte existant: <button type="button" class="link ml-2 mr-2" (click)="login = true; issueHandling = false">Cliquer ici</button></span>
     </div>
   </div>

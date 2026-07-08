@@ -1,19 +1,19 @@
 import { Component, inject, ChangeDetectorRef, ChangeDetectionStrategy, OnInit } from '@angular/core';
-import { MatchesService } from '../../../shared/services/content/matches.service';
+import { MatchesService } from '../../../core/services/content/matches.service';
 import { Observable, forkJoin, of, BehaviorSubject, combineLatest } from 'rxjs';
 import { Matches } from '../../../shared/contracts/matches.contract';
 import { map, catchError, tap, switchMap, take } from 'rxjs/operators';
-import { StateService } from '../../../shared/services/core/state.service';
-import { GlobaltimeService } from '../../../shared/services/core/globaltime.service';
-import { PredictionsService } from '../../../shared/services/games/predictions.service';
+import { StateService } from '../../../core/services/core/state.service';
+import { GlobaltimeService } from '../../../core/services/core/global-time.service';
+import { PredictionsService } from '../../../core/services/games/predictions.service';
 import { NgClass, NgStyle, AsyncPipe, DatePipe, UpperCasePipe, SlicePipe } from '@angular/common';
 import { MatchComponent } from '../../../shared/components/match/match.component';
 import { LoaderComponent } from '../../../shared/components/loader/loader.component';
 import { CalendarStripComponent } from '../../../shared/components/calendar-strip/calendar-strip.component';
-import { RankingsService } from '../../../shared/services/content/rankings.service';
+import { RankingsService } from '../../../core/services/content/rankings.service';
 import { ModalComponent } from '../../../shared/components/modal/modal.component';
 import { LoginComponent } from '../../../shared/components/login/login.component';
-import { TeamsService } from '../../../shared/services/content/teams.service';
+import { TeamsService } from '../../../core/services/content/teams.service';
 
 const PHASE_CONFIG: { key: string; label: string; icon: string; color: string }[] = [
   { key: 'Group Stage', label: 'Phase de groupes', icon: 'groups', color: '#3b5bdb' },

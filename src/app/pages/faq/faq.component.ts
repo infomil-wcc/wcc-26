@@ -1,5 +1,5 @@
 import { Component, inject, ChangeDetectionStrategy } from '@angular/core';
-import { RulesService } from '../../shared/services/content/rules.service';
+import { RulesService } from '../../core/services/content/rules.service';
 import { Observable, map } from 'rxjs';
 import { LoaderComponent } from '../../shared/components/loader/loader.component';
 import { AsyncPipe } from '@angular/common';

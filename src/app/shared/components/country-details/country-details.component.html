@@ -15,7 +15,7 @@
         </div>
       </section>
       <!-- QUICK STATS -->
-      <section class="stats-grid">
+      <section class="stats-grid grid-cols-12">
         <div class="stat-card">
           <span class="label">Coach</span>
           <strong>{{ country[0].coach }}</strong>
@@ -36,7 +36,7 @@
       <!-- QUALIFICATION -->
       <section class="card">
         <h2>Qualification 2026</h2>
-        <div class="qualification-grid">
+        <div class="qualification-grid grid-cols-12">
           <div>
             <label>Top Scorer</label>
             <p>{{ country[0].qualification2026.topScorer }}</p>
@@ -72,12 +72,12 @@
       <!-- FUN FACTS -->
       <section class="card">
         <h2 class="uppercase">Did You Know?</h2>
-        <div class="facts-grid">
+        <div class="facts-grid grid-cols-12">
           @for (fact of country[0].funFacts; track fact) {
             <div
               class="fact-card flex"
               >
-              <span class="mr-4">{{ fact.emoji}}</span>
+              <span class="mr-6">{{ fact.emoji}}</span>
               <span>{{ fact.text.en }}</span>
             </div>
           }

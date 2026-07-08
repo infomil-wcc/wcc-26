@@ -1,5 +1,5 @@
 import { Component, Input, OnInit, inject, ChangeDetectionStrategy } from '@angular/core';
-import { StateService, user } from '../../services/core/state.service';
+import { StateService, user } from '../../../core/services/core/state.service';
 import { Observable, Subscription } from 'rxjs';
 import { NavComponent } from '../nav/nav.component';
 import { ModalComponent } from '../modal/modal.component';

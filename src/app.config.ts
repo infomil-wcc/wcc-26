@@ -11,7 +11,7 @@ import { providePrimeNG } from 'primeng/config';
 import Aura from '@primeuix/themes/aura';
 
 import { AppComponent } from './app/app.component';
-import { cacheInterceptor } from './app/shared/services/core/cache.interceptor';
+import { cacheInterceptor } from './app/core/interceptors/cache.interceptor';
 
 import { routes } from './app/app.routes';
 

@@ -1,5 +1,5 @@
 import { Component, OnInit, OnDestroy, ChangeDetectionStrategy } from '@angular/core';
-import { StateService, AppState } from '../../services/core/state.service';
+import { StateService, AppState } from '../../../core/services/core/state.service';
 import { Router } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { NgClass } from '@angular/common';
@@ -8,6 +8,7 @@ interface NavigationItem {
   label: string;
   route: string;
   active: boolean;
+  icon?: string;
   sub?: NavigationItem[];
 }
 
@@ -29,17 +30,20 @@ export class NavComponent implements OnInit, OnDestroy {
       {
         "label": "Accueil",
         "route": "accueil",
-        "active": true
+        "active": true,
+        "icon": "home"
       },
       {
-        "label": "Le calendrier",
+        "label": "Matchs",
         "route": "les-matchs",
-        "active": false
+        "active": false,
+        "icon": "calendar_month"
       },
       {
-        "label": "World Cup 2026",
+        "label": "WCC 26",
         "route": "infos",
         "active": false,
+        "icon": "public",
         "sub": [
           {
             "label": "Les équipes",
@@ -59,42 +63,34 @@ export class NavComponent implements OnInit, OnDestroy {
         ]
       },
       {
-        "label": "Les jeux",
+        "label": "Jeux",
         "route": "jeux",
         "active": false,
+        "icon": "sports_esports",
         "sub": [
           {
             "label": "Stars du tournoi",
             "route": "meilleur-buteur",
             "active": false
           },
-          // {
-          //   "label": "Bracket challenge",
-          //   "route": "bracket-challenge",
-          //   "active": false
-          // },
           {
             "label": "Pronostics",
             "route": "pronostiques",
             "active": false
-          },
-          //     {
-          //       "label": "Jeu du bracket",
-          //       "route": "bracket",
-          //       "active": false
-          //     },
-
+          }
         ]
       },
       {
-        "label": "Leaderboard",
+        "label": "Classement",
         "route": "classement",
-        "active": false
+        "active": false,
+        "icon": "leaderboard"
       },
       {
         "label": "FAQ",
         "route": "game-rules",
-        "active": false
+        "active": false,
+        "icon": "help"
       }
     ];
   }

@@ -1,7 +1,7 @@
 import { Component, OnInit, inject, ChangeDetectionStrategy } from '@angular/core';
-import { MatchesService } from '../../../shared/services/content/matches.service';
+import { MatchesService } from '../../../core/services/content/matches.service';
 import { Matches } from '../../../shared/contracts/matches.contract';
-import { GlobaltimeService } from '../../../shared/services/core/globaltime.service';
+import { GlobaltimeService } from '../../../core/services/core/global-time.service';
 import { Observable, combineLatest, BehaviorSubject } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { MatchComponent } from '../../../shared/components/match/match.component';

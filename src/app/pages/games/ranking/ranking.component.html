@@ -1,14 +1,14 @@
 <div class="leaderboard-page">
   <!-- Docked Header -->
   <div class="ranking-header fixed left-0 w-full">
-    <div class="header-filter w-full pt-4 pb-4 pl-3 pr-3">
+    <div class="header-filter w-full pt-6 pb-6 pl-4 pr-4">
       <div class="container text-left">
-        <h1 class="text-white flex align-items-center gap-2 text-2xl font-bold m-0">
+        <h1 class="text-white flex items-center gap-2 text-2xl font-bold m-0">
           <span class="material-symbols-outlined">sports_esports</span>
           PRONOSTICS LEADERBOARD
         </h1>
         @if (latestRank) {
-        <div class="text-white-alpha-70 text-xs mt-1 font-semibold flex align-items-center gap-1">
+        <div class="text-white/70 text-xs mt-1 font-semibold flex items-center gap-1">
           <span class="material-symbols-outlined"
             style="font-size: 0.95rem; margin-right: 2px; vertical-align: middle;">update</span>
           <span>Mise à jour le {{ latestRank.modified_on | date: 'd MMMM yyyy à HH:mm' }}</span>
@@ -18,20 +18,20 @@
     </div>
   </div>
 
-  <div class="container leaderboard-main flex flex-column h-full">
+  <div class="container leaderboard-main flex flex-col h-full">
     @if (selectedUserId) {
     <app-scoresheet [userId]="selectedUserId" (close)="selectedUserId = null" />
     } @else {
 
     <!-- Podium segment -->
     @if (showPodium) {
-    <div class="podium-container flex justify-content-center align-items-end mb-6 gap-2 md:gap-4">
+    <div class="podium-container flex justify-center items-end mb-12 gap-2 md:gap-12">
       <!-- 2nd Place (Left) -->
       @if (topThree[0]; as player) {
-      <div class="podium-spot spot-2nd flex flex-column align-items-center"
+      <div class="podium-spot spot-2nd flex flex-col items-center"
         [ngClass]="{'cursor-pointer': canViewScoresheet(player)}"
         (click)="canViewScoresheet(player) ? openScoresheet(player.key || player.user) : null">
-        <div class="avatar-wrapper flex align-items-center justify-content-center mb-2">
+        <div class="avatar-wrapper flex items-center justify-center mb-2">
           <img [src]="getChampionFlag(player.key || player.user)" class="champion-flag" alt="" />
           <div class="podium-username text-xs font-bold text-white">
             <div class="pos-num">2.</div>
@@ -39,11 +39,11 @@
           </div>
         </div>
         @if (getChampionCountry(player.key || player.user); as country) {
-        <div class="podium-predicted-winner text-xs font-semibold text-white-alpha-80 mb-2">
+        <div class="podium-predicted-winner text-xs font-semibold text-white/80 mb-2">
           🏆 {{ country }}
         </div>
         }
-        <div class="podium-step flex flex-column align-items-center justify-content-center w-full">
+        <div class="podium-step flex flex-col items-center justify-center w-full">
           <span class="material-symbols-outlined">workspace_premium</span>
           <span class="podium-pts">{{ player.point }} PTS</span>
         </div>
@@ -51,10 +51,10 @@
       }
       <!-- 1st Place (Center) -->
       @if (topThree[1]; as player) {
-      <div class="podium-spot spot-1st flex flex-column align-items-center"
+      <div class="podium-spot spot-1st flex flex-col items-center"
         [ngClass]="{'cursor-pointer': canViewScoresheet(player)}"
         (click)="canViewScoresheet(player) ? openScoresheet(player.key || player.user) : null">
-        <div class="avatar-wrapper first-place flex align-items-center justify-content-center mb-2">
+        <div class="avatar-wrapper first-place flex items-center justify-center mb-2">
           <img [src]="getChampionFlag(player.key || player.user)" class="champion-flag" alt="" />
           <div class="podium-username text-sm font-extrabold text-white">
             <div class="pos-num">1.</div>
@@ -62,11 +62,11 @@
           </div>
         </div>
         @if (getChampionCountry(player.key || player.user); as country) {
-        <div class="podium-predicted-winner text-xs font-semibold text-white-alpha-90 mb-2">
+        <div class="podium-predicted-winner text-xs font-semibold text-white/90 mb-2">
           🏆 {{ country }}
         </div>
         }
-        <div class="podium-step flex flex-column align-items-center justify-content-center w-full">
+        <div class="podium-step flex flex-col items-center justify-center w-full">
           <span class="material-symbols-outlined">emoji_events</span>
           <span class="podium-pts">{{ player.point }} PTS</span>
         </div>
@@ -74,10 +74,10 @@
       }
       <!-- 3rd Place (Right) -->
       @if (topThree[2]; as player) {
-      <div class="podium-spot spot-3rd flex flex-column align-items-center"
+      <div class="podium-spot spot-3rd flex flex-col items-center"
         [ngClass]="{'cursor-pointer': canViewScoresheet(player)}"
         (click)="canViewScoresheet(player) ? openScoresheet(player.key || player.user) : null">
-        <div class="avatar-wrapper flex align-items-center justify-content-center mb-2">
+        <div class="avatar-wrapper flex items-center justify-center mb-2">
           <img [src]="getChampionFlag(player.key || player.user)" class="champion-flag" alt="" />
           <div class="podium-username text-xs font-bold text-white">
             <div class="pos-num">3.</div>
@@ -85,11 +85,11 @@
           </div>
         </div>
         @if (getChampionCountry(player.key || player.user); as country) {
-        <div class="podium-predicted-winner text-xs font-semibold text-white-alpha-80 mb-2">
+        <div class="podium-predicted-winner text-xs font-semibold text-white/80 mb-2">
           🏆 {{ country }}
         </div>
         }
-        <div class="podium-step flex flex-column align-items-center justify-content-center w-full">
+        <div class="podium-step flex flex-col items-center justify-center w-full">
           <span class="material-symbols-outlined">military_tech</span>
           <span class="podium-pts">{{ player.point }} PTS</span>
         </div>
@@ -99,16 +99,16 @@
     }
 
     <!-- Table & Tabbar Wrapper -->
-    <div class="table-wrapper mx-auto mt-4">
+    <div class="table-wrapper mx-auto mt-6">
 
       <!-- Tournament Switch Tabs (now acting as a tabbar on the player rankings list) -->
-      <div class="flex justify-content-center gap-3 mb-3 tournament-tabs">
-        <button class="btn-tab flex align-items-center justify-content-center px-4 py-3 gap-3"
+      <div class="flex justify-center gap-4 mb-4 tournament-tabs">
+        <button class="btn-tab flex items-center justify-center px-6 py-4 gap-4"
           [ngClass]="{'active': activeTab === 'prediction'}" (click)="switchTab('prediction')">
           <img src="assets/jeu-pronostique.png" alt="Prediction" class="tab-logo" />
           <span class="tab-label">Jeu des pronostics</span>
         </button>
-        <!-- <button class="btn-tab flex align-items-center justify-content-center px-4 py-3 gap-3"
+        <!-- <button class="btn-tab flex items-center justify-center px-6 py-4 gap-4"
           [ngClass]="{'active': activeTab === 'bracket'}"
           (click)="switchTab('bracket')">
           <img src="assets/jeu-bracket.png" alt="Bracket" class="tab-logo" />
@@ -121,42 +121,42 @@
       @if (activeTab === 'prediction') {
       <div class="table-container text-left">
         <div
-          class="table-header flex justify-content-between px-3 py-2 text-xs font-bold uppercase tracking-wider text-white-alpha-50 mb-2">
+          class="table-header flex justify-between px-4 py-2 text-xs font-bold uppercase tracking-wider text-white/50 mb-2">
           <div class="col-head-player"># Player</div>
           <div class="col-head-pts">PTS</div>
         </div>
-        <div class="table-body flex flex-column gap-2">
+        <div class="table-body flex flex-col gap-2">
           @for (player of remainingPlayers; track player; let i = $index) {
           @if (shouldPinCurrentUser && (player.key || player.user || '').toLowerCase().trim() ===
           currentUserTrigramme.toLowerCase().trim()) {
           <div class="row-sentinel" style="height: 0; margin: 0; padding: 0; visibility: hidden; pointer-events: none;">
           </div>
           }
-          <div class="table-row flex justify-content-between align-items-center px-3 py-2.5"
+          <div class="table-row flex justify-between items-center px-4 py-2.5"
             [ngClass]="{'is-current-user': player.isCurrentUser, 'cursor-pointer': canViewScoresheet(player)}"
             (click)="canViewScoresheet(player) ? openScoresheet(player.key || player.user) : null"
             [class.pinned-user-row]="shouldPinCurrentUser && (player.key || player.user || '').toLowerCase().trim() === currentUserTrigramme.toLowerCase().trim()"
             [class.pinned-to-top]="shouldPinCurrentUser && pinPosition === 'top' && (player.key || player.user || '').toLowerCase().trim() === currentUserTrigramme.toLowerCase().trim()"
             [class.pinned-to-bottom]="shouldPinCurrentUser && pinPosition === 'bottom' && (player.key || player.user || '').toLowerCase().trim() === currentUserTrigramme.toLowerCase().trim()">
-            <div class="flex align-items-center gap-3">
-              <span class="row-rank text-sm font-bold text-white-alpha-70">{{ player.rank }}</span>
-              <div class="row-avatar flex align-items-center justify-content-center">
+            <div class="flex items-center gap-4">
+              <span class="row-rank text-sm font-bold text-white/70">{{ player.rank }}</span>
+              <div class="row-avatar flex items-center justify-center">
                 <img [src]="getChampionFlag(player.key || player.user)" class="champion-flag" alt="" />
               </div>
-              <div class="flex flex-column text-left">
+              <div class="flex flex-col text-left">
                 <span class="row-username text-base font-bold text-white">{{ (player.key || player.user) | uppercase
                   }}</span>
                 @if (getChampionCountry(player.key || player.user); as country) {
-                <span class="text-xs text-white-alpha-60 font-semibold">
+                <span class="text-xs text-white/60 font-semibold">
                   Vainqueur prédit: {{ country }}
                 </span>
                 }
               </div>
             </div>
-            <div class="flex align-items-center gap-2">
+            <div class="flex items-center gap-2">
               <span class="row-pts text-base font-bold text-white">{{ player.point }}</span>
               @if (canViewScoresheet(player)) {
-              <span class="material-symbols-outlined text-white-alpha-50"
+              <span class="material-symbols-outlined text-white/50"
                 style="font-size: 1.1rem;">chevron_right</span>
               }
             </div>

@@ -2,19 +2,19 @@ import { Component, inject, OnInit, ChangeDetectionStrategy } from '@angular/cor
 import { AsyncPipe, CommonModule } from '@angular/common';
 import { Observable, of, forkJoin } from 'rxjs';
 import { map, switchMap, catchError } from 'rxjs/operators';
-import { CookieService } from '../../../shared/services/core/cookie.service';
-import { StateService } from '../../../shared/services/core/state.service';
-import { BracketService } from '../../../shared/services/games/bracket.service';
+import { CookieService } from '../../../core/services/core/cookie.service';
+import { StateService } from '../../../core/services/core/state.service';
+import { BracketService } from '../../../core/services/games/bracket.service';
 import { BracketPredictorComponent } from '../bracket-predictor/bracket-predictor.component';
 import { BracketKnockoutComponent } from '../bracket-knockout/bracket-knockout.component';
 import { ModalComponent } from '../../../shared/components/modal/modal.component';
 import { LoginComponent } from '../../../shared/components/login/login.component';
 import { DialogComponent } from '../../../shared/components/dialog/dialog.component';
-import { RankingsService } from '../../../shared/services/content/rankings.service';
-import { MatchesService } from '../../../shared/services/content/matches.service';
-import { TeamsService } from '../../../shared/services/content/teams.service';
-import { KnockoutBracketService } from '../../../shared/services/games/knockout-bracket.service';
-import { PredictionsApiService } from '../../../shared/services/api/predictions-api.service';
+import { RankingsService } from '../../../core/services/content/rankings.service';
+import { MatchesService } from '../../../core/services/content/matches.service';
+import { TeamsService } from '../../../core/services/content/teams.service';
+import { KnockoutBracketService } from '../../../core/services/games/knockout-bracket.service';
+import { PredictionsApiService } from '../../../core/services/api/predictions-api.service';
 
 @Component({
     selector: 'app-bracket-challenge',

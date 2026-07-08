@@ -1,14 +1,14 @@
 import { Component, OnInit, inject, Input, ViewChild, ElementRef, ChangeDetectorRef, HostListener, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Observable, forkJoin } from 'rxjs';
-import { CookieService } from '../../../shared/services/core/cookie.service';
-import { StateService } from '../../../shared/services/core/state.service'; 
-import { BracketService } from '../../../shared/services/games/bracket.service';
-import { MatchesService } from '../../../shared/services/content/matches.service';
-import { TeamsService } from '../../../shared/services/content/teams.service';
-import { BracketResultApiService } from '../../../shared/services/api/bracket-result-api.service';
-import { GameRulesService } from '../../../shared/services/content/game-rules.service';
-import { KnockoutBracketService } from '../../../shared/services/games/knockout-bracket.service';
+import { CookieService } from '../../../core/services/core/cookie.service';
+import { StateService } from '../../../core/services/core/state.service'; 
+import { BracketService } from '../../../core/services/games/bracket.service';
+import { MatchesService } from '../../../core/services/content/matches.service';
+import { TeamsService } from '../../../core/services/content/teams.service';
+import { BracketResultApiService } from '../../../core/services/api/bracket-result-api.service';
+import { GameRulesService } from '../../../core/services/content/game-rules.service';
+import { KnockoutBracketService } from '../../../core/services/games/knockout-bracket.service';
 
 export interface Country {
   name: string;

@@ -1,7 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { TeamsComponent } from './teams.component';
-import { BreadcrumpComponent } from '../../../shared/components/breadcrump/breadcrump.component';
+import { BreadcrumbComponent } from '../../../shared/components/breadcrumb/breadcrumb.component';
 import { LoaderComponent } from '../../../shared/components/loader/loader.component';
 
 describe('TeamsComponent', () => {
@@ -10,7 +10,7 @@ describe('TeamsComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-    imports: [TeamsComponent, BreadcrumpComponent, LoaderComponent]
+    imports: [TeamsComponent, BreadcrumbComponent, LoaderComponent]
 })
     .compileComponents();
     

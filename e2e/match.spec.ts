@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 
 // Fonction utilitaire pour préparer le mock selon le scénario
-const setupMockData = async (page: any, matchOverrides: any = {}, pronostiqueOverrides: any = null, teamOverrides: any[] = null) => {
+const setupMockData = async (page: any, matchOverrides: any = {}, pronostiqueOverrides: any = null, teamOverrides: any[] | null = null) => {
   // Base match data
   const baseMatch = {
     id: 1,

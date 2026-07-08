@@ -13,15 +13,15 @@
     </button>
 
     <div class="strip-body" [class.hidden]="isCollapsed">
-      <div class="container position-relative px-4">
-        <button type="button" class="nav-chevron chevron-left flex align-items-center justify-content-center" (click)="scrollStrip(stripScroll, -220)" title="Défiler à gauche">
+      <div class="container position-relative px-6">
+        <button type="button" class="nav-chevron chevron-left flex items-center justify-center" (click)="scrollStrip(stripScroll, -220)" title="Défiler à gauche">
           <span class="material-symbols-outlined">chevron_left</span>
         </button>
 
         <div class="calendar-strip-scroll flex gap-2 overflow-x-auto pb-1" #stripScroll>
           <button 
             type="button"
-            class="strip-date-card sticky-first-card flex flex-column align-items-center justify-content-center"
+            class="strip-date-card sticky-first-card flex flex-col items-center justify-center"
             [class.active]="!filterDate"
             (click)="selectDate(null)">
             <span class="strip-all-text">Toutes les dates</span>
@@ -30,7 +30,7 @@
           @for (date of matchDates; track date) {
             <button 
               type="button"
-              class="strip-date-card flex flex-column align-items-center justify-content-center"
+              class="strip-date-card flex flex-col items-center justify-center"
               [class.active]="filterDate === date"
               (click)="selectDate(date)">
               <span class="strip-day-name text-xs opacity-60 uppercase font-semibold">{{ date | date: 'EEE' }}</span>
@@ -40,7 +40,7 @@
           }
         </div>
 
-        <button type="button" class="nav-chevron chevron-right flex align-items-center justify-content-center" (click)="scrollStrip(stripScroll, 220)" title="Défiler à droite">
+        <button type="button" class="nav-chevron chevron-right flex items-center justify-center" (click)="scrollStrip(stripScroll, 220)" title="Défiler à droite">
           <span class="material-symbols-outlined">chevron_right</span>
         </button>
       </div>

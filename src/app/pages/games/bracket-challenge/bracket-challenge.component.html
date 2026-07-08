@@ -1,6 +1,6 @@
-<div class="filter w-full pt-3 pb-3 pl-2 pr-2">
+<div class="filter w-full pt-4 pb-4 pl-2 pr-2">
   <div class="container">
-    <h1 class="text-white flex align-items-center gap-2 m-0">
+    <h1 class="text-white flex items-center gap-2 m-0">
       <span class="material-symbols-outlined">sports_esports</span>
       Bracket Challenge 2026
     </h1>
@@ -20,7 +20,7 @@
 @if (isLoggedIn) {
   <!-- Phase Selection Sliding Control -->
   @if (false) {
-    <div class="phase-selector-container pt-3 mb-2 flex justify-content-center">
+    <div class="phase-selector-container pt-4 mb-2 flex justify-center">
       <div class="phase-selector-tabs">
         <div class="active-slider" [class.slide-right]="currentPhase === 2"></div>
         <button 
@@ -41,16 +41,16 @@
     </div>
   }
 
-  <div class="challenge-container py-4">
+  <div class="challenge-container py-6">
     <div class="">
       <!-- PHASE 1 CONTENT -->
       @if (currentPhase === 1) {
         @if (this.jeuFermer) {
-          <h2 class="text-center mb-4">Le Bracket Initial est clos</h2>
+          <h2 class="text-center mb-6">Le Bracket Initial est clos</h2>
         }
         <!-- Stepper / Wizard header -->
         @if (!this.jeuFermer) {
-          <div class="challenge-stepper mb-4" >
+          <div class="challenge-stepper mb-6" >
             <div class="step" [class.active]="activeWizardStep === 'groups'" [class.completed]="activeWizardStep === 'knockout'">
               <div class="step-icon">1</div>
               <div class="step-label">Phase de Groupes</div>
@@ -69,15 +69,15 @@
         <!-- Knockout Stage Bracket -->
         <div [hidden]="activeWizardStep !== 'knockout'" class="fade-in">
           @if (!this.jeuFermer) {
-            <div class="controls-bar mb-4">
+            <div class="controls-bar mb-6">
               @if (!hasSavedBracket) {
-                <button type="button" class="btn btn-secondary flex align-items-center gap-2" (click)="backToGroups()">
+                <button type="button" class="btn btn-secondary flex items-center gap-2" (click)="backToGroups()">
                   <span class="material-symbols-outlined">arrow_back</span>
                   Modifier mes phases de groupes
                 </button>
               }
               @if (hasSavedBracket) {
-                <button type="button" class="btn btn-danger flex align-items-center gap-2" (click)="deleteBracket()">
+                <button type="button" class="btn btn-danger flex items-center gap-2" (click)="deleteBracket()">
                   <span class="material-symbols-outlined">delete_forever</span>
                   Re-initialiser mon bracket
                 </button>
@@ -91,12 +91,12 @@
       <!-- PHASE 2 CONTENT -->
       @if (currentPhase === 2) {
         @if (this.knockoutJeuFermer) {
-          <h2 class="text-center mb-4">Le Bracket de la Phase Finale est clos</h2>
+          <h2 class="text-center mb-6">Le Bracket de la Phase Finale est clos</h2>
         }
         <div class="fade-in">
           @if (hasSavedKnockoutBracket && !knockoutJeuFermer) {
-            <div class="controls-bar mb-4">
-              <button type="button" class="btn btn-danger flex align-items-center gap-2" (click)="deleteBracket()">
+            <div class="controls-bar mb-6">
+              <button type="button" class="btn btn-danger flex items-center gap-2" (click)="deleteBracket()">
                 <span class="material-symbols-outlined">delete_forever</span>
                 Re-initialiser mon bracket Phase Finale
               </button>
@@ -117,14 +117,14 @@
 <app-dialog [(showDialog)]="showDeleteDialog" [dialogTitle]="'Attention !'" [withOverlay]="true" [allowClose]="true">
   @if (deleteDialogMode === 'confirm') {
     <p>{{ deleteDialogMessage }}</p>
-    <div class="flex justify-content-between gap-2 mt-4 w-full">
+    <div class="flex justify-between gap-2 mt-6 w-full">
       <button class="btn btn-primary" (click)="onDeleteConfirmed()">Oui</button>
       <button class="btn" (click)="onDeleteDialogClose()">Non</button>
     </div>
   }
   @if (deleteDialogMode === 'info') {
     <p>{{ deleteDialogMessage }}</p>
-    <div class="flex justify-content-end gap-2 mt-4 w-full">
+    <div class="flex justify-end gap-2 mt-6 w-full">
       <button class="btn" (click)="onDeleteDialogClose()">OK</button>
     </div>
   }

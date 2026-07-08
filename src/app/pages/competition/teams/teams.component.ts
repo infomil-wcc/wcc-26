@@ -1,10 +1,10 @@
 import { Component, Host, OnInit, Optional, inject, ChangeDetectionStrategy } from '@angular/core';
-import { StateService } from '../../../shared/services/core/state.service';
-import { TeamsService } from '../../../shared/services/content/teams.service';
+import { StateService } from '../../../core/services/core/state.service';
+import { TeamsService } from '../../../core/services/content/teams.service';
 import { Observable, map } from 'rxjs';
 import { Teams }  from '../../../shared/contracts/teams.contract';
-import { breadCrump, BreadcrumpComponent } from '../../../shared/components/breadcrump/breadcrump.component';
-import { GlobaltimeService } from '../../../shared/services/core/globaltime.service';
+import { breadCrump, BreadcrumbComponent } from '../../../shared/components/breadcrumb/breadcrumb.component';
+import { GlobaltimeService } from '../../../core/services/core/global-time.service';
 import { NgClass, AsyncPipe } from '@angular/common';
 import { LoaderComponent } from '../../../shared/components/loader/loader.component';
 import { TeamDetailsComponent } from '../../../shared/components/team-details/team-details.component';
@@ -14,7 +14,7 @@ import { TeamDetailsComponent } from '../../../shared/components/team-details/te
     templateUrl: './teams.component.html',
     styleUrl: './teams.component.scss',
     changeDetection: ChangeDetectionStrategy.Eager,
-    imports: [BreadcrumpComponent, NgClass, LoaderComponent, TeamDetailsComponent, AsyncPipe]
+    imports: [BreadcrumbComponent, NgClass, LoaderComponent, TeamDetailsComponent, AsyncPipe]
 })
 
 export class TeamsComponent implements OnInit {

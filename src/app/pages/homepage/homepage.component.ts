@@ -1,10 +1,10 @@
 import { Component, inject, ChangeDetectionStrategy } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import { TeamsService } from '../../shared/services/content/teams.service';
+import { TeamsService } from '../../core/services/content/teams.service';
 import { Group, Teams } from '../../shared/contracts/teams.contract';
 import { Observable } from 'rxjs';
 import { HeaderComponent } from '../../shared/components/header/header.component';
-import { CookieService } from '../../shared/services/core/cookie.service';
+import { CookieService } from '../../core/services/core/cookie.service';
 import { NgStyle, AsyncPipe } from '@angular/common';
 import { LoaderComponent } from '../../shared/components/loader/loader.component';
 import { ModalComponent } from '../../shared/components/modal/modal.component';

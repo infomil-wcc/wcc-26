@@ -1,9 +1,9 @@
 import { Component, Input, SimpleChanges, inject, ChangeDetectionStrategy } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
-import { AuthService } from '../../services/core/auth.service';
-import { CookieService } from '../../services/core/cookie.service';
-import { StateService } from '../../services/core/state.service';
-import { MailService } from '../../services/core/mail.service';
+import { AuthService } from '../../../core/services/core/auth.service';
+import { CookieService } from '../../../core/services/core/cookie.service';
+import { StateService } from '../../../core/services/core/state.service';
+import { MailService } from '../../../core/services/core/mail.service';
 import { NgClass } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 @Component({

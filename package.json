@@ -37,7 +37,6 @@
     "fuse.js": "^7.4.2",
     "itty-router": "^5.0.24",
     "ngx-cookie-service": "^22.0.0",
-    "primeflex": "^4.0.0",
     "primeng": "^22.0.0-rc.1",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0",
@@ -49,6 +48,7 @@
     "@angular/compiler-cli": "^22.0.4",
     "@playwright/test": "^1.61.1",
     "@types/jasmine": "^6.0.0",
+    "autoprefixer": "^10.5.2",
     "concurrently": "^10.0.3",
     "dotenv": "^17.4.2",
     "istanbul-lib-instrument": "^6.0.3",
@@ -58,7 +58,9 @@
     "karma-coverage": "^2.2.1",
     "karma-jasmine": "^5.1.0",
     "karma-jasmine-html-reporter": "^2.2.0",
+    "postcss": "^8.5.16",
     "shx": "^0.4.0",
+    "tailwindcss": "^3.4.19",
     "typescript": "~6.0.3"
   }
 }

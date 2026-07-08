@@ -1,179 +1,206 @@
-<div class="grid justify-content-center align-items-center min-h mb-1">
-  <div class="col-4">
+<div class="grid grid grid-cols-12-cols-3 items-center justify-center min-h-[140px] mb-2 px-2 gap-2">
+  <div class="col-span-1 h-full">
     <div
-      class="team-option-btn teamA flex flex-column align-items-center justify-content-center relative"
-      [ngClass]="{'active': matchOutcome === match?.team_a, 'disabled': !canEditPrediction}"
+      class="w-full h-full rounded-2xl border-2 transition-all duration-200 flex flex-col items-center justify-center relative cursor-pointer p-2"
+      [ngClass]="{
+        'border-blue-500 bg-blue-50/50 shadow-md shadow-blue-500/20 scale-105 z-10': matchOutcome === match?.team_a, 
+        'border-slate-200 bg-white hover:bg-slate-50 hover:border-slate-300': matchOutcome !== match?.team_a,
+        'opacity-50 pointer-events-none': !canEditPrediction
+      }"
       (click)="selectWinner(match.team_a)">
-      <span class="flex flagContainer"
+      <span class="block w-[36px] h-[24px] min-w-[36px] flex-shrink-0 bg-cover bg-center bg-no-repeat rounded shadow-sm border border-black/10"
         [ngStyle]="{'background-image': match?.team_a ? 'url(' + teamAFlag + ')'  : 'url(assets/flags/unknown.png)'}"></span>
       @if (matchOutcome === match?.team_a) {
-      <span class="material-symbols-outlined winner-tick">check_circle</span>
+      <span class="material-symbols-outlined absolute -top-2 -right-2 text-[24px] text-blue-500 bg-white rounded-full">check_circle</span>
       }
-      <div class="mt-2 text-center teamName">
-        <strong>{{ match?.team_a | uppercase | slice:0:3 }}</strong>
+      <div class="mt-2 text-center">
+        <strong class="text-sm font-extrabold text-slate-800">{{ match?.team_a | uppercase | slice:0:3 }}</strong>
       </div>
       @if (match?.team_a !== null) {
-      <button class="info-btn-bottom flex align-items-center justify-content-center mt-2"
+      <button class="mt-2 text-[10px] font-bold uppercase bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-full px-2 py-0.5 flex items-center transition-colors pointer-events-auto"
         (click)="showTeamDetails(match.team_a, $event)" title="Historique de l'équipe">
-        <span class="material-symbols-outlined mr-1" style="font-size: 0.95rem;">info</span>
+        <span class="material-symbols-outlined mr-1 text-[12px]">info</span>
         <span>INFO</span>
       </button>
       }
       @if (match?.team_a !== null) {
-      <div class="mt-2 flex justify-content-center w-full" style="transform: scale(0.95);">
+      <div class="mt-2 flex justify-center w-full scale-90 origin-top">
         <teamperformance [teamName]="match.team_a" />
       </div>
       }
     </div>
   </div>
-  <div class="col-4 flex flex-column justify-content-center align-items-center px-1 gap-2 relative">
+  
+  <div class="col-span-1 h-full flex flex-col justify-center items-center relative">
     @if (isSavedInApi && (match?.fulltime_a === null || match?.fulltime_b === null) && !isEditing) {
-    <div class="lock-overlay">
-      <span class="material-symbols-outlined lock-icon">lock</span>
+    <div class="absolute inset-0 bg-white/80 backdrop-blur-[2px] z-20 flex items-center justify-center rounded-xl">
+      <span class="material-symbols-outlined text-4xl text-slate-400">lock</span>
     </div>
     }
     @if (hidePointsBadge) {
-    <div class="fraud-card-center-badge flex flex-column align-items-center justify-content-center text-center">
-      <span class="material-symbols-outlined gavel-icon">gavel</span>
-      <span class="invalid-title">Invalidé</span>
-      <span class="played-date">Joué le :<br><strong>{{ invalidatedDate | date: 'dd/MM HH:mm' }}</strong></span>
+    <div class="w-full bg-gradient-to-br from-red-500/10 to-red-600/20 border-2 border-dashed border-red-500 rounded-xl p-2 flex flex-col items-center justify-center text-center animate-pulse shadow-inner min-h-[108px]">
+      <span class="material-symbols-outlined text-3xl text-red-400 filter drop-shadow-sm">gavel</span>
+      <span class="text-[11px] font-black text-red-500 uppercase tracking-widest mt-1">Invalidé</span>
+      <span class="text-[10px] text-slate-600 mt-1 leading-tight">Joué le :<br><strong class="text-slate-800 font-bold">{{ invalidatedDate | date: 'dd/MM HH:mm' }}</strong></span>
     </div>
     } @else if (!closed) {
     <div
-      class="team-option-btn draw flex flex-column align-items-center justify-content-center relative w-full"
-      [ngClass]="{'active': matchOutcome === 'Draw', 'disabled': !canEditPrediction}"
+      class="w-full h-full rounded-2xl border-2 transition-all duration-200 flex flex-col items-center justify-center relative cursor-pointer p-2"
+      [ngClass]="{
+        'border-amber-500 bg-amber-50/50 shadow-md shadow-amber-500/20 scale-105 z-10': matchOutcome === 'Draw', 
+        'border-slate-200 bg-white hover:bg-slate-50 hover:border-slate-300': matchOutcome !== 'Draw',
+        'opacity-50 pointer-events-none': !canEditPrediction
+      }"
       (click)="selectWinner('Draw')">
       @if (matchOutcome === 'Draw') {
-      <span class="material-symbols-outlined winner-tick">check_circle</span>
+      <span class="material-symbols-outlined absolute -top-2 -right-2 text-[24px] text-amber-500 bg-white rounded-full">check_circle</span>
       }
       @if (match?.phase === 'Group Stage' || matchOutcome !== 'Draw') {
-      <div class="draw-vs-box flex align-items-center justify-content-center">
+      <div class="w-10 h-10 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center text-xs font-bold text-slate-400 shadow-inner">
         <span>VS</span>
       </div>
       } @else {
-      <div class="draw-vs-box flex align-items-center justify-content-center"
-        style="background: transparent; border: 1px dashed #ffffff55; border-radius: 50%;">
-        <span class="material-symbols-outlined" style="font-size: 1.5rem; color: #ff9800;">sports_soccer</span>
+      <div class="w-10 h-10 rounded-full border border-dashed border-amber-300 flex items-center justify-center bg-transparent">
+        <span class="material-symbols-outlined text-2xl text-amber-500">sports_soccer</span>
       </div>
-      <div class="mt-2 text-center teamName">
-        <strong style="color: #ff9800;">PENALTY</strong>
+      <div class="mt-2 text-center">
+        <strong class="text-xs font-black text-amber-500 tracking-wider">PENALTY</strong>
       </div>
       }
     </div>
     } @else {
-    @if (isSavedInApi && match?.fulltime_a !== null && match?.fulltime_b !== null && matchPoints !== null &&
-    !hidePointsBadge) {
+    @if (isSavedInApi && match?.fulltime_a !== null && match?.fulltime_b !== null && matchPoints !== null && !hidePointsBadge) {
       @if (isConsolationPointAwarded) {
-      <div class="points-overlay points-consolation" title="Point de consolation">
-        <span class="points-value">+1</span>
-        <span class="points-unit">pt</span>
+      <div class="flex flex-col items-center justify-center w-20 h-20 rounded-xl bg-gradient-to-br from-emerald-800 to-emerald-950 border border-emerald-500/40 shadow-xl shadow-emerald-900/20 z-10 animate-[bounce_0.5s_ease-out]" title="Point de consolation">
+        <span class="text-3xl font-black leading-none bg-clip-text text-transparent bg-gradient-to-b from-emerald-200 to-emerald-500 drop-shadow-sm">+1</span>
+        <span class="text-[10px] font-black uppercase tracking-widest text-emerald-400 mt-1">pt</span>
       </div>
       } @else {
-      <div class="points-overlay" [ngClass]="{'points-zero': matchPoints === 0}">
-        <span class="points-value">{{ matchPoints !== null && matchPoints > 0 ? '+' + matchPoints : matchPoints }}</span>
-        <span class="points-unit">pts</span>
+      <div class="flex flex-col items-center justify-center w-20 h-20 rounded-xl shadow-xl z-10 animate-[bounce_0.5s_ease-out]" 
+        [ngClass]="{
+          'bg-slate-900 border border-yellow-500/30 shadow-yellow-900/20': matchPoints > 0,
+          'bg-slate-200 border border-slate-300 shadow-slate-400/20': matchPoints === 0
+        }">
+        <span class="text-3xl font-black leading-none bg-clip-text text-transparent drop-shadow-sm"
+          [ngClass]="matchPoints > 0 ? 'bg-gradient-to-b from-yellow-100 via-yellow-400 to-yellow-600' : 'bg-gradient-to-b from-slate-400 to-slate-600'">
+          {{ matchPoints !== null && matchPoints > 0 ? '+' + matchPoints : matchPoints }}
+        </span>
+        <span class="text-[10px] font-black uppercase tracking-widest mt-1"
+          [ngClass]="matchPoints > 0 ? 'text-yellow-500' : 'text-slate-500'">pts</span>
       </div>
       }
     } @else if (donePronostique && match?.fulltime && (match?.phase !== 'Group Stage' && match?.phase !== 'Round of 32')) {
-    <div class="flex align-items-center gap-2 font-bold text-xl predicted-scores">
-      <span class="score-box">{{ donePronostique.fulltime_a }}</span>
-      <span class="score-box">{{ donePronostique.fulltime_b }}</span>
+    <div class="flex items-center gap-2 font-black text-2xl text-slate-800">
+      <span class="w-10 h-10 flex items-center justify-center bg-slate-100 border border-slate-200 rounded-lg shadow-inner">{{ donePronostique.fulltime_a }}</span>
+      <span class="w-10 h-10 flex items-center justify-center bg-slate-100 border border-slate-200 rounded-lg shadow-inner">{{ donePronostique.fulltime_b }}</span>
     </div>
     }
     }
   </div>
-  <div class="col-4">
+
+  <div class="col-span-1 h-full">
     <div
-      class="team-option-btn teamB flex flex-column align-items-center justify-content-center relative"
-      [ngClass]="{'active': matchOutcome === match?.team_b, 'disabled': !canEditPrediction}"
+      class="w-full h-full rounded-2xl border-2 transition-all duration-200 flex flex-col items-center justify-center relative cursor-pointer p-2"
+      [ngClass]="{
+        'border-blue-500 bg-blue-50/50 shadow-md shadow-blue-500/20 scale-105 z-10': matchOutcome === match?.team_b, 
+        'border-slate-200 bg-white hover:bg-slate-50 hover:border-slate-300': matchOutcome !== match?.team_b,
+        'opacity-50 pointer-events-none': !canEditPrediction
+      }"
       (click)="selectWinner(match.team_b)">
-      <span class="flex flagContainer"
+      <span class="block w-[36px] h-[24px] min-w-[36px] flex-shrink-0 bg-cover bg-center bg-no-repeat rounded shadow-sm border border-black/10"
         [ngStyle]="{'background-image': match?.team_b ? 'url(' + teamBFlag + ')'  : 'url(assets/flags/unknown.png)'}"></span>
       @if (matchOutcome === match?.team_b) {
-      <span class="material-symbols-outlined winner-tick">check_circle</span>
+      <span class="material-symbols-outlined absolute -top-2 -right-2 text-[24px] text-blue-500 bg-white rounded-full">check_circle</span>
       }
-      <div class="mt-2 text-center teamName">
-        <strong>{{ match?.team_b | uppercase | slice:0:3 }}</strong>
+      <div class="mt-2 text-center">
+        <strong class="text-sm font-extrabold text-slate-800">{{ match?.team_b | uppercase | slice:0:3 }}</strong>
       </div>
       @if (match?.team_b !== null) {
-      <button class="info-btn-bottom flex align-items-center justify-content-center mt-2"
+      <button class="mt-2 text-[10px] font-bold uppercase bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-full px-2 py-0.5 flex items-center transition-colors pointer-events-auto"
         (click)="showTeamDetails(match.team_b, $event)" title="Historique de l'équipe">
-        <span class="material-symbols-outlined mr-1" style="font-size: 0.95rem;">info</span>
+        <span class="material-symbols-outlined mr-1 text-[12px]">info</span>
         <span>INFO</span>
       </button>
       }
       @if (match?.team_b !== null) {
-      <div class="mt-2 flex justify-content-center w-full" style="transform: scale(0.95);">
+      <div class="mt-2 flex justify-center w-full scale-90 origin-top">
         <teamperformance [teamName]="match.team_b" />
       </div>
       }
     </div>
   </div>
 </div>
+
 @if (!closed && !hidePointsBadge) {
-<div class="pronostiqueWrapper">
+<div class="mt-4 pt-4 border-t border-slate-100 px-6">
   @if (match?.fulltime || match?.halftime) {
-  <div class="scores-compact-grid mt-1 mb-1">
-    <div class="grid-header-row" [class.has-both]="match?.fulltime && match?.halftime">
-      <div class="team-col"></div>
+  <div class="bg-slate-50 border border-slate-200 rounded-xl p-2 flex flex-col gap-1 shadow-sm mb-4">
+    <div class="grid grid-cols-12 items-center gap-2 pb-1 border-b border-slate-200 mb-1" 
+      [ngStyle]="{'grid-template-columns': (match?.fulltime && match?.halftime) ? '95px 1fr 1fr' : '95px 1fr'}">
+      <div></div>
       @if (match?.halftime) {
-      <div class="score-col-header">Mi-temps</div>
+      <div class="text-[11px] font-bold uppercase tracking-wide text-slate-500 text-center">Mi-temps</div>
       }
       @if (match?.fulltime) {
-      <div class="score-col-header">Final</div>
+      <div class="text-[11px] font-bold uppercase tracking-wide text-slate-500 text-center"
+        [ngClass]="{'border-l-2 border-slate-300 pl-2 -ml-1': match?.halftime && match?.fulltime}">Final</div>
       }
     </div>
 
-    <div class="grid-team-row" [class.has-both]="match?.fulltime && match?.halftime">
-      <div class="team-col flex align-items-center">
-        @if ((matchOutcome === 'Draw' || (fullTimeA !== null && fullTimeA === fullTimeB)) && match?.phase !==
-        'Group Stage') {
-        <label class="custom-radio-container mr-2" title="Vainqueur aux tirs au but">
-          <input type="radio" [name]="'penalty_' + match.id" class="custom-radio"
+    <div class="grid grid-cols-12 items-center gap-2 py-1" 
+      [ngStyle]="{'grid-template-columns': (match?.fulltime && match?.halftime) ? '95px 1fr 1fr' : '95px 1fr'}">
+      <div class="flex items-center">
+        @if ((matchOutcome === 'Draw' || (fullTimeA !== null && fullTimeA === fullTimeB)) && match?.phase !== 'Group Stage') {
+        <label class="relative flex items-center cursor-pointer mr-2" title="Vainqueur aux tirs au but">
+          <input type="radio" [name]="'penalty_' + match.id" class="peer sr-only"
             [checked]="penaltyWinner === match.team_a" (change)="selectPenaltyWinner(match.team_a)"
             [disabled]="!canEditScores" />
-          <span class="radio-checkmark"></span>
+          <div class="w-4 h-4 rounded-full border-2 border-slate-300 peer-checked:border-amber-500 peer-checked:bg-amber-500 flex items-center justify-center transition-colors">
+            <div class="w-1.5 h-1.5 rounded-full bg-white opacity-0 peer-checked:opacity-100"></div>
+          </div>
         </label>
         }
-        <span class="flag-mini mr-2" [ngStyle]="{'background-image': 'url(' + teamAFlag + ')'}"></span>
-        <span class="team-abbr">{{ match?.team_a | uppercase | slice:0:3 }}</span>
+        <span class="block w-[22px] h-[15px] min-w-[22px] flex-shrink-0 bg-cover bg-center bg-no-repeat rounded-sm border border-black/10 mr-2" [ngStyle]="{'background-image': 'url(' + teamAFlag + ')'}"></span>
+        <span class="text-xs font-bold text-slate-700">{{ match?.team_a | uppercase | slice:0:3 }}</span>
       </div>
       @if (match?.halftime) {
-      <div class="score-col" [ngClass]="{'disabled': userTrigramme ===''}">
+      <div [ngClass]="{'opacity-50 pointer-events-none': userTrigramme ===''}">
         <app-number-input [num]="halfTimeA" (numChange)="handleHalfTimeAChange($event); triggerHalftimeScoreChanged()"
           [disabled]="!canEditScores"></app-number-input>
       </div>
       }
       @if (match?.fulltime) {
-      <div class="score-col" [ngClass]="{'disabled': userTrigramme ===''}">
+      <div [ngClass]="{'opacity-50 pointer-events-none': userTrigramme ===''}">
         <app-number-input [num]="fullTimeA" (numChange)="handleFullTimeAChange($event); triggerScoreChanged()"
           [disabled]="!canEditScores"></app-number-input>
       </div>
       }
     </div>
 
-    <div class="grid-team-row" [class.has-both]="match?.fulltime && match?.halftime">
-      <div class="team-col flex align-items-center">
-        @if ((matchOutcome === 'Draw' || (fullTimeA !== null && fullTimeA === fullTimeB)) && match?.phase !==
-        'Group Stage') {
-        <label class="custom-radio-container mr-2" title="Vainqueur aux tirs au but">
-          <input type="radio" [name]="'penalty_' + match.id" class="custom-radio"
+    <div class="grid grid-cols-12 items-center gap-2 py-1" 
+      [ngStyle]="{'grid-template-columns': (match?.fulltime && match?.halftime) ? '95px 1fr 1fr' : '95px 1fr'}">
+      <div class="flex items-center">
+        @if ((matchOutcome === 'Draw' || (fullTimeA !== null && fullTimeA === fullTimeB)) && match?.phase !== 'Group Stage') {
+        <label class="relative flex items-center cursor-pointer mr-2" title="Vainqueur aux tirs au but">
+          <input type="radio" [name]="'penalty_' + match.id" class="peer sr-only"
             [checked]="penaltyWinner === match.team_b" (change)="selectPenaltyWinner(match.team_b)"
             [disabled]="!canEditScores" />
-          <span class="radio-checkmark"></span>
+          <div class="w-4 h-4 rounded-full border-2 border-slate-300 peer-checked:border-amber-500 peer-checked:bg-amber-500 flex items-center justify-center transition-colors">
+            <div class="w-1.5 h-1.5 rounded-full bg-white opacity-0 peer-checked:opacity-100"></div>
+          </div>
         </label>
         }
-        <span class="flag-mini mr-2" [ngStyle]="{'background-image': 'url(' + teamBFlag + ')'}"></span>
-        <span class="team-abbr">{{ match?.team_b | uppercase | slice:0:3 }}</span>
+        <span class="block w-[22px] h-[15px] min-w-[22px] flex-shrink-0 bg-cover bg-center bg-no-repeat rounded-sm border border-black/10 mr-2" [ngStyle]="{'background-image': 'url(' + teamBFlag + ')'}"></span>
+        <span class="text-xs font-bold text-slate-700">{{ match?.team_b | uppercase | slice:0:3 }}</span>
       </div>
       @if (match?.halftime) {
-      <div class="score-col" [ngClass]="{'disabled': userTrigramme ===''}">
+      <div [ngClass]="{'opacity-50 pointer-events-none': userTrigramme ===''}">
         <app-number-input [num]="halfTimeB" (numChange)="handleHalfTimeBChange($event); triggerHalftimeScoreChanged()"
           [disabled]="!canEditScores"></app-number-input>
       </div>
       }
       @if (match?.fulltime) {
-      <div class="score-col" [ngClass]="{'disabled': userTrigramme ===''}">
+      <div [ngClass]="{'opacity-50 pointer-events-none': userTrigramme ===''}">
         <app-number-input [num]="fullTimeB" (numChange)="handleFullTimeBChange($event); triggerScoreChanged()"
           [disabled]="!canEditScores"></app-number-input>
       </div>
@@ -181,20 +208,23 @@
     </div>
   </div>
   }
+
   @if (match?.scorer) {
-  <div class="scorerContainer mt-1 mb-1">
-    <div class="flex flex-column align-items-center gap-1" [ngClass]="{'disabled': userTrigramme ===''}">
-      <button class="btn btn-select-scorer w-full flex align-items-center justify-content-center gap-2 py-2"
-        [ngClass]="{'btn-warning-outline': !scorer || scorer === '-'}" (click)="openTacticalLineup()"
+  <div class="bg-slate-50 border border-slate-200 rounded-xl p-4 mb-4 shadow-sm">
+    <div class="flex flex-col items-center gap-1 w-full" [ngClass]="{'opacity-50 pointer-events-none': userTrigramme ===''}">
+      <button class="w-full flex items-center justify-center gap-2 py-2.5 px-6 rounded-lg font-bold text-sm transition-colors border-2"
+        [ngClass]="{
+          'bg-yellow-50 text-yellow-700 border-yellow-400 hover:bg-yellow-100': !scorer || scorer === '-',
+          'bg-slate-800 text-white border-slate-800 hover:bg-slate-900': scorer && scorer !== '-'
+        }" 
+        (click)="openTacticalLineup()"
         [disabled]="!canSelectScorer">
-        <span class="material-symbols-outlined"
-          style="font-size: 1.1rem; vertical-align: middle;">sports_soccer</span>
-        Choisir un buteur
+        <span class="material-symbols-outlined text-[18px]">sports_soccer</span>
+        {{ scorer && scorer !== '-' ? scorer : 'Choisir un buteur' }}
       </button>
       @if (!scorer || scorer === '-') {
-      <div class="text-xs flex align-items-center justify-content-center gap-1 font-semibold mt-1"
-        style="color: #ef4444;">
-        <span class="material-symbols-outlined" style="font-size: 0.95rem;">error</span>
+      <div class="text-xs flex items-center justify-center gap-1 font-bold text-red-500 mt-1">
+        <span class="material-symbols-outlined text-[14px]">error</span>
         <span>Buteur requis</span>
       </div>
       }

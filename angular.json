@@ -38,7 +38,6 @@
               "src/manifest.webmanifest"
             ],
             "styles": [
-              "node_modules/primeflex/primeflex.css",
               "src/styles.scss"
             ],
             "scripts": []
@@ -108,7 +107,6 @@
               "src/manifest.webmanifest"
             ],
             "styles": [
-              "node_modules/primeflex/primeflex.css",
               "src/styles.scss"
             ],
             "scripts": []

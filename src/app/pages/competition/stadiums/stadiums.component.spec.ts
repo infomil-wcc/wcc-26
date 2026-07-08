@@ -1,7 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { StadiumsComponent } from './stadiums.component';
-import { BreadcrumpComponent } from '../../../shared/components/breadcrump/breadcrump.component';
+import { BreadcrumbComponent } from '../../../shared/components/breadcrumb/breadcrumb.component';
 import { LoaderComponent } from '../../../shared/components/loader/loader.component';
 
 describe('StadiumsComponent', () => {
@@ -10,7 +10,7 @@ describe('StadiumsComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-    imports: [StadiumsComponent, BreadcrumpComponent, LoaderComponent]
+    imports: [StadiumsComponent, BreadcrumbComponent, LoaderComponent]
 })
     .compileComponents();
     

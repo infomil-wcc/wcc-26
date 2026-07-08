@@ -1,8 +1,8 @@
 <div class="scoresheet-page">
   <div class="ranking-header fixed left-0 w-full z-50">
-    <div class="header-filter w-full pt-4 pb-4 pl-3 pr-3">
-      <div class="container text-left flex align-items-center justify-content-between">
-        <h1 class="text-white flex align-items-center gap-2 text-2xl font-bold m-0">
+    <div class="header-filter w-full pt-6 pb-6 pl-4 pr-4">
+      <div class="container text-left flex items-center justify-between">
+        <h1 class="text-white flex items-center gap-2 text-2xl font-bold m-0">
           <span class="material-symbols-outlined cursor-pointer" (click)="goBack()">arrow_back</span>
           Détails des points ({{ userId | uppercase }})
         </h1>
@@ -10,14 +10,14 @@
     </div>
   </div>
 
-  <div class="container scoresheet-main pt-8 mt-6">
+  <div class="container scoresheet-main pt-20 mt-12">
     <loader [showLoader]="loading" />
     @if (!loading) {
-    <div class="mb-5 scoresheet-card overflow-hidden">
-      <div class="flex justify-content-between align-items-center p-4 cursor-pointer select-none accordion-header"
+    <div class="mb-8 scoresheet-card overflow-hidden">
+      <div class="flex justify-between items-center p-6 cursor-pointer select-none accordion-header"
         (click)="isSummaryExpanded = !isSummaryExpanded">
         <h2 class="text-800 text-xl font-bold m-0 text-blue-500">Résumé des points</h2>
-        <span class="material-symbols-outlined text-700 text-2xl">
+        <span class="material-symbols-outlined text-slate-700 text-2xl">
           {{ isSummaryExpanded ? 'expand_less' : 'expand_more' }}
         </span>
       </div>
@@ -83,21 +83,21 @@
       }
     </div>
 
-    <div class="mb-6 scoresheet-card overflow-hidden">
-      <div class="flex justify-content-between align-items-center p-4 cursor-pointer select-none accordion-header"
+    <div class="mb-12 scoresheet-card overflow-hidden">
+      <div class="flex justify-between items-center p-6 cursor-pointer select-none accordion-header"
         (click)="isHistoryExpanded = !isHistoryExpanded">
         <h2 class="text-800 text-xl font-bold m-0 text-blue-500">Historique des matchs</h2>
-        <span class="material-symbols-outlined text-700 text-2xl">
+        <span class="material-symbols-outlined text-slate-700 text-2xl">
           {{ isHistoryExpanded ? 'expand_less' : 'expand_more' }}
         </span>
       </div>
 
       @if (isHistoryExpanded) {
-      <div class="match-filters p-3 bg-gray-50 border-bottom-1 border-300">
+      <div class="match-filters p-4 bg-gray-50 border-b border-300">
         <input type="text" [(ngModel)]="filterText" class="col-filter-input w-full md:w-20rem"
           placeholder="Rechercher une équipe ou une phase..." />
 
-        <div class="match-filters-grid mt-3">
+        <div class="match-filters-grid grid-cols-12 mt-4">
           <div class="filter-field">
             <label class="filter-label">Match</label>
             <input pInputText type="text" class="col-filter-input w-full" [(ngModel)]="columnFilters.match"
@@ -175,14 +175,14 @@
             <tr [ngClass]="{'bg-red-50': item.breakdown.isFraud}">
               <td class="text-center text-xs font-mono" style="color: #94a3b8;">{{ item.match.id }}</td>
               <td>
-                <div class="flex align-items-center gap-2 justify-content-start">
+                <div class="flex items-center gap-2 justify-start">
                   <img *ngIf="getTeamFlag(item.match.team_a)" [src]="getTeamFlag(item.match.team_a)"
-                    class="w-2rem shadow-1 border-round-sm" alt="flag">
+                    class="w-2rem shadow-1 rounded-sm" alt="flag">
                   <span style="color: #000000; font-weight: 700;">{{ getTeamNameShort(item.match.team_a) }}</span>
-                  <span class="text-500 px-1">-</span>
+                  <span class="text-slate-500 px-1">-</span>
                   <span style="color: #000000; font-weight: 700;">{{ getTeamNameShort(item.match.team_b) }}</span>
                   <img *ngIf="getTeamFlag(item.match.team_b)" [src]="getTeamFlag(item.match.team_b)"
-                    class="w-2rem shadow-1 border-round-sm" alt="flag">
+                    class="w-2rem shadow-1 rounded-sm" alt="flag">
                 </div>
               </td>
               <td class="text-center text-sm">{{ item.match.date | date: 'dd/MM/yyyy HH:mm' }}</td>
@@ -197,7 +197,7 @@
                   null ? item.match.fulltime_a + ' - ' + item.match.fulltime_b : '-' }}</span>
               </td>
               <td class="text-center text-sm">
-                <div class="flex flex-column align-items-center gap-1"
+                <div class="flex flex-col items-center gap-1"
                   [ngStyle]="{'text-decoration': item.breakdown.isFraud ? 'line-through' : 'none', 'opacity': item.breakdown.isFraud ? '0.6' : '1'}">
                   <span *ngIf="isGroupStage(item) && item.prediction.winner_draw" class="pred-winner-badge">{{
                     getPronosticWinnerTeamName(item) }}</span>
@@ -208,7 +208,7 @@
                     *ngIf="(isGroupStage(item) && !item.prediction.winner_draw) || (!isGroupStage(item) && (item.prediction.fulltime_a === null || item.prediction.fulltime_b === null))"
                     class="text-400">-</span>
                 </div>
-                <div *ngIf="item.breakdown.isFraud" class="flex justify-content-center mt-1">
+                <div *ngIf="item.breakdown.isFraud" class="flex justify-center mt-1">
                   <span class="fraud-pred-badge text-xs" title="Pronostic invalidé (fraude)"
                     style="color: #dc2626; font-weight: 600; display: inline-flex; align-items: center; gap: 2px;">
                     <span class="material-symbols-outlined text-xs">block</span>
@@ -218,12 +218,12 @@
               </td>
               <td class="text-center">
                 <div *ngIf="item.breakdown.isFraud"
-                  class="points-badge border-round px-2 py-1 font-bold inline-flex align-items-center gap-1 bg-red-100 text-red-600"
+                  class="points-badge rounded px-2 py-1 font-bold inline-flex items-center gap-1 bg-red-100 text-red-600"
                   title="Match invalidé (fraude)">
                   <span class="material-symbols-outlined text-sm">gavel</span>
                   0 pts
                 </div>
-                <div *ngIf="!item.breakdown.isFraud" class="points-badge border-round px-2 py-1 font-bold inline-block"
+                <div *ngIf="!item.breakdown.isFraud" class="points-badge rounded px-2 py-1 font-bold inline-block"
                   [ngClass]="item.breakdown.total > 0 ? 'bg-green-100 text-green-700' : 'bg-gray-200 text-gray-500'">
                   {{ item.breakdown.total }} pts
                 </div>
@@ -238,15 +238,15 @@
             </tr>
             <tr *ngIf="item.expanded" class="detail-row">
               <td colspan="8">
-                <div class="detail-content p-4">
+                <div class="detail-content p-6">
                   <!-- details preserved from previous template -->
                   <div *ngIf="item.breakdown.isFraud"
-                    class="bg-red-50 border-red-200 border-1 text-red-700 font-bold p-3 border-round-xl flex flex-column gap-2 shadow-1 mb-4">
-                    <div class="flex align-items-center gap-2">
+                    class="bg-red-50 border-red-200 border-1 text-red-700 font-bold p-4 rounded-xl flex flex-col gap-2 shadow-1 mb-6">
+                    <div class="flex items-center gap-2">
                       <span class="material-symbols-outlined text-2xl">gavel</span>
                       <span>Match invalidé (Fraude) : Le pronostic a été soumis ou modifié après le coup d'envoi.</span>
                     </div>
-                    <div class="text-sm font-medium mt-1 flex flex-column gap-1" style="padding-left: 2.1rem;">
+                    <div class="text-sm font-medium mt-1 flex flex-col gap-1" style="padding-left: 2.1rem;">
                       <div><span class="font-bold">Début du match :</span> {{ item.match.date | date: 'dd/MM/yyyy HH:mm' }}</div>
                       <div *ngIf="item.prediction.created_on"><span class="font-bold">Création :</span> {{ item.prediction.created_on | date: 'dd/MM/yyyy HH:mm' }}</div>
                       <div *ngIf="item.prediction.modified_on"><span class="font-bold">Modification :</span> {{ item.prediction.modified_on | date: 'dd/MM/yyyy HH:mm' }}</div>
@@ -254,31 +254,31 @@
                   </div>
 
                   <div *ngIf="!item.breakdown.isFraud && item.breakdown.total > 0"
-                    class="flex flex-wrap gap-4 align-items-center bg-white p-3 border-round-xl border-1 border-300 shadow-1 mb-4">
-                    <span class="text-600 font-bold text-sm uppercase tracking-wide">Points alloués</span>
-                    <div class="border-right-1 border-300 h-2rem"></div>
-                    <div *ngIf="item.breakdown.winner > 0" class="text-sm text-green-600 flex align-items-center gap-1">
+                    class="flex flex-wrap gap-6 items-center bg-white p-4 rounded-xl border-1 border-300 shadow-1 mb-6">
+                    <span class="text-slate-600 font-bold text-sm uppercase tracking-wide">Points alloués</span>
+                    <div class="border-r border-300 h-2rem"></div>
+                    <div *ngIf="item.breakdown.winner > 0" class="text-sm text-green-600 flex items-center gap-1">
                       <span class="font-bold text-lg">+{{ item.breakdown.winner }}</span> Vainqueur</div>
                     <div *ngIf="item.breakdown.fulltime > 0"
-                      class="text-sm text-green-600 flex align-items-center gap-1"><span class="font-bold text-lg">+{{
+                      class="text-sm text-green-600 flex items-center gap-1"><span class="font-bold text-lg">+{{
                         item.breakdown.fulltime }}</span> Score Final</div>
                     <div *ngIf="item.breakdown.halftime > 0"
-                      class="text-sm text-green-600 flex align-items-center gap-1"><span class="font-bold text-lg">+{{
+                      class="text-sm text-green-600 flex items-center gap-1"><span class="font-bold text-lg">+{{
                         item.breakdown.halftime }}</span> Mi-temps</div>
-                    <div *ngIf="item.breakdown.scorer > 0" class="text-sm text-green-600 flex align-items-center gap-1">
+                    <div *ngIf="item.breakdown.scorer > 0" class="text-sm text-green-600 flex items-center gap-1">
                       <span class="font-bold text-lg">+{{ item.breakdown.scorer }}</span> Buteur</div>
                     <div *ngIf="item.breakdown.consolation > 0"
-                      class="text-sm text-blue-600 flex align-items-center gap-1"><span class="font-bold text-lg">+{{
+                      class="text-sm text-blue-600 flex items-center gap-1"><span class="font-bold text-lg">+{{
                         item.breakdown.consolation }}</span> Consolation</div>
                   </div>
                   <div *ngIf="!item.breakdown.isFraud && item.breakdown.total === 0"
-                    class="text-500 text-sm font-medium p-2 mb-3">Aucun point obtenu pour ce match.</div>
+                    class="text-slate-500 text-sm font-medium p-2 mb-4">Aucun point obtenu pour ce match.</div>
 
                   <!-- prediction card and knockout details preserved similarly -->
-                  <div class="my-predictions-card mb-4" [ngStyle]="{'opacity': item.breakdown.isFraud ? '0.7' : '1'}">
+                  <div class="my-predictions-card mb-6" [ngStyle]="{'opacity': item.breakdown.isFraud ? '0.7' : '1'}">
                     <span class="section-title">🎯 Mon Pronostic</span>
                     <!-- simplified prediction display -->
-                    <div class="pred-grid">
+                    <div class="pred-grid grid-cols-12">
                       <div class="pred-block">
                         <span class="pred-block-label">Vainqueur prédit</span>
                         <span *ngIf="getInferredWinnerTeamName(item)" class="pred-block-value"
@@ -314,10 +314,10 @@
                     </div>
                   </div>
 
-                  <div class="knockout-detail-card p-3 border-round-xl border-1 border-300 bg-white shadow-1">
-                    <span class="section-title block mb-3">📊 Résultats officiels</span>
+                  <div class="knockout-detail-card p-4 rounded-xl border-1 border-300 bg-white shadow-1">
+                    <span class="section-title block mb-4">📊 Résultats officiels</span>
 
-                    <div class="scores-detail-grid mb-4">
+                    <div class="scores-detail-grid grid-cols-12 mb-6">
 
                       <div class="score-detail-block">
                         <span class="score-label">Mi-temps</span>
@@ -427,7 +427,7 @@
           </ng-template>
 
         </p-table>
-        <div *ngIf="filteredMatches.length === 0" class="text-center text-500 py-6 font-medium text-lg">Aucun match
+        <div *ngIf="filteredMatches.length === 0" class="text-center text-slate-500 py-12 font-medium text-lg">Aucun match
           trouvé.</div>
       </div>
       }

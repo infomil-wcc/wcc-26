@@ -1,40 +1,40 @@
-<div class="tactical-modal-overlay flex align-items-center justify-content-center" (click)="closeModal()">
-  <div class="tactical-modal-content w-full max-w-2xl bg-gray-900 border-round p-4 m-3 relative shadow-6 border-1 border-gray-700"
+<div class="fixed inset-0 z-[100] bg-black/70 backdrop-blur-sm flex items-center justify-center p-6" (click)="closeModal()">
+  <div class="w-full max-w-2xl bg-slate-900 rounded-2xl p-12 relative shadow-2xl border border-slate-700"
     (click)="$event.stopPropagation()">
-    <button class="modal-close-btn flex align-items-center justify-content-center" (click)="closeModal()">
+    <button class="absolute top-4 right-4 text-slate-400 hover:text-white transition-colors cursor-pointer flex items-center justify-center" (click)="closeModal()">
       <span class="material-symbols-outlined">close</span>
     </button>
-    <div class="text-center mb-4">
-      <h2 class="text-2xl font-bold m-0 flex align-items-center justify-content-center gap-2" style="color: #e2e8f0;">
+    <div class="text-center mb-6">
+      <h2 class="text-2xl font-bold m-0 flex items-center justify-center gap-2" style="color: #e2e8f0;">
         <span class="material-symbols-outlined" style="color: #3f51b5;">history</span>
         Historique : {{ selectedTeamName }}
       </h2>
     </div>
 
     @if (loadingTeamInfo) {
-    <div class="flex justify-content-center align-items-center p-4">
+    <div class="flex justify-center items-center p-6">
       <span class="material-symbols-outlined spin" style="font-size: 2rem; color: #a0aec0;">sync</span>
     </div>
     } @else {
     @if (teamPastMatches.length === 0) {
-    <div class="text-center p-4" style="color: #a0aec0; background: #1a202c; border-radius: 8px;">
+    <div class="text-center p-6" style="color: #a0aec0; background: #1a202c; border-radius: 8px;">
       Aucun match passé disponible pour cette équipe.
     </div>
     } @else {
-    <div class="past-matches-list flex flex-column gap-3" style="max-height: 60vh; overflow-y: auto; padding-right: 8px;">
+    <div class="past-matches-list flex flex-col gap-4" style="max-height: 60vh; overflow-y: auto; padding-right: 8px;">
       @for (m of teamPastMatches; track m.id) {
-      <div class="past-match-card flex flex-column p-3"
+      <div class="past-match-card flex flex-col p-4"
         style="background: #2d3748; border-radius: 8px; border-left: 4px solid #3f51b5;">
-        <div class="flex justify-content-between align-items-center mb-2" style="font-size: 0.85rem; color: #a0aec0;">
+        <div class="flex justify-between items-center mb-2" style="font-size: 0.85rem; color: #a0aec0;">
           <span class="font-semibold">{{ m.phase }}</span>
           <span>{{ m.date | date:'dd MMM yyyy' }}</span>
         </div>
-        <div class="flex justify-content-center align-items-center gap-3">
+        <div class="flex justify-center items-center gap-4">
           <span class="font-bold text-right" style="flex: 1; color: #e2e8f0;"
             [ngStyle]="{'color': m.fulltime_a > m.fulltime_b ? '#4ade80' : (m.fulltime_a < m.fulltime_b ? '#ef4444' : '#e2e8f0')}">
             {{ m.team_a }}
           </span>
-          <div class="flex align-items-center justify-content-center bg-gray-800 px-3 py-1 border-round font-bold text-lg"
+          <div class="flex items-center justify-center bg-gray-800 px-4 py-1 rounded font-bold text-lg"
             style="min-width: 80px; color: #fff;">
             {{ m.fulltime_a }} - {{ m.fulltime_b }}
           </div>

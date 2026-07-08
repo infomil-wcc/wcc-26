@@ -1,5 +1,5 @@
 import { Component, inject, OnInit, Output, EventEmitter, ChangeDetectionStrategy } from '@angular/core';
-import { TeamsService } from '../../../shared/services/content/teams.service';
+import { TeamsService } from '../../../core/services/content/teams.service';
 import { forkJoin } from 'rxjs';
 import { CdkDragDrop, moveItemInArray, CdkDropList, CdkDrag, CdkDragHandle, CdkDragPlaceholder } from '@angular/cdk/drag-drop';
 import { NgClass, NgStyle } from '@angular/common';

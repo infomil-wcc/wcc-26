@@ -1,9 +1,9 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { BracketKnockoutComponent } from './bracket-knockout.component';
-import { StateService } from '../../../shared/services/core/state.service';
-import { GlobaltimeService } from '../../../shared/services/core/globaltime.service';
-import { BracketService } from '../../../shared/services/games/bracket.service';
-import { CookieService } from '../../../shared/services/core/cookie.service';
+import { StateService } from '../../../core/services/core/state.service';
+import { GlobaltimeService } from '../../../core/services/core/global-time.service';
+import { BracketService } from '../../../core/services/games/bracket.service';
+import { CookieService } from '../../../core/services/core/cookie.service';
 import { of } from 'rxjs';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';

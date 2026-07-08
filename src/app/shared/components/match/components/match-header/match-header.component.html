@@ -1,34 +1,44 @@
-<div class="match-header flex justify-content-between align-items-center">
-  <div class="header-left">
+<div class="px-6 py-2.5 bg-slate-50/80 backdrop-blur-sm border-b border-slate-200 flex justify-between items-center">
+  <div class="flex flex-col">
     @if (match?.group) {
-    <span class="phase">{{ match.group }} - M{{ match.id }}</span>
+    <span class="text-xs font-bold text-slate-700 tracking-wider uppercase">{{ match.group }} - M{{ match.id }}</span>
     } @else {
-    <span class="phase">{{ match?.phase }} - M{{ match?.id }}</span>
+    <span class="text-xs font-bold text-slate-700 tracking-wider uppercase">{{ match?.phase }} - M{{ match?.id }}</span>
     }
-    <div class="date-time">{{ match?.date | date: 'EEEE d MMMM yyyy | HH:mm' }}</div>
+    <div class="text-[10px] font-medium text-slate-500 mt-0.5 uppercase">{{ match?.date | date: 'EEEE d MMMM yyyy | HH:mm' }}</div>
   </div>
-  <div class="header-right">
-    <span class="badge"
-      [ngClass]="{'scheduled': !closed && !pronostiqueDone, 'predicted': pronostiqueDone && !isSavedInApi, 'closed': closed && !pronostiqueDone, 'locked': isSavedInApi}">
+  <div>
+    <span class="inline-flex items-center justify-center px-2.5 py-1 rounded-full text-[10px] font-bold tracking-widest uppercase transition-colors"
+      [ngClass]="{
+        'bg-blue-100 text-blue-700 border border-blue-200': !closed && !pronostiqueDone,
+        'bg-amber-100 text-amber-700 border border-amber-200': pronostiqueDone && !isSavedInApi,
+        'bg-slate-200 text-slate-600 border border-slate-300': closed && !pronostiqueDone,
+        'bg-emerald-100 text-emerald-700 border border-emerald-200': isSavedInApi
+      }">
       @if (isSavedInApi) {
-      <span class="material-symbols-outlined align-middle mr-1"
-        style="font-size: 0.85rem; vertical-align: middle;">lock</span>
-      <span class="align-middle">LOCKED</span>
+      <span class="material-symbols-outlined text-[12px] mr-1">lock</span>
+      <span>LOCKED</span>
       } @else {
       {{ pronostiqueDone ? 'Prédit' : (closed ? 'Clos' : 'Scheduled') }}
       }
     </span>
   </div>
 </div>
-<div class="match-body">
-  <div class="flex justify-content-between align-items-center mb-2 venue-countdown-row">
+<div class="px-6 pt-4 pb-1">
+  <div class="flex justify-between items-center mb-2">
     @if (match?.stadium) {
-    <div class="venue">{{ match.stadium }}</div>
+    <div class="text-[11px] font-medium text-slate-500 flex items-center">
+      <span class="material-symbols-outlined text-[13px] mr-1 text-slate-400">location_on</span>
+      {{ match.stadium }}
+    </div>
     }
     @if (countdownText) {
-    <div class="countdown-timer text-xs font-semibold px-2 py-0.5 rounded flex align-items-center"
-      [ngClass]="{'active-countdown': countdownText !== 'Match commencé' && countdownText !== 'Match terminé'}">
-      <span class="material-symbols-outlined mr-1" style="font-size: 0.95rem;">schedule</span>
+    <div class="text-[10px] font-bold px-2 py-0.5 rounded flex items-center border"
+      [ngClass]="{
+        'bg-red-50 text-red-600 border-red-200 animate-pulse shadow-sm shadow-red-100': countdownText !== 'Match commencé' && countdownText !== 'Match terminé',
+        'bg-slate-100 text-slate-500 border-slate-200': countdownText === 'Match commencé' || countdownText === 'Match terminé'
+      }">
+      <span class="material-symbols-outlined text-[12px] mr-1">schedule</span>
       <span>{{ countdownText }}</span>
     </div>
     }

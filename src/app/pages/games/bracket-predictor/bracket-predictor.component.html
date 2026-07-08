@@ -19,7 +19,7 @@
             </div>
           </div>
         }
-        <div class="groups-grid">
+        <div class="groups-grid grid-cols-12">
           @for (group of groupsData; track group; let gIdx = $index) {
             <div class="group-card"
               [ngStyle]="{'border-top-color': group.color}">
@@ -80,7 +80,7 @@
   }
   @if (currentStep === 2) {
     <div class="step-container">
-      <div class="controls-bar mb-4">
+      <div class="controls-bar mb-6">
         <button type="button" class="btn-navigation secondary-back" (click)="goBackToGroups()">
           &larr; Retour aux groupes
         </button>

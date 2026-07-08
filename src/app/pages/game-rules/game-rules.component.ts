@@ -1,7 +1,7 @@
 import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule, KeyValue, NgClass, DatePipe, KeyValuePipe } from '@angular/common';
 import { ApiResponse, GameElement } from '../../shared/contracts/game-rules.contract';
-import { GameRulesService } from '../../shared/services/content/game-rules.service';
+import { GameRulesService } from '../../core/services/content/game-rules.service';
 import { Observable } from 'rxjs';
 import { LoaderComponent } from '../../shared/components/loader/loader.component';
 

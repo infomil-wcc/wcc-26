@@ -2,7 +2,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { TeamDetailsComponent } from './team-details.component';
 import { HyphernatePipe } from '../../pipe/hyphernate.pipe';
-import { TabcontentComponent } from '../tabcontent/tabcontent.component';
+import { TabContentComponent } from '../tab-content/tab-content.component';
 
 describe('TeamDetailsComponent', () => {
   let component: TeamDetailsComponent;
@@ -10,7 +10,7 @@ describe('TeamDetailsComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-    imports: [TeamDetailsComponent, HyphernatePipe, TabcontentComponent]
+    imports: [TeamDetailsComponent, HyphernatePipe, TabContentComponent]
 })
     .compileComponents();
     

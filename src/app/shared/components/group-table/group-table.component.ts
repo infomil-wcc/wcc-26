@@ -1,7 +1,7 @@
 import { Component, OnInit, inject, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule, AsyncPipe } from '@angular/common';
-import { TeamsService } from '../../services/content/teams.service';
-import { MatchesService } from '../../services/content/matches.service';
+import { TeamsService } from '../../../core/services/content/teams.service';
+import { MatchesService } from '../../../core/services/content/matches.service';
 import { Teams } from '../../contracts/teams.contract';
 import { Matches } from '../../contracts/matches.contract';
 import { combineLatest, Observable } from 'rxjs';

@@ -6,7 +6,7 @@
   @if (router.url === '/accueil' || router.url === '/') {
     <ng-container slot="hero">
       <hero [background]="'url(assets/hero-bg.jpg)'">
-        <app-hpnews></app-hpnews>
+        <app-hp-news></app-hp-news>
       </hero>
     </ng-container>
   }
@@ -31,7 +31,7 @@
     <li>Allemagne 2006: 147 buts</li>
   </ul>
 
-  <form class="flex flex-column gap-2" [formGroup]="goalsForm">
+  <form class="flex flex-col gap-2" [formGroup]="goalsForm">
     <div class="input mb-2">
       <input type="number" formControlName="totalGoalsPrediction" name="totalGoalsPrediction" required min="0" class="w-full" />
     </div>

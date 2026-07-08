@@ -1,47 +1,49 @@
-<div class="flex align-items-center justify-content-center mb-3">
-  <div class="col-5 p-0 teamDetails">
-    <span class="flex align-items-center justify-content-center">
-      <span class="mr-2 flex flagContainer"
+<div class="flex items-center justify-center mb-6 mt-2 px-2">
+  <div class="w-2/5 flex flex-col items-center">
+    <div class="flex flex-col items-center justify-center gap-2">
+      <div class="block w-[36px] h-[24px] min-w-[36px] flex-shrink-0 bg-cover bg-center bg-no-repeat rounded shadow-sm border border-black/10 transition-transform hover:scale-110"
         [ngStyle]="{'background-image': match?.team_a ? 'url(' + teamAFlag + ')'  : 'url(assets/flags/unknown.png)'}">
-      </span>
-      <span class="teamName">{{ match?.team_a }}</span>
-    </span>
+      </div>
+      <span class="font-extrabold text-[15px] text-slate-800 leading-tight text-center">{{ match?.team_a || 'À déterminer' }}</span>
+    </div>
     @if (match?.team_a !== null) {
-    <button class="info-btn-bottom flex align-items-center justify-content-center mt-2"
+    <button class="mt-2 text-[10px] font-bold uppercase bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-full px-2.5 py-1 flex items-center transition-colors shadow-sm"
       (click)="showTeamDetails(match.team_a, $event)" title="Historique de l'équipe">
-      <span class="material-symbols-outlined mr-1" style="font-size: 0.95rem;">info</span>
+      <span class="material-symbols-outlined mr-1 text-[12px]">info</span>
       <span>INFO</span>
     </button>
     }
     @if (match?.team_a !== null ) {
-    <span class="flex align-items-center justify-content-center mt-4">
+    <div class="flex items-center justify-center mt-4 scale-90 origin-top">
       <teamperformance [teamName]="match.team_a" />
-    </span>
+    </div>
     }
   </div>
-  <div class="col-2  p-0">
-    <div class="flex align-items-center justify-content-center pb-6">
-      vs
+  
+  <div class="w-1/5 flex items-center justify-center -translate-y-4">
+    <div class="w-8 h-8 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center text-xs font-bold text-slate-400 shadow-inner">
+      VS
     </div>
   </div>
-  <div class="col-5 p-0 teamDetails">
-    <span class="flex align-items-center justify-content-center">
-      <span class="teamName">{{ match?.team_b }}</span>
-      <span class="ml-2 flex flagContainer"
+  
+  <div class="w-2/5 flex flex-col items-center">
+    <div class="flex flex-col items-center justify-center gap-2">
+      <div class="block w-[36px] h-[24px] min-w-[36px] flex-shrink-0 bg-cover bg-center bg-no-repeat rounded shadow-sm border border-black/10 transition-transform hover:scale-110"
         [ngStyle]="{'background-image': match?.team_b ? 'url(' + teamBFlag + ')'  : 'url(assets/flags/unknown.png)'}">
-      </span>
-    </span>
+      </div>
+      <span class="font-extrabold text-[15px] text-slate-800 leading-tight text-center">{{ match?.team_b || 'À déterminer' }}</span>
+    </div>
     @if (match?.team_b !== null) {
-    <button class="info-btn-bottom flex align-items-center justify-content-center mt-2"
+    <button class="mt-2 text-[10px] font-bold uppercase bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-full px-2.5 py-1 flex items-center transition-colors shadow-sm"
       (click)="showTeamDetails(match.team_b, $event)" title="Historique de l'équipe">
-      <span class="material-symbols-outlined mr-1" style="font-size: 0.95rem;">info</span>
+      <span class="material-symbols-outlined mr-1 text-[12px]">info</span>
       <span>INFO</span>
     </button>
     }
     @if (match?.team_b !== null ) {
-    <span class="flex align-items-center justify-content-center mt-4">
+    <div class="flex items-center justify-center mt-4 scale-90 origin-top">
       <teamperformance [teamName]="match.team_b" />
-    </span>
+    </div>
     }
   </div>
 </div>

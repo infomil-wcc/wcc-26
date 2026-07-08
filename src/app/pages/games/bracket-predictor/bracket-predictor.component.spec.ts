@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { BracketPredictorComponent } from './bracket-predictor.component';
-import { TeamsService } from '../../../shared/services/content/teams.service';
+import { TeamsService } from '../../../core/services/content/teams.service';
 import { of } from 'rxjs';
 import { DragDropModule } from '@angular/cdk/drag-drop';
 import { HttpClientTestingModule } from '@angular/common/http/testing';

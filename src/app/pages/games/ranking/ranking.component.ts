@@ -1,13 +1,13 @@
 import { Component, OnDestroy, OnInit, inject, ChangeDetectorRef, ChangeDetectionStrategy, HostListener } from '@angular/core';
 import { Observable, Subscription } from 'rxjs';
-import { GlobaltimeService } from '../../../shared/services/core/globaltime.service';
+import { GlobaltimeService } from '../../../core/services/core/global-time.service';
 import { HttpClient } from '@angular/common/http';
-import { BracketService } from '../../../shared/services/games/bracket.service';
-import { TeamsService } from '../../../shared/services/content/teams.service';
+import { BracketService } from '../../../core/services/games/bracket.service';
+import { TeamsService } from '../../../core/services/content/teams.service';
 import { NgClass, UpperCasePipe, DatePipe } from '@angular/common';
 import { LoaderComponent } from '../../../shared/components/loader/loader.component';
-import { RankingsService } from '../../../shared/services/content/rankings.service';
-import { StateService } from '../../../shared/services/core/state.service';
+import { RankingsService } from '../../../core/services/content/rankings.service';
+import { StateService } from '../../../core/services/core/state.service';
 import { RouterModule } from '@angular/router';
 import { ScoresheetComponent } from './scoresheet/scoresheet.component';
 

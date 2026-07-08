@@ -1,14 +1,14 @@
-<div class="container pt-4">
+<div class="container pt-6">
 
-  <h1 class="text-4xl mb-1 md:mb-3 mt-2">Fifa World Cup 2026</h1>
+  <h1 class="text-4xl mb-1 md:mb-6 mt-2">Fifa World Cup 2026</h1>
 
-  <app-breadcrump [bcdata]="breadCrumpData" (routeEvent)="resetStadiumSelection($event)" />
+  <app-breadcrumb [bcdata]="breadCrumpData" (routeEvent)="resetStadiumSelection($event)" />
 
   @if ($stadiumData | async; as stadiums) {
-    <div class="stadiums grid relative gap-2 md:mt-4" [ngClass]="{'hidden': choosenStadium}">
+    <div class="stadiums grid grid-cols-12 relative gap-2 md:mt-12" [ngClass]="{'hidden': choosenStadium}">
       @for (stadium of stadiums; track stadium) {
-        <div class="stadium bg-white p-3 flex col-12 align-items-center justify-content-center md:col-3 lg:col-3">
-          <button class="btnStadiums flex flex-column align-items-center" (click)="showStadium(stadium)">
+        <div class="stadium bg-white p-4 flex col-span-12 items-center justify-center md:col-span-3 lg:col-span-3">
+          <button class="btnStadiums flex flex-col items-center" (click)="showStadium(stadium)">
             <!-- {{ stadium.id }} -->
             <div class="imgPlaceholder">
               <img src="assets/stadium/{{ stadium.id }}.png" alt="" width="100%" height="auto" />
@@ -24,7 +24,7 @@
 
   <!-- <team-details *ngIf="choosenTeam" [team]="choosenTeam"></team-details> -->
   @if (choosenStadium) {
-    <stadiumdetails [stadium]="choosenStadium"></stadiumdetails>
+    <app-stadium-details [stadium]="choosenStadium"></app-stadium-details>
   }
 </div>
 

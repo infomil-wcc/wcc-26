@@ -1,6 +1,6 @@
-<div class="filter w-full pt-3 pb-3 pl-2 pr-2">
-  <div class="container flex flex-wrap justify-content-between align-items-center gap-3 mb-3">
-    <h1 class="text-white flex align-items-center gap-2 m-0" style="font-size: 1.1rem;">
+<div class="filter w-full pt-4 pb-4 pl-2 pr-2">
+  <div class="container flex flex-wrap justify-between items-center gap-4 mb-4">
+    <h1 class="text-white flex items-center gap-2 m-0" style="font-size: 1.1rem;">
       <span class="material-symbols-outlined">calendar_month</span>
       Calendrier des matchs
     </h1>
@@ -8,7 +8,7 @@
     <!-- Tab Controls & Calendar Filter -->
     <div class="tabs-container flex gap-2 overflow-x-auto">
         <button 
-          class="tab-btn flex align-items-center gap-2" 
+          class="tab-btn flex items-center gap-2" 
           [class.active]="activeTab === 'live'"
           (click)="setTab('live')">
           <span class="live-dot"></span>
@@ -44,20 +44,20 @@
   </app-calendar-strip>
 </div>
 
-<div class="container pt-4 gamesMain" [class.calendar-collapsed]="isCalendarCollapsed">
+<div class="container pt-6 gamesMain" [class.calendar-collapsed]="isCalendarCollapsed">
   @if ($today | async; as today) {
     @if ($groupedMatches | async; as groupedMatches) {
       @if (getDates(groupedMatches).length > 0) {
         <div>
           @for (date of getDates(groupedMatches); track date) {
             <h3 class="capitalize games-date-header text-white">{{ date | date: 'fullDate' }}</h3>
-            <div class="flex flex-wrap gap-2 mb-8">
+            <div class="flex flex-wrap gap-2 mb-20">
               @for (match of groupedMatches[date]; track match) {
-                <div class="col-12 p-0 lg:col-4">
+                <div class="col-span-12 p-0 lg:col-span-4">
                   @defer (on viewport) {
                     <app-match [match]="match" [dateTime]="today.dateTime" />
                   } @placeholder {
-                    <div style="min-height: 200px" class="match-placeholder w-full h-full border-round surface-card"></div>
+                    <div style="min-height: 200px" class="match-placeholder w-full h-full rounded bg-white"></div>
                   }
                 </div>
               }
@@ -65,8 +65,8 @@
           }
           @if ($matchDates | async; as matchDates) {
             @if (getNextDate(matchDates); as nextDate) {
-              <div class="flex justify-content-center mt-4 mb-8">
-                <button type="button" class="btn-next-date flex align-items-center gap-2" (click)="selectDate(nextDate)">
+              <div class="flex justify-center mt-6 mb-20">
+                <button type="button" class="btn-next-date flex items-center gap-2" (click)="selectDate(nextDate)">
                   <span>Date suivante : {{ nextDate | date: 'EEEE d MMMM' }}</span>
                   <span class="material-symbols-outlined">arrow_forward</span>
                 </button>
@@ -75,8 +75,8 @@
           }
         </div>
       } @else {
-        <div class="empty-state text-center py-8">
-          <span class="material-symbols-outlined empty-icon mb-3">sports_soccer</span>
+        <div class="empty-state text-center py-20">
+          <span class="material-symbols-outlined empty-icon mb-4">sports_soccer</span>
           @if (activeTab === 'live') {
             <p class="text-gray-400">Aucun match en cours pour le moment.</p>
           } @else if (activeTab === 'upcoming') {

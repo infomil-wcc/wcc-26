@@ -1,6 +1,6 @@
 import { Component, Input, Output, EventEmitter, OnInit, inject } from '@angular/core';
 import { NgClass, NgStyle } from '@angular/common';
-import { TeamsService } from '../../services/content/teams.service';
+import { TeamsService } from '../../../core/services/content/teams.service';
 
 interface LineupPlayer {
   id?: number;

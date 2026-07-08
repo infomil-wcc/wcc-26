@@ -2,27 +2,27 @@ import { Component, EventEmitter, Input, OnInit, OnDestroy, Output, inject, Chan
 import { Matches } from '../../contracts/matches.contract';
 import { max, Observable, Subscription } from 'rxjs';
 import { map, of } from 'rxjs';
-import { TeamsService } from '../../services/content/teams.service';
-import { StateService } from '../../services/core/state.service';
-import { PredictionsService } from '../../services/games/predictions.service';
+import { TeamsService } from '../../../core/services/content/teams.service';
+import { StateService } from '../../../core/services/core/state.service';
+import { PredictionsService } from '../../../core/services/games/predictions.service';
 import { MatchHeaderComponent } from './components/match-header/match-header.component';
 import { MatchInfoComponent } from './components/match-info/match-info.component';
 import { MatchPredictionEditComponent } from './components/match-prediction-edit/match-prediction-edit.component';
 import { MatchPredictionSavedComponent } from './components/match-prediction-saved/match-prediction-saved.component';
 import { MatchOfficialScoreComponent } from './components/match-official-score/match-official-score.component';
 import { TeamInfoModalComponent } from './components/team-info-modal/team-info-modal.component';
-import { MatchScorersService } from '../../services/games/match-scorers.service';
-import { MatchOutcomeService } from '../../services/games/match-outcome.service';
-import { MatchCountdownService } from '../../services/games/match-countdown.service';
-import { TeamHistoryService, PHASE_CONFIG } from '../../services/games/team-history.service';
-import { GlobaltimeService } from '../../services/core/globaltime.service';
-import { StadiumsService } from '../../services/content/stadiums.service';
+import { MatchScorersService } from '../../../core/services/games/match-scorers.service';
+import { MatchOutcomeService } from '../../../core/services/games/match-outcome.service';
+import { MatchCountdownService } from '../../../core/services/games/match-countdown.service';
+import { TeamHistoryService, PHASE_CONFIG } from '../../../core/services/games/team-history.service';
+import { GlobaltimeService } from '../../../core/services/core/global-time.service';
+import { StadiumsService } from '../../../core/services/content/stadiums.service';
 import { NgClass, NgStyle } from '@angular/common';
 import { LoaderComponent } from '../loader/loader.component';
 import { TacticalLineupComponent } from '../tactical-lineup/tactical-lineup.component';
-import { LineupsApiService } from '../../services/api/lineups-api.service';
+import { LineupsApiService } from '../../../core/services/api/lineups-api.service';
 
-import { MatchesService } from '../../services/content/matches.service';
+import { MatchesService } from '../../../core/services/content/matches.service';
 
 
 

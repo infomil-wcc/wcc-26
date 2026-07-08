@@ -1,10 +1,10 @@
 import { Component, OnInit, inject, ChangeDetectionStrategy } from '@angular/core';
-import { breadCrump, BreadcrumpComponent } from '../../../shared/components/breadcrump/breadcrump.component';
+import { breadCrump, BreadcrumbComponent } from '../../../shared/components/breadcrumb/breadcrumb.component';
 import { Observable, map } from 'rxjs';
-import { StadiumsService } from '../../../shared/services/content/stadiums.service';
+import { StadiumsService } from '../../../core/services/content/stadiums.service';
 import { NgClass, AsyncPipe } from '@angular/common';
 import { LoaderComponent } from '../../../shared/components/loader/loader.component';
-import { StadiumdetailsComponent } from '../../../components/stadiumdetails/stadiumdetails.component';
+import { StadiumDetailsComponent } from '../../../shared/components/stadium-details/stadium-details.component';
 
 export interface Stadium {
   id: string;
@@ -17,7 +17,7 @@ export interface Stadium {
     templateUrl: './stadiums.component.html',
     styleUrl: './stadiums.component.scss',
     changeDetection: ChangeDetectionStrategy.Eager,
-    imports: [BreadcrumpComponent, NgClass, LoaderComponent, StadiumdetailsComponent, AsyncPipe]
+    imports: [BreadcrumbComponent, NgClass, LoaderComponent, StadiumDetailsComponent, AsyncPipe]
 })
 export class StadiumsComponent implements OnInit {
 

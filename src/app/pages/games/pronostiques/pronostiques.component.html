@@ -20,7 +20,7 @@
 
       <div class="tab-group">
 
-        <button class="tab-btn flex align-items-center gap-2" id="tab-live"
+        <button class="tab-btn flex items-center gap-2" id="tab-live"
           [ngClass]="{'tab-active': activeTab === 'live'}" (click)="setActiveTab('live')">
           <span class="live-dot"></span>
           <span class="tab-label">Direct</span>
@@ -71,7 +71,7 @@
           <strong>Les matchs du jour sont terminés !</strong>
           <span>Consultez les résultats dans l'onglet « Joués ».</span>
         </div>
-        <button type="button" class="banner-close-btn flex align-items-center justify-content-center"
+        <button type="button" class="banner-close-btn flex items-center justify-center"
           (click)="dismissTodayBanner()" title="Fermer">
           <span class="material-symbols-outlined">close</span>
         </button>
@@ -85,7 +85,7 @@
           <strong>{{ todayMatchCount }} match{{ todayMatchCount > 1 ? 's' : '' }} aujourd'hui</strong>
           <span>Vos pronostics sont soumis. En attente du coup d'envoi !</span>
         </div>
-        <button type="button" class="banner-close-btn flex align-items-center justify-content-center"
+        <button type="button" class="banner-close-btn flex items-center justify-center"
           (click)="dismissTodayBanner()" title="Fermer">
           <span class="material-symbols-outlined">close</span>
         </button>
@@ -99,7 +99,7 @@
           <strong>{{ todayMatchCount }} match{{ todayMatchCount > 1 ? 's' : '' }} aujourd'hui !</strong>
           <span>Ne manquez pas vos pronostics du jour.</span>
         </div>
-        <button type="button" class="banner-close-btn flex align-items-center justify-content-center"
+        <button type="button" class="banner-close-btn flex items-center justify-center"
           (click)="dismissTodayBanner()" title="Fermer">
           <span class="material-symbols-outlined">close</span>
         </button>
@@ -134,7 +134,7 @@
               [style.background]="'linear-gradient(90deg,' + phase.color + ' 0%, transparent 100%)'"></div>
           </div>
 
-          <div class="cards-grid">
+          <div class="cards-grid grid-cols-12">
             @for (match of dateGroup.matches; track match.id) {
             <div class="card-wrapper" [class.live-match]="isLive(match, today.dateTime)">
               @if (isLive(match, today.dateTime)) {
@@ -146,7 +146,7 @@
               @defer (on viewport) {
                 <app-match [match]="match" [isPronostiques]="true" [disabled]="!isLoggedIn" [dateTime]="today.dateTime" />
               } @placeholder {
-                <div style="min-height: 200px" class="match-placeholder w-full h-full border-round surface-card"></div>
+                <div style="min-height: 200px" class="match-placeholder w-full h-full rounded bg-white"></div>
               }
             </div>
             }
@@ -159,8 +159,8 @@
       }
       @if ($matchDates | async; as matchDates) {
       @if (getNextDate(matchDates); as nextDate) {
-      <div class="flex justify-content-center mt-4 mb-8">
-        <button type="button" class="btn-next-date flex align-items-center gap-2" (click)="selectDate(nextDate)">
+      <div class="flex justify-center mt-6 mb-20">
+        <button type="button" class="btn-next-date flex items-center gap-2" (click)="selectDate(nextDate)">
           <span>Date suivante : {{ nextDate | date: 'EEEE d MMMM' }}</span>
           <span class="material-symbols-outlined">arrow_forward</span>
         </button>
@@ -202,13 +202,13 @@
           <div class="date-accent-line date-accent-played"></div>
         </div>
 
-        <div class="cards-grid">
+        <div class="cards-grid grid-cols-12">
           @for (match of getSortedPlayedMatchesForDate(groupedMatches[date]); track match.id) {
           <div class="card-wrapper">
             @defer (on viewport) {
               <app-match [match]="match" [isPronostiques]="true" [disabled]="!isLoggedIn" [dateTime]="today.dateTime"/>
             } @placeholder {
-              <div style="min-height: 200px" class="match-placeholder w-full h-full border-round surface-card"></div>
+              <div style="min-height: 200px" class="match-placeholder w-full h-full rounded bg-white"></div>
             }
           </div>
           }
@@ -218,8 +218,8 @@
       }
       @if ($matchDates | async; as matchDates) {
       @if (getNextDate(matchDates); as nextDate) {
-      <div class="flex justify-content-center mt-4 mb-8">
-        <button type="button" class="btn-next-date flex align-items-center gap-2" (click)="selectDate(nextDate)">
+      <div class="flex justify-center mt-6 mb-20">
+        <button type="button" class="btn-next-date flex items-center gap-2" (click)="selectDate(nextDate)">
           <span>Date suivante : {{ nextDate | date: 'EEEE d MMMM' }}</span>
           <span class="material-symbols-outlined">arrow_forward</span>
         </button>
@@ -297,7 +297,7 @@
             <div class="penalty-match-item">
               <div class="penalty-match-title">{{ item.match.team_a | uppercase }} vs {{ item.match.team_b | uppercase }}</div>
               
-              <div class="penalty-teams-grid">
+              <div class="penalty-teams-grid grid-cols-12">
                 <label class="penalty-team-btn" [class.selected]="item.selectedWinner === item.match.team_a">
                   <input type="radio" [name]="'penalty_popup_' + item.match.id" 
                     [value]="item.match.team_a"

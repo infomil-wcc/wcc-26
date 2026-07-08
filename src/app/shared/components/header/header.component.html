@@ -1,38 +1,54 @@
-@if ($userState | async; as userState;) {
-  <div class="subHeader pt-2 pb-2 pl-3 pr-3 sm:pr-4 sm:pl-4">
-    <div class="container h-full flex justify-content-between align-items-center">
-      <span class="teaser text-xs flex align-items-center">
-        <span class="material-symbols-outlined text-lg mr-1">
-          sports_esports
-          </span> <span class="desktop">IML FOOT CHALLENGE</span><span class="mobile">IML FC</span> - FIFA WORLD CUP 2026™</span>
+@if ($userState | async; as userState) {
+  <div class="fixed top-0 left-0 w-full z-[2000] transition-all duration-300">
+    <!-- Top Bar (Teaser & Auth) -->
+    <div class="bg-[#111e36] text-white py-1.5 px-4 md:px-8 border-b border-white/5 relative z-20">
+      <div class="container mx-auto h-full flex justify-between items-center text-xs md:text-sm">
+        <span class="flex items-center text-[#cbd5e1] font-medium tracking-wide">
+          <span class="material-symbols-outlined text-base md:text-lg mr-1.5 text-[#0ed4de]">sports_esports</span> 
+          <span class="hidden md:inline">IML FOOT CHALLENGE - FIFA WORLD CUP 2026™</span>
+          <span class="md:hidden font-bold text-[#0ed4de]">IML FC 26</span>
+        </span>
+        
+        <div class="flex items-center">
           @if (userState.email) {
-            <div class="flex align-items-center">
-              <div class="loggedInUser pb-1">{{ userState.last_name }}</div>
-              <span class="ml-2 mr-2 pb-1">|</span>
-              <button class="logOut" title="Se deconnecter" (click)="logout()">
-                <span class="material-symbols-outlined mr-1">logout</span>
+            <div class="flex items-center bg-white/10 rounded-full px-3 py-1 backdrop-blur-sm border border-white/10">
+              <span class="font-semibold text-[#0ed4de] mr-2">{{ userState.last_name }}</span>
+              <div class="w-[1px] h-3 bg-white/20 mx-2"></div>
+              <button class="flex items-center hover:text-red-400 transition-colors" title="Se déconnecter" (click)="logout()">
+                <span class="material-symbols-outlined text-base">logout</span>
               </button>
             </div>
           } @else {
-            <button class="btnLogin" (click)="showLoginModal()">
-              <span class="material-symbols-outlined mr-0 text-xl">account_circle</span>
+            <button class="flex items-center bg-[#0ed4de] text-[#0b1426] hover:bg-[#0284c7] hover:text-white px-4 py-1.5 rounded-full font-bold transition-all duration-300 shadow-[0_0_10px_rgba(14,212,222,0.3)]" (click)="showLoginModal()">
+              <span class="material-symbols-outlined text-base mr-1.5">login</span>
+              <span class="hidden md:inline">Connexion</span>
+              <span class="md:hidden">Log in</span>
             </button>
           }
         </div>
       </div>
-      <div class="headerNav relative pt-3 pb-3 pl-3 pr-3 shadow-1 sm:pr-4 sm:pl-4 sm:pt-4 sm:pb-3">
-        <div class="container  flex justify-content-between align-items-center">
-          <div class="headerLogo h-full">
-            <button class="" title="IML Football Challenge" (click)="loadHomepage()">
-              <img src="assets/logo-wcc-26.png" alt="" />
-            </button>
-          </div>
-          <cmp-nav />
+    </div>
+
+    <!-- Main Header Bar -->
+    <div class="relative bg-white/90 backdrop-blur-md border-b border-gray-200/50 shadow-sm py-2 px-4 md:px-8 md:py-0 h-16 md:h-20 z-10 transition-all">
+      <div class="container mx-auto h-full flex justify-between items-center">
+        <!-- Logo -->
+        <div class="h-10 md:h-14 cursor-pointer hover:scale-105 transition-transform" title="IML Football Challenge" (click)="loadHomepage()">
+          <img src="assets/logo-wcc-26.png" class="h-full object-contain drop-shadow-sm" alt="Logo WCC 26" />
+        </div>
+        
+        <!-- Navigation (Hidden on mobile, since it's now a bottom bar!) -->
+        <div class="hidden md:block h-full">
+          <cmp-nav></cmp-nav>
         </div>
       </div>
-      @if (!userState.email) {
-        <modal [(showModal)]="showLogin" [modalSize]="'md'">
-          <app-login></app-login>
-        </modal>
-      }
-    }
+    </div>
+  </div>
+
+  <!-- Login Modal -->
+  @if (!userState.email) {
+    <modal [(showModal)]="showLogin" [modalSize]="'md'">
+      <app-login></app-login>
+    </modal>
+  }
+}

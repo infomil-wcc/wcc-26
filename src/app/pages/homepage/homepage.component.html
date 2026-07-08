@@ -1,4 +1,4 @@
-<div class="container pt-3 flex flex-column align-items-center">
+<div class="container pt-4 flex flex-col items-center">
   <h2 class="text-center">Entre dans le jeu ! </h2>
   <h3 class="mt-0 text-center">Fais tes pronostics pour la Coupe du Monde 2026 et vise des récompenses incroyables.</h3>
   @if (!isLoggedIn) {
@@ -6,18 +6,18 @@
   }
   <h3>À toi de jouer !</h3>
 
-  <!-- <div class="grid justify-content-center gap-4 mt-4">
-  <div class="col-12 md:col-2">
+  <!-- <div class="grid grid-cols-12 justify-center gap-6 mt-6">
+  <div class="col-span-12 md:col-span-2">
     <a href="#meilleur-buteur" class="gameShortcut" title="Les meilleurs joueur">
       <img src="assets/jeu-meilleur-joueur.png" alt="" width="100%" height="auto" />
     </a>
   </div>
-  <div class="col-12 md:col-2">
+  <div class="col-span-12 md:col-span-2">
     <a href="#pronostiques" class="gameShortcut" title="Pronostiquer les matchs">
       <img src="assets/jeu-pronostique.png" alt="" width="100%" height="auto" />
     </a>
   </div>
-  <div class="col-12 md:col-2">
+  <div class="col-span-12 md:col-span-2">
     <a href="#bracket" class="gameShortcut" title="Le jeu du bracket">
       <img src="assets/jeu-bracket.png" alt="" width="100%" height="auto" />
     </a>
@@ -27,13 +27,13 @@
 
 @if ($wcGroups | async; as groups) {
   @if ($teamsFlags | async; as teamsFlags) {
-    <div class="groupContainer mt-4">
+    <div class="groupContainer mt-6">
       @for (group of groups; track group) {
-        <div class="group flex align-items-center" [ngStyle]="{'border-color': group.color}">
+        <div class="group flex items-center" [ngStyle]="{'border-color': group.color}">
           <div class="groupTitle" [ngStyle]="{'background-color': group.color }">
             {{ group.group_title }}
           </div>
-          <div class="groupTeams flex gap-4">
+          <div class="groupTeams flex gap-6">
             <div class="teamDetails">
               <div class="team">
                 @for (team of teamsFlags; track team) {

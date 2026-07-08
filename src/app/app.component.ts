@@ -1,17 +1,17 @@
 import { Component, Input, OnInit, ChangeDetectionStrategy, inject } from '@angular/core';
 import { ActivatedRoute, NavigationStart, Router, RouterOutlet } from '@angular/router';
-import { StateService, AppState, user } from './shared/services/core/state.service';
-import { AuthService } from './shared/services/core/auth.service';
-import { TeamsService } from './shared/services/content/teams.service';
-import { CookieService } from './shared/services/core/cookie.service';
+import { StateService, AppState, user } from './core/services/core/state.service';
+import { AuthService } from './core/services/core/auth.service';
+import { TeamsService } from './core/services/content/teams.service';
+import { CookieService } from './core/services/core/cookie.service';
 import { Observable, catchError, switchMap, of, throwError } from 'rxjs';
-import { TotalgoalsService } from './shared/services/core/totalgoals.service';
+import { TotalgoalsService } from './core/services/core/total-goals.service';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { LayoutComponent } from './shared/components/layout/layout.component';
 import { NgSwitch, NgSwitchCase } from '@angular/common';
 import { HeaderComponent } from './shared/components/header/header.component';
 import { HeroComponent } from './shared/components/hero/hero.component';
-import { HpnewsComponent } from './components/hpnews/hpnews.component';
+import { HpNewsComponent } from './shared/components/hp-news/hp-news.component';
 import { FaqComponent } from './pages/faq/faq.component';
 import { GameRulesComponent } from './pages/game-rules/game-rules.component';
 import { GroupStandingsComponent } from './pages/competition/group-standings/group-standings.component';
@@ -19,16 +19,16 @@ import { FooterComponent } from './shared/components/footer/footer.component';
 import { DialogComponent } from './shared/components/dialog/dialog.component';
 import { LoaderComponent } from './shared/components/loader/loader.component';
 import { ModalComponent } from './shared/components/modal/modal.component';
-import { AppUpdateService } from './shared/services/core/app-update.service';
-import { KnockoutBracketService } from './shared/services/games/knockout-bracket.service';
-import { MatchesService } from './shared/services/content/matches.service';
+import { AppUpdateService } from './core/services/core/app-update.service';
+import { KnockoutBracketService } from './core/services/games/knockout-bracket.service';
+import { MatchesService } from './core/services/content/matches.service';
 
 @Component({
     selector: 'app-root',
     templateUrl: './app.component.html',
     styleUrl: './app.component.scss',
     changeDetection: ChangeDetectionStrategy.Eager,
-    imports: [LayoutComponent, HeaderComponent, HeroComponent, HpnewsComponent, RouterOutlet, FooterComponent, DialogComponent, ReactiveFormsModule, LoaderComponent, ModalComponent]
+    imports: [LayoutComponent, HeaderComponent, HeroComponent, HpNewsComponent, RouterOutlet, FooterComponent, DialogComponent, ReactiveFormsModule, LoaderComponent, ModalComponent]
 })
 export class AppComponent implements OnInit {
 

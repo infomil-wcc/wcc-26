@@ -1,12 +1,11 @@
-<div class="match" [ngClass]="{
-  'stadium-bg': isPronostiques && stadiumImageUrl,
-  'match-editable': isPronostiques,
-  'match-closed': closed || isSavedInApi,
-  'match-finished': match.fulltime_a !== null && match.fulltime_b !== null
+<div class="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm transition-all duration-300 flex flex-col w-[440px] max-w-[100vw] sm:max-w-full mx-auto relative mb-4 hover:-translate-y-1 hover:shadow-xl hover:border-slate-300 group" [ngClass]="{
+  'bg-slate-50': isPronostiques && stadiumImageUrl,
+  'opacity-90': closed || isSavedInApi,
+  'border-emerald-500': match.fulltime_a !== null && match.fulltime_b !== null
 }">
 
   @if (isPronostiques && stadiumImageUrl) {
-  <div class="match-bg-overlay" [ngStyle]="{'background-image': 'url(' + stadiumImageUrl + ')'}"></div>
+  <div class="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-10 pointer-events-none" [ngStyle]="{'background-image': 'url(' + stadiumImageUrl + ')'}"></div>
   }
 
   <app-match-header
@@ -87,13 +86,13 @@
     </div>
 
     @if (isEditing || (!isSavedInApi && !closed)) {
-    <div class="mt-4 w-full flex justify-content-center" [ngClass]="{'disabled': userTrigramme ===''}">
-      <button class="btnSubmit w-full flex align-items-center justify-content-center gap-2" (click)="sendBet()"
-        [disabled]="disabled || isSubmitting" [ngClass]="{'opacity-50 cursor-not-allowed': disabled || isSubmitting}">
+    <div class="mt-6 w-full flex justify-center" [ngClass]="{'opacity-50 pointer-events-none': userTrigramme ===''}">
+      <button class="w-full flex items-center justify-center gap-2 py-4 px-12 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold rounded-xl shadow-md hover:from-blue-700 hover:to-indigo-700 transition-all duration-200 transform hover:scale-[1.02] active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none" (click)="sendBet()"
+        [disabled]="disabled || isSubmitting">
         @if (isSubmitting) {
-        <span class="material-symbols-outlined spin" style="font-size: 1.25rem;">sync</span>
+        <span class="material-symbols-outlined animate-spin text-xl">sync</span>
         } @else {
-        <span class="material-symbols-outlined" style="font-size: 1.25rem;">send</span>
+        <span class="material-symbols-outlined text-xl">send</span>
         }
         {{ isSubmitting ? 'Envoi en cours...' : 'Envoyer mon pronostic' }}
       </button>
@@ -117,9 +116,16 @@
 <loader [showLoader]="showLoader" />
 
 @if (showTacticalModal) {
-<app-tactical-lineup [teamA]="match.team_a" [teamB]="match.team_b" [teamAFlag]="teamAFlag" [teamBFlag]="teamBFlag"
-  (onClose)="closeTacticalLineup()" (playerSelected)="selectScorer($event)">
-</app-tactical-lineup>
+<div class="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-6 overflow-y-auto" (click)="closeTacticalLineup()">
+  <div class="w-full max-w-lg relative" (click)="$event.stopPropagation()">
+    <button class="absolute -top-12 right-0 text-white hover:text-slate-200 transition-colors cursor-pointer z-50 bg-white/10 rounded-full p-2 flex items-center justify-center backdrop-blur-md" (click)="closeTacticalLineup()">
+      <span class="material-symbols-outlined">close</span>
+    </button>
+    <app-tactical-lineup [teamA]="match.team_a" [teamB]="match.team_b" [teamAFlag]="teamAFlag" [teamBFlag]="teamBFlag"
+      (onClose)="closeTacticalLineup()" (playerSelected)="selectScorer($event)">
+    </app-tactical-lineup>
+  </div>
+</div>
 }
 
 @if (showTeamInfoModal) {

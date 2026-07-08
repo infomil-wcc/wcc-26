@@ -1,13 +1,13 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { TeamperformanceComponent } from '../../../teamperformance/teamperformance.component';
+import { TeamPerformanceComponent } from '../../../team-performance/team-performance.component';
 import { NumberInputComponent } from '../../../number-input/number-input.component';
 
 @Component({
   selector: 'app-match-prediction-edit',
   standalone: true,
-  imports: [CommonModule, FormsModule, TeamperformanceComponent, NumberInputComponent],
+  imports: [CommonModule, FormsModule, TeamPerformanceComponent, NumberInputComponent],
   templateUrl: './match-prediction-edit.component.html',
   styleUrl: './match-prediction-edit.component.scss'
 })

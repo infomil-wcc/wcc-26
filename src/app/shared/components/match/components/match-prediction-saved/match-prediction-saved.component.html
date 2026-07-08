@@ -1,93 +1,98 @@
-<div class="pronostiqueDone flex flex-column align-items-center mt-2"
-  [ngClass]="(match?.fulltime_a !== null && match?.fulltime_b !== null) ? (isOutcomeCorrectVal ? 'bg-success-box' : 'bg-danger-box') : ''">
-  <span class="label text-xs uppercase font-semibold text-center mb-1"
-    style="letter-spacing: 1.5px; font-size: 0.75rem;">Mon Pronostic</span>
+<div class="flex flex-col items-center mt-2 w-full transition-colors duration-300"
+  [ngClass]="(match?.fulltime_a !== null && match?.fulltime_b !== null) ? 
+    (isOutcomeCorrectVal ? 'bg-emerald-50/80 border border-emerald-200 rounded-xl p-4 shadow-sm' : 'bg-red-50/80 border border-red-200 rounded-xl p-4 shadow-sm') : 
+    'p-2'">
+  <span class="text-[10px] font-black uppercase tracking-widest text-slate-400 text-center mb-1">Mon Pronostic</span>
 
-  <h4 class="mt-0 mb-2 text-2xl font-bold text-center flex align-items-center justify-content-center gap-2">
-    <strong class="flex align-items-center gap-2"
-      [ngClass]="(match?.fulltime_a !== null && match?.fulltime_b !== null) ? (isOutcomeCorrectVal ? 'text-success' : 'text-danger') : ''">
+  <h4 class="mt-0 mb-2 text-2xl font-black text-center flex items-center justify-center gap-2">
+    <strong class="flex items-center gap-2"
+      [ngClass]="(match?.fulltime_a !== null && match?.fulltime_b !== null) ? 
+        (isOutcomeCorrectVal ? 'text-emerald-600 drop-shadow-sm' : 'text-red-600 drop-shadow-sm') : 'text-slate-700'">
       @if (match?.fulltime_a !== null && match?.fulltime_b !== null) {
-      <span class="material-symbols-outlined align-middle" style="font-size: 1.5rem;"
-        [ngClass]="isOutcomeCorrectVal ? 'icon-success' : 'icon-danger'">{{ isOutcomeCorrectVal ? 'check_circle' :
-        'cancel' }}</span>
+      <span class="material-symbols-outlined text-[24px]"
+        [ngClass]="isOutcomeCorrectVal ? 'text-emerald-500' : 'text-red-500'">{{ isOutcomeCorrectVal ? 'check_circle' : 'cancel' }}</span>
       }
       @if (donePronostique?.winner_draw === 'Draw') {
       @if (match?.phase === 'Group Stage') {
-      <span class="material-symbols-outlined"
-        style="font-size: 1.65rem; color: #3f51b5; vertical-align: middle;">handshake</span>
-      <span style="vertical-align: middle;">Draw</span>
+      <span class="material-symbols-outlined text-[28px] text-indigo-500">handshake</span>
+      <span>Draw</span>
       } @else {
-      <span class="material-symbols-outlined"
-        style="font-size: 1.65rem; color: #ff9800; vertical-align: middle;">sports_soccer</span>
-      <span style="vertical-align: middle; color: #ff9800;">Penalty</span>
+      <span class="material-symbols-outlined text-[28px] text-amber-500">sports_soccer</span>
+      <span class="text-amber-500">Penalty</span>
       }
       } @else {
-      <span style="vertical-align: middle;">{{ donePronostique?.winner_draw }}</span>
+      <span>{{ donePronostique?.winner_draw }}</span>
       @if (!(match?.fulltime_a !== null && match?.fulltime_b !== null)) { 🏆 }
       }
     </strong>
   </h4>
 
   @if (!closed && donePronostique?.scorer && donePronostique.scorer !== '-' && !hidePointsBadge) {
-  <div
-    class="flex align-items-center justify-content-center gap-2 mt-0 mb-2 text-md font-bold text-center text-indigo-900">
-    <span class="material-symbols-outlined align-middle"
-      style="font-size: 1.25rem; color: #3f51b5; vertical-align: middle;">sports_soccer</span>
-    <span class="align-middle" style="vertical-align: middle;">Buteur : {{ donePronostique.scorer }}</span>
+  <div class="flex items-center justify-center gap-1.5 mt-0 mb-2 text-sm font-bold text-center text-indigo-900 bg-indigo-50 border border-indigo-100 px-4 py-1.5 rounded-full shadow-sm">
+    <span class="material-symbols-outlined text-[18px] text-indigo-500">sports_soccer</span>
+    <span>Buteur : {{ donePronostique.scorer }}</span>
     @if (!isSavedInApi) {
-    <button class="clear-scorer-btn flex align-items-center justify-content-center" (click)="clearScorer()"
-      [disabled]="disabled || isSubmitting"
-      style="background: none; border: none; padding: 0; cursor: pointer; color: #ef4444; margin-left: 2px; vertical-align: middle; display: inline-flex;">
-      <span class="material-symbols-outlined" style="font-size: 1.2rem;">cancel</span>
+    <button class="flex items-center justify-center text-red-500 hover:text-red-600 transition-colors ml-1 focus:outline-none" 
+      (click)="clearScorer()" [disabled]="disabled || isSubmitting">
+      <span class="material-symbols-outlined text-[18px]">cancel</span>
     </button>
     }
   </div>
   }
 
   @if (closed) {
-  @if (match?.fulltime && (match?.phase !== 'Group Stage' || match?.id === '1')) {
-  <h4 class="mt-0 mb-2 text-xl font-bold text-center flex align-items-center justify-content-center gap-2"
-    [ngClass]="(match?.fulltime_a !== null && match?.fulltime_b !== null) ? (isFulltimeCorrectVal ? 'text-success' : 'text-danger') : ''">
-    @if (match?.fulltime_a !== null && match?.fulltime_b !== null) {
-    <span class="material-symbols-outlined align-middle" style="font-size: 1.25rem;"
-      [ngClass]="isFulltimeCorrectVal ? 'icon-success' : 'icon-danger'">{{ isFulltimeCorrectVal ? 'check_circle' :
-      'cancel' }}</span>
+  <div class="flex flex-row items-center justify-center gap-6 mt-0 mb-2">
+    @if (match?.halftime && donePronostique?.halftime_a !== null && donePronostique?.halftime_a !== undefined) {
+    <div class="flex flex-col items-center justify-center">
+      <span class="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-0.5">Mi-temps</span>
+      <div class="flex items-center gap-1.5"
+        [ngClass]="(match?.fulltime_a !== null && match?.fulltime_b !== null) ? 
+          (isHalftimeCorrectVal ? 'text-emerald-600' : 'text-red-500') : 'text-slate-600'">
+        @if (match?.fulltime_a !== null && match?.fulltime_b !== null) {
+        <span class="material-symbols-outlined text-[16px]"
+          [ngClass]="isHalftimeCorrectVal ? 'text-emerald-500' : 'text-red-500'">{{ isHalftimeCorrectVal ? 'check_circle' : 'cancel' }}</span>
+        }
+        <span class="bg-white/60 px-2 py-0.5 rounded border border-black/5 shadow-inner font-bold">{{ donePronostique?.halftime_a }} - {{ donePronostique?.halftime_b }}</span>
+      </div>
+    </div>
     }
-    <strong class="align-middle">Score final :</strong> <span class="align-middle">{{ donePronostique?.fulltime_a
-      }} - {{ donePronostique?.fulltime_b }}</span>
-  </h4>
-  }
 
-  @if (match?.halftime && donePronostique?.halftime_a !== null && donePronostique?.halftime_a !== undefined) {
-  <h4 class="mt-0 mb-2 text-lg font-bold text-center flex align-items-center justify-content-center gap-2"
-    [ngClass]="(match?.fulltime_a !== null && match?.fulltime_b !== null) ? (isHalftimeCorrectVal ? 'text-success' : 'text-danger') : ''">
-    @if (match?.fulltime_a !== null && match?.fulltime_b !== null) {
-    <span class="material-symbols-outlined align-middle" style="font-size: 1.15rem;"
-      [ngClass]="isHalftimeCorrectVal ? 'icon-success' : 'icon-danger'">{{ isHalftimeCorrectVal ? 'check_circle' :
-      'cancel' }}</span>
+    @if (match?.fulltime && (match?.phase !== 'Group Stage' || match?.id === '1')) {
+    <div class="flex flex-col items-center justify-center">
+      <span class="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-0.5">Final</span>
+      <div class="flex items-center gap-1.5"
+        [ngClass]="(match?.fulltime_a !== null && match?.fulltime_b !== null) ? 
+          (isFulltimeCorrectVal ? 'text-emerald-600' : 'text-red-500') : 'text-slate-600'">
+        @if (match?.fulltime_a !== null && match?.fulltime_b !== null) {
+        <span class="material-symbols-outlined text-[16px]"
+          [ngClass]="isFulltimeCorrectVal ? 'text-emerald-500' : 'text-red-500'">{{ isFulltimeCorrectVal ? 'check_circle' : 'cancel' }}</span>
+        }
+        <span class="bg-white/60 px-2 py-0.5 rounded border border-black/5 shadow-inner font-bold">{{ donePronostique?.fulltime_a }} - {{ donePronostique?.fulltime_b }}</span>
+      </div>
+    </div>
     }
-    <strong class="align-middle">Score mi-temps :</strong> <span class="align-middle">{{
-      donePronostique?.halftime_a }} - {{ donePronostique?.halftime_b }}</span>
-  </h4>
-  }
+  </div>
 
   @if (donePronostique?.scorer && donePronostique.scorer !== '-') {
-  <h5 class="mt-0 mb-2 text-md text-center flex align-items-center justify-content-center gap-2"
-    [ngClass]="(match?.fulltime_a !== null && match?.fulltime_b !== null) ? (isScorerCorrectVal ? 'text-success' : 'text-danger') : ''">
+  <h5 class="mt-0 mb-2 text-sm text-center flex items-center justify-center gap-2 font-bold"
+    [ngClass]="(match?.fulltime_a !== null && match?.fulltime_b !== null) ? 
+      (isScorerCorrectVal ? 'text-emerald-600' : 'text-red-500') : 'text-slate-600'">
     @if (match?.fulltime_a !== null && match?.fulltime_b !== null) {
-    <span class="material-symbols-outlined align-middle" style="font-size: 1.1rem;"
-      [ngClass]="isScorerCorrectVal ? 'icon-success' : 'icon-danger'">{{ isScorerCorrectVal ? 'check_circle' :
-      'cancel' }}</span>
+    <span class="material-symbols-outlined text-[18px]"
+      [ngClass]="isScorerCorrectVal ? 'text-emerald-500' : 'text-red-500'">{{ isScorerCorrectVal ? 'check_circle' : 'cancel' }}</span>
     }
-    <strong class="align-middle">Buteur :</strong> <span class="align-middle">{{ donePronostique?.scorer }}</span>
+    <strong>Buteur :</strong> 
+    <span class="bg-white/60 px-2 py-0.5 rounded border border-black/5 shadow-inner">{{ donePronostique?.scorer }}</span>
   </h5>
   }
   }
 
   @if(isSavedInApi && donePronostique && match?.fulltime_a === null && match?.fulltime_b === null && !isEditing &&
-  match?.phase !== 'Group Stage' && !hidePointsBadge && countdownText !== 'Match commencé' &&
-  !isMatchFinishedByDate) {
-  <button class="btnEditpronostic flex align-items-center" (click)="modifierPronostic()">Modifier mon pronostic<i
-      class="material-symbols-outlined">edit</i></button>
+  !hidePointsBadge && countdownText !== 'Match commencé' && !isMatchFinishedByDate) {
+  <button class="mt-2 text-xs font-bold uppercase tracking-wider text-slate-600 bg-white hover:bg-slate-50 border border-slate-300 rounded-lg px-6 py-2 flex items-center justify-center gap-1.5 transition-all shadow-sm hover:shadow active:scale-95" 
+    (click)="modifierPronostic()">
+    Modifier mon pronostic
+    <span class="material-symbols-outlined text-[16px]">edit</span>
+  </button>
   }
 </div>

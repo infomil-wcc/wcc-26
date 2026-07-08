@@ -1,0 +1,18 @@
+@if (bcdata) {
+  <div class="breadcrump mb-2 md:mb-20">
+    <ul class="flex items-center">
+      @for (item of bcdata; track item; let lastItem = $last; let firstItem = $first) {
+        <li>
+          <button class="btn_breadcrump flex items-center" type="button" (click)="routeTo(item.route)" [ngClass]="{'active': lastItem}">
+            <h2 class="text-xl ">
+              {{ item.label }}
+              @if (!lastItem) {
+                <span class="ml-1 mr-1">/</span>
+              }
+            </h2>
+          </button>
+        </li>
+      }
+    </ul>
+  </div>
+}

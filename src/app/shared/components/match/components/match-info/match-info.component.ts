@@ -1,11 +1,11 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { TeamperformanceComponent } from '../../../teamperformance/teamperformance.component';
+import { TeamPerformanceComponent } from '../../../team-performance/team-performance.component';
 
 @Component({
   selector: 'app-match-info',
   standalone: true,
-  imports: [CommonModule, TeamperformanceComponent],
+  imports: [CommonModule, TeamPerformanceComponent],
   templateUrl: './match-info.component.html',
   styleUrl: './match-info.component.scss'
 })

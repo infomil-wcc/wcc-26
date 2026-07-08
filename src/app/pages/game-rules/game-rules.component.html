@@ -149,7 +149,7 @@
             }
 
             @if (step.exemples_calcul) {
-            <div class="st-examples-grid">
+            <div class="st-examples-grid grid-cols-12">
               @for (ex of step.exemples_calcul; track ex) {
               <div class="st-example-card">
                 <h5>💡 {{ ex.type }}</h5>
@@ -173,7 +173,7 @@
           @if (step.bareme_points) {
           <div class="st-bracket-section">
             <p class="st-alert-pill">🚀 {{ step.interet }}</p>
-            <div class="st-bracket-grid">
+            <div class="st-bracket-grid grid-cols-12">
               @for (item of step.bareme_points | keyvalue:bracketOrder; track item) {
               <div class="st-bracket-card">
                 <span class="st-b-label">{{ formatKey(item.key) }}</span>

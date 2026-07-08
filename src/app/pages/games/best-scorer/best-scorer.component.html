@@ -1,4 +1,4 @@
-<div class="filter w-full pt-3 pb-3 pl-2 pr-2">
+<div class="filter w-full pt-4 pb-4 pl-2 pr-2">
   <div class="container">
     <h1 class="text-white flex">
       <span class="material-symbols-outlined">sports_esports</span>
@@ -7,22 +7,22 @@
   </div>
 </div>
 
-<div class="container pt-4">
-  <h3 style="line-height: 1.5; text-align: center" class="mb-6">Prédisez le meilleur buteur du tournoi (Golden Boot) et le nombre de buts qu’il marquera, ainsi que le joueur du tournoi (Player of the Tournament).</h3>
+<div class="container pt-6">
+  <h3 style="line-height: 1.5; text-align: center" class="mb-12">Prédisez le meilleur buteur du tournoi (Golden Boot) et le nombre de buts qu’il marquera, ainsi que le joueur du tournoi (Player of the Tournament).</h3>
 
 
-  <div class="grid justify-content-center">
-    <div class="col-12 goldenBoot md:col-6 lg:col-4">
+  <div class="grid grid-cols-12 justify-center">
+    <div class="col-span-12 goldenBoot md:col-span-6 lg:col-span-4">
       <div class="pronostique goldenBoot w-full h-full">
         <div class="imagePlaceholder">
           <img src="assets/meilleur-buteur.png" alt="" width="100%" height="auto" />
         </div>
         @if (!alreadyPlayed && !jeuFermer) {
-          <div class="prediction flex flex-column align-items-center justify-content-center">
+          <div class="prediction flex flex-col items-center justify-center">
             Veuillez selectionner le joueur:
-            <div class="grid justify-content-center mb-2 w-full">
-              <div class="col-6">
-                <div class="teamA flex flex-column align-items-center input">
+            <div class="grid grid-cols-12 justify-center mb-2 w-full">
+              <div class="col-span-6">
+                <div class="teamA flex flex-col items-center input">
                   <select name="team" (change)="nationalitySelected($event, 'goldenBoot')" [disabled]="disabled">
                     <ng-container>
                       <option value="-" selected>Nationalité</option>
@@ -35,8 +35,8 @@
                   </select>
                 </div>
               </div>
-              <div class="col-6">
-                <div class="teamB flex flex-column align-items-center input">
+              <div class="col-span-6">
+                <div class="teamB flex flex-col items-center input">
                   <select name="player" [(ngModel)]="goldenScorer" [disabled]="!goldenSelection">
                     <ng-container>
                       <option value="-" selected>-</option>
@@ -51,8 +51,8 @@
               </div>
             </div>
             Veuillez saisir le nombre de but:
-            <div class="flex align-items-center justify-content-center">
-              <div class="col-6 flex-shrink-0 sm:col-6 md:col-8 lg:col-8">
+            <div class="flex items-center justify-center">
+              <div class="col-span-6 flex-shrink-0 sm:col-span-6 md:col-span-8 lg:col-span-8">
                 <app-number-input [(num)]="goals" [disabled]="disabled" />
               </div>
             </div>
@@ -60,7 +60,7 @@
         }
 
         @if (alreadyPlayed) {
-          <div class="alreadyPlayed p-3">
+          <div class="alreadyPlayed p-4">
             <h3>Votre pronostique</h3>
             @if (userPronostique) {
               <p><strong>Meilleur Buteur:</strong> {{ userPronostique.meilleur_buteur }}</p>
@@ -70,24 +70,24 @@
         }
 
         @if (jeuFermer && !alreadyPlayed) {
-          <div class="jeuFermer p-3">
+          <div class="jeuFermer p-4">
             <h3>Le jeu est clos</h3>
           </div>
         }
       </div>
     </div>
 
-    <div class="col-12 tournamentPlayer md:col-6 lg:col-4">
+    <div class="col-span-12 tournamentPlayer md:col-span-6 lg:col-span-4">
       <div class="pronostique tournamentPlayer w-full h-full">
         <div class="imagePlaceholder">
           <img src="assets/meilleur-joueur.png" alt="" width="100%" height="auto" />
         </div>
         @if (!alreadyPlayed && !jeuFermer) {
-          <div class="prediction flex flex-column align-items-center justify-content-center">
+          <div class="prediction flex flex-col items-center justify-center">
             Veuillez selectionner le joueur:
-            <div class="grid justify-content-center mb-2 w-full">
-              <div class="col-6">
-                <div class="teamA flex flex-column align-items-center input">
+            <div class="grid grid-cols-12 justify-center mb-2 w-full">
+              <div class="col-span-6">
+                <div class="teamA flex flex-col items-center input">
                   <select name="team" (change)="nationalitySelected($event, 'tournament')" [disabled]="disabled">
                     <ng-container>
                       <option value="-" selected>Nationalité</option>
@@ -100,8 +100,8 @@
                   </select>
                 </div>
               </div>
-              <div class="col-6">
-                <div class="teamB flex flex-column align-items-center input">
+              <div class="col-span-6">
+                <div class="teamB flex flex-col items-center input">
                   <select name="player" [(ngModel)]="tournamentPlayer" [disabled]="!bestSelection">
                     <ng-container>
                       <option value="-" selected>-</option>
@@ -118,7 +118,7 @@
           </div>
         }
         @if (alreadyPlayed) {
-          <div class="alreadyPlayed p-3">
+          <div class="alreadyPlayed p-4">
             <h3>Votre pronostique</h3>
             @if (userPronostique) {
               <p><strong>Meilleur Joueur:</strong> {{ userPronostique.meilleur_joueur }}</p>
@@ -127,7 +127,7 @@
         }
 
         @if (jeuFermer && !alreadyPlayed) {
-          <div class="jeuFermer p-3">
+          <div class="jeuFermer p-4">
             <h3>Le jeu est clos</h3>
           </div>
         }
@@ -136,7 +136,7 @@
   </div>
 
   @if (!alreadyPlayed && !jeuFermer) {
-    <div class="flex justify-content-center mt-3 validateWrapper">
+    <div class="flex justify-center mt-4 validateWrapper">
       <button class="btn ml-auto mr-auto" title="Valider Mes choix" [disabled]="disabled || (goals === 0 || !tournamentPlayer || !goldenScorer)" (click)="validerChoix()">Valider mes choix de joueurs</button>
     </div>
   }

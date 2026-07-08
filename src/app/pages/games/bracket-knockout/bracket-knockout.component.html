@@ -107,14 +107,14 @@
                       @if (validated && getPredictionEvaluation('R32', 'm'+mIdx); as evalRes) {
                         <div class="prediction-status-row" [class.correct]="evalRes.status === 'correct'" [class.incorrect]="evalRes.status === 'incorrect'" [class.pending]="evalRes.status === 'pending'">
                           @if (evalRes.status === 'correct') {
-  <div class="status-badge-container flex flex-column gap-1">
+  <div class="status-badge-container flex flex-col gap-1">
     <span class="status-badge correct">
       <span class="material-symbols-outlined status-icon">check_circle</span>
       Correct (+{{ evalRes.points }} pts)
     </span>
-    <div class="real-winner flex align-items-center gap-2 mt-2">
-      <div class="real-winner-label text-xs font-semibold text-white-alpha-50">Vrai vainqueur :</div>
-      <div class="flex align-items-center gap-1">
+    <div class="real-winner flex items-center gap-2 mt-2">
+      <div class="real-winner-label text-xs font-semibold text-white/50">Vrai vainqueur :</div>
+      <div class="flex items-center gap-1">
         <img [src]="evalRes.realWinnerFlagUrl || 'assets/flags/unknown.png'" class="slot-flag-small" alt="">
         <span class="text-xs text-white">{{ evalRes.realWinnerName }}</span>
       </div>
@@ -122,12 +122,12 @@
   </div>
 }
                           @if (evalRes.status === 'incorrect') {
-                            <div class="status-badge-container flex flex-column gap-1">
+                            <div class="status-badge-container flex flex-col gap-1">
                               <span class="status-badge incorrect">
                                 <span class="material-symbols-outlined status-icon">cancel</span>
                                 Incorrect (+0 pts)
                               </span>
-                              <div class="real-winner-pill flex align-items-center gap-1">
+                              <div class="real-winner-pill flex items-center gap-1">
                                 <span class="text-xs text-gray-400">Réel:</span>
                                 <img [src]="evalRes.realWinnerFlagUrl || 'assets/flags/unknown.png'" class="slot-flag-small" alt="">
                                 <span class="text-xs text-white">{{ evalRes.realWinnerName }}</span>
@@ -189,14 +189,14 @@
                          @if (validated && getPredictionEvaluation('R16', 'm'+mIdx); as evalRes) {
                             <div class="prediction-status-row" [class.correct]="evalRes.status === 'correct'" [class.incorrect]="evalRes.status === 'incorrect'" [class.pending]="evalRes.status === 'pending'">
                               @if (evalRes.status === 'correct') {
-  <div class="status-badge-container flex flex-column gap-1">
+  <div class="status-badge-container flex flex-col gap-1">
     <span class="status-badge correct">
       <span class="material-symbols-outlined status-icon">check_circle</span>
       Correct (+{{ evalRes.points }} pts)
     </span>
-    <div class="real-winner flex align-items-center gap-2 mt-2">
-      <div class="real-winner-label text-xs font-semibold text-white-alpha-50">Vrai vainqueur :</div>
-      <div class="flex align-items-center gap-1">
+    <div class="real-winner flex items-center gap-2 mt-2">
+      <div class="real-winner-label text-xs font-semibold text-white/50">Vrai vainqueur :</div>
+      <div class="flex items-center gap-1">
         <img [src]="evalRes.realWinnerFlagUrl || 'assets/flags/unknown.png'" class="slot-flag-small" alt="">
         <span class="text-xs text-white">{{ evalRes.realWinnerName }}</span>
       </div>
@@ -204,21 +204,21 @@
   </div>
 }
                               @if (evalRes.status === 'incorrect') {
-                                <div class="status-badge-container flex flex-column gap-1">
+                                <div class="status-badge-container flex flex-col gap-1">
                                   <span class="status-badge incorrect">
                                     <span class="material-symbols-outlined status-icon">cancel</span>
                                     Incorrect (+0 pts)
                                   </span>
-                                  <div class="real-winner-pill flex align-items-center gap-1">
+                                  <div class="real-winner-pill flex items-center gap-1">
                                     <span class="text-xs text-gray-400">Réel:</span>
                                     <img [src]="evalRes.realWinnerFlagUrl || 'assets/flags/unknown.png'" class="slot-flag-small" alt="">
                                     <span class="text-xs text-white">{{ evalRes.realWinnerName }}</span>
                                   </div>
                                 
                               @if (evalRes.realTeamAName || evalRes.realTeamBName) {
-                                <div class="real-matchup-row mt-2 pt-2 border-top-dashed flex align-items-center justify-content-center gap-1">
+                                <div class="real-matchup-row mt-2 pt-2 border-top-dashed flex items-center justify-center gap-1">
                                   <span class="text-xxs text-gray-400">Affiche réelle :</span>
-                                  <div class="flex align-items-center gap-1">
+                                  <div class="flex items-center gap-1">
                                     @if (evalRes.realTeamAName) {
                                       <img [src]="evalRes.realTeamAFlagUrl || 'assets/flags/unknown.png'" class="slot-flag-xs" alt="">
                                       <span class="text-xxs text-gray-300 font-semibold">{{ evalRes.realTeamAName }}</span>
@@ -288,14 +288,14 @@
                           @if (validated && getPredictionEvaluation('R4', 'm'+mIdx); as evalRes) {
                             <div class="prediction-status-row" [class.correct]="evalRes.status === 'correct'" [class.incorrect]="evalRes.status === 'incorrect'" [class.pending]="evalRes.status === 'pending'">
                               @if (evalRes.status === 'correct') {
-  <div class="status-badge-container flex flex-column gap-1">
+  <div class="status-badge-container flex flex-col gap-1">
     <span class="status-badge correct">
       <span class="material-symbols-outlined status-icon">check_circle</span>
       Correct (+{{ evalRes.points }} pts)
     </span>
-    <div class="real-winner flex align-items-center gap-2 mt-2">
-      <div class="real-winner-label text-xs font-semibold text-white-alpha-50">Vrai vainqueur :</div>
-      <div class="flex align-items-center gap-1">
+    <div class="real-winner flex items-center gap-2 mt-2">
+      <div class="real-winner-label text-xs font-semibold text-white/50">Vrai vainqueur :</div>
+      <div class="flex items-center gap-1">
         <img [src]="evalRes.realWinnerFlagUrl || 'assets/flags/unknown.png'" class="slot-flag-small" alt="">
         <span class="text-xs text-white">{{ evalRes.realWinnerName }}</span>
       </div>
@@ -303,21 +303,21 @@
   </div>
 }
                               @if (evalRes.status === 'incorrect') {
-                                <div class="status-badge-container flex flex-column gap-1">
+                                <div class="status-badge-container flex flex-col gap-1">
                                   <span class="status-badge incorrect">
                                     <span class="material-symbols-outlined status-icon">cancel</span>
                                     Incorrect (+0 pts)
                                   </span>
-                                  <div class="real-winner-pill flex align-items-center gap-1">
+                                  <div class="real-winner-pill flex items-center gap-1">
                                     <span class="text-xs text-gray-400">Réel:</span>
                                     <img [src]="evalRes.realWinnerFlagUrl || 'assets/flags/unknown.png'" class="slot-flag-small" alt="">
                                     <span class="text-xs text-white">{{ evalRes.realWinnerName }}</span>
                                   </div>
                                 
                               @if (evalRes.realTeamAName || evalRes.realTeamBName) {
-                                <div class="real-matchup-row mt-2 pt-2 border-top-dashed flex align-items-center justify-content-center gap-1">
+                                <div class="real-matchup-row mt-2 pt-2 border-top-dashed flex items-center justify-center gap-1">
                                   <span class="text-xxs text-gray-400">Affiche réelle :</span>
-                                  <div class="flex align-items-center gap-1">
+                                  <div class="flex items-center gap-1">
                                     @if (evalRes.realTeamAName) {
                                       <img [src]="evalRes.realTeamAFlagUrl || 'assets/flags/unknown.png'" class="slot-flag-xs" alt="">
                                       <span class="text-xxs text-gray-300 font-semibold">{{ evalRes.realTeamAName }}</span>
@@ -386,14 +386,14 @@
                           @if (validated && getPredictionEvaluation('S', 'm'+mIdx); as evalRes) {
                             <div class="prediction-status-row" [class.correct]="evalRes.status === 'correct'" [class.incorrect]="evalRes.status === 'incorrect'" [class.pending]="evalRes.status === 'pending'">
                               @if (evalRes.status === 'correct') {
-  <div class="status-badge-container flex flex-column gap-1">
+  <div class="status-badge-container flex flex-col gap-1">
     <span class="status-badge correct">
       <span class="material-symbols-outlined status-icon">check_circle</span>
       Correct (+{{ evalRes.points }} pts)
     </span>
-    <div class="real-winner flex align-items-center gap-2 mt-2">
-      <div class="real-winner-label text-xs font-semibold text-white-alpha-50">Vrai vainqueur :</div>
-      <div class="flex align-items-center gap-1">
+    <div class="real-winner flex items-center gap-2 mt-2">
+      <div class="real-winner-label text-xs font-semibold text-white/50">Vrai vainqueur :</div>
+      <div class="flex items-center gap-1">
         <img [src]="evalRes.realWinnerFlagUrl || 'assets/flags/unknown.png'" class="slot-flag-small" alt="">
         <span class="text-xs text-white">{{ evalRes.realWinnerName }}</span>
       </div>
@@ -401,21 +401,21 @@
   </div>
 }
                               @if (evalRes.status === 'incorrect') {
-                                <div class="status-badge-container flex flex-column gap-1">
+                                <div class="status-badge-container flex flex-col gap-1">
                                   <span class="status-badge incorrect">
                                     <span class="material-symbols-outlined status-icon">cancel</span>
                                     Incorrect (+0 pts)
                                   </span>
-                                  <div class="real-winner-pill flex align-items-center gap-1">
+                                  <div class="real-winner-pill flex items-center gap-1">
                                     <span class="text-xs text-gray-400">Réel:</span>
                                     <img [src]="evalRes.realWinnerFlagUrl || 'assets/flags/unknown.png'" class="slot-flag-small" alt="">
                                     <span class="text-xs text-white">{{ evalRes.realWinnerName }}</span>
                                   </div>
                                 
                               @if (evalRes.realTeamAName || evalRes.realTeamBName) {
-                                <div class="real-matchup-row mt-2 pt-2 border-top-dashed flex align-items-center justify-content-center gap-1">
+                                <div class="real-matchup-row mt-2 pt-2 border-top-dashed flex items-center justify-center gap-1">
                                   <span class="text-xxs text-gray-400">Affiche réelle :</span>
-                                  <div class="flex align-items-center gap-1">
+                                  <div class="flex items-center gap-1">
                                     @if (evalRes.realTeamAName) {
                                       <img [src]="evalRes.realTeamAFlagUrl || 'assets/flags/unknown.png'" class="slot-flag-xs" alt="">
                                       <span class="text-xxs text-gray-300 font-semibold">{{ evalRes.realTeamAName }}</span>
@@ -490,14 +490,14 @@
                         @if (validated && getPredictionEvaluation('Final', 'f1'); as evalRes) {
                           <div class="prediction-status-row" [class.correct]="evalRes.status === 'correct'" [class.incorrect]="evalRes.status === 'incorrect'" [class.pending]="evalRes.status === 'pending'">
                             @if (evalRes.status === 'correct') {
-  <div class="status-badge-container flex flex-column gap-1">
+  <div class="status-badge-container flex flex-col gap-1">
     <span class="status-badge correct">
       <span class="material-symbols-outlined status-icon">check_circle</span>
       Correct (+{{ evalRes.points }} pts)
     </span>
-    <div class="real-winner flex align-items-center gap-2 mt-2">
-      <div class="real-winner-label text-xs font-semibold text-white-alpha-50">Vrai vainqueur :</div>
-      <div class="flex align-items-center gap-1">
+    <div class="real-winner flex items-center gap-2 mt-2">
+      <div class="real-winner-label text-xs font-semibold text-white/50">Vrai vainqueur :</div>
+      <div class="flex items-center gap-1">
         <img [src]="evalRes.realWinnerFlagUrl || 'assets/flags/unknown.png'" class="slot-flag-small" alt="">
         <span class="text-xs text-white">{{ evalRes.realWinnerName }}</span>
       </div>
@@ -505,21 +505,21 @@
   </div>
 }
                             @if (evalRes.status === 'incorrect') {
-                              <div class="status-badge-container flex flex-column gap-1">
+                              <div class="status-badge-container flex flex-col gap-1">
                                 <span class="status-badge incorrect">
                                   <span class="material-symbols-outlined status-icon">cancel</span>
                                   Incorrect (+0 pts)
                                 </span>
-                                <div class="real-winner-pill flex align-items-center gap-1">
+                                <div class="real-winner-pill flex items-center gap-1">
                                   <span class="text-xs text-gray-400">Réel:</span>
                                   <img [src]="evalRes.realWinnerFlagUrl || 'assets/flags/unknown.png'" class="slot-flag-small" alt="">
                                   <span class="text-xs text-white">{{ evalRes.realWinnerName }}</span>
                                 </div>
                               
                             @if (evalRes.realTeamAName || evalRes.realTeamBName) {
-                              <div class="real-matchup-row mt-2 pt-2 border-top-dashed flex align-items-center justify-content-center gap-1">
+                              <div class="real-matchup-row mt-2 pt-2 border-top-dashed flex items-center justify-center gap-1">
                                 <span class="text-xxs text-gray-400">Affiche réelle :</span>
-                                <div class="flex align-items-center gap-1">
+                                <div class="flex items-center gap-1">
                                   @if (evalRes.realTeamAName) {
                                     <img [src]="evalRes.realTeamAFlagUrl || 'assets/flags/unknown.png'" class="slot-flag-xs" alt="">
                                     <span class="text-xxs text-gray-300 font-semibold">{{ evalRes.realTeamAName }}</span>
