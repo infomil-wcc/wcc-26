@@ -94,8 +94,8 @@ const setupMockData = async (page: any, matchOverrides: any = {}, pronostiqueOve
 
   // Login
   await page.goto('/login');
-  await page.getByLabel(/EMAIL/).fill('test@infomil.mu');
-  await page.getByLabel(/MOT DE PASSE/).fill('password');
+  await page.locator('#loginEmail').fill('test@infomil.mu');
+  await page.locator('#loginPass').fill('password');
   await page.getByRole('button', { name: 'Connexion' }).click();
   await page.waitForURL('**/');
 };
