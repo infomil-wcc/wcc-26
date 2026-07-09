@@ -1,0 +1,94 @@
+﻿@if ($userState | async; as userState) {
+  
+  <!-- DESKTOP SIDEBAR -->
+  <aside class="hidden md:flex flex-col fixed inset-y-0 left-0 bg-[#071209] border-r border-gray-800 z-[2000] shadow-[4px_0_24px_rgba(0,0,0,0.2)] transition-all duration-300 overflow-hidden"
+         [style.width]="sidebar.isCollapsed() ? '72px' : '260px'">
+
+    <!-- Logo + Collapse Toggle -->
+    <div class="shrink-0 flex items-center mt-4 mb-4 transition-all duration-300"
+         [class.justify-center]="sidebar.isCollapsed()"
+         [class.px-4]="!sidebar.isCollapsed()"
+         [class.justify-between]="!sidebar.isCollapsed()">
+      @if (!sidebar.isCollapsed()) {
+        <img src="assets/logo-wcc-26.png" class="h-12 object-contain cursor-pointer hover:scale-105 transition-transform drop-shadow-[0_4px_8px_rgba(0,0,0,0.3)]" alt="Logo WCC 26" (click)="loadHomepage()" />
+      }
+      <button class="flex items-center justify-center w-9 h-9 rounded-xl bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white transition-all duration-200 shrink-0"
+              title="Réduire le menu"
+              (click)="sidebar.toggle()">
+        <span class="material-symbols-outlined text-[20px] m-0 transition-transform duration-300"
+              [class.rotate-180]="sidebar.isCollapsed()">chevron_left</span>
+      </button>
+    </div>
+
+    <!-- Navigation -->
+    <div class="flex-grow py-4 overflow-y-auto overflow-x-hidden">
+      <cmp-nav></cmp-nav>
+    </div>
+
+    <!-- Auth -->
+    <div class="shrink-0 bg-[#0a1a0f]/30 border-t border-white/5 transition-all duration-300"
+         [class.p-3]="sidebar.isCollapsed()"
+         [class.p-6]="!sidebar.isCollapsed()">
+      @if (userState.email) {
+        @if (sidebar.isCollapsed()) {
+          <!-- Icon-only logout -->
+          <button class="w-full flex items-center justify-center p-2.5 rounded-xl bg-red-500/10 text-red-400 hover:bg-red-500/20 transition-colors" title="Se déconnecter" (click)="logout()">
+            <span class="material-symbols-outlined text-[18px] m-0">logout</span>
+          </button>
+        } @else {
+          <div class="flex items-center justify-between bg-white/5 text-white rounded-2xl px-4 py-3 border border-white/10 hover:bg-white/10 transition-colors">
+            <div class="flex flex-col w-3/4 min-w-0">
+              <span class="text-[10px] text-gray-400 uppercase tracking-wider mb-0.5">Connecté</span>
+              <span class="font-bold text-[#10b981] truncate text-sm" [title]="userState.last_name">{{ userState.last_name }}</span>
+            </div>
+            <button class="flex items-center justify-center p-2 rounded-xl bg-red-500/10 text-red-400 hover:bg-red-500/20 hover:text-red-300 transition-colors shrink-0" title="Se déconnecter" (click)="logout()">
+              <span class="material-symbols-outlined text-[18px] m-0">logout</span>
+            </button>
+          </div>
+        }
+      } @else {
+        @if (sidebar.isCollapsed()) {
+          <!-- Icon-only login -->
+          <button class="w-full flex items-center justify-center p-2.5 rounded-xl bg-[#10b981]/20 text-[#10b981] hover:bg-[#10b981]/30 transition-colors" title="Connexion" (click)="showLoginModal()">
+            <span class="material-symbols-outlined text-[20px] m-0">login</span>
+          </button>
+        } @else {
+          <button class="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-[#10b981] to-[#059669] text-white hover:opacity-90 px-4 py-3.5 rounded-2xl font-bold transition-all duration-300 shadow-[0_4px_15px_rgba(16,185,129,0.3)] hover:-translate-y-1" (click)="showLoginModal()">
+            <span class="material-symbols-outlined text-[20px] m-0">login</span>
+            Connexion
+          </button>
+        }
+      }
+    </div>
+  </aside>
+
+  <!-- MOBILE TOP BAR -->
+  <div class="md:hidden fixed top-0 left-0 w-full h-16 bg-[#071209] border-b border-gray-800 z-[2000] flex items-center justify-between px-4 shadow-md">
+    <div class="h-10 cursor-pointer" (click)="loadHomepage()">
+      <img src="assets/logo-wcc-26.png" class="h-full object-contain" alt="Logo WCC 26" />
+    </div>
+    <div class="flex items-center">
+      @if (userState.email) {
+        <button class="flex items-center justify-center text-red-400 p-2 bg-red-500/10 rounded-full" title="Se déconnecter" (click)="logout()">
+          <span class="material-symbols-outlined text-[20px] m-0">logout</span>
+        </button>
+      } @else {
+        <button class="flex items-center justify-center text-[#071209] bg-[#10b981] p-2 rounded-full" (click)="showLoginModal()">
+          <span class="material-symbols-outlined text-[20px] m-0">login</span>
+        </button>
+      }
+    </div>
+  </div>
+
+  <!-- MOBILE BOTTOM NAV -->
+  <div class="md:hidden">
+    <cmp-nav></cmp-nav>
+  </div>
+
+  <!-- Login Modal -->
+  @if (!userState.email) {
+    <modal [(showModal)]="showLogin" [modalSize]="'md'">
+      <app-login></app-login>
+    </modal>
+  }
+}

@@ -1,4 +1,4 @@
-.textList {
+﻿.textList {
     list-style: disc;
     padding-left: 20px;
     margin-top: 1rem;
@@ -36,10 +36,10 @@
     position: relative;
     width: 100%;
     max-width: 580px;
-    background: linear-gradient(135deg, #111e36 0%, #0d172a 100%);
-    border: 1.5px solid rgba(14, 212, 222, 0.25);
+    background: linear-gradient(135deg, #0a1a0f 0%, #0d172a 100%);
+    border: 1.5px solid rgba(16, 185, 129, 0.25);
     border-radius: 28px;
-    box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.7), 0 0 40px rgba(14, 212, 222, 0.1);
+    box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.7), 0 0 40px rgba(16, 185, 129, 0.1);
     z-index: 10;
     overflow: hidden;
     padding: 40px 30px;
@@ -83,7 +83,7 @@
     top: -80px;
     width: 250px;
     height: 250px;
-    background: radial-gradient(circle, rgba(14, 212, 222, 0.18) 0%, rgba(14, 212, 222, 0) 70%);
+    background: radial-gradient(circle, rgba(16, 185, 129, 0.18) 0%, rgba(16, 185, 129, 0) 70%);
     z-index: 0;
     pointer-events: none;
   }
@@ -106,12 +106,12 @@
       bottom: -5px;
       right: -10px;
       background: linear-gradient(135deg, #facc15 0%, #ca8a04 100%);
-      color: #0b1426;
+      color: #071209;
       font-size: 0.7rem;
       font-weight: 800;
       padding: 3px 9px;
       border-radius: 20px;
-      border: 2px solid #111e36;
+      border: 2px solid #0a1a0f;
       box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
       letter-spacing: 0.5px;
     }
@@ -131,7 +131,7 @@
 
   .takeover-subtitle {
     font-size: 1.15rem;
-    color: #0ed4de;
+    color: #10b981;
     font-weight: 700;
     margin: 0 0 25px 0;
     text-transform: uppercase;
@@ -190,7 +190,7 @@
       justify-content: center;
       gap: 8px;
       width: 100%;
-      background: linear-gradient(135deg, #0ed4de 0%, #0284c7 100%);
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
       color: #ffffff;
       border: none;
       padding: 15px 24px;
@@ -198,7 +198,7 @@
       font-weight: 800;
       border-radius: 50px;
       cursor: pointer;
-      box-shadow: 0 4px 15px rgba(14, 212, 222, 0.35);
+      box-shadow: 0 4px 15px rgba(16, 185, 129, 0.35);
       transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
       letter-spacing: 0.5px;
 
@@ -208,7 +208,7 @@
 
       &:hover {
         transform: translateY(-2px);
-        box-shadow: 0 8px 20px rgba(14, 212, 222, 0.45);
+        box-shadow: 0 8px 20px rgba(16, 185, 129, 0.45);
       }
 
       &:active {

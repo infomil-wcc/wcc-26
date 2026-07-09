@@ -6,18 +6,20 @@ import { ModalComponent } from '../modal/modal.component';
 import { LoginComponent } from '../login/login.component';
 import { AsyncPipe } from '@angular/common';
 import { Router } from '@angular/router';
+import { SidebarService } from '../../../core/services/core/sidebar.service';
 
 @Component({
-    selector: 'cmp-header',
-    templateUrl: './header.component.html',
-    styleUrl: './header.component.scss',
+    selector: 'cmp-menu',
+    templateUrl: './menu.component.html',
+    styleUrl: './menu.component.scss',
     changeDetection: ChangeDetectionStrategy.Eager,
     imports: [NavComponent, ModalComponent, LoginComponent, AsyncPipe]
 })
-export class HeaderComponent implements OnInit{
+export class MenuComponent implements OnInit{
 
   private state = inject(StateService);
   private router = inject(Router);
+  protected sidebar = inject(SidebarService);
 
   protected $userState!: Observable<user>;
 

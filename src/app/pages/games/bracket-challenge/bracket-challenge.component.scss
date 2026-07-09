@@ -1,4 +1,4 @@
-@use "../../../../variables" as *;
+﻿@use "../../../../variables" as *;
 
 .filter {
   background: $darkPrimary;
@@ -96,13 +96,13 @@
 
     &.active {
       .step-icon {
-        background: #0ed4de;
-        color: #0b1426;
-        border-color: #0ed4de;
-        box-shadow: 0 0 15px rgba(14, 212, 222, 0.4);
+        background: #10b981;
+        color: #071209;
+        border-color: #10b981;
+        box-shadow: 0 0 15px rgba(16, 185, 129, 0.4);
       }
       .step-label {
-        color: #0ed4de;
+        color: #10b981;
       }
     }
 
@@ -110,7 +110,7 @@
       .step-icon {
         background: #00e676;
         border-color: #00e676;
-        color: #0b1426;
+        color: #071209;
       }
     }
   }
@@ -155,7 +155,7 @@
 
   &:hover {
     background: #2d4059;
-    border-color: #0ed4de;
+    border-color: #10b981;
   }
 }
 
@@ -182,10 +182,10 @@
   bottom: 4px;
   left: 4px;
   width: calc(50% - 4px);
-  background: linear-gradient(135deg, #0ed4de 0%, #0284c7 100%);
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
   border-radius: 26px;
   transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 4px 14px rgba(14, 212, 222, 0.35);
+  box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);
   z-index: 1;
 
   &.slide-right {

@@ -29,7 +29,7 @@ describe('PointsCalculatorService', () => {
         id: '1',
         created_on: '2026-06-11T10:00:00Z', // Created at 10:00 UTC (14:00 Mauritian)
         modified_on: null,
-      } as Pronostiques;
+      } as unknown as Pronostiques;
     });
 
     it('should return false for valid prediction before kickoff', () => {
@@ -73,8 +73,8 @@ describe('PointsCalculatorService', () => {
     });
 
     it('should return false if prediction dates are missing', () => {
-      mockPrediction.created_on = null;
-      mockPrediction.modified_on = null;
+      mockPrediction.created_on = undefined as any;
+      mockPrediction.modified_on = undefined as any;
       expect(service.isPredictionFraud(mockMatch, mockPrediction)).toBeFalse();
     });
 

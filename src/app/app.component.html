@@ -1,12 +1,12 @@
-<layout>
+﻿<layout>
   <ng-container slot="header">
-    <cmp-header></cmp-header>
+    <cmp-menu></cmp-menu>
   </ng-container>
 
   @if (router.url === '/accueil' || router.url === '/') {
     <ng-container slot="hero">
       <hero [background]="'url(assets/hero-bg.jpg)'">
-        <app-hp-news></app-hp-news>
+        <news></news>
       </hero>
     </ng-container>
   }

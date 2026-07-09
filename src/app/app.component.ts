@@ -9,9 +9,9 @@ import { TotalgoalsService } from './core/services/core/total-goals.service';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { LayoutComponent } from './shared/components/layout/layout.component';
 import { NgSwitch, NgSwitchCase } from '@angular/common';
-import { HeaderComponent } from './shared/components/header/header.component';
+import { MenuComponent } from './shared/components/menu/menu.component';
 import { HeroComponent } from './shared/components/hero/hero.component';
-import { HpNewsComponent } from './shared/components/hp-news/hp-news.component';
+import { HpNewsComponent } from './shared/components/news/news.component';
 import { FaqComponent } from './pages/faq/faq.component';
 import { GameRulesComponent } from './pages/game-rules/game-rules.component';
 import { GroupStandingsComponent } from './pages/competition/group-standings/group-standings.component';
@@ -28,7 +28,7 @@ import { MatchesService } from './core/services/content/matches.service';
     templateUrl: './app.component.html',
     styleUrl: './app.component.scss',
     changeDetection: ChangeDetectionStrategy.Eager,
-    imports: [LayoutComponent, HeaderComponent, HeroComponent, HpNewsComponent, RouterOutlet, FooterComponent, DialogComponent, ReactiveFormsModule, LoaderComponent, ModalComponent]
+    imports: [LayoutComponent, MenuComponent, HeroComponent, HpNewsComponent, RouterOutlet, FooterComponent, DialogComponent, ReactiveFormsModule, LoaderComponent, ModalComponent]
 })
 export class AppComponent implements OnInit {
 

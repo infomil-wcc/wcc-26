@@ -1,4 +1,4 @@
-@use "../../../../../variables" as *;
+﻿@use "../../../../../variables" as *;
 
 .scoresheet-page {
   min-height: calc(100vh - 128px);
@@ -106,7 +106,7 @@
   }
 
   .points-val {
-    color: #0284c7; // Premium deep blue
+    color: #059669; // Premium deep blue
     font-weight: 700;
   }
 
@@ -272,7 +272,7 @@
 
     .p-paginator-page.p-paginator-page-selected {
       background: #e0f2fe !important;
-      color: #0284c7 !important;
+      color: #059669 !important;
     }
   }
 }

@@ -1,4 +1,5 @@
-import { Component, ChangeDetectionStrategy } from '@angular/core';
+import { Component, ChangeDetectionStrategy, inject } from '@angular/core';
+import { SidebarService } from '../../../core/services/core/sidebar.service';
 
 @Component({
     selector: 'layout',
@@ -7,5 +8,5 @@ import { Component, ChangeDetectionStrategy } from '@angular/core';
     changeDetection: ChangeDetectionStrategy.Eager
 })
 export class LayoutComponent {
-
+  protected sidebar = inject(SidebarService);
 }

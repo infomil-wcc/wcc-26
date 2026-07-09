@@ -1,8 +1,9 @@
-import { Component, OnInit, OnDestroy, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectionStrategy, inject } from '@angular/core';
 import { StateService, AppState } from '../../../core/services/core/state.service';
 import { Router } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { NgClass } from '@angular/common';
+import { SidebarService } from '../../../core/services/core/sidebar.service';
 
 interface NavigationItem {
   label: string;
@@ -24,6 +25,7 @@ export class NavComponent implements OnInit, OnDestroy {
   public showMenu: boolean = false;
   public navList: NavigationItem[];
   private stateSubscription!: Subscription;
+  protected sidebar = inject(SidebarService);
 
   constructor(private stateService: StateService, private router: Router) {
     this.navList = [

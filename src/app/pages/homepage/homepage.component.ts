@@ -3,7 +3,7 @@ import { ActivatedRoute } from '@angular/router';
 import { TeamsService } from '../../core/services/content/teams.service';
 import { Group, Teams } from '../../shared/contracts/teams.contract';
 import { Observable } from 'rxjs';
-import { HeaderComponent } from '../../shared/components/header/header.component';
+
 import { CookieService } from '../../core/services/core/cookie.service';
 import { NgStyle, AsyncPipe } from '@angular/common';
 import { LoaderComponent } from '../../shared/components/loader/loader.component';
@@ -22,9 +22,17 @@ export class HomepageComponent {
   private cookieService = inject<CookieService>(CookieService);
   protected $teamsFlags!: Observable<any>;
   protected $wcGroups!: Observable<Group[]>;
-  protected headerInstance!: HeaderComponent;
   protected showLogin: boolean = false;
   protected isLoggedIn: boolean = false;
+  protected mobileGroupIndex: number = 0;
+
+  protected prevGroup(): void {
+    if (this.mobileGroupIndex > 0) this.mobileGroupIndex--;
+  }
+
+  protected nextGroup(groups: any[]): void {
+    if (this.mobileGroupIndex < groups.length - 1) this.mobileGroupIndex++;
+  }
 
   private route = inject(ActivatedRoute);
 

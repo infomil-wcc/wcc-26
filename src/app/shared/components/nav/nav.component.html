@@ -1,32 +1,55 @@
-<nav class="fixed bottom-0 left-0 z-[3000] w-full bg-white border-t border-gray-200 pb-safe shadow-[0_-4px_20px_rgba(0,0,0,0.05)] md:relative md:border-none md:shadow-none md:bg-transparent md:w-auto md:pb-0">
-  <div class="flex justify-around items-center h-16 md:h-full md:justify-start">
+﻿<nav class="fixed bottom-0 left-0 z-[3000] w-full bg-white border-t border-gray-200 pb-safe shadow-[0_-4px_20px_rgba(0,0,0,0.05)] md:relative md:border-none md:shadow-none md:bg-transparent md:w-full md:pb-0 md:px-2">
+  <div class="flex justify-around items-center h-16 md:flex-col md:h-auto md:gap-1 md:items-stretch">
     @for (list of navList; track list; let isLast = $last) {
       @if (!list.sub) {
-        <button class="flex flex-col items-center justify-center flex-1 h-full md:flex-row md:flex-none md:px-4 lg:px-6 transition-all duration-300 menu-item text-gray-500 hover:text-[#0ed4de]"
-                [ngClass]="{'active': list.active}"
+        <button class="flex flex-col items-center justify-center flex-1 h-full md:flex-row md:justify-start md:px-3 md:py-3 md:rounded-xl transition-all duration-300 menu-item text-gray-500 md:text-gray-300 hover:text-[#10b981] md:hover:text-white md:hover:bg-white/5 group relative"
+                [ngClass]="{'active md:bg-[#10b981]/10 md:!text-[#10b981]': list.active}"
                 [title]="list.label"
                 (click)="navTo(list.route, list.label)">
-          <span class="material-symbols-outlined text-[24px] mb-1 md:hidden">{{ list.icon }}</span>
-          <span class="text-[10px] font-bold uppercase tracking-wider md:text-sm md:font-semibold md:normal-case md:tracking-normal">{{ list.label }}</span>
+          <span class="material-symbols-outlined text-[24px] mb-1 md:mb-0 md:mr-3 transition-transform group-hover:scale-110"
+                [class.md:mr-0]="sidebar.isCollapsed()">{{ list.icon }}</span>
+          <span class="text-[10px] font-bold uppercase tracking-wider md:text-sm md:font-semibold md:normal-case md:tracking-normal"
+                [class.md:hidden]="sidebar.isCollapsed()">{{ list.label }}</span>
+          <!-- Tooltip when collapsed -->
+          @if (sidebar.isCollapsed()) {
+            <span class="absolute left-full ml-3 px-2.5 py-1.5 bg-[#052e1a] text-white text-xs font-semibold rounded-lg shadow-lg opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap hidden md:block z-50">{{ list.label }}</span>
+          }
         </button>
       } @else {
-        <div class="relative flex flex-col items-center justify-center flex-1 h-full md:flex-none md:px-4 lg:px-6 group">
-          <button class="flex flex-col items-center justify-center h-full w-full md:flex-row transition-all duration-300 menu-item text-gray-500 hover:text-[#0ed4de]"
-                  [ngClass]="{'active': list.active}"
+        <div class="relative flex flex-col items-center justify-center flex-1 h-full md:flex-col md:items-stretch md:h-auto group submenu-container">
+          <button class="flex flex-col items-center justify-center h-full w-full md:flex-row md:justify-start md:px-3 md:py-3 md:rounded-xl transition-all duration-300 menu-item text-gray-500 md:text-gray-300 hover:text-[#10b981] md:hover:text-white md:hover:bg-white/5 relative"
+                  [ngClass]="{'active md:bg-[#10b981]/10 md:!text-[#10b981]': list.active}"
                   [title]="list.label">
-            <span class="material-symbols-outlined text-[24px] mb-1 md:hidden">{{ list.icon }}</span>
-            <div class="flex items-center">
+            <span class="material-symbols-outlined text-[24px] mb-1 md:mb-0 md:mr-3 transition-transform group-hover:scale-110"
+                  [class.md:mr-0]="sidebar.isCollapsed()">{{ list.icon }}</span>
+            <div class="flex items-center w-full justify-between" [class.md:hidden]="sidebar.isCollapsed()">
               <span class="text-[10px] font-bold uppercase tracking-wider md:text-sm md:font-semibold md:normal-case md:tracking-normal">{{ list.label }}</span>
-              <span class="material-symbols-outlined text-[16px] ml-1 hidden md:block">expand_more</span>
+              <span class="material-symbols-outlined text-[16px] ml-1 hidden md:block transition-transform group-hover:rotate-180">expand_more</span>
             </div>
+            <!-- Tooltip when collapsed -->
+            @if (sidebar.isCollapsed()) {
+              <span class="absolute left-full ml-3 px-2.5 py-1.5 bg-[#052e1a] text-white text-xs font-semibold rounded-lg shadow-lg opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap hidden md:block z-50">{{ list.label }}</span>
+            }
           </button>
 
-          <!-- Mobile Submenu Overlay (hidden by default, can be toggled if needed, but for bottom nav, it's tricky. Let's just navigate to a submenu page, or show a slide-up menu. For simplicity, we can show a pop-up menu on click, but since hover doesn't work on mobile, we can use group-hover on desktop and a tap-to-show on mobile. For now, let's use focus-within or a simple CSS hover for desktop) -->
-          <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-48 bg-white rounded-xl shadow-xl border border-gray-100 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 md:top-full md:bottom-auto md:left-0 md:translate-x-0 md:mt-2 overflow-hidden z-[4000]">
+          <!-- Desktop Submenu (Expandable) -->
+          <div class="hidden md:flex flex-col pl-11 overflow-hidden transition-all duration-300 max-h-0 opacity-0 group-hover:max-h-[500px] group-hover:opacity-100 group-hover:mt-1">
+            @for (subitem of list.sub; track subitem) {
+              <button class="px-4 py-2 text-sm text-left text-gray-400 hover:text-white transition-colors rounded-lg mb-1"
+                      [ngClass]="{'text-[#10b981] font-bold bg-[#10b981]/5': subitem.active}"
+                      [title]="subitem.label"
+                      (click)="navTo(subitem.route, subitem.label)">
+                {{ subitem.label }}
+              </button>
+            }
+          </div>
+          
+          <!-- Mobile Submenu (Popup) -->
+          <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-48 bg-white rounded-xl shadow-xl border border-gray-100 opacity-0 invisible hover:opacity-100 hover:visible transition-all duration-300 md:hidden z-[4000] focus-within:opacity-100 focus-within:visible">
             <div class="py-2 flex flex-col">
               @for (subitem of list.sub; track subitem) {
-                <button class="px-5 py-3 text-sm text-left text-gray-700 hover:bg-gray-50 hover:text-[#0ed4de] transition-colors"
-                        [ngClass]="{'text-[#0ed4de] font-bold bg-blue-50/50': subitem.active}"
+                <button class="px-5 py-3 text-sm text-left text-gray-700 hover:bg-gray-50 hover:text-[#10b981] transition-colors"
+                        [ngClass]="{'text-[#10b981] font-bold bg-blue-50/50': subitem.active}"
                         [title]="subitem.label"
                         (click)="navTo(subitem.route, subitem.label)">
                   {{ subitem.label }}

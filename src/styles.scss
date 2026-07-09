@@ -1,4 +1,4 @@
-@use "sass:color";
+﻿@use "sass:color";
 @use "variables" as *;
 @import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,300;0,400;0,500;1,400&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap');
@@ -40,9 +40,6 @@
 }
 
 .material-symbols-outlined {
-  color: white;
-  font-size: 2rem;
-  margin-right:0.5rem;
   font-variation-settings:
   'FILL' 0,
   'wght' 500,
@@ -81,20 +78,10 @@ html {
   height: 100vh;
 }
 
-html,body {
-  margin: 0;
-  padding: 0;
-  font-style: normal;
-  font-family: "Lato", sans-serif;
-  font-weight: 400;
-  position: relative;
-  width: 100%;
-  height: 100%;
-}
+html,body { background: #f2f3f4; }
 
 body {
   background: #f2f3f4;
-  padding-top: calc($subHeader + $headerNav - 1rem);
 }
 
 h1 {
@@ -202,303 +189,6 @@ div.input {
     border: none;
     width: 100%;
     height: 100%;
-    background: white url(assets/down-arrow.png) no-repeat;
-    background-position: right 10px center;
-    border-radius: 5px;
-    padding: 15px 40px 15px 10px;
-    border: 1px solid $inputBorder;
-    color: #222;
-    -webkit-appearance: none;
-    -moz-appearance: none;
-
-    &:focus {
-      outline: none;
-      box-shadow: none!important;
-      border: 1px solid $primaryColor;
-    }
-
-    option {
-      padding: 0.25rem;
-      background: transparent;
-
-    }
-  }
-
-  .togglePass, .copy {
-    position: absolute;
-    right: 5px;
-    top: 30px;
-    font-size: 1.2rem;
-    color: $darkpurple;
-    cursor: pointer;
-
-    &:hover {
-      color: $darkSecondary;
-    }
-  }
-
-}
-
-.error {
-  color: $red;
-  font-size: 12px;
-  display: flex;
-}
-
-.btn {
-  background: color.adjust($yellow, $lightness: -10%);
-  color: white;
-  width: fit-content;
-  padding: 0.75rem 1.5rem;
-  border-radius: 8px;
-  font-weight: bold;
-  text-transform: uppercase;
-  font-size: 0.85rem;
-
-  &:hover {
-    background: $yellow;
-    color: color.adjust($yellow, $lightness: -30%)
-  }
-
-  &.disabled,&[disabled] {
-    pointer-events: none;
-    background: lightgray;
-    color: darkgray;
-    opacity: 0.5;
-  }
-
-}
-
-input[type=number]::-webkit-inner-spin-button,
-input[type=number]::-webkit-outer-spin-button {
-  -webkit-appearance: none;
-  margin: 0;
-}
-
-.btnLoader {
-  font-weight: normal;
-  position: relative;
-
-  &.loading.btn {
-    pointer-events: none;
-    background: rgba($mint,0.5) !important;
-    color: $aqua;
-  }
-
-  .load {
-    position: absolute;
-    right: 22px;
-    top: 10px;
-    display: block;
-    width: 20px;
-    height: 20px;
-    border: 4px solid #fff;
-    border-radius: 100%;
-    border-top: 7px solid transparent;
-    animation: load-animate infinite linear 1s;
-  }
-}
-
-@keyframes load-animate {
-  0% {
-    transform: rotate(0deg);
-  }
-  50% {
-    transform: rotate(180deg);
-    opacity: 0.35;
-  }
-  100% {
-    transform: rotate(360deg);
-  }
-}
-
-.heroContainer + .main {
-  min-height: calc(40vh - 14rem);
-}
-
-.desktop {
-  display: none !important;
-}
-
-.hidden {
-  display: none;
-}
-
-.color-primary {
-  color: $primaryColor;
-}
-
-.filter h1 {
-  align-items: center;
-  margin: 0;
-}
-
-@media screen and (min-width: 990px){
-  .desktop {
-    display: flex !important;
-  }
-
-  .mobile {
-    display: none;
-  }
-
-  body {
-    padding-top: calc($subHeader + $headerNav);
-  }
-}
-
-@media screen and (max-width: 990px){
-
-  .filter h1 {
-    font-size: 1.5rem;
-  }
-
-  .breadcrump button h2.text-xl {
-    font-size: 0.95rem !important;
-  }
-
-}
-
-// .grid {
-//   margin: 0 !important;
-// }
-
-.heroContainer {
-  .slide-item {
-    .match {
-      min-width: 300px;
-
-      @media screen and (min-width: 768px){
-        min-width: 400px;
-      }
-    }
-  }
-}
-
-.fullscreen-takeover {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  z-index: 99999;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 20px;
-  overflow: hidden;
-
-  .takeover-backdrop {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(8, 14, 28, 0.95);
-    backdrop-filter: blur(16px) saturate(180%);
-    -webkit-backdrop-filter: blur(16px) saturate(180%);
-  }
-
-  .takeover-card {
-    position: relative;
-    width: 100%;
-    max-width: 580px;
-    background: linear-gradient(135deg, #111e36 0%, #0d172a 100%);
-    border: 1.5px solid rgba(14, 212, 222, 0.25);
-    border-radius: 28px;
-    box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.7), 0 0 40px rgba(14, 212, 222, 0.1);
-    z-index: 10;
-    overflow: hidden;
-    padding: 40px 30px;
-    text-align: center;
-    animation: fadeInUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-  }
-
-  .takeover-close-btn {
-    position: absolute;
-    top: 20px;
-    right: 20px;
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    color: #94a3b8;
-    width: 38px;
-    height: 38px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    z-index: 20;
-
-    &:hover {
-      background: rgba(255, 255, 255, 0.1);
-      color: #ffffff;
-      transform: rotate(90deg);
-    }
-  }
-
-  .takeover-content {
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-  }
-
-  .glow-sphere {
-    position: absolute;
-    top: -80px;
-    width: 250px;
-    height: 250px;
-    background: radial-gradient(circle, rgba(14, 212, 222, 0.18) 0%, rgba(14, 212, 222, 0) 70%);
-    z-index: 0;
-    pointer-events: none;
-  }
-
-  .takeover-icon-wrapper {
-    position: relative;
-    margin-bottom: 25px;
-    z-index: 2;
-
-    .takeover-icon {
-      font-size: 5rem;
-      color: #ffd700;
-      filter: drop-shadow(0 0 15px rgba(255, 215, 0, 0.4));
-      animation: pulseGold 2s infinite ease-in-out;
-      font-variation-settings: 'FILL' 1, 'wght' 400;
-    }
-
-    .takeover-badge {
-      position: absolute;
-      bottom: -5px;
-      right: -10px;
-      background: linear-gradient(135deg, #facc15 0%, #ca8a04 100%);
-      color: #0b1426;
-      font-size: 0.7rem;
-      font-weight: 800;
-      padding: 3px 9px;
-      border-radius: 20px;
-      border: 2px solid #111e36;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
-      letter-spacing: 0.5px;
-    }
-  }
-
-  .takeover-title {
-    font-family: UefaEuro, 'Inter', sans-serif;
-    font-size: 2.2rem;
-    font-weight: 900;
-    color: #ffffff;
-    letter-spacing: 1px;
-    margin: 0 0 6px 0;
-    background: linear-gradient(to right, #ffffff 30%, #a5f3fc 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-  }
-
-  .takeover-subtitle {
-    font-size: 1.15rem;
-    color: #0ed4de;
     font-weight: 700;
     margin: 0 0 25px 0;
     text-transform: uppercase;
@@ -557,7 +247,7 @@ input[type=number]::-webkit-outer-spin-button {
       justify-content: center;
       gap: 8px;
       width: 100%;
-      background: linear-gradient(135deg, #0ed4de 0%, #0284c7 100%);
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
       color: #ffffff;
       border: none;
       padding: 15px 24px;
@@ -565,7 +255,7 @@ input[type=number]::-webkit-outer-spin-button {
       font-weight: 800;
       border-radius: 50px;
       cursor: pointer;
-      box-shadow: 0 4px 15px rgba(14, 212, 222, 0.35);
+      box-shadow: 0 4px 15px rgba(16, 185, 129, 0.35);
       transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
       letter-spacing: 0.5px;
 
@@ -575,7 +265,7 @@ input[type=number]::-webkit-outer-spin-button {
 
       &:hover {
         transform: translateY(-2px);
-        box-shadow: 0 8px 20px rgba(14, 212, 222, 0.45);
+        box-shadow: 0 8px 20px rgba(16, 185, 129, 0.45);
       }
 
       &:active {
@@ -623,5 +313,20 @@ input[type=number]::-webkit-outer-spin-button {
   100% {
     transform: scale(1);
     filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.3));
+  }
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.4s ease-out forwards;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }

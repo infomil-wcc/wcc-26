@@ -1,239 +1,266 @@
-<div class="login flex flex-col sm:flex-row">
+﻿<div class="flex flex-col md:flex-row w-full bg-white rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] overflow-hidden">
 
-  <div class="left desktop">
-    <img src="assets/vertical-banner-login-campaign.png" alt="" />
+  <!-- Left Side: Banner (Hidden on Mobile) -->
+  <div class="hidden md:block w-1/2 relative bg-[#0a1a0f]">
+    <div class="absolute inset-0 bg-gradient-to-b from-transparent to-[#0a1a0f]/90 z-10"></div>
+    <img src="assets/vertical-banner-login-campaign.png" class="w-full h-full object-cover" alt="World Cup Banner" />
+    <div class="absolute bottom-10 left-10 z-20 text-white">
+      <h2 class="text-4xl font-black mb-2 drop-shadow-lg">IML FC 26</h2>
+      <p class="text-lg font-medium text-gray-200">Rejoignez la compétition</p>
+    </div>
   </div>
 
-  <div class="right w-full pl-6 pr-6 pt-4 pb-2 relative">
+  <!-- Right Side: Forms -->
+  <div class="w-full md:w-1/2 p-8 md:p-12 relative flex flex-col justify-center min-h-[500px]">
     @if (loginLoader) {
-      <div class="loginLoader flex items-center justify-center absolute">
-        <div class="loader">
-          <div class="lds-ripple"><div></div><div></div></div>
+      <div class="absolute inset-0 bg-white/80 backdrop-blur-sm flex items-center justify-center z-50">
+        <svg class="animate-spin h-12 w-12 text-[#10b981]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+      </div>
+    }
+
+    <!-- Login Flow -->
+    @if (login) {
+      <div class="animate-fade-in-up">
+        <div class="mb-8">
+          <h3 class="text-3xl font-black text-[#0a1a0f] mb-2 flex items-center gap-3">
+            <span class="material-symbols-outlined text-[#10b981] text-4xl">account_circle</span>
+            Connexion
+          </h3>
+          <p class="text-gray-500 font-medium text-sm md:text-base">Saisissez vos identifiants pour participer aux jeux</p>
+        </div>
+
+        <form [formGroup]="loginForm" class="flex flex-col gap-5">
+          <!-- Email Input -->
+          <div>
+            <label class="block text-xs font-bold text-gray-400 mb-1 tracking-wider uppercase">Email</label>
+            <div class="flex items-center border border-gray-200 rounded-xl overflow-hidden focus-within:border-[#10b981] focus-within:ring-2 focus-within:ring-[#10b981]/20 transition-all bg-gray-50">
+              <input tabindex="1" type="text" #email autocomplete="username" placeholder="prenom.nom" formControlName="email" (input)="onEmailInput('login')" class="w-full bg-transparent p-3.5 outline-none text-[#0a1a0f] font-medium" />
+              <div class="bg-gray-100 border-l border-gray-200 p-3.5 text-gray-500 font-semibold select-none">
+                &#64;infomil.mu
+              </div>
+            </div>
+            @if (loginForm.get('email')?.invalid && loginForm.get('email')?.touched) {
+              <span class="text-red-500 text-xs font-semibold mt-1 block">Ce champ est obligatoire</span>
+            }
+          </div>
+
+          <!-- Password Input -->
+          <div>
+            <label class="block text-xs font-bold text-gray-400 mb-1 tracking-wider uppercase">Mot de passe</label>
+            <div class="relative flex items-center border border-gray-200 rounded-xl overflow-hidden focus-within:border-[#10b981] focus-within:ring-2 focus-within:ring-[#10b981]/20 transition-all bg-gray-50">
+              <input tabindex="2" type="{{ passType }}" #pass placeholder="••••••••" autocomplete="current-password" formControlName="pass" (keydown.enter)="verifyLogin(email.value + '@infomil.mu', pass.value)" class="w-full bg-transparent p-3.5 outline-none text-[#0a1a0f] font-medium pr-12" />
+              <button type="button" class="absolute right-3 text-gray-400 hover:text-[#10b981] transition-colors" (click)="toggleType()">
+                <span class="material-symbols-outlined">{{ visibility }}</span>
+              </button>
+            </div>
+            @if (loginForm.get('pass')?.invalid && loginForm.get('pass')?.touched) {
+              <span class="text-red-500 text-xs font-semibold mt-1 block">Mot de passe invalide</span>
+            }
+          </div>
+
+          @if (otherError) {
+            <div class="bg-red-50 text-red-600 p-3 rounded-lg text-sm font-medium border border-red-100 mt-2">
+              Email ou mot de passe incorrect.
+            </div>
+          }
+
+          <div class="flex justify-end">
+            <button tabindex="5" type="button" class="text-sm font-bold text-gray-500 hover:text-[#10b981] transition-colors" (click)="toggleForgotPassword()">Mot de passe oublié ?</button>
+          </div>
+
+          <div class="mt-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <span class="text-sm text-gray-500 font-medium">
+              Pas de compte ? 
+              <button tabindex="4" type="button" class="font-bold text-[#0a1a0f] hover:text-[#10b981] transition-colors" (click)="toggleRegister()">M'inscrire</button>
+            </span>
+            <button tabindex="3" type="button" class="w-full sm:w-auto bg-[#0a1a0f] hover:bg-[#10b981] text-white font-bold py-3.5 px-8 rounded-xl shadow-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed" (click)="verifyLogin(email.value + '@infomil.mu', pass.value)" [disabled]="!loginForm.valid">
+              Connexion
+            </button>
+          </div>
+        </form>
+      </div>
+    }
+
+    <!-- Register Flow -->
+    @if (register && !confirmation) {
+      <div class="animate-fade-in-up">
+        <div class="mb-8">
+          <h3 class="text-3xl font-black text-[#0a1a0f] mb-2 flex items-center gap-3">
+            <span class="material-symbols-outlined text-[#10b981] text-4xl">person_add</span>
+            Créer un compte
+          </h3>
+          <p class="text-gray-500 font-medium text-sm md:text-base">Remplissez les informations ci-dessous</p>
+        </div>
+
+        <form [formGroup]="registerForm" class="flex flex-col gap-5">
+          <!-- Email Input -->
+          <div>
+            <label class="block text-xs font-bold text-gray-400 mb-1 tracking-wider uppercase">Email</label>
+            <div class="flex items-center border border-gray-200 rounded-xl overflow-hidden focus-within:border-[#10b981] focus-within:ring-2 focus-within:ring-[#10b981]/20 transition-all bg-gray-50">
+              <input tabindex="1" type="text" #emailReg autocomplete="username" placeholder="prenom.nom" formControlName="email" (input)="onEmailInput('register')" class="w-full bg-transparent p-3.5 outline-none text-[#0a1a0f] font-medium" />
+              <div class="bg-gray-100 border-l border-gray-200 p-3.5 text-gray-500 font-semibold select-none">
+                &#64;infomil.mu
+              </div>
+            </div>
+            @if (registerForm.get('email')?.invalid && registerForm.get('email')?.touched) {
+              <span class="text-red-500 text-xs font-semibold mt-1 block">Ce champ est obligatoire</span>
+            }
+          </div>
+
+          <!-- Trigramme Input -->
+          <div>
+            <label class="block text-xs font-bold text-gray-400 mb-1 tracking-wider uppercase">Trigramme</label>
+            <input tabindex="2" type="text" #trigrammeReg placeholder="iml-xxx" formControlName="trigramme" class="w-full bg-gray-50 border border-gray-200 rounded-xl p-3.5 outline-none text-[#0a1a0f] font-medium focus:border-[#10b981] focus:ring-2 focus:ring-[#10b981]/20 transition-all" />
+            @if (registerForm.get('trigramme')?.invalid && registerForm.get('trigramme')?.touched) {
+              <span class="text-red-500 text-xs font-semibold mt-1 block">Format attendu: iml-xxx ou XXX</span>
+            }
+          </div>
+
+          <!-- Password Input -->
+          <div>
+            <label class="block text-xs font-bold text-gray-400 mb-1 tracking-wider uppercase">Mot de passe</label>
+            <div class="relative flex items-center border border-gray-200 rounded-xl overflow-hidden focus-within:border-[#10b981] focus-within:ring-2 focus-within:ring-[#10b981]/20 transition-all bg-gray-50">
+              <input tabindex="3" type="{{ passType }}" #passReg placeholder="••••••••" autocomplete="new-password" formControlName="pass" (keydown.enter)="registerAccount(emailReg.value + '@infomil.mu', trigrammeReg.value, passReg.value)" class="w-full bg-transparent p-3.5 outline-none text-[#0a1a0f] font-medium pr-12" />
+              <button type="button" class="absolute right-3 text-gray-400 hover:text-[#10b981] transition-colors" (click)="toggleType()">
+                <span class="material-symbols-outlined">{{ visibility }}</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="mt-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <span class="text-sm text-gray-500 font-medium">
+              Déjà inscrit ? 
+              <button tabindex="5" type="button" class="font-bold text-[#0a1a0f] hover:text-[#10b981] transition-colors" (click)="toggleRegister()">Me connecter</button>
+            </span>
+            <button tabindex="4" type="button" class="w-full sm:w-auto bg-[#0a1a0f] hover:bg-[#10b981] text-white font-bold py-3.5 px-8 rounded-xl shadow-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed" (click)="registerAccount(emailReg.value + '@infomil.mu', trigrammeReg.value, passReg.value)" [disabled]="!registerForm.valid">
+              Créer mon compte
+            </button>
+          </div>
+        </form>
+      </div>
+    }
+
+    <!-- Confirmation Flow -->
+    @if (confirmation) {
+      <div class="animate-fade-in-up">
+        <div class="mb-8">
+          <h3 class="text-3xl font-black text-[#0a1a0f] mb-2 flex items-center gap-3">
+            <span class="material-symbols-outlined text-[#10b981] text-4xl">mark_email_read</span>
+            Confirmation
+          </h3>
+          <p class="text-gray-500 font-medium text-sm md:text-base">Entrez le code reçu par email.</p>
+        </div>
+
+        <form [formGroup]="confirmationForm" class="flex flex-col gap-5">
+          <div>
+            <label class="block text-xs font-bold text-gray-400 mb-1 tracking-wider uppercase">Code à 5 chiffres</label>
+            <input tabindex="1" type="text" #inputConfcode autocomplete="one-time-code" placeholder="12345" class="w-full bg-gray-50 border border-gray-200 rounded-xl p-3.5 outline-none text-center text-2xl font-black text-[#0a1a0f] focus:border-[#10b981] focus:ring-2 focus:ring-[#10b981]/20 transition-all tracking-[0.5em]" (input)="inputConfcode.value !== confirmationCode.toString() ? disableConfirm = true : disableConfirm = false" />
+          </div>
+
+          <div class="mt-4">
+            <button tabindex="2" type="button" class="w-full bg-[#0a1a0f] hover:bg-[#10b981] text-white font-bold py-3.5 px-8 rounded-xl shadow-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed" [disabled]="disableConfirm" (click)="confirmRegistration(userData[0].email, userData[0].trigramme, userData[0].pass)">
+              Valider le code
+            </button>
+          </div>
+        </form>
+      </div>
+    }
+
+    <!-- Forgot Password Flow -->
+    @if (forgotPasswordView) {
+      <div class="animate-fade-in-up">
+        <div class="mb-8">
+          <h3 class="text-3xl font-black text-[#0a1a0f] mb-2 flex items-center gap-3">
+            <span class="material-symbols-outlined text-[#10b981] text-4xl">lock_reset</span>
+            Mot de passe oublié
+          </h3>
+          <p class="text-gray-500 font-medium text-sm md:text-base">Recevez un lien de réinitialisation par email.</p>
+        </div>
+
+        <form [formGroup]="forgotPasswordForm" class="flex flex-col gap-5">
+          <div>
+            <label class="block text-xs font-bold text-gray-400 mb-1 tracking-wider uppercase">Email</label>
+            <div class="flex items-center border border-gray-200 rounded-xl overflow-hidden focus-within:border-[#10b981] focus-within:ring-2 focus-within:ring-[#10b981]/20 transition-all bg-gray-50">
+              <input tabindex="1" type="text" #emailForgot autocomplete="username" placeholder="prenom.nom" formControlName="email" (input)="onEmailInput('forgot')" class="w-full bg-transparent p-3.5 outline-none text-[#0a1a0f] font-medium" />
+              <div class="bg-gray-100 border-l border-gray-200 p-3.5 text-gray-500 font-semibold select-none">
+                &#64;infomil.mu
+              </div>
+            </div>
+          </div>
+
+          @if (forgotPassMsg) {
+            <div class="bg-green-50 text-green-700 p-3 rounded-lg text-sm font-medium border border-green-100">
+              {{ forgotPassMsg }}
+            </div>
+          }
+
+          <div class="mt-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <button tabindex="3" type="button" class="text-sm font-bold text-gray-500 hover:text-[#10b981] transition-colors" (click)="toggleForgotPassword()">Retour</button>
+            <button tabindex="2" type="button" class="w-full sm:w-auto bg-[#0a1a0f] hover:bg-[#10b981] text-white font-bold py-3.5 px-8 rounded-xl shadow-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed" (click)="requestReset(emailForgot.value + '@infomil.mu')" [disabled]="!forgotPasswordForm.valid">
+              Envoyer le lien
+            </button>
+          </div>
+        </form>
+      </div>
+    }
+
+    <!-- Reset Password Flow -->
+    @if (resetPasswordView) {
+      <div class="animate-fade-in-up">
+        <div class="mb-8">
+          <h3 class="text-3xl font-black text-[#0a1a0f] mb-2 flex items-center gap-3">
+            <span class="material-symbols-outlined text-[#10b981] text-4xl">key</span>
+            Nouveau mot de passe
+          </h3>
+          <p class="text-gray-500 font-medium text-sm md:text-base">Choisissez un nouveau mot de passe sécurisé.</p>
+        </div>
+
+        <form [formGroup]="resetPasswordForm" class="flex flex-col gap-5">
+          <div>
+            <label class="block text-xs font-bold text-gray-400 mb-1 tracking-wider uppercase">Mot de passe</label>
+            <div class="relative flex items-center border border-gray-200 rounded-xl overflow-hidden focus-within:border-[#10b981] focus-within:ring-2 focus-within:ring-[#10b981]/20 transition-all bg-gray-50">
+              <input tabindex="1" type="{{ passType }}" #passReset placeholder="••••••••" autocomplete="new-password" formControlName="pass" (keydown.enter)="submitNewPassword(passReset.value)" class="w-full bg-transparent p-3.5 outline-none text-[#0a1a0f] font-medium pr-12" />
+              <button type="button" class="absolute right-3 text-gray-400 hover:text-[#10b981] transition-colors" (click)="toggleType()">
+                <span class="material-symbols-outlined">{{ visibility }}</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="mt-4">
+            <button tabindex="2" type="button" class="w-full bg-[#0a1a0f] hover:bg-[#10b981] text-white font-bold py-3.5 px-8 rounded-xl shadow-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed" (click)="submitNewPassword(passReset.value)" [disabled]="!resetPasswordForm.valid">
+              Valider le mot de passe
+            </button>
+          </div>
+        </form>
+      </div>
+    }
+
+    <!-- Issue Handling Flow -->
+    @if (issueHandling) {
+      <div class="animate-fade-in-up">
+        <div class="mb-8">
+          <h3 class="text-3xl font-black text-[#0a1a0f] mb-2 flex items-center gap-3">
+            <span class="material-symbols-outlined text-red-500 text-4xl">error</span>
+            Oups...
+          </h3>
+          <div class="bg-red-50 border-l-4 border-red-500 p-4 mt-4 rounded-r-lg">
+            <p class="text-red-700 font-medium">{{ issueMsg }}</p>
+          </div>
+        </div>
+
+        <div class="flex flex-col gap-4">
+          <button type="button" class="w-full bg-white border border-gray-200 hover:border-[#10b981] text-gray-600 hover:text-[#10b981] font-bold py-3.5 px-8 rounded-xl transition-all duration-300" (click)="register = true; issueHandling = false">
+            Réessayer de créer un compte
+          </button>
+          <button type="button" class="w-full bg-[#0a1a0f] hover:bg-[#10b981] text-white font-bold py-3.5 px-8 rounded-xl shadow-lg transition-all duration-300" (click)="login = true; issueHandling = false">
+            Se connecter avec un compte existant
+          </button>
         </div>
       </div>
     }
-    @if (login) {
-      <div class="loginFlow">
-        <form [formGroup]="loginForm">
-          <h3 class="flex items-center"> <span class="material-symbols-outlined icone">
-            account_circle
-          </span>
-        Authentification</h3>
-        <p>Veuillez saisir vos identifiants pour participer aux différents jeux proposés</p>
-        <div class="input mt-6">
-          <input tabindex="1" type="email" id="loginEmail" name="loginEmail" #email value="" autocomplete="email" placeholder="Veuillez renseigner votre email @infomil.mu" formControlName="email" (input)="onEmailInput('login')" (blur)="autocompleteEmail('login')" />
-          <label for="loginEmail">EMAIL (&#64;infomil.mu)</label>
-          @if (loginForm.get('email')?.invalid && loginForm.get('email')?.touched) {
-            <span class="error mt-2 mb-2">
-              @if (loginForm.get('email')?.errors?.['required']) {
-                Ce champ est obligatoire
-              }
-              @if (loginForm.get('email')?.errors?.['pattern']) {
-                L'email doit se terminer par &#64;infomil.mu
-              }
-            </span>
-          }
-        </div>
-        <div class="input">
-          <input tabindex="2" type="{{ passType }}" id="loginPass" name="loginPass" #pass value="" placeholder="Mot de passe"  autocomplete="current-password" formControlName="pass" (keydown.enter)="verifyLogin(email.value, pass.value)" />
-          <label for="loginPass">MOT DE PASSE</label>
-          <span class="material-symbols-outlined togglePass" (click)="toggleType()">{{ visibility }}</span>
-          @if (loginForm.get('pass')?.invalid && loginForm.get('pass')?.touched) {
-            <span class="error mt-2 mb-2">
-              @if (loginForm.get('pass')?.errors?.['required']) {
-                Ce champ est obligatoire
-              }
-              @if (loginForm.get('pass')?.errors?.['minlength']) {
-                Mot de passe trop court
-              }
-            </span>
-          }
-        </div>
-        @if (otherError) {
-          <span class="error mt-6 mb-2">
-            Email / Mot de passe incorrecte, veuillez re-essayer. Si vous n'arrivez toujours pas a vous identifiez, veuillez vous rapproché de l'équipe organisateur.
-          </span>
-        }
-        <div class="registerText text-right mb-2">
-          <button tabindex="5" type="button" class="link" (click)="toggleForgotPassword()">Mot de passe oublié ?</button>
-        </div>
-        <div class="flex flex-col items-end justify-between pt-2 pb-2 md:flex-row md:items-center md:mt-6">
-          <div class="registerText mb-4 sm:mb-0">
-            <span>Pas de compte? <button tabindex="4" type="button" class="link ml-2" (click)="toggleRegister()">M'en créer un</button></span>
-          </div>
-          <button tabindex="3" type="button" class="btn btn-primary" (click)="verifyLogin(email.value, pass.value)" [disabled]="!loginForm.valid">Connexion</button>
-        </div>
-      </form>
-    </div>
-  }
 
-  @if (forgotPasswordView) {
-    <div class="forgotPasswordFlow w-full">
-      <form [formGroup]="forgotPasswordForm">
-        <h3 class="flex items-center"> <span class="material-symbols-outlined icone">
-          lock_reset
-        </span>
-        Mot de passe oublié</h3>
-        <p>Entrez votre adresse email pour recevoir un lien de réinitialisation.</p>
-        
-        <div class="input mt-6">
-          <input tabindex="1" type="email" id="forgotEmail" name="forgotEmail" #emailForgot placeholder="Adresse mail &#64;infomil.mu" autocomplete="email" formControlName="email" (input)="onEmailInput('forgot')" (blur)="autocompleteEmail('forgot')" />
-          <label for="forgotEmail">*Email (&#64;infomil.mu)</label>
-          @if (forgotPasswordForm.get('email')?.invalid && forgotPasswordForm.get('email')?.touched) {
-            <span class="error mt-2 mb-2">
-              @if (forgotPasswordForm.get('email')?.errors?.['required']) {
-                Ce champ est obligatoire
-              }
-              @if (forgotPasswordForm.get('email')?.errors?.['pattern']) {
-                L'email doit se terminer par &#64;infomil.mu
-              }
-            </span>
-          }
-        </div>
-
-        @if (forgotPassMsg) {
-          <div class="successMsg mt-4 mb-4" style="color: #4caf50; font-weight: 500;">
-            {{ forgotPassMsg }}
-          </div>
-        }
-
-        <div class="flex flex-col items-end justify-between pt-2 pb-2 md:flex-row md:items-center md:mt-6">
-          <div class="registerText mb-4 sm:mb-0">
-            <span><button tabindex="3" type="button" class="link mr-2" (click)="toggleForgotPassword()">Retour à la connexion</button></span>
-          </div>
-          <button tabindex="2" type="button" class="btn btn-primary" (click)="requestReset(emailForgot.value)" [disabled]="!forgotPasswordForm.valid">Envoyer le lien</button>
-        </div>
-      </form>
-    </div>
-  }
-
-  @if (resetPasswordView) {
-    <div class="resetPasswordFlow w-full">
-      <form [formGroup]="resetPasswordForm">
-        <h3 class="flex items-center"> <span class="material-symbols-outlined icone">
-          key
-        </span>
-        Nouveau mot de passe</h3>
-        <p>Veuillez choisir votre nouveau mot de passe.</p>
-        
-        <div class="input mt-6">
-          <input tabindex="1" type="{{ passType }}" id="resetPass" name="resetPass" #passReset placeholder="Nouveau mot de passe" autocomplete="new-password" formControlName="pass" (keydown.enter)="submitNewPassword(passReset.value)" />
-          <label for="resetPass">*Nouveau mot de passe</label>
-          <span class="material-symbols-outlined togglePass" (click)="toggleType()">{{ visibility }}</span>
-          @if (resetPasswordForm.get('pass')?.invalid && resetPasswordForm.get('pass')?.touched) {
-            <span class="error mt-2 mb-2">
-              @if (resetPasswordForm.get('pass')?.errors?.['required']) {
-                Ce champ est obligatoire
-              }
-              @if (resetPasswordForm.get('pass')?.errors?.['minlength']) {
-                Mot de passe trop court
-              }
-            </span>
-          }
-        </div>
-
-        <div class="flex flex-col items-end justify-between pt-2 pb-2 md:flex-row md:items-center md:mt-6">
-          <button tabindex="2" type="button" class="btn btn-primary" (click)="submitNewPassword(passReset.value)" [disabled]="!resetPasswordForm.valid">Valider le mot de passe</button>
-        </div>
-      </form>
-    </div>
-  }
-
-  @if (register) {
-    <div class="registerFlow w-full" [ngClass]="{'hidden': confirmation}">
-      <form [formGroup]="registerForm">
-        <h3 class="flex items-center"> <span class="material-symbols-outlined icone">
-          person_add
-        </span>
-      Créer mon compte</h3>
-      <p>Veuillez insérer les informations ci-dessous</p>
-      <div class="input mt-6">
-        <input tabindex="1" type="email" id="regEmail" name="regEmail" #emailReg placeholder="Adresse mail &#64;infomil.mu" autocomplete="email" formControlName="email" (input)="onEmailInput('register')" (blur)="autocompleteEmail('register')" />
-        <label for="regEmail">*Email (&#64;infomil.mu)</label>
-        @if (registerForm.get('email')?.invalid && registerForm.get('email')?.touched) {
-          <span class="error mt-2 mb-2">
-            @if (registerForm.get('email')?.errors?.['required']) {
-              Ce champ est obligatoire
-            }
-            @if (registerForm.get('email')?.errors?.['pattern']) {
-              L'email doit se terminer par &#64;infomil.mu
-            }
-          </span>
-        }
-      </div>
-      <div class="input ">
-        <input tabindex="2" type="text" id="regTrigramme" name="regTrigramme" #trigrammeReg autocomplete="username" placeholder="iml-xxx" formControlName="trigramme" />
-        <label for="regTrigramme">*Votre trigramme (iml-xxx)</label>
-        @if (registerForm.get('trigramme')?.invalid && registerForm.get('trigramme')?.touched) {
-          <span class="error mt-2 mb-2">
-            @if (registerForm.get('trigramme')?.errors?.['required']) {
-              Ce champ est obligatoire
-            }
-            @if (registerForm.get('trigramme')?.errors?.['pattern']) {
-              Le trigramme doit être au format iml-xx, iml-xxx ou XXX
-            }
-          </span>
-        }
-      </div>
-      <div class="input">
-        <input tabindex="3" type="{{ passType }}" id="regPass" name="regPass" #passReg placeholder="Mot de passe" autocomplete="new-password" formControlName="pass" (keydown.enter)="registerAccount(emailReg.value, trigrammeReg.value, passReg.value)" />
-        <label for="regPass">*Un mot de passe</label>
-        <span class="material-symbols-outlined togglePass" (click)="toggleType()">{{ visibility }}</span>
-        @if (registerForm.get('pass')?.invalid && registerForm.get('pass')?.touched) {
-          <span class="error mt-2 mb-2">
-            @if (registerForm.get('pass')?.errors?.['required']) {
-              Ce champ est obligatoire
-            }
-            @if (registerForm.get('pass')?.errors?.['minlength']) {
-              Mot de passe trop court
-            }
-          </span>
-        }
-      </div>
-      <div class="flex flex-col items-end justify-between pt-2 pb-2 md:flex-row md:items-center md:mt-6">
-        <div class="registerText mb-4 sm:mb-0">
-          <span>Déja inscrit ? <button tabindex="5" class="link ml-2 mr-2" (click)="toggleRegister()">Se connecter</button></span>
-        </div>
-        <button tabindex="4" class="btn btn-primary" (click)="registerAccount(emailReg.value, trigrammeReg.value, passReg.value)" [disabled]="!registerForm.valid">Créer mon compte</button>
-      </div>
-    </form>
   </div>
-}
-
-@if (confirmation) {
-  <div class="registerFlow w-full">
-    <form [formGroup]="confirmationForm">
-      <h3 class="flex items-center"> <span class="material-symbols-outlined icone">
-        email
-      </span>
-    Confirmation de votre compte</h3>
-    <p>Veuillez insérer le code de confirmation envoyé à votre adresse email</p>
-    <div class="input mt-6">
-      <input tabindex="1" type="text" id="confCode" name="confCode" #inputConfcode value="" placeholder="Code de confirmation"  autocomplete="one-time-code" (input)="inputConfcode.value !== confirmationCode.toString() ? disableConfirm = true : disableConfirm = false" />
-      <label for="confCode">*Code de confirmation</label>
-    </div>
-    <div class="flex flex-col items-end justify-between pt-2 pb-2 md:flex-row md:items-center md:mt-6">
-      <button tabindex="2" class="btn btn-primary" [disabled]="disableConfirm" (click)="confirmRegistration(userData[0].email, userData[0].trigramme, userData[0].pass)">Confirmer mon compte</button>
-    </div>
-  </form>
-</div>
-}
-
-@if (issueHandling) {
-  <div class="issueHandling pt-6">
-    <h3 class="flex items-center"><span class="material-symbols-outlined icone mr-2">
-      sentiment_dissatisfied
-    </span> Oops..</h3>
-    <div class="issueMessage mb-4">
-      <p>{{ issueMsg }}</p>
-    </div>
-    <div class="registerText mb-4">
-      <span>Pour réessayer de créer un compte : <button type="button" class="link ml-2" (click)="register = true; issueHandling = false">Cliquer ici</button></span>
-    </div>
-    <div class="registerText mb-4">
-      <span>Se connecter avec un compte existant: <button type="button" class="link ml-2 mr-2" (click)="login = true; issueHandling = false">Cliquer ici</button></span>
-    </div>
-  </div>
-}
-</div>
 </div>

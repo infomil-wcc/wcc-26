@@ -19,7 +19,80 @@
             </div>
           </div>
         }
-        <div class="groups-grid grid-cols-12">
+        <!-- MOBILE: Single card carousel -->
+        <div class="md:hidden">
+          <!-- Navigation header -->
+          <div class="flex items-center justify-between mb-4">
+            <button type="button"
+                    class="flex items-center justify-center w-10 h-10 rounded-full bg-white shadow border border-gray-200 disabled:opacity-30 transition-all hover:bg-gray-50"
+                    (click)="prevGroup()"
+                    [disabled]="mobileGroupIndex === 0">
+              <span class="material-symbols-outlined text-[20px] m-0 text-gray-700">chevron_left</span>
+            </button>
+
+            <div class="text-center">
+              <span class="text-xs font-bold uppercase tracking-widest text-gray-400">Groupe</span>
+              <div class="text-xl font-black text-gray-800">{{ groupsData[mobileGroupIndex]?.group_title }}</div>
+              <div class="flex gap-1 mt-1 justify-center">
+                @for (g of groupsData; track g; let i = $index) {
+                  <span class="w-1.5 h-1.5 rounded-full transition-all duration-300"
+                        [style.background-color]="i === mobileGroupIndex ? g.color : '#e2e8f0'"></span>
+                }
+              </div>
+            </div>
+
+            <button type="button"
+                    class="flex items-center justify-center w-10 h-10 rounded-full bg-white shadow border border-gray-200 disabled:opacity-30 transition-all hover:bg-gray-50"
+                    (click)="nextGroup()"
+                    [disabled]="mobileGroupIndex === groupsData.length - 1">
+              <span class="material-symbols-outlined text-[20px] m-0 text-gray-700">chevron_right</span>
+            </button>
+          </div>
+
+          <!-- Single visible card -->
+          @if (groupsData[mobileGroupIndex]; as group) {
+            <div class="group-card" [ngStyle]="{'border-top-color': group.color}">
+              <div class="group-header" [ngStyle]="{'background-color': group.color}">
+                <span class="title-text">Groupe {{ group.group_title }}</span>
+                <div class="randomize-container">
+                  <button type="button" class="btn-dice-randomize"
+                          (click)="randomizeGroup(mobileGroupIndex); $event.stopPropagation()"
+                          title="Mélanger le groupe">
+                    <span class="dice-icon">🎲</span>
+                  </button>
+                </div>
+              </div>
+              <div cdkDropList [cdkDropListData]="group.teams"
+                   (cdkDropListDropped)="dropTeam($event, mobileGroupIndex)"
+                   class="teams-list">
+                @for (team of group.teams; track team; let posIdx = $index) {
+                  <div cdkDrag class="team-row">
+                    <div class="team-info-block">
+                      <div class="pos-badge" [ngClass]="{'is-qualified': posIdx < 2}"
+                           (click)="toggleGroupConfirmation(mobileGroupIndex)">{{ posIdx + 1 }}</div>
+                      <img [src]="team.flagUrl" class="team-flag" [alt]="team.name">
+                      <span class="team-name">{{ team.name }}</span>
+                    </div>
+                    <div class="drag-anchor-handle" cdkDragHandle>&#9776;</div>
+                    <div class="row-drag-placeholder" *cdkDragPlaceholder></div>
+                  </div>
+                }
+                <div class="group-confirmation" [ngClass]="{'confirmed': confirmedGroups[mobileGroupIndex]}"
+                     (click)="toggleGroupConfirmation(mobileGroupIndex)">
+                  {{ confirmedGroups[mobileGroupIndex] ? 'Groupe validé ✓' : 'Valider ce groupe' }}
+                </div>
+              </div>
+            </div>
+          }
+
+          <!-- Mobile progress -->
+          <div class="text-center mt-3 text-xs text-gray-400 font-medium">
+            {{ confirmedGroups.filter(g => g).length }} / {{ groupsData.length }} groupes validés
+          </div>
+        </div>
+
+        <!-- DESKTOP: Full grid -->
+        <div class="groups-grid hidden md:grid grid-cols-12">
           @for (group of groupsData; track group; let gIdx = $index) {
             <div class="group-card"
               [ngStyle]="{'border-top-color': group.color}">

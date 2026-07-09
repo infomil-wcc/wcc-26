@@ -38,6 +38,7 @@ export class BracketPredictorComponent implements OnInit {
   protected thirdPlacedTeams: PredictorTeam[] = [];
   protected selectedThirdsCount: number = 0;
   protected confirmedGroups: boolean[] = [];
+  protected mobileGroupIndex: number = 0;
 
   private targetDate = new Date(2026, 5, 12, 22, 55, 0);
   private currentDate = new Date();
@@ -85,6 +86,14 @@ export class BracketPredictorComponent implements OnInit {
 
   protected areAllGroupsConfirmed(): boolean {
     return this.confirmedGroups.every(c => c);
+  }
+
+  protected prevGroup(): void {
+    if (this.mobileGroupIndex > 0) this.mobileGroupIndex--;
+  }
+
+  protected nextGroup(): void {
+    if (this.mobileGroupIndex < this.groupsData.length - 1) this.mobileGroupIndex++;
   }
 
   protected dropTeam(event: CdkDragDrop<PredictorTeam[]>, groupIndex: number): void {

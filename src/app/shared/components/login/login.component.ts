@@ -4,14 +4,13 @@ import { AuthService } from '../../../core/services/core/auth.service';
 import { CookieService } from '../../../core/services/core/cookie.service';
 import { StateService } from '../../../core/services/core/state.service';
 import { MailService } from '../../../core/services/core/mail.service';
-import { NgClass } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 @Component({
     selector: 'app-login',
     templateUrl: './login.component.html',
     styleUrl: './login.component.scss',
     changeDetection: ChangeDetectionStrategy.Eager,
-    imports: [ReactiveFormsModule, NgClass]
+    imports: [ReactiveFormsModule]
 })
 export class LoginComponent {
 
@@ -59,15 +58,13 @@ export class LoginComponent {
     });
 
     this.loginForm = this.formBuilder.group({
-      email: ['', [Validators.required, Validators.pattern(/^[a-zA-Z0-9._%+-]+@infomil\.mu$/)]],
-      // email: ['', [Validators.required, Validators.pattern(/^[a-zA-Z0-9._%+-]+@yopmail\.com$/)]],
+      email: ['', [Validators.required]],
       pass: ['', [Validators.required, Validators.minLength(4)]]
     });
 
 
     this.registerForm = this.formBuilder.group({
-      email: ['', [Validators.required, Validators.pattern(/^[a-zA-Z0-9._%+-]+@infomil\.mu$/)]],
-      // email: ['', [Validators.required, Validators.pattern(/^[a-zA-Z0-9._%+-]+@yopmail\.com$/)]],
+      email: ['', [Validators.required]],
       trigramme: ['', [Validators.required, Validators.pattern(/^(iml-[a-zA-Z]{3}|iml-[a-zA-Z]{2}|[a-zA-Z]{3})$/)]],
       pass: ['', [Validators.required, Validators.minLength(4)]]
     });
@@ -77,7 +74,7 @@ export class LoginComponent {
     });
 
     this.forgotPasswordForm = this.formBuilder.group({
-      email: ['', [Validators.required, Validators.pattern(/^[a-zA-Z0-9._%+-]+@infomil\.mu$/)]]
+      email: ['', [Validators.required]]
     });
 
     this.resetPasswordForm = this.formBuilder.group({
@@ -90,20 +87,11 @@ export class LoginComponent {
     const form = type === 'login' ? this.loginForm : (type === 'register' ? this.registerForm : this.forgotPasswordForm);
     const emailControl = form.get('email');
     if (emailControl && emailControl.value) {
-      const value = emailControl.value;
-      if (value.endsWith('@')) {
-        emailControl.setValue(value + 'infomil.mu');
-      }
-    }
-  }
-
-  protected autocompleteEmail(type: 'login' | 'register' | 'forgot'): void {
-    const form = type === 'login' ? this.loginForm : (type === 'register' ? this.registerForm : this.forgotPasswordForm);
-    const emailControl = form.get('email');
-    if (emailControl && emailControl.value) {
-      const value = emailControl.value.trim();
-      if (value && !value.includes('@')) {
-        emailControl.setValue(value + '@infomil.mu');
+      let value = emailControl.value.trim();
+      // Remove @infomil.mu if the user pastes it
+      if (value.includes('@')) {
+        value = value.split('@')[0];
+        emailControl.setValue(value);
       }
     }
   }
