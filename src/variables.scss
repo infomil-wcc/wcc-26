@@ -1,18 +1,18 @@
-@use "sass:color";
 $gray: #dbe8f1;
 $red: #E3000F; // fifa-red
 $blue: #2552FA; // fifa-blue
 $green: #00B140; // fifa-green
 $yellow: #EAFF00; // fifa-yellow
-$darkpurple: #1A276C; // fifa-navy instead of old dark purple
 $inputBorder: #d4d4d4;
 
-$primaryColor: #000000;
-$secondaryColor: #00B140; // fifa-green
-$lightPrimary: color.adjust($primaryColor, $lightness: 10%);
-$lightSecondary: color.adjust($secondaryColor, $lightness: 10%);
-$darkPrimary: color.adjust($primaryColor, $lightness: -20%);
-$darkSecondary: color.adjust($secondaryColor, $lightness: -20%);
+$primaryColor: var(--theme-primary-color);
+$secondaryColor: var(--theme-secondary-color);
+$lightPrimary: var(--theme-light-primary);
+$lightSecondary: var(--theme-light-secondary);
+$darkPrimary: var(--theme-dark-primary);
+$darkSecondary: var(--theme-dark-secondary);
+$darkpurple: var(--theme-darkpurple);
+
 $goldColor: $yellow;
 $aqua: #4EF5D6; // fifa-aqua
 $mint: #B8ED00; // fifa-lime

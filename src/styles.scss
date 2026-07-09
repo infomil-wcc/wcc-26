@@ -3,9 +3,9 @@
 @import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,300;0,400;0,500;1,400&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap');
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss/base";
+@import "tailwindcss/components";
+@import "tailwindcss/utilities";
 
 :root {
   --theme-primary: #0a1a0f;
@@ -19,6 +19,20 @@
   --theme-secondary-rgb: 16, 185, 129;
   --theme-accent-rgb: 245, 158, 11;
   --theme-danger-rgb: 239, 68, 68;
+
+  /* Backgrounds */
+  --theme-bg-main: #0d1710;
+  --theme-bg-sidebar: #071209;
+  --theme-bg-footer: #071209;
+
+  /* SCSS variables mappings */
+  --theme-primary-color: #000000;
+  --theme-secondary-color: #10b981;
+  --theme-light-primary: #1a1a1a;
+  --theme-light-secondary: #34d399;
+  --theme-dark-primary: #000000;
+  --theme-dark-secondary: #047857;
+  --theme-darkpurple: #2b2c36;
 }
 
 [data-theme='fifa'] {
@@ -33,6 +47,20 @@
   --theme-secondary-rgb: 0, 177, 64;
   --theme-accent-rgb: 255, 74, 0;
   --theme-danger-rgb: 227, 0, 15;
+
+  /* Backgrounds */
+  --theme-bg-main: #0c1030;
+  --theme-bg-sidebar: #06081c;
+  --theme-bg-footer: #06081c;
+
+  /* SCSS variables mappings */
+  --theme-primary-color: #1A276C;
+  --theme-secondary-color: #00B140;
+  --theme-light-primary: #253386;
+  --theme-light-secondary: #26d966;
+  --theme-dark-primary: #0e1642;
+  --theme-dark-secondary: #00802b;
+  --theme-darkpurple: #1A276C;
 }
 
 @font-face{
@@ -90,7 +118,7 @@ html {
   }
 
   *::-webkit-scrollbar-thumb {
-    background-color: color.adjust($primaryColor, $lightness: 10%);
+    background-color: $lightPrimary;
     border-radius: 10px;
     border: 0px none $primaryColor;
   }

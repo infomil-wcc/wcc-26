@@ -13,6 +13,8 @@ module.exports = {
           danger: 'var(--theme-danger)',
           surface: 'var(--theme-surface)',
           text: 'var(--theme-text)',
+          sidebar: 'var(--theme-bg-sidebar)',
+          main: 'var(--theme-bg-main)',
         },
         fifa: {
           'dark-red': '#6D0014',
