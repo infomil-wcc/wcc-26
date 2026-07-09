@@ -174,19 +174,18 @@
 // ─── Main Content ─────────────────────────────────────────────────────────────
 
 .pronostiquesMain {
-  // Matches height of the global app header + our unified header bar + calendar strip
-  padding-top: 170px;
+  padding-top: 1.5rem;
   transition: padding-top 0.28s cubic-bezier(0.4, 0, 0.2, 1);
 
   &.calendar-collapsed {
-    padding-top: 100px;
+    padding-top: 1.5rem;
   }
 
   @media screen and (max-width: 640px) {
-    padding-top: 220px;
+    padding-top: 1.5rem;
     
     &.calendar-collapsed {
-      padding-top: 150px;
+      padding-top: 1.5rem;
     }
   }
 }
@@ -393,7 +392,7 @@
     font-family: UefaEuro;
     font-size: 1.05rem;
     font-weight: 700;
-    color: #1a202c;
+    color: #f8fafc;
     letter-spacing: 0.3px;
   }
 
