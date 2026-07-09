@@ -1,28 +1,19 @@
-import { Component, EventEmitter, Input, OnInit, OnDestroy, Output, inject, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
+import { Component, EventEmitter, Input, OnInit, OnDestroy, Output, inject, ChangeDetectionStrategy, ChangeDetectorRef, PLATFORM_ID } from '@angular/core';
 import { Matches } from '../../contracts/matches.contract';
-import { max, Observable, Subscription } from 'rxjs';
+import { Observable, Subscription } from 'rxjs';
 import { map, of } from 'rxjs';
-import { TeamsService } from '../../../core/services/content/teams.service';
-import { StateService } from '../../../core/services/core/state.service';
-import { PredictionsService } from '../../../core/services/games/predictions.service';
 import { MatchHeaderComponent } from './components/match-header/match-header.component';
 import { MatchInfoComponent } from './components/match-info/match-info.component';
 import { MatchPredictionEditComponent } from './components/match-prediction-edit/match-prediction-edit.component';
 import { MatchPredictionSavedComponent } from './components/match-prediction-saved/match-prediction-saved.component';
 import { MatchOfficialScoreComponent } from './components/match-official-score/match-official-score.component';
 import { TeamInfoModalComponent } from './components/team-info-modal/team-info-modal.component';
-import { MatchScorersService } from '../../../core/services/games/match-scorers.service';
-import { MatchOutcomeService } from '../../../core/services/games/match-outcome.service';
-import { MatchCountdownService } from '../../../core/services/games/match-countdown.service';
-import { TeamHistoryService, PHASE_CONFIG } from '../../../core/services/games/team-history.service';
-import { GlobaltimeService } from '../../../core/services/core/global-time.service';
-import { StadiumsService } from '../../../core/services/content/stadiums.service';
-import { NgClass, NgStyle } from '@angular/common';
+import { PHASE_CONFIG } from '../../../core/services/games/team-history.service';
+import { NgClass, NgStyle, isPlatformBrowser } from '@angular/common';
 import { LoaderComponent } from '../loader/loader.component';
 import { TacticalLineupComponent } from '../tactical-lineup/tactical-lineup.component';
-import { LineupsApiService } from '../../../core/services/api/lineups-api.service';
-
-import { MatchesService } from '../../../core/services/content/matches.service';
+import { subtractMinutes, checkPayloadFraud } from '../../utils/match.utils';
+import { MatchFacade } from '../../../core/facades/match.facade';
 
 
 
@@ -35,18 +26,9 @@ import { MatchesService } from '../../../core/services/content/matches.service';
 })
 export class MatchComponent implements OnInit, OnDestroy {
 
-  teamService = inject(TeamsService);
-  predictionService = inject(PredictionsService);
-  stateService = inject(StateService);
-  globalTime = inject(GlobaltimeService);
-  stadiumsService = inject(StadiumsService);
-  lineupsService = inject(LineupsApiService);
-  matchesService = inject(MatchesService);
-  cdr = inject(ChangeDetectorRef);
-  matchScorersService = inject(MatchScorersService);
-  matchOutcomeService = inject(MatchOutcomeService);
-  matchCountdownService = inject(MatchCountdownService);
-  teamHistoryService = inject(TeamHistoryService);
+  private platformId = inject(PLATFORM_ID);
+  private facade = inject(MatchFacade);
+  private cdr = inject(ChangeDetectorRef);
 
   @Input() match!: Matches;
   @Input() isPronostiques: boolean = false;
@@ -107,7 +89,7 @@ export class MatchComponent implements OnInit, OnDestroy {
     const localTime = new Date().getTime();
     this.timeOffset = serverTime - localTime;
 
-    this.stateService.userState.subscribe({
+    this.facade.userState$.subscribe({
       next: (response) => {
         if (response.id !== null) {
           (response.id) ? this.userId = parseInt(response.id) : "";
@@ -123,14 +105,14 @@ export class MatchComponent implements OnInit, OnDestroy {
       this.verfierMonPronostique();
     }
 
-    this.refreshSub = this.predictionService.refresh$.subscribe(() => {
+    this.refreshSub = this.facade.refresh$.subscribe(() => {
       if (this.justSaved) return;
       if (this.isPronostiques && this.userId !== 0) {
         this.verfierMonPronostique();
       }
     });
 
-    this.savedSub = this.predictionService.savedPredictions$.subscribe((savedMap) => {
+    this.savedSub = this.facade.savedPredictions$.subscribe((savedMap) => {
       const saved = savedMap.get(this.match.id);
       if (!saved) return;
 
@@ -161,11 +143,11 @@ export class MatchComponent implements OnInit, OnDestroy {
     });
 
     let matchDate = new Date(this.match.date)
-    this.limitDate = this.subtractHours(matchDate);
+    this.limitDate = subtractMinutes(matchDate, 5);
 
     if (this.today > this.limitDate) {
       this.closed = true;
-      this.predictionService.removeDraft(this.match.id);
+      this.facade.removeDraft(this.match.id);
 
       const status = this.match.current_status?.toLowerCase();
       const matchStartTime = new Date(this.match.date).getTime();
@@ -183,17 +165,19 @@ export class MatchComponent implements OnInit, OnDestroy {
         const nowTime = this.today.getTime();
 
         const finishedStorageKey = `sync_match_${this.match.id}_finished`;
-        if ((this.today > matchDate || this.match.status?.toLowerCase() === 'finished') && !localStorage.getItem(finishedStorageKey)) {
-          localStorage.setItem(finishedStorageKey, 'true');
-          this.predictionService.updateMatchResults(this.match.id.toString()).subscribe({
-            next: (res) => {
-              console.log(`Automatically updated results for finished match ${this.match.id}`, res);
-              this.predictionService.triggerRefresh();
-            },
-            error: (err) => {
-              console.error('Error auto-updating finished match results:', err);
-            }
-          });
+        if (isPlatformBrowser(this.platformId)) {
+          if ((this.today > matchDate || this.match.status?.toLowerCase() === 'finished') && !localStorage.getItem(finishedStorageKey)) {
+            localStorage.setItem(finishedStorageKey, 'true');
+            this.facade.updateMatchResults(this.match.id.toString()).subscribe({
+              next: (res) => {
+                console.log(`Automatically updated results for finished match ${this.match.id}`, res);
+                this.facade.triggerRefresh();
+              },
+              error: (err) => {
+                console.error('Error auto-updating finished match results:', err);
+              }
+            });
+          }
         }
 
         const completionTime = matchTime + 120 * 60 * 1000;
@@ -202,18 +186,20 @@ export class MatchComponent implements OnInit, OnDestroy {
         const isAtCompletion = nowTime >= completionTime && nowTime < completionTime + 5 * 60 * 1000;
         const isAtThirtyMinsAfter = nowTime >= thirtyMinsAfterTime && nowTime < thirtyMinsAfterTime + 5 * 60 * 1000;
 
-        if (isAtCompletion || isAtThirtyMinsAfter) {
-          const storageKey = `sync_match_${this.match.id}_${isAtCompletion ? 'completion' : '30mins'}`;
-          if (!localStorage.getItem(storageKey)) {
-            localStorage.setItem(storageKey, 'true');
-            this.predictionService.updateResults().subscribe({
-              next: (res) => {
-                console.log(`Automatically updated results for match ${this.match.id}`, res);
-              },
-              error: (err) => {
-                console.error('Error auto-updating match results:', err);
-              }
-            });
+        if (isPlatformBrowser(this.platformId)) {
+          if (isAtCompletion || isAtThirtyMinsAfter) {
+            const storageKey = `sync_match_${this.match.id}_${isAtCompletion ? 'completion' : '30mins'}`;
+            if (!localStorage.getItem(storageKey)) {
+              localStorage.setItem(storageKey, 'true');
+              this.facade.updateResults().subscribe({
+                next: (res) => {
+                  console.log(`Automatically updated results for match ${this.match.id}`, res);
+                },
+                error: (err) => {
+                  console.error('Error auto-updating match results:', err);
+                }
+              });
+            }
           }
         }
       }
@@ -241,15 +227,11 @@ export class MatchComponent implements OnInit, OnDestroy {
     }
   }
 
-  subtractHours(date: Date): Date {
-    const newDate = new Date(date);
-    newDate.setTime(newDate.getTime() - (5 * 60 * 1000));
-    return newDate;
-  }
+
 
   nationalitySelected(ev: Event): void {
     let selectBox = ev.target as HTMLSelectElement;
-    this.$players = this.teamService.getPlayersByTeamName(selectBox.value);
+    this.$players = this.facade.getPlayersByTeamName(selectBox.value);
 
     this.$players.subscribe({
       next: (response) => {
@@ -266,13 +248,13 @@ export class MatchComponent implements OnInit, OnDestroy {
     this.showTacticalModal = true;
     this.loadingLineups = true;
 
-    this.teamService.getPlayersByTeamName(this.match.team_a).subscribe(playersA => {
-      this.teamService.getPlayersByTeamName(this.match.team_b).subscribe(playersB => {
+    this.facade.getPlayersByTeamName(this.match.team_a).subscribe(playersA => {
+      this.facade.getPlayersByTeamName(this.match.team_b).subscribe(playersB => {
         const listA = (playersA?.players || []).map((p: any) => ({ ...p, teamName: this.match.team_a }));
         const listB = (playersB?.players || []).map((p: any) => ({ ...p, teamName: this.match.team_b }));
         this.fallbackPlayersList = [...listA, ...listB];
 
-        this.lineupsService.getLineups(this.match.team_a, this.match.team_b).subscribe({
+        this.facade.getLineups(this.match.team_a, this.match.team_b).subscribe({
           next: (res) => {
             this.lineupsData = res;
             this.loadingLineups = false;
@@ -316,7 +298,7 @@ export class MatchComponent implements OnInit, OnDestroy {
   }
 
   getTeamFlag(teamName: string, callback: (flag: string) => void): void {
-    this.teamService.getTeamByName(teamName).subscribe({
+    this.facade.getTeamByName(teamName).subscribe({
       next: (response) => {
         if (response.length > 0 && response[0].flag_url) {
           callback(response[0].flag_url);
@@ -348,7 +330,7 @@ export class MatchComponent implements OnInit, OnDestroy {
     }
 
     if (this.calcWinDrawOutcome) {
-      this.matchOutcome = this.matchOutcomeService.calculateWinDraw(this.match.phase, this.penaltyWinner, this.match.team_a, this.match.team_b, this.fullTimeA, this.fullTimeB);
+      this.matchOutcome = this.facade.calculateWinDraw(this.match.phase, this.penaltyWinner, this.match.team_a, this.match.team_b, this.fullTimeA, this.fullTimeB);
     }
     this.sendBet();
   }
@@ -381,7 +363,7 @@ export class MatchComponent implements OnInit, OnDestroy {
   }
 
   get isMatchFinishedByDate(): boolean {
-    return this.matchOutcomeService.isMatchFinishedByDate(this.match?.date, this.today);
+    return this.facade.isMatchFinishedByDate(this.match?.date, this.today);
   }
 
   onHalftimeScoreChanged(): void {
@@ -397,7 +379,7 @@ export class MatchComponent implements OnInit, OnDestroy {
     }
 
     if (this.calcWinDrawOutcome) {
-      this.matchOutcome = this.matchOutcomeService.calculateWinDraw(this.match.phase, this.penaltyWinner, this.match.team_a, this.match.team_b, this.fullTimeA, this.fullTimeB);
+      this.matchOutcome = this.facade.calculateWinDraw(this.match.phase, this.penaltyWinner, this.match.team_a, this.match.team_b, this.fullTimeA, this.fullTimeB);
     }
     this.sendBet();
   }
@@ -425,7 +407,7 @@ export class MatchComponent implements OnInit, OnDestroy {
     let currentOutcome = this.matchOutcome;
 
     if (this.calcWinDrawOutcome) {
-      currentOutcome = this.matchOutcomeService.calculateWinDraw(this.match.phase, this.penaltyWinner, this.match.team_a, this.match.team_b, this.fullTimeA, this.fullTimeB);
+      currentOutcome = this.facade.calculateWinDraw(this.match.phase, this.penaltyWinner, this.match.team_a, this.match.team_b, this.fullTimeA, this.fullTimeB);
     }
 
     if (currentOutcome === 'Draw' && this.match.phase !== 'Group Stage' && this.penaltyWinner) {
@@ -443,7 +425,7 @@ export class MatchComponent implements OnInit, OnDestroy {
       winner_draw: currentOutcome,
     }
 
-    const existingDraft = this.predictionService.getDrafts().find(d => String(d.game_id) === String(this.match.id));
+    const existingDraft = this.facade.getDrafts().find(d => String(d.game_id) === String(this.match.id));
     if (existingDraft?.id) {
       prediction.id = existingDraft.id;
     } else if (this.donePronostique && this.donePronostique.id) {
@@ -451,7 +433,7 @@ export class MatchComponent implements OnInit, OnDestroy {
     }
 
     prediction.game_id = this.match.id;
-    this.predictionService.addDraft(prediction);
+    this.facade.addDraft(prediction);
 
     this.pronostiqueDone = true;
     this.donePronostique = prediction;
@@ -467,28 +449,10 @@ export class MatchComponent implements OnInit, OnDestroy {
   verfierMonPronostique(): void {
     if (this.justSaved) return;
 
-    this.predictionService.getMyPredictions(this.match.id).subscribe({
+    this.facade.getMyPredictions(this.match.id).subscribe({
       next: (response) => {
-        const drafts = this.predictionService.getDrafts();
+        const drafts = this.facade.getDrafts();
         const draft = drafts.find(d => d.game_id === this.match.id);
-
-        const checkPayloadFraud = (pred: any): boolean => {
-          if (!pred || !this.match.date) return false;
-          const predTimeStr = pred.modified_on || pred.created_on;
-          if (!predTimeStr) return false;
-
-          let normalizedMatchDate = this.match.date.trim();
-          if (!normalizedMatchDate.endsWith('Z') && !/[+-]\d{2}:?\d{2}$/.test(normalizedMatchDate)) {
-            normalizedMatchDate += '+04:00';
-          }
-          normalizedMatchDate = normalizedMatchDate.replace(' ', 'T');
-
-          const predTimestamp = new Date(predTimeStr).getTime();
-          const matchTimestamp = new Date(normalizedMatchDate).getTime();
-          this.invalidatedDate = new Date(predTimeStr);
-
-          return predTimestamp >= matchTimestamp;
-        };
 
         if (draft) {
           this.pronostiqueDone = true;
@@ -508,12 +472,16 @@ export class MatchComponent implements OnInit, OnDestroy {
           this.scorer = draft.scorer || '';
           this.isSavedInApi = response.length > 0;
 
-          this.hidePointsBadge = checkPayloadFraud(draft);
+          const fraudResult = checkPayloadFraud(draft, this.match.date);
+          this.hidePointsBadge = fraudResult.isFraud;
+          if (fraudResult.invalidatedDate) {
+            this.invalidatedDate = fraudResult.invalidatedDate;
+          }
 
           if (response.length > 0 && response[0].id && !draft.id) {
             draft.id = response[0].id;
             this.donePronostique.id = response[0].id;
-            this.predictionService.addDraft(draft);
+            this.facade.addDraft(draft);
           }
         } else if (response.length > 0) {
           this.pronostiqueDone = true;
@@ -530,7 +498,7 @@ export class MatchComponent implements OnInit, OnDestroy {
 
             if (Date.parse(this.match.date) > Date.now() && (!this.penaltyWinner || this.penaltyWinner.trim() === '' || this.penaltyWinner === 'Draw')) {
               this.donePronostique.game_id = this.match.id;
-              this.predictionService.addDraft(this.donePronostique);
+              this.facade.addDraft(this.donePronostique);
             }
           }
 
@@ -538,7 +506,11 @@ export class MatchComponent implements OnInit, OnDestroy {
           this.halfTimeB = (response[0].halftime_b !== null && response[0].halftime_b !== undefined && response[0].halftime_b !== '') ? parseInt(response[0].halftime_b, 10) : null;
           this.scorer = response[0].scorer || '';
 
-          this.hidePointsBadge = checkPayloadFraud(response[0]);
+          const fraudResult = checkPayloadFraud(response[0], this.match.date);
+          this.hidePointsBadge = fraudResult.isFraud;
+          if (fraudResult.invalidatedDate) {
+            this.invalidatedDate = fraudResult.invalidatedDate;
+          }
 
           if (this.hidePointsBadge) {
             this.isSavedInApi = false;
@@ -569,7 +541,7 @@ export class MatchComponent implements OnInit, OnDestroy {
 
   getStadiumImage(): void {
     if (!this.match.stadium) return;
-    this.stadiumsService.getStadium().subscribe({
+    this.facade.getStadium().subscribe({
       next: (stadiums: any[]) => {
         const found = stadiums.find(s => s.title.toLowerCase().trim() === this.match.stadium.toLowerCase().trim());
         if (found) {
@@ -586,36 +558,38 @@ export class MatchComponent implements OnInit, OnDestroy {
 
   startCountdown(): void {
     const updateCountdown = () => {
-      const state = this.matchCountdownService.getCountdownState(this.match.date, this.match.current_status, this.match.played, this.timeOffset);
+      const state = this.facade.getCountdownState(this.match.date, this.match.current_status, this.match.played, this.timeOffset);
       this.countdownText = state.text;
       if (state.isClosed && !this.closed) {
         this.closed = true;
-        this.predictionService.removeDraft(this.match.id);
+        this.facade.removeDraft(this.match.id);
       }
     };
 
     updateCountdown();
-    this.countdownIntervalId = setInterval(updateCountdown, 1000);
+    if (isPlatformBrowser(this.platformId)) {
+      this.countdownIntervalId = setInterval(updateCountdown, 1000);
+    }
   }
 
   isOutcomeCorrect(): boolean {
-    return this.matchOutcomeService.isOutcomeCorrect(this.donePronostique, this.match, this.hidePointsBadge);
+    return this.facade.isOutcomeCorrect(this.donePronostique, this.match, this.hidePointsBadge);
   }
 
   isFulltimeCorrect(): boolean {
-    return this.matchOutcomeService.isFulltimeCorrect(this.donePronostique, this.match, this.hidePointsBadge);
+    return this.facade.isFulltimeCorrect(this.donePronostique, this.match, this.hidePointsBadge);
   }
 
   isHalftimeCorrect(): boolean {
-    return this.matchOutcomeService.isHalftimeCorrect(this.donePronostique, this.match, this.hidePointsBadge);
+    return this.facade.isHalftimeCorrect(this.donePronostique, this.match, this.hidePointsBadge);
   }
 
   get isScorersJson(): boolean {
-    return this.matchScorersService.isMatchScorersJson(this.match);
+    return this.facade.isMatchScorersJson(this.match);
   }
 
   isScorerCorrect(): boolean {
-    return this.matchScorersService.isScorerCorrect(this.donePronostique?.scorer, this.match);
+    return this.facade.isScorerCorrect(this.donePronostique?.scorer, this.match);
   }
 
   modifierPronostic(): void {
@@ -630,24 +604,24 @@ export class MatchComponent implements OnInit, OnDestroy {
 
     if (this.donePronostique) {
       this.donePronostique.game_id = this.match.id;
-      this.predictionService.addDraft(this.donePronostique);
+      this.facade.addDraft(this.donePronostique);
     }
   }
 
   get matchPoints(): number | null {
-    return this.matchOutcomeService.getMatchPoints(this.donePronostique, this.match, this.hidePointsBadge);
+    return this.facade.getMatchPoints(this.donePronostique, this.match, this.hidePointsBadge);
   }
 
   get isConsolationPointAwarded(): boolean {
-    return this.matchOutcomeService.isConsolationPointAwarded(this.donePronostique, this.match, this.hidePointsBadge);
+    return this.facade.isConsolationPointAwarded(this.donePronostique, this.match, this.hidePointsBadge);
   }
 
   get teamAScorersGrouped(): any[] {
-    return this.matchScorersService.getMatchScorersGrouped(this.match, this.match.team_a);
+    return this.facade.getMatchScorersGrouped(this.match, this.match.team_a);
   }
 
   get teamBScorersGrouped(): any[] {
-    return this.matchScorersService.getMatchScorersGrouped(this.match, this.match.team_b);
+    return this.facade.getMatchScorersGrouped(this.match, this.match.team_b);
   }
 
   protected showTeamDetails(teamName: string, event: Event): void {
@@ -658,7 +632,7 @@ export class MatchComponent implements OnInit, OnDestroy {
 
     const loadFlags$ = Object.keys(this.flagsLookup).length > 0
       ? of(null)
-      : this.teamService.getFlags().pipe(
+      : this.facade.getFlags().pipe(
         map(flags => {
           (flags || []).forEach((f: any) => {
             this.flagsLookup[f.name] = f.flag_url;
@@ -668,7 +642,7 @@ export class MatchComponent implements OnInit, OnDestroy {
       );
 
     loadFlags$.subscribe(() => {
-      this.matchesService.getAllMatches().subscribe({
+      this.facade.getAllMatches().subscribe({
         next: (allMatches) => {
           this.teamPastMatches = (allMatches || [])
             .filter(m =>

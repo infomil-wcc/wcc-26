@@ -1,0 +1,45 @@
+@use "../../../../../variables" as *;
+
+.filter {
+  background: $darkSecondary;
+  margin-left: -1rem;
+  margin-top: -1rem;
+  width: calc(100% + 2rem) !important;
+}
+
+.pronostique {
+  background: white;
+  border-radius: 10px;
+  min-height: 200px;
+  overflow: hidden;
+
+  .prediction {
+    padding: 1rem;
+  }
+}
+
+@media screen and (min-width: 576px){
+  .filter {
+    margin-top: -1rem;
+    margin-left: -1.5rem;
+    width: calc(100% + 3rem) !important;
+  }
+}
+
+@media screen and (min-width: 991px){
+  .lg\:col-span-4 {
+    width: 32.8% !important;
+  }
+}
+
+@media screen and (max-width: 990px){
+  .validateWrapper {
+    left: 0;
+    width: 100%;
+    background: white;
+    padding: 20px 10px;
+    position: fixed;
+    bottom: 0;
+    z-index: 50;
+  }
+}

@@ -11,7 +11,7 @@ import { LayoutComponent } from './shared/components/layout/layout.component';
 import { NgSwitch, NgSwitchCase } from '@angular/common';
 import { MenuComponent } from './shared/components/menu/menu.component';
 import { HeroComponent } from './shared/components/hero/hero.component';
-import { HpNewsComponent } from './shared/components/news/news.component';
+import { HpNewsComponent } from './pages/homepage/components/news/news.component';
 import { FaqComponent } from './pages/faq/faq.component';
 import { GameRulesComponent } from './pages/game-rules/game-rules.component';
 import { GroupStandingsComponent } from './pages/competition/group-standings/group-standings.component';
