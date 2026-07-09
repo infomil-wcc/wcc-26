@@ -439,9 +439,9 @@
 
 .card-wrapper {
   position: relative;
-  flex: 1 1 300px;
-  max-width: 400px;
-  min-width: 280px;
+  flex: 1 1 350px;
+  max-width: 480px;
+  min-width: 320px;
   display: flex;
   flex-direction: column;
 
@@ -550,7 +550,7 @@
 @media screen and (min-width: 991px) {
   .card-wrapper {
     flex: 0 0 32%;
-    max-width: 400px;
+    max-width: 480px;
   }
 }
 

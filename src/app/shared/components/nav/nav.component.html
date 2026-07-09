@@ -79,5 +79,18 @@
         </div>
       }
     }
+    <!-- Theme Switcher -->
+    <button class="flex flex-col items-center justify-center flex-1 h-full md:flex-row md:justify-start md:px-3 md:py-3 md:rounded-xl transition-all duration-300 menu-item text-gray-500 md:text-gray-300 hover:text-theme-secondary md:hover:text-white md:hover:bg-white/5 group relative"
+            (click)="toggleTheme()"
+            title="Changer de thème">
+      <span class="material-symbols-outlined text-[24px] mb-1 md:mb-0 md:mr-3 transition-transform group-hover:scale-110"
+            [class.md:mr-0]="sidebar.isCollapsed()">palette</span>
+      <span class="text-[10px] font-bold uppercase tracking-wider md:text-sm md:font-semibold md:normal-case md:tracking-normal"
+            [class.md:hidden]="sidebar.isCollapsed()">Thème</span>
+      <!-- Tooltip when collapsed -->
+      @if (sidebar.isCollapsed()) {
+        <span class="absolute left-full ml-3 px-2.5 py-1.5 bg-[#052e1a] text-white text-xs font-semibold rounded-lg shadow-lg opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap hidden md:block z-50">Thème</span>
+      }
+    </button>
   </div>
 </nav>

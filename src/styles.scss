@@ -1,4 +1,4 @@
-﻿@use "sass:color";
+@use "sass:color";
 @use "variables" as *;
 @import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,300;0,400;0,500;1,400&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap');
@@ -6,6 +6,34 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+:root {
+  --theme-primary: #0a1a0f;
+  --theme-secondary: #10b981;
+  --theme-accent: #f59e0b;
+  --theme-danger: #ef4444;
+  --theme-surface: #ffffff;
+  --theme-text: #1e293b;
+  
+  --theme-primary-rgb: 10, 26, 15;
+  --theme-secondary-rgb: 16, 185, 129;
+  --theme-accent-rgb: 245, 158, 11;
+  --theme-danger-rgb: 239, 68, 68;
+}
+
+[data-theme='fifa'] {
+  --theme-primary: #1A276C;
+  --theme-secondary: #00B140;
+  --theme-accent: #FF4A00;
+  --theme-danger: #E3000F;
+  --theme-surface: #ffffff;
+  --theme-text: #1A276C;
+  
+  --theme-primary-rgb: 26, 39, 108;
+  --theme-secondary-rgb: 0, 177, 64;
+  --theme-accent-rgb: 255, 74, 0;
+  --theme-danger-rgb: 227, 0, 15;
+}
 
 @font-face{
   font-display:swap;

@@ -1,9 +1,9 @@
-<div class="grid grid-cols-3 items-center justify-center min-h-[140px] mb-2 px-2 gap-2">
+<div class="grid grid-cols-[1fr_110px_1fr] items-center justify-center min-h-[140px] mb-2 px-2 gap-2">
   <div class="col-span-1 h-full">
     <div
       class="w-full h-full rounded-2xl border transition-all duration-200 flex flex-col items-center justify-center relative cursor-pointer p-2"
       [ngClass]="{
-        'border-emerald-500 bg-emerald-50/50 shadow-md shadow-emerald-500/20 scale-105 z-10': matchOutcome === match?.team_a, 
+        'border-theme-secondary bg-theme-secondary/10 shadow-md shadow-theme-secondary/20 scale-105 z-10': matchOutcome === match?.team_a, 
         'border-slate-200 bg-white hover:bg-slate-50 hover:border-slate-300': matchOutcome !== match?.team_a,
         'opacity-50 pointer-events-none': !canEditPrediction
       }"
@@ -11,7 +11,7 @@
       <span class="block w-[36px] h-[24px] min-w-[36px] flex-shrink-0 bg-cover bg-center bg-no-repeat rounded shadow-sm border border-black/10"
         [ngStyle]="{'background-image': match?.team_a ? 'url(' + teamAFlag + ')'  : 'url(assets/flags/unknown.png)'}"></span>
       @if (matchOutcome === match?.team_a) {
-      <span class="material-symbols-outlined absolute -top-2 -right-2 text-[24px] text-emerald-500 bg-white rounded-full">check_circle</span>
+      <span class="material-symbols-outlined absolute -top-2 -right-2 text-[24px] text-theme-secondary bg-white rounded-full">check_circle</span>
       }
       <div class="mt-2 text-center">
         <strong class="text-sm font-extrabold text-slate-800">{{ match?.team_a }}</strong>
@@ -47,46 +47,46 @@
     <div
       class="w-full h-full rounded-2xl border transition-all duration-200 flex flex-col items-center justify-center relative cursor-pointer p-2"
       [ngClass]="{
-        'border-amber-500 bg-amber-50/50 shadow-md shadow-amber-500/20 scale-105 z-10': matchOutcome === 'Draw', 
+        'border-theme-accent bg-theme-accent/10 shadow-md shadow-theme-accent/20 scale-105 z-10': matchOutcome === 'Draw', 
         'border-slate-200 bg-white hover:bg-slate-50 hover:border-slate-300': matchOutcome !== 'Draw',
         'opacity-50 pointer-events-none': !canEditPrediction
       }"
       (click)="selectWinner('Draw')">
       @if (matchOutcome === 'Draw') {
-      <span class="material-symbols-outlined absolute -top-2 -right-2 text-[24px] text-amber-500 bg-white rounded-full">check_circle</span>
+      <span class="material-symbols-outlined absolute -top-2 -right-2 text-[24px] text-theme-accent bg-white rounded-full">check_circle</span>
       }
       @if (match?.phase === 'Group Stage' || matchOutcome !== 'Draw') {
       <div class="w-10 h-10 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center text-xs font-bold text-slate-400 shadow-inner">
         <span>VS</span>
       </div>
       } @else {
-      <div class="w-10 h-10 rounded-full border border-dashed border-amber-300 flex items-center justify-center bg-transparent">
-        <span class="material-symbols-outlined text-2xl text-amber-500">sports_soccer</span>
+      <div class="w-10 h-10 rounded-full border border-dashed border-theme-accent/50 flex items-center justify-center bg-transparent">
+        <span class="material-symbols-outlined text-2xl text-theme-accent">sports_soccer</span>
       </div>
       <div class="mt-2 text-center">
-        <strong class="text-xs font-black text-amber-500 tracking-wider">PENALTY</strong>
+        <strong class="text-xs font-black text-theme-accent tracking-wider">PENALTY</strong>
       </div>
       }
     </div>
     } @else {
     @if (isSavedInApi && match?.fulltime_a !== null && match?.fulltime_b !== null && matchPoints !== null && !hidePointsBadge) {
       @if (isConsolationPointAwarded) {
-      <div class="flex flex-col items-center justify-center w-20 h-20 rounded-xl bg-gradient-to-br from-emerald-100 to-emerald-200 border border-emerald-300 shadow-md shadow-emerald-500/20 z-10 animate-[bounce_0.5s_ease-out]" title="Point de consolation">
-        <span class="text-3xl font-black leading-none text-emerald-600 drop-shadow-sm">+1</span>
-        <span class="text-[10px] font-black uppercase tracking-widest text-emerald-700 mt-1">pt</span>
+      <div class="flex flex-col items-center justify-center w-20 h-20 rounded-xl bg-gradient-to-br from-theme-secondary/20 to-theme-secondary/30 border border-theme-secondary/40 shadow-md shadow-theme-secondary/20 z-10 animate-[bounce_0.5s_ease-out]" title="Point de consolation">
+        <span class="text-3xl font-black leading-none text-theme-primary drop-shadow-sm">+1</span>
+        <span class="text-[10px] font-black uppercase tracking-widest text-theme-primary mt-1">pt</span>
       </div>
       } @else {
       <div class="flex flex-col items-center justify-center w-20 h-20 rounded-xl shadow-md z-10 animate-[bounce_0.5s_ease-out]" 
         [ngClass]="{
-          'bg-slate-900 border border-yellow-500/30 shadow-yellow-900/40': matchPoints > 0,
+          'bg-slate-900 border border-theme-accent/30 shadow-theme-accent/40': matchPoints > 0,
           'bg-slate-100 border border-slate-200 shadow-slate-300/40': matchPoints === 0
         }">
         <span class="text-3xl font-black leading-none bg-clip-text text-transparent drop-shadow-sm"
-          [ngClass]="matchPoints > 0 ? 'bg-gradient-to-b from-yellow-100 via-yellow-400 to-yellow-600' : 'bg-gradient-to-b from-slate-400 to-slate-500'">
+          [ngClass]="matchPoints > 0 ? 'bg-gradient-to-b from-white via-theme-accent to-theme-accent' : 'bg-gradient-to-b from-slate-400 to-slate-500'">
           {{ matchPoints !== null && matchPoints > 0 ? '+' + matchPoints : matchPoints }}
         </span>
         <span class="text-[10px] font-black uppercase tracking-widest mt-1"
-          [ngClass]="matchPoints > 0 ? 'text-yellow-500' : 'text-slate-500'">pts</span>
+          [ngClass]="matchPoints > 0 ? 'text-[#B8C800]' : 'text-slate-500'">pts</span>
       </div>
       }
     } @else if (donePronostique && match?.fulltime && (match?.phase !== 'Group Stage' && match?.phase !== 'Round of 32')) {
@@ -106,7 +106,7 @@
     <div
       class="w-full h-full rounded-2xl border transition-all duration-200 flex flex-col items-center justify-center relative cursor-pointer p-2"
       [ngClass]="{
-        'border-emerald-500 bg-emerald-50/50 shadow-md shadow-emerald-500/20 scale-105 z-10': matchOutcome === match?.team_b, 
+        'border-theme-secondary bg-theme-secondary/10 shadow-md shadow-theme-secondary/20 scale-105 z-10': matchOutcome === match?.team_b, 
         'border-slate-200 bg-white hover:bg-slate-50 hover:border-slate-300': matchOutcome !== match?.team_b,
         'opacity-50 pointer-events-none': !canEditPrediction
       }"
@@ -114,7 +114,7 @@
       <span class="block w-[36px] h-[24px] min-w-[36px] flex-shrink-0 bg-cover bg-center bg-no-repeat rounded shadow-sm border border-black/10"
         [ngStyle]="{'background-image': match?.team_b ? 'url(' + teamBFlag + ')'  : 'url(assets/flags/unknown.png)'}"></span>
       @if (matchOutcome === match?.team_b) {
-      <span class="material-symbols-outlined absolute -top-2 -right-2 text-[24px] text-emerald-500 bg-white rounded-full">check_circle</span>
+      <span class="material-symbols-outlined absolute -top-2 -right-2 text-[24px] text-theme-secondary bg-white rounded-full">check_circle</span>
       }
       <div class="mt-2 text-center">
         <strong class="text-sm font-extrabold text-slate-800">{{ match?.team_b }}</strong>

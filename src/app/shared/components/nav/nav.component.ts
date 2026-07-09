@@ -4,6 +4,7 @@ import { Router } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { NgClass } from '@angular/common';
 import { SidebarService } from '../../../core/services/core/sidebar.service';
+import { ThemeService, AppTheme } from '../../../core/services/theme.service';
 
 interface NavigationItem {
   label: string;
@@ -26,6 +27,7 @@ export class NavComponent implements OnInit, OnDestroy {
   public navList: NavigationItem[];
   private stateSubscription!: Subscription;
   protected sidebar = inject(SidebarService);
+  public themeService = inject(ThemeService);
 
   constructor(private stateService: StateService, private router: Router) {
     this.navList = [
@@ -140,5 +142,11 @@ export class NavComponent implements OnInit, OnDestroy {
     if (this.stateSubscription) {
       this.stateSubscription.unsubscribe();
     }
+  }
+
+  public toggleTheme() {
+    const current = this.themeService.getTheme();
+    const next = current === 'default' ? 'fifa' : 'default';
+    this.themeService.setTheme(next);
   }
 }

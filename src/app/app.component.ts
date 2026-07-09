@@ -22,6 +22,7 @@ import { ModalComponent } from './shared/components/modal/modal.component';
 import { AppUpdateService } from './core/services/core/app-update.service';
 import { KnockoutBracketService } from './core/services/games/knockout-bracket.service';
 import { MatchesService } from './core/services/content/matches.service';
+import { ThemeService } from './core/services/theme.service';
 
 @Component({
     selector: 'app-root',
@@ -55,7 +56,8 @@ export class AppComponent implements OnInit {
     private authService: AuthService,
     private totalgoalsService: TotalgoalsService,
     private cookieService: CookieService,
-    private formBuilder: FormBuilder
+    private formBuilder: FormBuilder,
+    private themeService: ThemeService
   ){}
 
   ngOnInit(): void {

@@ -1,7 +1,7 @@
-<div class="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-lg shadow-slate-200/50 transition-all duration-300 flex flex-col w-full h-full mx-auto relative mb-4 hover:-translate-y-1 hover:shadow-xl hover:shadow-emerald-500/10 hover:border-emerald-500/40 group" [ngClass]="{
+<div class="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-lg shadow-slate-200/50 transition-all duration-300 flex flex-col w-full h-full mx-auto relative mb-4 hover:-translate-y-1 hover:shadow-xl hover:shadow-theme-secondary/10 hover:border-theme-secondary/40 group" [ngClass]="{
   'bg-slate-50': isPronostiques && stadiumImageUrl,
   'opacity-90': closed || isSavedInApi,
-  'border-emerald-500/50': match.fulltime_a !== null && match.fulltime_b !== null
+  'border-theme-secondary/50': match.fulltime_a !== null && match.fulltime_b !== null
 }">
 
   @if (isPronostiques && stadiumImageUrl) {
