@@ -1,7 +1,7 @@
 import { enableProdMode, importProvidersFrom, isDevMode, LOCALE_ID, provideZoneChangeDetection } from '@angular/core';
 import { bootstrapApplication } from '@angular/platform-browser';
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
-import { provideRouter, Routes } from '@angular/router';
+import { provideRouter, Routes, withPreloading, PreloadAllModules } from '@angular/router';
 import { registerLocaleData } from '@angular/common';
 import localeFr from '@angular/common/locales/fr';
 import { DragDropModule } from '@angular/cdk/drag-drop';
@@ -20,7 +20,7 @@ registerLocaleData(localeFr);
 bootstrapApplication(AppComponent, {
   providers: [
     provideZoneChangeDetection({ eventCoalescing: true }),
-    provideRouter(routes),
+    provideRouter(routes, withPreloading(PreloadAllModules)),
     provideAnimations(),
     providePrimeNG({
       theme: {
