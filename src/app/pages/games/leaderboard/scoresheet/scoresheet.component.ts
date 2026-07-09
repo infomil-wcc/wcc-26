@@ -2,11 +2,6 @@ import { Component, OnInit, inject, Input, Output, EventEmitter, ChangeDetectorR
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { DatePickerModule } from 'primeng/datepicker';
-import { SelectModule } from 'primeng/select';
-import { TableModule } from 'primeng/table';
-import { InputTextModule } from 'primeng/inputtext';
-import { PaginatorModule } from 'primeng/paginator';
 import { MatchesService } from '../../../../core/services/content/matches.service';
 import { PredictionsApiService } from '../../../../core/services/api/predictions-api.service';
 import { PronosticsRankingsApiService } from '../../../../core/services/api/pronostics-rankings-api.service';
@@ -29,7 +24,7 @@ interface PhaseSummary {
 @Component({
   selector: 'app-scoresheet',
   standalone: true,
-  imports: [CommonModule, RouterModule, LoaderComponent, FormsModule, DatePickerModule, SelectModule, TableModule, InputTextModule, PaginatorModule],
+  imports: [CommonModule, RouterModule, LoaderComponent, FormsModule],
   templateUrl: './scoresheet.component.html',
   styleUrls: ['./scoresheet.component.scss']
 })
@@ -52,8 +47,12 @@ export class ScoresheetComponent implements OnInit {
   teamIsoMap = new Map<string, string>();
   loading = true;
 
-  sortField: string = '';
+  sortField: string = '_dateTs';
   sortOrder: 'asc' | 'desc' = 'desc';
+
+  // Pagination
+  currentPage: number = 1;
+  pageSize: number = 10;
 
   activeFilterMenu: string | null = null;
 
@@ -200,13 +199,14 @@ export class ScoresheetComponent implements OnInit {
     return item?.match?.phase === 'Round of 32';
   }
 
-  onTableSort(event: { field?: string; order?: number }) {
-    if (event.field) {
-      this.sortField = event.field;
+  onTableSort(field: string) {
+    if (this.sortField === field) {
+      this.sortOrder = this.sortOrder === 'asc' ? 'desc' : 'asc';
+    } else {
+      this.sortField = field;
+      this.sortOrder = 'desc'; // Default descending on new sort
     }
-    if (event.order != null) {
-      this.sortOrder = event.order === 1 ? 'asc' : 'desc';
-    }
+    this.currentPage = 1; // Reset to page 1 on sort
   }
 
   private getSortValue(item: any, field: string): string | number {
@@ -416,7 +416,42 @@ export class ScoresheetComponent implements OnInit {
 
     this._lastFilterState = currentState;
     this._lastFilteredMatches = list;
+    
+    // Automatically adjust current page if out of bounds after filtering
+    const maxPage = Math.ceil(list.length / this.pageSize) || 1;
+    if (this.currentPage > maxPage) {
+      this.currentPage = maxPage;
+    }
+
     return list;
+  }
+
+  get paginatedMatches() {
+    const list = this.filteredMatches;
+    const startIndex = (this.currentPage - 1) * this.pageSize;
+    return list.slice(startIndex, startIndex + this.pageSize);
+  }
+
+  get totalPages(): number {
+    return Math.ceil(this.filteredMatches.length / this.pageSize) || 1;
+  }
+
+  nextPage() {
+    if (this.currentPage < this.totalPages) {
+      this.currentPage++;
+    }
+  }
+
+  prevPage() {
+    if (this.currentPage > 1) {
+      this.currentPage--;
+    }
+  }
+
+  goToPage(page: number) {
+    if (page >= 1 && page <= this.totalPages) {
+      this.currentPage = page;
+    }
   }
 
   getTeamFlag(teamName: string): string | null {

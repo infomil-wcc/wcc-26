@@ -10,15 +10,21 @@ import { RankingsService } from '../../../core/services/content/rankings.service
 import { StateService } from '../../../core/services/core/state.service';
 import { RouterModule } from '@angular/router';
 import { ScoresheetComponent } from './scoresheet/scoresheet.component';
+import { BreadcrumbComponent, breadCrump } from '../../../shared/components/breadcrumb/breadcrumb.component';
 
 @Component({
-  selector: 'app-ranking',
-  templateUrl: './ranking.component.html',
-  styleUrl: './ranking.component.scss',
+  selector: 'app-leaderboard',
+  templateUrl: './leaderboard.component.html',
+  styleUrl: './leaderboard.component.scss',
   changeDetection: ChangeDetectionStrategy.Eager,
-  imports: [NgClass, LoaderComponent, UpperCasePipe, DatePipe, RouterModule, ScoresheetComponent]
+  imports: [NgClass, LoaderComponent, UpperCasePipe, DatePipe, RouterModule, ScoresheetComponent, BreadcrumbComponent]
 })
-export class RankingComponent implements OnInit, OnDestroy {
+export class LeaderboardComponent implements OnInit, OnDestroy {
+  protected breadCrumpData: breadCrump[] = [
+    { label: 'Accueil', route: '/', active: false },
+    { label: 'Jeux', route: '/ranking', active: false },
+    { label: 'Classement', route: '/ranking', active: true }
+  ];
   protected selectedUserId: string | null = null;
 
   private rankingsService = inject(RankingsService);
@@ -267,10 +273,10 @@ export class RankingComponent implements OnInit, OnDestroy {
     const viewportHeight = window.innerHeight;
 
     // Sticky header and tabs stick to the top.
-    // Desktop: header + tabs ends at 260px. Sticky top at 272px.
-    // Mobile: header + tabs ends at 242px. Sticky top at 254px.
+    // Desktop: sticky top is 231px.
+    // Mobile: sticky top is 256px.
     const isMobile = window.innerWidth <= 640;
-    const topBoundary = isMobile ? 254 : 272;
+    const topBoundary = isMobile ? 256 : 231;
     const bottomBoundary = viewportHeight - 100;
 
     if (rect.top < topBoundary) {

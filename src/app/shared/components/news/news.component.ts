@@ -7,14 +7,14 @@ import { GlobaltimeService } from '../../../core/services/core/global-time.servi
 import { Matches } from '../../../shared/contracts/matches.contract';
 import { MatchComponent } from '../match/match.component';
 import { LoaderComponent } from '../loader/loader.component';
-import { AsyncPipe, DatePipe } from '@angular/common';
+import { AsyncPipe, DatePipe, NgClass } from '@angular/common';
 
 @Component({
     selector: 'news',
     templateUrl: './news.component.html',
     styleUrl: './news.component.scss',
     changeDetection: ChangeDetectionStrategy.Eager,
-    imports: [MatchComponent, LoaderComponent, AsyncPipe, DatePipe]
+    imports: [MatchComponent, LoaderComponent, AsyncPipe, DatePipe, NgClass]
 })
 export class HpNewsComponent {
   private newsService = inject(NewsService);
@@ -65,5 +65,13 @@ export class HpNewsComponent {
     } else {
       console.log('handle news content');
     }
+  }
+
+  protected isToday(matchDateStr: string, todayStr: string): boolean {
+    const matchDate = new Date(matchDateStr);
+    const today = new Date(todayStr);
+    return matchDate.getFullYear() === today.getFullYear() &&
+           matchDate.getMonth() === today.getMonth() &&
+           matchDate.getDate() === today.getDate();
   }
 }

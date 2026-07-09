@@ -1,29 +1,32 @@
-<div class="container pt-6 text-black">
-
-  <h1 class="text-4xl mb-1 md:mb-6 mt-2">Fifa World Cup 2026</h1>
-
-  <app-breadcrumb [bcdata]="breadCrumpData" (routeEvent)="resetTeamSelection($event)" />
+<div class="container mx-auto px-4 lg:px-8 max-w-7xl pt-6 pb-12">
+  <div class="mb-8 border-b border-white/10 pb-4">
+    <app-breadcrumb [bcdata]="breadCrumpData" (routeEvent)="resetTeamSelection($event)" />
+    <h1 class="text-3xl md:text-4xl font-black text-white mt-4 flex items-center gap-3">
+      <span class="material-symbols-outlined text-[#10b981] text-4xl">groups</span>
+      Fifa World Cup 2026
+    </h1>
+  </div>
 
   @if ($teamsData | async; as teams) {
-    <div class="teams grid grid-cols-12 relative md:mt-12" [ngClass]="{'hidden': choosenTeam}">
+    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 md:gap-6 mt-8 transition-all" [ngClass]="{'hidden': choosenTeam}">
       @for (team of teams; track team) {
-        <div class="team flex col-span-4 items-center justify-center md:col-span-3 lg:col-span-2">
-          <button class="btnTeams flex flex-col items-center" (click)="showTeam(team)">
-            <div class="teamBadge flex items-center justify-center overflow-hidden bg-white w-5rem h-3rem">
-              <img src="{{ team.flag_url }}" alt="{{ team.name }}" class="w-5rem h-5rem" />
+        <div class="bg-white/5 backdrop-blur-md rounded-2xl p-4 flex flex-col items-center justify-center border border-white/10 shadow-lg group hover:border-[#10b981]/50 transition-colors">
+          <button class="flex flex-col items-center w-full focus:outline-none" (click)="showTeam(team)">
+            <div class="w-20 h-16 md:w-24 md:h-20 rounded-xl overflow-hidden bg-white/10 flex items-center justify-center p-2 shadow-inner group-hover:scale-110 group-hover:shadow-[0_0_15px_rgba(16,185,129,0.3)] transition-all duration-300">
+              <img src="{{ team.flag_url }}" alt="Drapeau {{ team.name }}" class="w-full h-full object-contain scale-110" />
             </div>
-            <h4 class="mt-2 text-black">{{ team.name }}</h4>
+            <h4 class="mt-4 text-sm md:text-base font-bold text-gray-300 group-hover:text-[#10b981] transition-colors text-center">{{ team.name }}</h4>
           </button>
         </div>
       }
     </div>
   } @else {
-    <loader [showLoader]="true" />
+    <div class="w-full py-20 flex justify-center">
+      <loader [showLoader]="true" />
+    </div>
   }
 
   @if (choosenTeam) {
     <team-details [team]="choosenTeam"></team-details>
   }
-
 </div>
-

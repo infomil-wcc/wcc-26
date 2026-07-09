@@ -1,13 +1,14 @@
-<div class="page-header">
-  <div class="container">
-    <div class="page-title-row">
-      <span class="material-symbols-outlined page-title-icon">table_chart</span>
-      <h1 class="page-title">Classement des groupes</h1>
-    </div>
-    <p class="page-subtitle">Phase de groupes · Coupe du Monde FIFA 2026</p>
+<div class="container mx-auto px-4 lg:px-8 max-w-7xl pt-6 pb-12">
+  <div class="mb-8 border-b border-white/10 pb-4">
+    <app-breadcrumb [bcdata]="breadCrumpData" />
+    <h1 class="text-3xl md:text-4xl font-black text-white mt-4 flex items-center gap-3">
+      <span class="material-symbols-outlined text-[#10b981] text-4xl">table_chart</span>
+      Classement des groupes
+    </h1>
+    <p class="text-gray-300 mt-2 text-lg">Phase de groupes · Coupe du Monde FIFA 2026</p>
   </div>
-</div>
 
-<div class="container page-content">
-  <app-group-table />
+  <div class="mt-8">
+    <app-group-table />
+  </div>
 </div>

@@ -7,23 +7,28 @@ import { StateService } from '../../../core/services/core/state.service';
 import { BracketService } from '../../../core/services/games/bracket.service';
 import { BracketPredictorComponent } from '../bracket-predictor/bracket-predictor.component';
 import { BracketKnockoutComponent } from '../bracket-knockout/bracket-knockout.component';
-import { ModalComponent } from '../../../shared/components/modal/modal.component';
-import { LoginComponent } from '../../../shared/components/login/login.component';
+
 import { DialogComponent } from '../../../shared/components/dialog/dialog.component';
 import { RankingsService } from '../../../core/services/content/rankings.service';
 import { MatchesService } from '../../../core/services/content/matches.service';
 import { TeamsService } from '../../../core/services/content/teams.service';
 import { KnockoutBracketService } from '../../../core/services/games/knockout-bracket.service';
 import { PredictionsApiService } from '../../../core/services/api/predictions-api.service';
+import { BreadcrumbComponent, breadCrump } from '../../../shared/components/breadcrumb/breadcrumb.component';
 
 @Component({
     selector: 'app-bracket-challenge',
     templateUrl: './bracket-challenge.component.html',
     styleUrl: './bracket-challenge.component.scss',
     changeDetection: ChangeDetectionStrategy.Eager,
-    imports: [BracketPredictorComponent, BracketKnockoutComponent, ModalComponent, LoginComponent, DialogComponent, AsyncPipe, CommonModule]
+    imports: [BracketPredictorComponent, BracketKnockoutComponent, DialogComponent, AsyncPipe, CommonModule, BreadcrumbComponent]
 })
 export class BracketChallengeComponent implements OnInit {
+  protected breadCrumpData: breadCrump[] = [
+    { label: 'Accueil', route: '/', active: false },
+    { label: 'Jeux', route: '/bracket-challenge', active: false },
+    { label: 'Bracket Challenge', route: '/bracket-challenge', active: true }
+  ];
   private cookieService = inject(CookieService);
   private bracketService = inject(BracketService);
   private stateService = inject(StateService);

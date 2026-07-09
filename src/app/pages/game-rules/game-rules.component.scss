@@ -1,465 +1,281 @@
-// Synchronized Theme Color Tokens
-$bg-main: #f8fafc;
-$border-color: #cbd5e1;  
-$primary: #1e3a8a;
-$primary-hover: #172554;
-$accent-gold: #d97706;   
-
-// Box Palette matching your screenshot image perfectly
-$box-text-amber: #92400e;   // Exact dark amber text
-$box-bg-amber: #fffbeb;     // Soft light yellow background
-$box-border-amber: #fde68a; // Warm yellow border
-
-// Fallback link mapping so the rest of your file structures remain fully functional
-$accent-bg: $box-bg-amber;  // Sets standard accent cards to use your preferred background token
-$emerald-text: #065f46;
-$emerald-bg: #ecfdf5;
-
+// Synchronized Midnight Emerald Theme using Tailwind classes
 #rules-app {
-  max-width: 1200px;
-  margin: 2rem auto;
-  padding: 0 1rem;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  color: #334155;
-  box-sizing: border-box;
-
-  @media only screen and (max-width: 768px) {
-    padding: 0;
-    margin-top: 0;
-  }
+  @apply w-full font-sans text-gray-300 box-border;
 
   * { box-sizing: border-box; }
 
-  .st-header {
-    text-align: center;
-    margin-bottom: 2.5rem; // Augmenté pour décoller du stepper
-    h1 { color: $primary; font-size: 2rem; font-weight: 800; margin-bottom: 0.75rem; }
-    p { color: #64748b; font-size: 1rem; max-width: 750px; margin: 0 auto; line-height: 1.6; }
-  }
-
-  /* --- STEPPER HORIZONTAL (FIXE AU DÉFILEMENT) --- */
+  /* --- STEPPER HORIZONTAL --- */
   .st-horizontal-stepper {
-    display: flex;
-    justify-content: space-around;
-    align-items: center;
-    width: 100%;
-    padding: 1.25rem 1rem;
-    
-    // Propriétés clés pour le rendre collant (Sticky)
-    position: sticky;
-    top: 145px; // Se colle tout en haut de l'écran (ou du parent si contraint)
-    z-index: 1; // Passe au-dessus du reste du contenu en défilement
-    
-    // Design pour l'effet de flottaison
-    background: rgba(255, 255, 255, 0.95); // Fond blanc semi-opaque
-    backdrop-filter: blur(8px); // Effet de flou moderne en arrière-plan
-    border-bottom: 1px solid $border-color;
-    margin-bottom: 3rem;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); // Ombre pour détacher du contenu
-    
-    overflow-x: auto;
+    @apply flex justify-around items-center w-full py-5 px-4 sticky top-[72px] z-10 bg-[#071209]/90 backdrop-blur-md border-b border-white/10 mb-12 shadow-md overflow-x-auto;
     scrollbar-width: none;
     &::-webkit-scrollbar { display: none; }
 
     .st-step-node {
-      display: flex;
-      align-items: center;
-      position: relative;
-      flex: 1;
-      //justify-content: center;
-      padding-right: 4rem;
+      @apply flex items-center relative flex-1 pr-16;
       &:first-child { justify-content: flex-start; }
-      &:last-child { flex: 1; justify-content: flex-end; .st-step-trigger { flex-grow: 0; }; .st-step-date { opacity: 0 } }
+      &:last-child { 
+        @apply flex-1 justify-end pr-0;
+        .st-step-trigger { flex-grow: 0; }
+        .st-step-date { opacity: 0; }
+      }
     }
 
     .st-step-line {
-       position: absolute;
-       left: 0;
-      // right: calc(50% + 1.125rem);
-      // top: 1.125rem;
-      height: 2px;
-      background: #cbd5e1;
-      z-index: -1;
-      transition: background 0.25s ease;
-      width: 100%;
+      @apply absolute left-0 h-[2px] bg-white/10 -z-10 transition-colors duration-300 w-full;
     }
 
     .st-step-trigger { 
-      display: flex; 
-      align-items: center; 
-      gap: 0.75rem; 
-      cursor: pointer; 
-      z-index: 2; 
-      background: transparent; 
+      @apply flex items-center gap-3 cursor-pointer z-20 bg-transparent; 
     }
 
     .st-step-indicator {
-      width: 2.25rem; height: 2.25rem; border-radius: 50%; background: #ffffff; color: #64748b; border: 2px solid #cbd5e1;
-      display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.9rem; flex-shrink: 0; transition: all 0.2s ease;
+      @apply w-9 h-9 rounded-full bg-[#0a1a0f] text-gray-400 border-2 border-white/10 flex items-center justify-center font-bold text-sm shrink-0 transition-all duration-200;
     }
 
     .st-step-label-group {
-      .st-step-title { margin: 0 0 .25rem; font-size: 0.9rem; font-weight: 600; color: #64748b; white-space: nowrap; }
-      .st-step-date { font-size: 0.75rem; color: #94a3b8; display: block; white-space: nowrap; margin: .5rem 0 0 }
+      .st-step-title { @apply m-0 text-sm font-semibold text-gray-400 whitespace-nowrap; }
+      .st-step-date { @apply text-xs text-gray-500 block whitespace-nowrap mt-1; }
     }
 
     .is-active {
-      .st-step-indicator { background: #1e3a8a; color: white; border-color: #1e3a8a; box-shadow: 0 0 0 4px #e0e7ff; }
-      .st-step-title { color: #1e1b4b; font-weight: 700; }
-      .st-step-date { color: $accent-gold; font-weight: 600; }
+      .st-step-indicator { @apply bg-[#10b981] text-white border-[#10b981] shadow-[0_0_0_4px_rgba(16,185,129,0.2)]; }
+      .st-step-title { @apply text-white font-bold; }
+      .st-step-date { @apply text-[#34d399] font-semibold; }
     }
 
     .is-completed {
-      .st-step-line { background: #10b981; }
-      .st-step-indicator { background: #10b981; color: white; border-color: #10b981; }
-      .st-step-title { color: #334155; }
+      .st-step-line { @apply bg-[#10b981]/50; }
+      .st-step-indicator { @apply bg-[#059669] text-white border-[#059669]; }
+      .st-step-title { @apply text-gray-300; }
     }
 
     @media (max-width: 768px) {
-      padding: 1rem 0.5rem;
-      margin-bottom: 2rem;
-      top: 128px;
-      border: 1px solid #cbd5e1;
-      border-radius: 1rem;
-
+      @apply py-4 px-2 mb-8 top-16 border border-white/10 rounded-2xl;
       &::after {
-        content:"";
-        position: absolute;
-        top: calc(50% - 2px);
-        width: 90%;
-        height: 2px;
-        background: #ccc;
+        content: "";
+        @apply absolute top-[calc(50%-1px)] w-[90%] h-[2px] bg-white/10;
       }
-
       .st-step-label-group { display: none; }
-      .st-step-node { justify-content: center !important; padding-right: 0}
+      .st-step-node { justify-content: center !important; padding-right: 0; }
       .st-step-line { left: calc(-50% + 1.125rem); right: calc(50% + 1.125rem); }
     }
   }
 
   /* --- CONTENEUR DE CONTENU --- */
   .st-layout-container {
-    background: #ffffff;
-    border: 1px solid $border-color;
-    border-radius: 1rem;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
-    overflow: hidden;
-    width: 100%;
+    @apply bg-white/5 backdrop-blur-md border border-white/10 rounded-3xl shadow-lg overflow-hidden w-full;
   }
 
   .st-content-panel {
-    width: 100%;
-    padding: 3rem; // Plus de confort autour du contenu principal
-    display: flex;
-    flex-direction: column;
-    min-height: 400px;
-
-    @media (max-width: 576px) { padding: 1.5rem; } // Adapté sur mobile
+    @apply w-full p-12 flex flex-col min-h-[400px];
+    @media (max-width: 576px) { padding: 1.5rem; }
   }
 
   .st-view-wrapper { 
-    width: 100%;
-
-    &:last-of-type .st-badge.warning {display: none}
+    @apply w-full;
+    &:last-of-type .st-badge.warning { display: none; }
   }
 
-  // AJUSTEMENT: Plus d'espace entre les composants enfants d'une même étape
   .st-animated-view {
     animation: stFadeIn 0.25s ease-out forwards;
-    display: flex;
-    flex-direction: column;
-    gap: 2.5rem; // Passé de 1.5rem à 2.5rem pour aérer les sections empilées
+    @apply flex flex-col gap-10;
   }
 
   .st-view-header {
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
+    @apply flex flex-col gap-3;
   }
 
-  .st-badge-row { display: flex; gap: 0.5rem; }
+  .st-badge-row { @apply flex gap-2; }
   .st-badge {
-    padding: 0.25rem 0.65rem; font-size: 0.75rem; font-weight: 700; border-radius: 0.375rem; text-transform: uppercase;
-    &.primary { background: #e0e7ff; color: #3730a3; }
-    &.warning { background: $accent-bg; color: #92400e; border: 1px solid #fde68a;}
+    @apply px-3 py-1 text-xs font-bold rounded-lg uppercase;
+    &.primary { @apply bg-[#10b981]/20 text-[#10b981] border border-[#10b981]/30; }
+    &.warning { @apply bg-white/5 text-gray-300 border border-white/10; }
   }
 
-  h2 { font-size: 1.65rem; font-weight: 800; color: #0f172a; margin: 0; }
-  .st-step-description { font-size: 1.05rem; line-height: 1.6; color: #475569; margin: 0; }
+  h2 { @apply text-3xl font-black text-white m-0; }
+  .st-step-description { @apply text-lg leading-relaxed text-gray-300 m-0; }
 
   /* --- BLOCS & CARDS --- */
   .st-section-card {
-    background: $accent-bg; border: 1px solid #fde68a; padding: 1.5rem; border-radius: 0.75rem;
-    h3 { margin-top: 0; font-size: 1.1rem; color: #78350f; margin-bottom: 1rem; }
+    @apply bg-white/5 border border-white/10 p-6 rounded-xl;
+    h3 { @apply mt-0 text-xl text-[#10b981] mb-4 font-bold; }
   }
 
   .st-clean-list {
-    list-style: none; padding: 0; margin: 0 0 1.5rem 0;
-    li { padding: 0.35rem 0; font-weight: 500; color: #451a03; font-size: 0.95rem; }
+    @apply list-none p-0 m-0 mb-6;
+    li { @apply py-1.5 font-medium text-white text-base; }
   }
 
   .st-sub-box {
-    background: #ffffff; padding: 1.25rem; border-radius: 0.5rem; border: 1px solid #fef3c7; margin-top: 0.5rem;
-    .st-italic-text { font-size: 0.85rem; font-style: italic; color: #6b7280; margin: 0 0 0.75rem 0; }
+    @apply bg-black/20 p-5 rounded-lg border border-white/5 mt-2;
+    .st-italic-text { @apply text-sm italic text-gray-400 m-0 mb-3; }
   }
 
-  .st-badge-flex { display: flex; flex-wrap: wrap; gap: 0.5rem; }
-  .st-pill { background: #f8fafc; border: 1px solid $border-color; padding: 0.4rem 0.75rem; border-radius: 0.5rem; font-size: 0.85rem; strong { color: #1e3a8a; } }
+  .st-badge-flex { @apply flex flex-wrap gap-2; }
+  .st-pill { @apply bg-white/5 border border-white/10 px-3 py-1.5 rounded-lg text-sm text-gray-300; strong { @apply text-[#10b981]; } }
 
   /* --- ACCORDIONS --- */
   .st-accordion { 
-    border: 1px solid $border-color; 
-    border-radius: 0.75rem; 
-    overflow: hidden; 
-    width: 100%; 
-    margin-bottom: 1rem; 
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+    @apply border border-white/10 rounded-xl overflow-hidden w-full mb-4 shadow-sm;
   }
 
   .st-accordion-node { 
-    border-bottom: 1px solid $border-color; 
-    background: #f8fafc; // Subtle background color when collapsed
-    transition: all 0.2s ease;
-
+    @apply border-b border-white/10 bg-black/10 transition-colors duration-200;
     &:last-child { border-bottom: none; }
 
-    // Visual enhancements when this particular panel is opened/expanded
     &.is-expanded {
-      background: #ffffff; // Swaps to pure white when open
-      border-left: 4px solid #1e3a8a; // Indigo accent bar on the left side
-      
+      @apply bg-white/5 border-l-4 border-l-[#10b981];
       .st-accordion-trigger {
-        background: #ffffff;
-        color: #1e3a8a; // Text color switches to matches the indigo accent
+        @apply bg-transparent text-[#10b981];
       }
     }
   }
 
   .st-accordion-trigger {
-    width: 100%; 
-    display: flex; 
-    justify-content: space-between; 
-    align-items: center; 
-    padding: 1.2rem 1rem;
-    background: transparent; // Lets the node background color shine through
-    border: none; 
-    font-size: 1rem; 
-    font-weight: 600; 
-    text-align: left; 
-    color: #1e293b; 
-    cursor: pointer; 
-    transition: all 0.15s ease;
-
-    &:hover { background: rgba(241, 245, 249, 0.5); }
+    @apply w-full flex justify-between items-center px-5 py-4 bg-transparent border-none text-base font-bold text-left text-gray-200 cursor-pointer transition-colors duration-200;
+    &:hover { @apply bg-white/5; }
   }
 
   .st-arrow-icon { 
-    font-size: 0.75rem; 
-    color: #94a3b8; 
-    transition: transform 0.2s ease; 
-    &.is-flipped { transform: rotate(180deg); color: #1e3a8a; } 
+    @apply text-xs text-gray-500 transition-transform duration-200;
+    &.is-flipped { @apply rotate-180 text-[#10b981]; } 
   }
 
   .st-accordion-content { 
-    padding: 1.2rem 1rem; 
-    background: #ffffff; // Clean white internal canvas for the rules text
-    border-top: 1px dashed $border-color; 
-    font-size: 0.95rem; 
-    line-height: 1.6; 
-    p { margin: 0 0 0.75rem 0; &:last-child { margin-bottom: 0; } } 
+    @apply px-5 py-4 bg-transparent border-t border-dashed border-white/10 text-[0.95rem] leading-relaxed text-gray-300;
+    p { @apply m-0 mb-3; &:last-child { margin-bottom: 0; } } 
   }
 
-  .st-sub-categories { margin-top: 1rem; }
-  .st-pill-container { display: flex; flex-wrap: wrap; gap: 0.35rem; margin-top: 0.5rem; }
-  .st-pill-indigo { background: #e0e7ff; color: #4338ca; padding: 0.35rem 0.6rem; border-radius: 0.375rem; font-weight: 600; font-size: 0.8rem; }
+  .st-sub-categories { @apply mt-4; }
+  .st-pill-container { @apply flex flex-wrap gap-1.5 mt-2; }
+  .st-pill-indigo { @apply bg-[#10b981]/20 text-[#10b981] px-2.5 py-1.5 rounded-lg font-semibold text-xs border border-[#10b981]/30; }
+
   /* --- TABLEAUX DE POINTS --- */
   .st-table-section { 
-    width: 100%; 
-    margin-top: 1rem; // Un peu de recul
-    h4 { font-size: 1.1rem; font-weight: 700; margin: 0 0 1rem 0; } 
+    @apply w-full mt-4;
+    h4 { @apply text-lg font-bold text-white m-0 mb-4; } 
   }
-.st-responsive-table {
-    overflow-x: auto; 
-    border: 1px solid $border-color; 
-    border-radius: 0.75rem; 
-    width: 100%;
+  
+  .st-responsive-table {
+    @apply overflow-x-auto border border-white/10 rounded-xl w-full bg-white/5;
     
     table {
-      width: 100%; border-collapse: collapse; font-size: 0.85rem; min-width: 600px;
+      @apply w-full border-collapse text-sm min-w-[600px];
       
-      th { background: #0f172a; color: white; padding: 0.85rem 1rem; font-weight: 600; text-align: center; }
-      th:first-child { text-align: left; position: sticky; left: 0; background: #0f172a; z-index: 2; }
-      td { padding: 0.85rem 1rem; border-bottom: 1px solid $border-color; text-align: center; color: #475569; }
+      th { @apply bg-black/40 text-white px-4 py-3 font-semibold text-center border-b border-white/10; }
+      th:first-child { @apply text-left sticky left-0 bg-black/40 z-10; }
+      td { @apply px-4 py-3 border-b border-white/10 text-center text-gray-300; }
       
       .st-sticky-col { 
-        text-align: left; font-weight: 600; background: #ffffff; color: #0f172a; 
-        position: sticky; left: 0; box-shadow: 2px 0 5px rgba(0,0,0,0.04); border-right: 1px solid $border-color; 
+        @apply text-left font-semibold bg-[#0a1a0f] text-white sticky left-0 shadow-[2px_0_5px_rgba(0,0,0,0.2)] border-r border-white/10; 
       }
 
-      // MODIFIED: Matches the exact style and colors of your screenshot box
       tr.st-meta-row {
-        background-color: $box-bg-amber !important;
-        
+        @apply bg-[#10b981]/10;
         td {
-          color: $box-text-amber !important;
-          font-weight: 700;
-          border-bottom: 1px solid $box-border-amber; // Seamless horizontal line look
-          
-          span.st-highlight-cell {
-            color: $box-text-amber !important; // Forces numbers to stay in the theme color
-          }
+          @apply text-[#10b981] font-bold border-b border-[#10b981]/20;
+          span.st-highlight-cell { @apply text-[#34d399]; }
         }
-
-        // Keeps the sticky row header column synchronized with the background color
         .st-sticky-col {
-          background-color: $box-bg-amber !important;
-          color: $box-text-amber !important;
+          @apply bg-[#0a1a0f] text-[#10b981];
         }
       }
     }
     
-    tr:hover td:not(.st-meta-row td) { background-color: #f8fafc; }
+    tr:hover td:not(.st-meta-row td) { @apply bg-white/5; }
+    tr:hover .st-sticky-col:not(.st-meta-row .st-sticky-col) { @apply bg-[#071209]; }
   }
 
-  .st-dash { color: #cbd5e1; background: #f1f5f9; padding: 0.1rem 0.4rem; border-radius: 0.25rem; }
-  .st-highlight-cell { color: #1e3a8a; font-weight: 700; }
+  .st-dash { @apply text-gray-500 bg-white/5 px-1.5 py-0.5 rounded; }
+  .st-highlight-cell { @apply text-[#10b981] font-bold; }
 
   .st-total-banner {
-    display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem;
-    background: $emerald-bg; border: 1px solid #a7f3d0; padding: 1rem; border-radius: 0.75rem; margin-top: 1.5rem; 
+    @apply flex justify-between items-center flex-wrap gap-3 bg-[#10b981]/10 border border-[#10b981]/30 p-4 rounded-xl mt-6;
     &.jeu-bracket { 
-      flex-direction: column;
-      p {
-        display: flex; 
-        justify-content: space-between;
-        width: 100%;
-      }
+      @apply flex-col;
+      p { @apply flex justify-between w-full; }
     }
-    span { color: $emerald-text; font-weight: 600; font-size: 0.95rem; }
-    strong { color: #047857; font-size: 1.25rem; font-weight: 900; }
+    span { @apply text-[#34d399] font-semibold text-[0.95rem]; }
+    strong { @apply text-[#10b981] text-xl font-black; }
   }
 
   /* --- EXEMPLES DE CALCUL --- */
   .st-examples-grid { 
-    display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; width: 100%; 
-    margin-top: 1rem; // Recul par rapport aux blocs précédents
-    @media (max-width: 640px) { grid-template-columns: 1fr; gap: 1rem; } 
+    @apply grid grid-cols-2 gap-6 w-full mt-4;
+    @media (max-width: 640px) { @apply grid-cols-1 gap-4; } 
   }
   .st-example-card {
-    background: $bg-main; border-left: 4px solid #3b82f6; padding: 1.2rem; border-radius: 0 0.75rem 0.75rem 0; border-top: 1px solid $border-color; border-right: 1px solid $border-color; border-bottom: 1px solid $border-color;
-    h5 { margin: 0 0 0.25rem 0; font-size: 1rem; color: #1e293b; font-weight: 700; }
-    .st-scenario-sub { font-size: 0.8rem; color: #64748b; font-style: italic; margin: 0 0 0.75rem 0; }
+    @apply bg-black/20 border-l-4 border-l-[#10b981] p-5 rounded-r-xl border-t border-r border-b border-white/10;
+    h5 { @apply m-0 mb-1 text-base text-white font-bold; }
+    .st-scenario-sub { @apply text-xs text-gray-400 italic m-0 mb-3; }
   }
 
   .st-nested-ul {
-    list-style: none; padding: 0.5rem 0.75rem; margin: 0; background: #ffffff; border: 1px solid $border-color; border-radius: 0.5rem;
-    li { display: flex; justify-content: space-between; font-size: 0.85rem; padding: 0.35rem 0; color: #475569; border-bottom: 1px dashed #f1f5f9; &:last-child { border-bottom: none; } }
+    @apply list-none px-3 py-2 m-0 bg-white/5 border border-white/10 rounded-lg;
+    li { @apply flex justify-between text-[0.85rem] py-1.5 text-gray-300 border-b border-dashed border-white/10; &:last-child { border-bottom: none; } }
   }
-  .st-example-footer { font-size: 0.75rem; font-weight: 700; color: #059669; text-align: right; text-transform: uppercase; margin-top: 0.75rem; span { font-size: 1rem; font-weight: 800; } }
+  .st-example-footer { @apply text-xs font-bold text-[#10b981] text-right uppercase mt-3; span { @apply text-base font-black; } }
 
   /* --- BRACKETS --- */
   .st-alert-pill { 
-    background: #eff6ff; 
-    color: #1e40af; 
-    border: 1px solid #bfdbfe; 
-    padding: 0.85rem 1rem; 
-    border-radius: 0.5rem; 
-    font-size: 0.95rem; 
-    font-weight: 600; 
+    @apply bg-[#10b981]/10 text-[#34d399] border border-[#10b981]/20 px-4 py-3 rounded-lg text-[0.95rem] font-semibold; 
   }
 
   .st-bracket-grid { 
-    display: grid; 
+    @apply grid gap-3 w-full;
     grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); 
-    gap: 0.75rem; 
-    width: 100%; 
   }
 
-  // MODIFIED: Uses the rich dark navy gradient pattern to draw high focal attention
   .st-bracket-card {
-    background: linear-gradient(135deg, #1e3a8a 0%, #0f172a 100%); // Same premium dark gradient
-    color: white; 
-    padding: 1.25rem 0.85rem; 
-    border-radius: 0.75rem; 
-    text-align: center; 
-    display: flex; 
-    flex-direction: column;
-    justify-content: center;
-    box-shadow: 0 4px 6px -1px rgba(15, 23, 42, 0.15);
-    border: 1px solid rgba(255, 255, 255, 0.05);
-    transition: transform 0.2s ease;
-
-    &:hover {
-      transform: translateY(-2px);
-    }
-
+    @apply bg-gradient-to-br from-[#0a1a0f] to-[#071209] text-white py-5 px-3 rounded-xl text-center flex flex-col justify-center border border-[#10b981]/20 shadow-lg transition-transform duration-200 hover:-translate-y-1 cursor-pointer;
+    
     .st-b-label { 
-      font-size: 0.75rem; 
-      font-weight: 700; 
-      color: #cbd5e1; // Bright clear text alignment label
-      text-transform: uppercase; 
-      letter-spacing: 0.5px;
+      @apply text-xs font-bold text-gray-400 uppercase tracking-wider;
     }
 
     .st-b-val { 
-      font-size: 1.35rem; 
-      font-weight: 900; 
-      color: #ffd600; // Matches the signature glowing yellow text from the image banner
-      margin-top: 0.4rem; 
-      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
-
-      @media (max-width: 768px) {
-        padding-right: .5rem;
-      }
+      @apply text-xl font-black text-[#10b981] mt-1 drop-shadow-md;
+      @media (max-width: 768px) { padding-right: 0.5rem; }
     }
   }
 
   .st-rule-callout {
-    background: $accent-bg; 
-    border: 1px solid #fde68a; 
-    padding: 1.25rem; 
-    border-radius: 0.75rem; 
-    font-size: 0.9rem; 
-    color: #78350f; 
-    width: 100%;
-    margin-top: 1rem;
-    h4 { font-size: 1.05rem; margin: 0 0 0.75rem 0; font-weight: 700; }
-    p { margin: 0 0 0.35rem 0; }
+    @apply bg-white/5 border border-white/10 p-5 rounded-xl text-[0.9rem] text-gray-300 w-full mt-4;
+    h4 { @apply text-[1.05rem] m-0 mb-3 font-bold text-white; }
+    p { @apply m-0 mb-1.5; }
   }
 
   .st-chain-flow {
-    display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; margin-top: 1rem; background: rgba(255,255,255,0.7); padding: 0.6rem; border-radius: 0.5rem; border: 1px solid #fef3c7;
-    .st-chain-title { font-size: 0.8rem; font-weight: 700; color: #92400e; }
-    .st-chain-links { display: flex; align-items: center; gap: 0.25rem; flex-wrap: wrap; }
-    .st-chain-badge { background: #d97706; color: white; font-size: 0.75rem; font-weight: 700; padding: 0.2rem 0.5rem; border-radius: 0.25rem; }
-    .st-chain-arrow { font-size: 0.75rem; color: #f59e0b; }
+    @apply flex items-center gap-2 flex-wrap mt-4 bg-black/30 p-2.5 rounded-lg border border-white/5;
+    .st-chain-title { @apply text-[0.8rem] font-bold text-white; }
+    .st-chain-links { @apply flex items-center gap-1 flex-wrap; }
+    .st-chain-badge { @apply bg-[#10b981] text-[#071209] text-xs font-bold px-2 py-0.5 rounded; }
+    .st-chain-arrow { @apply text-xs text-[#10b981]; }
   }
 
   /* --- BANNER DE FINALE / CONDITIONS --- */
   .st-gradient-banner {
-    background: linear-gradient(135deg, #1e3a8a 0%, #0f172a 100%); color: white; padding: 2rem; border-radius: 0.75rem; width: 100%;
-    h4 { margin: 0 0 0.75rem 0; font-size: 1.2rem; color: #ffd600; font-weight: 700; }
-    .st-main-rule { font-size: 1.1rem; font-weight: 600; margin: 0 0 0.5rem 0; }
-    .st-sub-rule { font-size: 0.9rem; color: #cbd5e1; margin: 0; }
+    @apply bg-gradient-to-br from-[#10b981]/20 to-[#071209] text-white p-8 rounded-xl w-full border border-[#10b981]/30;
+    h4 { @apply m-0 mb-3 text-lg text-[#10b981] font-bold; }
+    .st-main-rule { @apply text-lg font-semibold m-0 mb-2 text-white; }
+    .st-sub-rule { @apply text-[0.9rem] text-gray-300 m-0; }
   }
 
-  .st-legal-container { background: $bg-main; padding: 1.25rem; border-radius: 0.75rem; border: 1px dashed #cbd5e1; display: flex; flex-direction: column; gap: 0.75rem; width: 100%; }
-  .st-legal-row { display: flex; gap: 0.75rem; align-items: start; font-size: 0.9rem; line-height: 1.5; color: #475569; .st-icon { font-size: 1.1rem; line-height: 1; } }
+  .st-legal-container { @apply bg-white/5 p-5 rounded-xl border border-dashed border-white/20 flex flex-col gap-3 w-full; }
+  .st-legal-row { @apply flex gap-3 items-start text-[0.9rem] leading-relaxed text-gray-400; .st-icon { @apply text-lg leading-none; } }
 
   /* --- ACTIONS DU FOOTER --- */
   .st-footer-actions {
-    margin-top: 3rem; // Plus d'espace sous le dernier élément affiché
-    padding-top: 1.5rem; border-top: 1px solid #f1f5f9;
-    display: flex; justify-content: space-between; gap: 1rem; width: 100%;
+    @apply mt-12 pt-6 border-t border-white/10 flex justify-between gap-4 w-full;
   }
 
   .st-btn {
-    padding: 0.75rem 1rem; font-size: 0.9rem; font-weight: 600; border-radius: 0.5rem; cursor: pointer; transition: all 0.15s ease; border: 1px solid transparent;
-    &:disabled { opacity: 0.35; cursor: not-allowed; &:hover { background: transparent; color: inherit; border-color: inherit; } }
+    @apply px-5 py-3 text-[0.9rem] font-bold rounded-xl cursor-pointer transition-all duration-200 border border-transparent flex items-center justify-center;
+    &:disabled { @apply opacity-30 cursor-not-allowed; &:hover { @apply bg-transparent text-inherit border-inherit; } }
   }
-  .st-btn-secondary { background: #ffffff; border-color: $border-color; color: #475569; &:hover { background: $bg-main; } }
-  .st-btn-primary { background: #1e3a8a; color: #ffffff; &:hover { background: #4338ca; } }
-  .st-btn-accent { background: #d97706; color: #ffffff; &:hover { background: #b45309; } }
+  .st-btn-secondary { @apply bg-white/5 border-white/10 text-white hover:bg-white/10 hover:border-white/20; }
+  .st-btn-primary { @apply bg-gradient-to-r from-[#10b981] to-[#059669] text-white shadow-[0_4px_15px_rgba(16,185,129,0.3)] hover:-translate-y-1; }
+  .st-btn-accent { @apply bg-white text-[#0a1a0f] hover:bg-gray-200 shadow-md hover:-translate-y-1; }
 }
 
 @keyframes stFadeIn {

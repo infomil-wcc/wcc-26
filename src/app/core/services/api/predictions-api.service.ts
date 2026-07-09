@@ -10,14 +10,14 @@ export class PredictionsApiService {
   private http = inject(HttpClient);
 
   getPredictions(queryParams: string = '', options?: any): Observable<any> {
-    return this.http.get<any>(`${environment.apiBaseUrl}/items/pronostiques${queryParams}`, options);
+    return this.http.get<any>(`${environment.apiBaseUrl}/items/pronostics${queryParams}`, options);
   }
 
   createPrediction(prediction: any, options?: any): Observable<any> {
-    return this.http.post<any>(`${environment.apiBaseUrl}/items/pronostiques`, prediction, options);
+    return this.http.post<any>(`${environment.apiBaseUrl}/items/pronostics`, prediction, options);
   }
 
   updatePrediction(id: any, prediction: any, options?: any): Observable<any> {
-    return this.http.patch<any>(`${environment.apiBaseUrl}/items/pronostiques/${id}`, prediction, options);
+    return this.http.patch<any>(`${environment.apiBaseUrl}/items/pronostics/${id}`, prediction, options);
   }
 }

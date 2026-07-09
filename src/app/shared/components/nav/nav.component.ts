@@ -50,17 +50,20 @@ export class NavComponent implements OnInit, OnDestroy {
           {
             "label": "Les équipes",
             "route": "les-equipes",
-            "active": false
+            "active": false,
+            "icon": "groups"
           },
           {
             "label": "Les stades",
             "route": "les-stades",
-            "active": false
+            "active": false,
+            "icon": "stadium"
           },
           {
             "label": "Les groupes",
             "route": "les-groupes",
-            "active": false
+            "active": false,
+            "icon": "grid_view"
           }
         ]
       },
@@ -73,18 +76,20 @@ export class NavComponent implements OnInit, OnDestroy {
           {
             "label": "Stars du tournoi",
             "route": "meilleur-buteur",
-            "active": false
+            "active": false,
+            "icon": "star"
           },
           {
             "label": "Pronostics",
-            "route": "pronostiques",
-            "active": false
+            "route": "pronostics",
+            "active": false,
+            "icon": "query_stats"
           }
         ]
       },
       {
-        "label": "Classement",
-        "route": "classement",
+        "label": "Leaderboard",
+        "route": "leaderboard",
         "active": false,
         "icon": "leaderboard"
       },

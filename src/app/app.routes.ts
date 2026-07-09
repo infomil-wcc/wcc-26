@@ -31,8 +31,8 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/games/best-scorer/best-scorer.component').then(m => m.BestScorerComponent)
   },
   {
-    path: 'pronostiques',
-    loadComponent: () => import('./pages/games/pronostiques/pronostiques.component').then(m => m.PronostiquesComponent)
+    path: 'pronostics',
+    loadComponent: () => import('./pages/games/pronostics/pronostics.component').then(m => m.PronosticsComponent)
   },
   // {
   //   path: 'bracket',
@@ -47,12 +47,12 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/games/quiz/quiz.component').then(m => m.QuizComponent)
   },
   {
-    path: 'classement',
-    loadComponent: () => import('./pages/games/ranking/ranking.component').then(m => m.RankingComponent)
+    path: 'leaderboard',
+    loadComponent: () => import('./pages/games/leaderboard/leaderboard.component').then(m => m.LeaderboardComponent)
   },
   {
-    path: 'classement/scoresheet/:id',
-    loadComponent: () => import('./pages/games/ranking/scoresheet/scoresheet.component').then(m => m.ScoresheetComponent)
+    path: 'leaderboard/scoresheet/:id',
+    loadComponent: () => import('./pages/games/leaderboard/scoresheet/scoresheet.component').then(m => m.ScoresheetComponent)
   },
   {
     path: 'faq',

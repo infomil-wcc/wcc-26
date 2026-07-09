@@ -14,6 +14,7 @@ import { RankingsService } from '../../../core/services/content/rankings.service
 import { ModalComponent } from '../../../shared/components/modal/modal.component';
 import { LoginComponent } from '../../../shared/components/login/login.component';
 import { TeamsService } from '../../../core/services/content/teams.service';
+import { BreadcrumbComponent, breadCrump } from '../../../shared/components/breadcrumb/breadcrumb.component';
 
 const PHASE_CONFIG: { key: string; label: string; icon: string; color: string }[] = [
   { key: 'Group Stage', label: 'Phase de groupes', icon: 'groups', color: '#3b5bdb' },
@@ -25,13 +26,13 @@ const PHASE_CONFIG: { key: string; label: string; icon: string; color: string }[
 ];
 
 @Component({
-  selector: 'app-pronostiques',
-  templateUrl: './pronostiques.component.html',
-  styleUrl: './pronostiques.component.scss',
+  selector: 'app-pronostics',
+  templateUrl: './pronostics.component.html',
+  styleUrl: './pronostics.component.scss',
   changeDetection: ChangeDetectionStrategy.Eager,
-  imports: [NgClass, NgStyle, MatchComponent, LoaderComponent, AsyncPipe, DatePipe, UpperCasePipe, SlicePipe, CalendarStripComponent, ModalComponent, LoginComponent]
+  imports: [NgClass, NgStyle, MatchComponent, LoaderComponent, AsyncPipe, DatePipe, UpperCasePipe, SlicePipe, CalendarStripComponent, ModalComponent, LoginComponent, BreadcrumbComponent]
 })
-export class PronostiquesComponent implements OnInit {
+export class PronosticsComponent implements OnInit {
 
   private matchesService = inject(MatchesService);
   private stateService = inject(StateService);
@@ -40,6 +41,12 @@ export class PronostiquesComponent implements OnInit {
   private rankingsService = inject(RankingsService);
   private teamService = inject(TeamsService);
   private cdr = inject(ChangeDetectorRef);
+
+  protected breadCrumpData: breadCrump[] = [
+    { label: 'Accueil', route: '/', active: false },
+    { label: 'Jeux', route: '/pronostics', active: false },
+    { label: 'Pronostics', route: '/pronostics', active: true }
+  ];
 
   protected isLoggedIn: boolean = false;
   protected isAuthChecked: boolean = false;

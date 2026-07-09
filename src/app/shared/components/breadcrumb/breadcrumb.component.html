@@ -1,18 +1,20 @@
-@if (bcdata) {
-  <div class="breadcrump mb-2 md:mb-20">
-    <ul class="flex items-center">
-      @for (item of bcdata; track item; let lastItem = $last; let firstItem = $first) {
-        <li>
-          <button class="btn_breadcrump flex items-center" type="button" (click)="routeTo(item.route)" [ngClass]="{'active': lastItem}">
-            <h2 class="text-xl ">
-              {{ item.label }}
-              @if (!lastItem) {
-                <span class="ml-1 mr-1">/</span>
-              }
-            </h2>
+@if (bcdata && bcdata.length > 0) {
+  <nav aria-label="Breadcrumb" class="mb-4">
+    <ol class="flex items-center space-x-2 text-sm font-medium">
+      @for (item of bcdata; track item; let lastItem = $last) {
+        <li class="flex items-center">
+          <button 
+            type="button" 
+            (click)="!lastItem ? routeTo(item.route) : null"
+            class="flex items-center transition-colors duration-200"
+            [ngClass]="lastItem ? 'text-[#10b981] cursor-default font-bold' : 'text-gray-400 hover:text-white'">
+            {{ item.label }}
           </button>
+          @if (!lastItem) {
+            <span class="material-symbols-outlined text-[16px] text-gray-500 mx-2">chevron_right</span>
+          }
         </li>
       }
-    </ul>
-  </div>
+    </ol>
+  </nav>
 }

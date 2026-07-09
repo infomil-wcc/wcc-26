@@ -1,62 +1,42 @@
-@use "./../../../variables" as *;
-
 ::ng-deep {
   .tableContainer {
-    width: 100%;
-    overflow: hidden;
-    overflow-x: auto;
-    padding-bottom: 1rem;
-
+    @apply w-full overflow-x-auto pb-4;
     table {
-      min-width: 850px;
+      @apply min-w-[850px];
     }
   }
 
   table {
-    border: 1px solid #ececec;
-    width: 100%;
-    margin: 0 auto;
-    margin-top: 2rem;
-
+    @apply w-full mx-auto mt-8 border border-white/10;
     tr td {
-      padding: 10px;
-      border-bottom: 1px solid #ececec;
-      border-right: 1px solid #ececec;
+      @apply p-3 border-b border-r border-white/10 text-gray-300;
     }
-
     tr td:last-child {
-      border-right: 0;
+      @apply border-r-0;
     }
-
     tr:last-child td {
-      border-bottom: 0;
+      @apply border-b-0;
+    }
+    th {
+      @apply p-3 border-b border-white/10 text-[#10b981] font-bold text-left;
     }
   }
 
   .rules {
-
     h3 {
-      margin: 1rem 0 .85rem;
-
+      @apply mt-6 mb-3 text-white font-bold text-xl;
       & + p {
-        margin-bottom: .25rem;
+        @apply mb-2;
       }
     }
-
     p, li {
-      line-height: 2;
+      @apply leading-loose text-gray-300;
     }
-
     li strong {
-      padding-left: .2rem;
+      @apply pl-1 text-white;
     }
-
     .description .section {
-      background: #FFF;
-      padding: 1rem;
-      margin-bottom: 1.5rem;
-      border-radius: 18px;
+      @apply bg-white/5 backdrop-blur-md p-6 mb-6 rounded-2xl border border-white/10 text-gray-300;
     }
   }
 }
-

@@ -1,44 +1,64 @@
-﻿<div class="container">
-  <h1>FAQ</h1>
+<div class="container mx-auto px-4 lg:px-8 max-w-7xl pt-6 pb-12">
+  <div class="mb-8 border-b border-white/10 pb-4">
+    <app-breadcrumb [bcdata]="breadCrumpData" />
+    <h1 class="text-3xl md:text-4xl font-black text-white mt-4 flex items-center gap-3">
+      <span class="material-symbols-outlined text-[#10b981] text-4xl">help</span>
+      FAQ
+    </h1>
+  </div>
 
-  <h3>Régles et Conditions des jeux</h3>
+  <h3 class="text-2xl font-bold text-white mb-6">Règles et Conditions des jeux</h3>
+  
   <div class="rules">
     @if ($rules | async; as rules) {
       @for (item of rules; track item) {
-        <div class="rule">
-          <h4>{{ item.name }}</h4>
-          <div class="description" [innerHTML]="item.description"></div>
+        <div class="rule mb-10">
+          <h4 class="text-xl font-bold text-[#10b981] mb-4">{{ item.name }}</h4>
+          <div class="description text-gray-300 leading-relaxed" [innerHTML]="item.description"></div>
         </div>
       }
     } @else {
-      <loader [showLoader]="true" />
+      <div class="w-full py-20 flex justify-center">
+        <loader [showLoader]="true" />
+      </div>
     }
   </div>
 
-  <div class="rules mt-6" style="margin-top: 2.5rem; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 2rem;">
-    <div class="rule">
-      <h3 style="color: #10b981; font-family: UefaEuro; font-size: 1.4rem; display: flex; align-items: center; gap: 8px; margin: 0 0 1rem 0;">
-        <span class="material-symbols-outlined" style="vertical-align: middle;">info</span>
+  <div class="mt-12 pt-8 border-t border-white/10">
+    <div class="rule mb-10">
+      <h3 class="text-2xl font-bold text-[#10b981] mb-4 flex items-center gap-2">
+        <span class="material-symbols-outlined">info</span>
         Règles du Bracket Phase Finale (Phase 2)
       </h3>
-      <div class="description" style="color: #a3b1cc; line-height: 1.6;">
-        <p style="margin-bottom: 1rem;">
-          La <strong>Phase 2 du Bracket Challenge</strong> est une seconde chance ouverte à tous les participants dès la fin de la phase de groupes !
+      <div class="description text-gray-300 leading-relaxed">
+        <p class="mb-4">
+          La <strong class="text-white">Phase 2 du Bracket Challenge</strong> est une seconde chance ouverte à tous les participants dès la fin de la phase de groupes !
         </p>
-        <ul style="padding-left: 1.5rem; margin-top: 0.5rem; list-style-type: disc;">
-          <li style="margin-bottom: 0.8rem;">
-            <strong>Basé sur les Qualifiés Réels :</strong> Contrairement à la Phase 1 (établie avant le tournoi sur des projections), le Bracket Phase Finale se joue avec les <strong>32 équipes réellement qualifiées</strong> en phase finale.
+        <ul class="list-disc pl-6 space-y-3">
+          <li>
+            <strong class="text-white">Basé sur les Qualifiés Réels :</strong> Contrairement à la Phase 1 (établie avant le tournoi sur des projections), le Bracket Phase Finale se joue avec les <strong class="text-white">32 équipes réellement qualifiées</strong> en phase finale.
           </li>
-          <li style="margin-bottom: 0.8rem;">
-            <strong>Calcul des Points :</strong> Les pronostics enregistrés en Phase 2 sont pris en compte pour le classement général de la compétition Bracket Challenge.
+          <li>
+            <strong class="text-white">Calcul des Points :</strong> Les pronostics enregistrés en Phase 2 sont pris en compte pour le classement général de la compétition Bracket Challenge.
           </li>
-          <li style="margin-bottom: 0.8rem;">
-            <strong>Date Limite :</strong> Vous devez valider votre Bracket Phase Finale avant le coup d'envoi du tout premier match des 16es de finale (soit <strong>ce soir à 23h00</strong>). Une fois ce délai dépassé, les pronostics sont verrouillés.
+          <li>
+            <strong class="text-white">Date Limite :</strong> Vous devez valider votre Bracket Phase Finale avant le coup d'envoi du tout premier match des 16es de finale (soit <strong class="text-white">ce soir à 23h00</strong>). Une fois ce délai dépassé, les pronostics sont verrouillés.
           </li>
         </ul>
       </div>
     </div>
   </div>
+
+  <div class="mt-12 pt-8 border-t border-white/10">
+    <div class="rule">
+      <h3 class="text-2xl font-bold text-[#10b981] mb-4 flex items-center gap-2">
+        <span class="material-symbols-outlined">help_center</span>
+        T'as pas trouvé ce que tu cherches ?
+      </h3>
+      <p class="text-gray-300">
+        Si tu as une autre question ou rencontré un bug technique, contacte-nous par email en te rendant sur 
+        <a class="text-[#10b981] hover:text-[#34d399] underline transition-colors" href="https://infomil.atlassian.net/servicedesk/customer/portal/22/create/67" target="_blank" rel="noopener noreferrer">le portail de support.</a>
+      </p>
+    </div>
+  </div>
 </div>
-
-

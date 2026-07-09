@@ -1,14 +1,50 @@
 .modal {
-  width: 80%;
+  width: 90%;
   height: auto;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
   background: white;
+  border-radius: 1.5rem;
+}
+
+.modalContent {
+  overflow-y: auto;
+  flex-grow: 1;
+  /* Custom scrollbar for better look */
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: #d1d5db;
+    border-radius: 10px;
+  }
+  &::-webkit-scrollbar-thumb:hover {
+    background: #9ca3af;
+  }
 }
 
 .closeModal {
   position: absolute;
-  right: 0.5rem;
-  top: 0.5rem;
+  right: 1.5rem;
+  top: 1.5rem;
   z-index: 200;
+  background: white;
+  border-radius: 50%;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  color: #4b5563;
+  transition: all 0.2s ease;
+  width: 36px;
+  height: 36px;
+  
+  &:hover {
+    background: #f3f4f6;
+    color: #111827;
+    transform: scale(1.1);
+  }
 }
 
 @media screen and (min-width: 990px){
@@ -21,8 +57,8 @@
 
     &.modalMd {
       width: 100%;
-      max-width: 850px;
-      min-width: 550px;
+      max-width: 760px;
+      min-width: 400px;
     }
 
     &.modalLg {

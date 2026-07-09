@@ -1,9 +1,9 @@
-<div class="grid grid grid-cols-12-cols-3 items-center justify-center min-h-[140px] mb-2 px-2 gap-2">
+<div class="grid grid-cols-3 items-center justify-center min-h-[140px] mb-2 px-2 gap-2">
   <div class="col-span-1 h-full">
     <div
-      class="w-full h-full rounded-2xl border-2 transition-all duration-200 flex flex-col items-center justify-center relative cursor-pointer p-2"
+      class="w-full h-full rounded-2xl border transition-all duration-200 flex flex-col items-center justify-center relative cursor-pointer p-2"
       [ngClass]="{
-        'border-blue-500 bg-blue-50/50 shadow-md shadow-blue-500/20 scale-105 z-10': matchOutcome === match?.team_a, 
+        'border-emerald-500 bg-emerald-50/50 shadow-md shadow-emerald-500/20 scale-105 z-10': matchOutcome === match?.team_a, 
         'border-slate-200 bg-white hover:bg-slate-50 hover:border-slate-300': matchOutcome !== match?.team_a,
         'opacity-50 pointer-events-none': !canEditPrediction
       }"
@@ -11,10 +11,10 @@
       <span class="block w-[36px] h-[24px] min-w-[36px] flex-shrink-0 bg-cover bg-center bg-no-repeat rounded shadow-sm border border-black/10"
         [ngStyle]="{'background-image': match?.team_a ? 'url(' + teamAFlag + ')'  : 'url(assets/flags/unknown.png)'}"></span>
       @if (matchOutcome === match?.team_a) {
-      <span class="material-symbols-outlined absolute -top-2 -right-2 text-[24px] text-blue-500 bg-white rounded-full">check_circle</span>
+      <span class="material-symbols-outlined absolute -top-2 -right-2 text-[24px] text-emerald-500 bg-white rounded-full">check_circle</span>
       }
       <div class="mt-2 text-center">
-        <strong class="text-sm font-extrabold text-slate-800">{{ match?.team_a | uppercase | slice:0:3 }}</strong>
+        <strong class="text-sm font-extrabold text-slate-800">{{ match?.team_a }}</strong>
       </div>
       @if (match?.team_a !== null) {
       <button class="mt-2 text-[10px] font-bold uppercase bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-full px-2 py-0.5 flex items-center transition-colors pointer-events-auto"
@@ -38,14 +38,14 @@
     </div>
     }
     @if (hidePointsBadge) {
-    <div class="w-full bg-gradient-to-br from-red-500/10 to-red-600/20 border-2 border-dashed border-red-500 rounded-xl p-2 flex flex-col items-center justify-center text-center animate-pulse shadow-inner min-h-[108px]">
+    <div class="w-full bg-gradient-to-br from-red-50 to-red-100 border border-dashed border-red-300 rounded-xl p-2 flex flex-col items-center justify-center text-center animate-pulse shadow-inner min-h-[108px]">
       <span class="material-symbols-outlined text-3xl text-red-400 filter drop-shadow-sm">gavel</span>
       <span class="text-[11px] font-black text-red-500 uppercase tracking-widest mt-1">Invalidé</span>
-      <span class="text-[10px] text-slate-600 mt-1 leading-tight">Joué le :<br><strong class="text-slate-800 font-bold">{{ invalidatedDate | date: 'dd/MM HH:mm' }}</strong></span>
+      <span class="text-[10px] text-slate-500 mt-1 leading-tight">Joué le :<br><strong class="text-slate-700 font-bold">{{ invalidatedDate | date: 'dd/MM HH:mm' }}</strong></span>
     </div>
     } @else if (!closed) {
     <div
-      class="w-full h-full rounded-2xl border-2 transition-all duration-200 flex flex-col items-center justify-center relative cursor-pointer p-2"
+      class="w-full h-full rounded-2xl border transition-all duration-200 flex flex-col items-center justify-center relative cursor-pointer p-2"
       [ngClass]="{
         'border-amber-500 bg-amber-50/50 shadow-md shadow-amber-500/20 scale-105 z-10': matchOutcome === 'Draw', 
         'border-slate-200 bg-white hover:bg-slate-50 hover:border-slate-300': matchOutcome !== 'Draw',
@@ -71,18 +71,18 @@
     } @else {
     @if (isSavedInApi && match?.fulltime_a !== null && match?.fulltime_b !== null && matchPoints !== null && !hidePointsBadge) {
       @if (isConsolationPointAwarded) {
-      <div class="flex flex-col items-center justify-center w-20 h-20 rounded-xl bg-gradient-to-br from-emerald-800 to-emerald-950 border border-emerald-500/40 shadow-xl shadow-emerald-900/20 z-10 animate-[bounce_0.5s_ease-out]" title="Point de consolation">
-        <span class="text-3xl font-black leading-none bg-clip-text text-transparent bg-gradient-to-b from-emerald-200 to-emerald-500 drop-shadow-sm">+1</span>
-        <span class="text-[10px] font-black uppercase tracking-widest text-emerald-400 mt-1">pt</span>
+      <div class="flex flex-col items-center justify-center w-20 h-20 rounded-xl bg-gradient-to-br from-emerald-100 to-emerald-200 border border-emerald-300 shadow-md shadow-emerald-500/20 z-10 animate-[bounce_0.5s_ease-out]" title="Point de consolation">
+        <span class="text-3xl font-black leading-none text-emerald-600 drop-shadow-sm">+1</span>
+        <span class="text-[10px] font-black uppercase tracking-widest text-emerald-700 mt-1">pt</span>
       </div>
       } @else {
-      <div class="flex flex-col items-center justify-center w-20 h-20 rounded-xl shadow-xl z-10 animate-[bounce_0.5s_ease-out]" 
+      <div class="flex flex-col items-center justify-center w-20 h-20 rounded-xl shadow-md z-10 animate-[bounce_0.5s_ease-out]" 
         [ngClass]="{
-          'bg-slate-900 border border-yellow-500/30 shadow-yellow-900/20': matchPoints > 0,
-          'bg-slate-200 border border-slate-300 shadow-slate-400/20': matchPoints === 0
+          'bg-slate-900 border border-yellow-500/30 shadow-yellow-900/40': matchPoints > 0,
+          'bg-slate-100 border border-slate-200 shadow-slate-300/40': matchPoints === 0
         }">
         <span class="text-3xl font-black leading-none bg-clip-text text-transparent drop-shadow-sm"
-          [ngClass]="matchPoints > 0 ? 'bg-gradient-to-b from-yellow-100 via-yellow-400 to-yellow-600' : 'bg-gradient-to-b from-slate-400 to-slate-600'">
+          [ngClass]="matchPoints > 0 ? 'bg-gradient-to-b from-yellow-100 via-yellow-400 to-yellow-600' : 'bg-gradient-to-b from-slate-400 to-slate-500'">
           {{ matchPoints !== null && matchPoints > 0 ? '+' + matchPoints : matchPoints }}
         </span>
         <span class="text-[10px] font-black uppercase tracking-widest mt-1"
@@ -94,15 +94,19 @@
       <span class="w-10 h-10 flex items-center justify-center bg-slate-100 border border-slate-200 rounded-lg shadow-inner">{{ donePronostique.fulltime_a }}</span>
       <span class="w-10 h-10 flex items-center justify-center bg-slate-100 border border-slate-200 rounded-lg shadow-inner">{{ donePronostique.fulltime_b }}</span>
     </div>
+    } @else {
+    <div class="w-10 h-10 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center text-xs font-bold text-slate-400 shadow-inner">
+      <span>VS</span>
+    </div>
     }
     }
   </div>
 
   <div class="col-span-1 h-full">
     <div
-      class="w-full h-full rounded-2xl border-2 transition-all duration-200 flex flex-col items-center justify-center relative cursor-pointer p-2"
+      class="w-full h-full rounded-2xl border transition-all duration-200 flex flex-col items-center justify-center relative cursor-pointer p-2"
       [ngClass]="{
-        'border-blue-500 bg-blue-50/50 shadow-md shadow-blue-500/20 scale-105 z-10': matchOutcome === match?.team_b, 
+        'border-emerald-500 bg-emerald-50/50 shadow-md shadow-emerald-500/20 scale-105 z-10': matchOutcome === match?.team_b, 
         'border-slate-200 bg-white hover:bg-slate-50 hover:border-slate-300': matchOutcome !== match?.team_b,
         'opacity-50 pointer-events-none': !canEditPrediction
       }"
@@ -110,10 +114,10 @@
       <span class="block w-[36px] h-[24px] min-w-[36px] flex-shrink-0 bg-cover bg-center bg-no-repeat rounded shadow-sm border border-black/10"
         [ngStyle]="{'background-image': match?.team_b ? 'url(' + teamBFlag + ')'  : 'url(assets/flags/unknown.png)'}"></span>
       @if (matchOutcome === match?.team_b) {
-      <span class="material-symbols-outlined absolute -top-2 -right-2 text-[24px] text-blue-500 bg-white rounded-full">check_circle</span>
+      <span class="material-symbols-outlined absolute -top-2 -right-2 text-[24px] text-emerald-500 bg-white rounded-full">check_circle</span>
       }
       <div class="mt-2 text-center">
-        <strong class="text-sm font-extrabold text-slate-800">{{ match?.team_b | uppercase | slice:0:3 }}</strong>
+        <strong class="text-sm font-extrabold text-slate-800">{{ match?.team_b }}</strong>
       </div>
       @if (match?.team_b !== null) {
       <button class="mt-2 text-[10px] font-bold uppercase bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-full px-2 py-0.5 flex items-center transition-colors pointer-events-auto"
@@ -132,7 +136,7 @@
 </div>
 
 @if (!closed && !hidePointsBadge) {
-<div class="mt-4 pt-4 border-t border-slate-100 px-6">
+<div class="mt-4 pt-4 border-t border-slate-200 px-6">
   @if (match?.fulltime || match?.halftime) {
   <div class="bg-slate-50 border border-slate-200 rounded-xl p-2 flex flex-col gap-1 shadow-sm mb-4">
     <div class="grid grid-cols-12 items-center gap-2 pb-1 border-b border-slate-200 mb-1" 
@@ -143,7 +147,7 @@
       }
       @if (match?.fulltime) {
       <div class="text-[11px] font-bold uppercase tracking-wide text-slate-500 text-center"
-        [ngClass]="{'border-l-2 border-slate-300 pl-2 -ml-1': match?.halftime && match?.fulltime}">Final</div>
+        [ngClass]="{'border-l border-slate-200 pl-2 -ml-1': match?.halftime && match?.fulltime}">Final</div>
       }
     </div>
 
@@ -155,13 +159,13 @@
           <input type="radio" [name]="'penalty_' + match.id" class="peer sr-only"
             [checked]="penaltyWinner === match.team_a" (change)="selectPenaltyWinner(match.team_a)"
             [disabled]="!canEditScores" />
-          <div class="w-4 h-4 rounded-full border-2 border-slate-300 peer-checked:border-amber-500 peer-checked:bg-amber-500 flex items-center justify-center transition-colors">
+          <div class="w-4 h-4 rounded-full border border-slate-300 peer-checked:border-amber-500 peer-checked:bg-amber-500 flex items-center justify-center transition-colors">
             <div class="w-1.5 h-1.5 rounded-full bg-white opacity-0 peer-checked:opacity-100"></div>
           </div>
         </label>
         }
         <span class="block w-[22px] h-[15px] min-w-[22px] flex-shrink-0 bg-cover bg-center bg-no-repeat rounded-sm border border-black/10 mr-2" [ngStyle]="{'background-image': 'url(' + teamAFlag + ')'}"></span>
-        <span class="text-xs font-bold text-slate-700">{{ match?.team_a | uppercase | slice:0:3 }}</span>
+        <span class="text-xs font-bold text-slate-800">{{ match?.team_a }}</span>
       </div>
       @if (match?.halftime) {
       <div [ngClass]="{'opacity-50 pointer-events-none': userTrigramme ===''}">
@@ -185,13 +189,13 @@
           <input type="radio" [name]="'penalty_' + match.id" class="peer sr-only"
             [checked]="penaltyWinner === match.team_b" (change)="selectPenaltyWinner(match.team_b)"
             [disabled]="!canEditScores" />
-          <div class="w-4 h-4 rounded-full border-2 border-slate-300 peer-checked:border-amber-500 peer-checked:bg-amber-500 flex items-center justify-center transition-colors">
+          <div class="w-4 h-4 rounded-full border border-slate-300 peer-checked:border-amber-500 peer-checked:bg-amber-500 flex items-center justify-center transition-colors">
             <div class="w-1.5 h-1.5 rounded-full bg-white opacity-0 peer-checked:opacity-100"></div>
           </div>
         </label>
         }
         <span class="block w-[22px] h-[15px] min-w-[22px] flex-shrink-0 bg-cover bg-center bg-no-repeat rounded-sm border border-black/10 mr-2" [ngStyle]="{'background-image': 'url(' + teamBFlag + ')'}"></span>
-        <span class="text-xs font-bold text-slate-700">{{ match?.team_b | uppercase | slice:0:3 }}</span>
+        <span class="text-xs font-bold text-slate-800">{{ match?.team_b }}</span>
       </div>
       @if (match?.halftime) {
       <div [ngClass]="{'opacity-50 pointer-events-none': userTrigramme ===''}">
@@ -212,9 +216,9 @@
   @if (match?.scorer) {
   <div class="bg-slate-50 border border-slate-200 rounded-xl p-4 mb-4 shadow-sm">
     <div class="flex flex-col items-center gap-1 w-full" [ngClass]="{'opacity-50 pointer-events-none': userTrigramme ===''}">
-      <button class="w-full flex items-center justify-center gap-2 py-2.5 px-6 rounded-lg font-bold text-sm transition-colors border-2"
+      <button class="w-full flex items-center justify-center gap-2 py-2.5 px-6 rounded-lg font-bold text-sm transition-colors border"
         [ngClass]="{
-          'bg-yellow-50 text-yellow-700 border-yellow-400 hover:bg-yellow-100': !scorer || scorer === '-',
+          'bg-yellow-50 text-yellow-700 border-yellow-200 hover:bg-yellow-100': !scorer || scorer === '-',
           'bg-slate-800 text-white border-slate-800 hover:bg-slate-900': scorer && scorer !== '-'
         }" 
         (click)="openTacticalLineup()"

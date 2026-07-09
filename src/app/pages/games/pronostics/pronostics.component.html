@@ -1,7 +1,10 @@
 @if (isLoggedIn) {
-<div class="pronostiqueHeader fixed left-0 w-full">
-  <div class="header-bar w-full">
-    <div class="container header-bar-inner">
+<div class="pronostiqueHeader sticky z-50">
+  <div class="header-bar w-full bg-white/5 backdrop-blur-md border-b border-white/10 p-4">
+    <div class="container mx-auto max-w-7xl header-bar-inner">
+      <div class="w-full mb-4">
+        <app-breadcrumb [bcdata]="breadCrumpData" />
+      </div>
 
       <div class="header-title">
         <span class="material-symbols-outlined header-title-icon">sports_esports</span>

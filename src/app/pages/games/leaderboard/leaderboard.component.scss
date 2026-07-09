@@ -1,0 +1,434 @@
+// Midnight Emerald Theme for Ranking Page
+
+.leaderboard-page {
+  background: transparent;
+  min-height: calc(100vh - 128px);
+  position: relative;
+  padding-bottom: 3rem;
+}
+
+// Docked Header styling is now handled by Tailwind in HTML
+
+
+
+// Podium styles
+.podium-container {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  max-width: 600px;
+  width: 100%;
+  margin: 0.5rem auto 1.5rem auto;
+  background: rgba(16, 185, 129, 0.1); // Emerald tint
+  backdrop-filter: blur(12px);
+  padding: 0.8rem 0.5rem 0 0.5rem;
+  border: 1px solid rgba(16, 185, 129, 0.2);
+  border-radius: 16px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+  color: #ffffff;
+  overflow: hidden;
+}
+
+.podium-spot {
+  flex: 1;
+  text-align: center;
+  position: relative;
+  transition: transform 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  &:hover {
+    transform: translateY(-2px);
+  }
+
+  // 1st place styled larger in the center
+  &.spot-1st {
+    z-index: 2;
+    .avatar-wrapper {
+      width: 95px;
+      height: 95px;
+      border: 3px solid #ffd700; // Gold
+      box-shadow: 0 0 15px rgba(255, 215, 0, 0.4);
+    }
+    .podium-username {
+      font-size: 0.95rem;
+      font-weight: 800;
+    }
+    .podium-step {
+      height: 100px;
+      background: rgba(255, 215, 0, 0.15);
+      border: 1px solid rgba(255, 215, 0, 0.3);
+      border-bottom: none;
+      color: #ffd700; // Gold Medal
+      text-shadow: 0 0 8px rgba(255, 215, 0, 0.5);
+    }
+  }
+
+  &.spot-2nd {
+    .avatar-wrapper {
+      width: 78px;
+      height: 78px;
+      border: 3px solid #e2e8f0; // Silver
+      box-shadow: 0 0 10px rgba(226, 232, 240, 0.3);
+    }
+    .podium-step {
+      height: 75px;
+      background: rgba(226, 232, 240, 0.1);
+      border: 1px solid rgba(226, 232, 240, 0.2);
+      border-bottom: none;
+      color: #e2e8f0; // Silver Medal
+      text-shadow: 0 0 6px rgba(226, 232, 240, 0.4);
+    }
+  }
+
+  &.spot-3rd {
+    .avatar-wrapper {
+      width: 78px;
+      height: 78px;
+      border: 3px solid #cd7f32; // Bronze
+      box-shadow: 0 0 10px rgba(205, 127, 50, 0.2);
+    }
+    .podium-step {
+      height: 52px;
+      background: rgba(205, 127, 50, 0.1);
+      border: 1px solid rgba(205, 127, 50, 0.2);
+      border-bottom: none;
+      color: #cd7f32; // Bronze Medal
+      text-shadow: 0 0 6px rgba(205, 127, 50, 0.4);
+    }
+  }
+
+  .avatar-wrapper {
+    margin: 0 auto;
+    border-radius: 20px;
+    overflow: hidden;
+    background: rgba(255, 255, 255, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2px;
+    position: relative;
+
+    .champion-flag {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 17px;
+    }
+
+    .podium-username {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: rgba(16, 185, 129, 0.9); // Emerald overlay
+      color: #ffffff;
+      padding: 4px 2px;
+      text-align: center;
+      z-index: 5;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      border-top: 1px solid rgba(255, 255, 255, 0.15);
+
+      .pos-num {
+        font-size: 0.75rem;
+        font-weight: 800;
+        line-height: 1.1;
+      }
+
+      .usr-name {
+        font-size: 0.68rem;
+        font-weight: 800;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 100%;
+        line-height: 1.2;
+      }
+    }
+  }
+
+  .podium-pts {
+    font-size: 0.8rem;
+    color: #ffffff;
+    font-weight: 700;
+    margin-top: 4px;
+    display: block;
+  }
+
+  .podium-step {
+    border-radius: 8px 8px 0 0;
+    width: 80%;
+    margin-top: 0.5rem;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding-top: 4px;
+
+    .material-symbols-outlined {
+      display: inline-block;
+      line-height: 1;
+    }
+  }
+
+  &.spot-1st .podium-step .material-symbols-outlined { font-size: 2.35rem; }
+  &.spot-2nd .podium-step .material-symbols-outlined { font-size: 1.85rem; }
+  &.spot-3rd .podium-step .material-symbols-outlined { font-size: 1.45rem; }
+}
+
+// Tabs/Switch style
+.tournament-tabs {
+  max-width: 600px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-around;
+  width: 100%;
+  position: sticky;
+  top: 140px; // Adjust for taller HTML header
+  z-index: 51;
+  background: rgba(10, 26, 15, 0.95); // Mostly opaque to hide scrolling items
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 0;
+  border-radius: 12px 12px 0 0;
+
+  .btn-tab {
+    background: transparent;
+    border: none;
+    color: rgba(255, 255, 255, 0.5);
+    font-weight: 700;
+    font-size: 0.95rem;
+    text-transform: uppercase;
+    padding: 1rem 1.5rem;
+    cursor: pointer;
+    position: relative;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    flex: 1;
+    justify-content: center;
+
+    .tab-logo {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      object-fit: cover;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      filter: grayscale(100%);
+      opacity: 0.6;
+      transition: all 0.2s ease;
+    }
+
+    &:hover {
+      color: #10b981; // Emerald
+      .tab-logo {
+        filter: none;
+        opacity: 1;
+      }
+    }
+
+    &.active {
+      color: #10b981;
+      
+      .tab-logo {
+        filter: none;
+        opacity: 1;
+        border-color: #10b981;
+      }
+
+      &::after {
+        content: '';
+        position: absolute;
+        bottom: -1px;
+        left: 0;
+        width: 100%;
+        height: 3px;
+        background-color: #10b981;
+        border-radius: 3px;
+      }
+    }
+  }
+
+  @media screen and (max-width: 640px) {
+    top: 165px;
+  }
+}
+
+// Table styles
+.table-wrapper {
+  max-width: 600px;
+  width: 100%;
+  margin-top: 0;
+}
+
+.table-container {
+  background: rgba(255, 255, 255, 0.03); // Glassmorphic dark
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 0 0 16px 16px;
+  padding: 1rem;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+
+  .table-header {
+    border-bottom: 1px dashed rgba(255, 255, 255, 0.15);
+    padding-bottom: 0.5rem;
+    color: rgba(255, 255, 255, 0.5);
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    position: sticky;
+    top: 197px; // Below tabs (140 + 57)
+    background: #08170c; // Solid dark to cover scrolling items completely
+    margin-top: -0.5rem;
+    padding-top: 0.5rem;
+    z-index: 48;
+    
+    @media screen and (max-width: 640px) {
+      top: 222px;
+    }
+  }
+
+  .table-body {
+    margin-top: 0.5rem;
+  }
+
+  // Row styles
+  > div.table-body > div {
+    &.pinned-user-row {
+      position: relative;
+      background: #0f3020 !important; // Solid opaque emerald-dark color to prevent transparency overlaps
+      border: 1.5px solid #10b981 !important;
+      box-shadow: 0 10px 25px rgba(16, 185, 129, 0.25);
+      animation: pinned-pulse 2s infinite alternate;
+      margin-top: 8px;
+      margin-bottom: 8px;
+
+      // Wider styles
+      padding: 0.95rem 1.25rem !important;
+      margin-left: -12px !important;
+      margin-right: -12px !important;
+      width: calc(100% + 24px) !important;
+      border-radius: 14px;
+      transition: top 0.2s ease, bottom 0.2s ease, transform 0.2s ease;
+
+      .row-rank {
+        font-size: 1.05rem !important;
+        color: #10b981 !important;
+      }
+
+      .row-avatar {
+        width: 48px !important;
+        height: 48px !important;
+        border-color: rgba(16, 185, 129, 0.5) !important;
+      }
+
+      .row-username {
+        font-size: 1.15rem !important;
+        color: #ffffff !important;
+      }
+
+      .row-pts {
+        font-size: 1.25rem !important;
+        color: #ffffff !important;
+        text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+      }
+      
+      .text-xs.font-semibold {
+        color: rgba(255, 255, 255, 0.8) !important;
+      }
+
+      &:hover {
+        background: #133c28 !important; // Slightly lighter solid color
+      }
+
+      &.pinned-to-top {
+        position: sticky;
+        top: 231px !important; // Below table header
+        bottom: auto !important;
+        z-index: 49;
+        background: #0f3020 !important; // Keep solid opaque
+        border: 1.5px solid rgba(16, 185, 129, 0.9) !important;
+        box-shadow: 0 10px 25px 0 rgba(0, 0, 0, 0.6);
+
+        @media screen and (max-width: 640px) {
+          top: 256px !important;
+        }
+      }
+
+      &.pinned-to-bottom {
+        position: sticky;
+        bottom: 16px !important;
+        top: auto !important;
+        z-index: 49;
+        background: #0f3020 !important; // Keep solid opaque
+      }
+    }
+  }
+}
+
+// Ensure normal rows are styled correctly
+.table-body > div:not(.pinned-user-row):not(.row-sentinel) {
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 12px;
+  transition: all 0.2s ease;
+  border-bottom: 1px dashed rgba(255, 255, 255, 0.06);
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.07);
+    transform: translateX(2px);
+  }
+
+  &:last-child {
+    border-bottom: none;
+  }
+
+  .row-rank {
+    min-width: 24px;
+    color: rgba(255, 255, 255, 0.6);
+  }
+
+  .row-avatar {
+    width: 42px;
+    height: 42px;
+    border-radius: 10px;
+    overflow: hidden;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1.5px solid rgba(255, 255, 255, 0.25);
+    padding: 1px;
+
+    .champion-flag {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 8px;
+    }
+  }
+
+  .row-username {
+    font-weight: 700;
+    color: #ffffff;
+    letter-spacing: 0.02em;
+  }
+
+  .row-pts {
+    color: #ffffff;
+    font-weight: 800;
+  }
+}
+
+@keyframes pinned-pulse {
+  0% {
+    box-shadow: 0 6px 15px rgba(16, 185, 129, 0.15);
+    transform: scale(1);
+  }
+  100% {
+    box-shadow: 0 8px 25px rgba(16, 185, 129, 0.3);
+    transform: scale(1.01);
+  }
+}

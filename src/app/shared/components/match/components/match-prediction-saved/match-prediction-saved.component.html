@@ -1,13 +1,13 @@
 <div class="flex flex-col items-center mt-2 w-full transition-colors duration-300"
   [ngClass]="(match?.fulltime_a !== null && match?.fulltime_b !== null) ? 
-    (isOutcomeCorrectVal ? 'bg-emerald-50/80 border border-emerald-200 rounded-xl p-4 shadow-sm' : 'bg-red-50/80 border border-red-200 rounded-xl p-4 shadow-sm') : 
+    (isOutcomeCorrectVal ? 'bg-emerald-50 border border-emerald-200 rounded-xl p-4 shadow-sm' : 'bg-red-50 border border-red-200 rounded-xl p-4 shadow-sm') : 
     'p-2'">
-  <span class="text-[10px] font-black uppercase tracking-widest text-slate-400 text-center mb-1">Mon Pronostic</span>
+  <span class="text-[10px] font-black uppercase tracking-widest text-slate-500 text-center mb-1">Mon Pronostic</span>
 
   <h4 class="mt-0 mb-2 text-2xl font-black text-center flex items-center justify-center gap-2">
     <strong class="flex items-center gap-2"
       [ngClass]="(match?.fulltime_a !== null && match?.fulltime_b !== null) ? 
-        (isOutcomeCorrectVal ? 'text-emerald-600 drop-shadow-sm' : 'text-red-600 drop-shadow-sm') : 'text-slate-700'">
+        (isOutcomeCorrectVal ? 'text-emerald-600 drop-shadow-sm' : 'text-red-600 drop-shadow-sm') : 'text-slate-800'">
       @if (match?.fulltime_a !== null && match?.fulltime_b !== null) {
       <span class="material-symbols-outlined text-[24px]"
         [ngClass]="isOutcomeCorrectVal ? 'text-emerald-500' : 'text-red-500'">{{ isOutcomeCorrectVal ? 'check_circle' : 'cancel' }}</span>
@@ -28,8 +28,8 @@
   </h4>
 
   @if (!closed && donePronostique?.scorer && donePronostique.scorer !== '-' && !hidePointsBadge) {
-  <div class="flex items-center justify-center gap-1.5 mt-0 mb-2 text-sm font-bold text-center text-indigo-900 bg-indigo-50 border border-indigo-100 px-4 py-1.5 rounded-full shadow-sm">
-    <span class="material-symbols-outlined text-[18px] text-indigo-500">sports_soccer</span>
+  <div class="flex items-center justify-center gap-1.5 mt-0 mb-2 text-sm font-bold text-center text-emerald-800 bg-emerald-50 border border-emerald-200 px-4 py-1.5 rounded-full shadow-sm">
+    <span class="material-symbols-outlined text-[18px] text-emerald-600">sports_soccer</span>
     <span>Buteur : {{ donePronostique.scorer }}</span>
     @if (!isSavedInApi) {
     <button class="flex items-center justify-center text-red-500 hover:text-red-600 transition-colors ml-1 focus:outline-none" 
@@ -52,7 +52,7 @@
         <span class="material-symbols-outlined text-[16px]"
           [ngClass]="isHalftimeCorrectVal ? 'text-emerald-500' : 'text-red-500'">{{ isHalftimeCorrectVal ? 'check_circle' : 'cancel' }}</span>
         }
-        <span class="bg-white/60 px-2 py-0.5 rounded border border-black/5 shadow-inner font-bold">{{ donePronostique?.halftime_a }} - {{ donePronostique?.halftime_b }}</span>
+        <span class="bg-white/60 px-2 py-0.5 rounded border border-black/5 shadow-inner font-bold text-slate-800">{{ donePronostique?.halftime_a }} - {{ donePronostique?.halftime_b }}</span>
       </div>
     </div>
     }
@@ -67,7 +67,7 @@
         <span class="material-symbols-outlined text-[16px]"
           [ngClass]="isFulltimeCorrectVal ? 'text-emerald-500' : 'text-red-500'">{{ isFulltimeCorrectVal ? 'check_circle' : 'cancel' }}</span>
         }
-        <span class="bg-white/60 px-2 py-0.5 rounded border border-black/5 shadow-inner font-bold">{{ donePronostique?.fulltime_a }} - {{ donePronostique?.fulltime_b }}</span>
+        <span class="bg-white/60 px-2 py-0.5 rounded border border-black/5 shadow-inner font-bold text-slate-800">{{ donePronostique?.fulltime_a }} - {{ donePronostique?.fulltime_b }}</span>
       </div>
     </div>
     }
@@ -76,20 +76,20 @@
   @if (donePronostique?.scorer && donePronostique.scorer !== '-') {
   <h5 class="mt-0 mb-2 text-sm text-center flex items-center justify-center gap-2 font-bold"
     [ngClass]="(match?.fulltime_a !== null && match?.fulltime_b !== null) ? 
-      (isScorerCorrectVal ? 'text-emerald-600' : 'text-red-500') : 'text-slate-600'">
+      (isScorerCorrectVal ? 'text-emerald-600' : 'text-red-600') : 'text-slate-600'">
     @if (match?.fulltime_a !== null && match?.fulltime_b !== null) {
     <span class="material-symbols-outlined text-[18px]"
       [ngClass]="isScorerCorrectVal ? 'text-emerald-500' : 'text-red-500'">{{ isScorerCorrectVal ? 'check_circle' : 'cancel' }}</span>
     }
     <strong>Buteur :</strong> 
-    <span class="bg-white/60 px-2 py-0.5 rounded border border-black/5 shadow-inner">{{ donePronostique?.scorer }}</span>
+    <span class="bg-white/60 px-2 py-0.5 rounded border border-black/5 shadow-inner text-slate-800">{{ donePronostique?.scorer }}</span>
   </h5>
   }
   }
 
   @if(isSavedInApi && donePronostique && match?.fulltime_a === null && match?.fulltime_b === null && !isEditing &&
   !hidePointsBadge && countdownText !== 'Match commencé' && !isMatchFinishedByDate) {
-  <button class="mt-2 text-xs font-bold uppercase tracking-wider text-slate-600 bg-white hover:bg-slate-50 border border-slate-300 rounded-lg px-6 py-2 flex items-center justify-center gap-1.5 transition-all shadow-sm hover:shadow active:scale-95" 
+  <button class="mt-2 text-xs font-bold uppercase tracking-wider text-slate-600 bg-white hover:bg-slate-50 border border-slate-200 rounded-lg px-6 py-2 flex items-center justify-center gap-1.5 transition-all shadow-sm hover:shadow active:scale-95" 
     (click)="modifierPronostic()">
     Modifier mon pronostic
     <span class="material-symbols-outlined text-[16px]">edit</span>

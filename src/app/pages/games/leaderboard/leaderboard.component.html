@@ -1,24 +1,25 @@
 <div class="leaderboard-page">
   <!-- Docked Header -->
-  <div class="ranking-header fixed left-0 w-full">
-    <div class="header-filter w-full pt-6 pb-6 pl-4 pr-4">
-      <div class="container text-left">
-        <h1 class="text-white flex items-center gap-2 text-2xl font-bold m-0">
-          <span class="material-symbols-outlined">sports_esports</span>
-          PRONOSTICS LEADERBOARD
-        </h1>
-        @if (latestRank) {
-        <div class="text-white/70 text-xs mt-1 font-semibold flex items-center gap-1">
-          <span class="material-symbols-outlined"
-            style="font-size: 0.95rem; margin-right: 2px; vertical-align: middle;">update</span>
-          <span>Mise à jour le {{ latestRank.modified_on | date: 'd MMMM yyyy à HH:mm' }}</span>
-        </div>
-        }
+  <div class="sticky top-0 z-50 w-full bg-[#0a1a0f]/95 backdrop-blur-xl border-b border-emerald-500/20 pt-6 pb-4 px-4 shadow-[0_10px_30px_-10px_rgba(0,0,0,0.5)]">
+    <div class="container mx-auto max-w-7xl text-left">
+      <div class="mb-3">
+        <app-breadcrumb [bcdata]="breadCrumpData" />
       </div>
+      <h1 class="text-white flex items-center gap-3 text-3xl md:text-4xl font-black m-0">
+        <span class="material-symbols-outlined text-emerald-400 text-4xl">sports_esports</span>
+        PRONOSTICS LEADERBOARD
+      </h1>
+      @if (latestRank) {
+      <div class="text-white/70 text-sm mt-2 font-semibold flex items-center gap-1">
+        <span class="material-symbols-outlined text-emerald-500/80"
+          style="font-size: 1.1rem;">update</span>
+        <span>Mise à jour le {{ latestRank.modified_on | date: 'd MMMM yyyy à HH:mm' }}</span>
+      </div>
+      }
     </div>
   </div>
 
-  <div class="container leaderboard-main flex flex-col h-full">
+  <div class="container leaderboard-main flex flex-col h-full pt-6">
     @if (selectedUserId) {
     <app-scoresheet [userId]="selectedUserId" (close)="selectedUserId = null" />
     } @else {
@@ -132,7 +133,7 @@
           <div class="row-sentinel" style="height: 0; margin: 0; padding: 0; visibility: hidden; pointer-events: none;">
           </div>
           }
-          <div class="table-row flex justify-between items-center px-4 py-2.5"
+          <div class="flex justify-between items-center px-4 py-2.5"
             [ngClass]="{'is-current-user': player.isCurrentUser, 'cursor-pointer': canViewScoresheet(player)}"
             (click)="canViewScoresheet(player) ? openScoresheet(player.key || player.user) : null"
             [class.pinned-user-row]="shouldPinCurrentUser && (player.key || player.user || '').toLowerCase().trim() === currentUserTrigramme.toLowerCase().trim()"

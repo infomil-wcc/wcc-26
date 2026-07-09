@@ -1,13 +1,1 @@
-@use "./../../../../variables" as *;
 
-.breadcrump {
-
-  .btn_breadcrump:hover {
-    color: $blue;
-  }
-
-  .active {
-    color: $primaryColor;
-    pointer-events: none;
-  }
-}

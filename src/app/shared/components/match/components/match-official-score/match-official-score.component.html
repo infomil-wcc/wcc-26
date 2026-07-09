@@ -3,7 +3,7 @@
     <div class="flex items-center justify-end gap-2 w-2/5">
       <span class="block w-[28px] h-[20px] min-w-[28px] flex-shrink-0 bg-cover bg-center bg-no-repeat rounded-sm shadow border border-white/10"
         [ngStyle]="{'background-image': match?.team_a ? 'url(' + teamAFlag + ')'  : 'url(assets/flags/unknown.png)'}"></span>
-      <span class="font-bold tracking-widest text-sm text-slate-300">{{ match?.team_a | uppercase | slice:0:3 }}</span>
+      <span class="font-bold tracking-widest text-sm text-slate-300">{{ match?.team_a }}</span>
     </div>
 
     <div class="flex flex-col items-center justify-center w-1/5 relative">
@@ -30,13 +30,13 @@
     </div>
 
     <div class="flex items-center justify-start gap-2 w-2/5">
-      <span class="font-bold tracking-widest text-sm text-slate-300">{{ match?.team_b | uppercase | slice:0:3 }}</span>
+      <span class="font-bold tracking-widest text-sm text-slate-300">{{ match?.team_b }}</span>
       <span class="block w-[28px] h-[20px] min-w-[28px] flex-shrink-0 bg-cover bg-center bg-no-repeat rounded-sm shadow border border-white/10"
         [ngStyle]="{'background-image': match?.team_b ? 'url(' + teamBFlag + ')'  : 'url(assets/flags/unknown.png)'}"></span>
     </div>
   </div>
 
-  <div class="grid grid grid-cols-12-cols-2 bg-slate-900/60 border-t border-white/5 py-2 px-4 text-xs text-slate-400 min-h-[64px]">
+  <div class="grid grid-cols-2 bg-slate-900/60 border-t border-white/5 py-2 px-4 text-xs text-slate-400 min-h-[64px]">
     <div class="text-left border-r border-white/5 pr-2">
       @if (isScorersJson) {
       @for (scorer of teamAScorersGrouped; track scorer.name) {

@@ -1,0 +1,440 @@
+<div class="scoresheet-page">
+  <div class="ranking-header fixed left-0 w-full z-50">
+    <div class="header-filter w-full pt-6 pb-6 pl-4 pr-4">
+      <div class="container text-left flex items-center justify-between">
+        <h1 class="text-white flex items-center gap-2 text-2xl font-bold m-0">
+          <span class="material-symbols-outlined cursor-pointer" (click)="goBack()">arrow_back</span>
+          Détails des points ({{ userId | uppercase }})
+        </h1>
+      </div>
+    </div>
+  </div>
+
+  <div class="container scoresheet-main pt-20 mt-12">
+    <loader [showLoader]="loading" />
+    @if (!loading) {
+    <div class="mb-8 scoresheet-card overflow-hidden">
+      <div class="flex justify-between items-center p-6 cursor-pointer select-none accordion-header"
+        (click)="isSummaryExpanded = !isSummaryExpanded">
+        <h2 class="text-800 text-xl font-bold m-0 text-blue-500">Résumé des points</h2>
+        <span class="material-symbols-outlined text-slate-700 text-2xl">
+          {{ isSummaryExpanded ? 'expand_less' : 'expand_more' }}
+        </span>
+      </div>
+
+      @if (isSummaryExpanded) {
+      <div class="overflow-x-auto">
+        <table class="custom-table w-full">
+          <thead>
+            <tr>
+              <th class="font-bold text-left">Catégories</th>
+              <th class="text-center font-bold">Phase de Groupes</th>
+              <th class="text-center font-bold">16es</th>
+              <th class="text-center font-bold">8es</th>
+              <th class="text-center font-bold">Quarts</th>
+              <th class="text-center font-bold">Demis</th>
+              <th class="text-center font-bold">Finale</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (cat of ['winner', 'fulltime', 'halftime', 'scorer', 'consolation', 'total']; track cat) {
+            <tr [ngClass]="{'row-total': cat === 'total'}">
+              <td class="font-bold category-name">
+                @if (cat === 'winner') {
+                <span>Trouver le bon vainqueur / Match nul(poules seulement)</span>
+                }
+                @if (cat === 'fulltime') {
+                <span>Score final (jusqu'aux prolongations)</span>
+                }
+                @if (cat === 'halftime') {
+                <span>Score mi-temps</span>
+                }
+                @if (cat === 'scorer') {
+                <span>Nom d'un buteur</span>
+                }
+                @if (cat === 'consolation') {
+                <span>Point de consolation (si 0 pt)</span>
+                }
+                @if (cat === 'total') {
+                <span>Total points gagnés</span>
+                }
+              </td>
+              <td class="text-center font-semibold points-val">
+                @if (cat === 'consolation') { N/A }
+                @else { {{ getSummaryValue('Group Stage', cat) > 0 ? '+' + getSummaryValue('Group Stage', cat) : '-' }} }
+              </td>
+              <td class="text-center font-semibold points-val">
+                @if (cat === 'consolation') { N/A }
+                @else { {{ getSummaryValue('Round of 32', cat) > 0 ? '+' + getSummaryValue('Round of 32', cat) : '-' }} }
+              </td>
+              <td class="text-center font-semibold points-val">{{ getSummaryValue('Round of 16', cat) > 0 ? '+' +
+                getSummaryValue('Round of 16', cat) : '-' }}</td>
+              <td class="text-center font-semibold points-val">{{ getSummaryValue('Quarter-finals', cat) > 0 ? '+' +
+                getSummaryValue('Quarter-finals', cat) : '-' }}</td>
+              <td class="text-center font-semibold points-val">{{ getSummaryValue('Semi-finals', cat) > 0 ? '+' +
+                getSummaryValue('Semi-finals', cat) : '-' }}</td>
+              <td class="text-center font-semibold points-val">{{ getSummaryValue('Final', cat) > 0 ? '+' +
+                getSummaryValue('Final', cat) : '-' }}</td>
+            </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+      }
+    </div>
+
+    <div class="mb-12 scoresheet-card overflow-hidden">
+      <div class="flex justify-between items-center p-6 cursor-pointer select-none accordion-header"
+        (click)="isHistoryExpanded = !isHistoryExpanded">
+        <h2 class="text-800 text-xl font-bold m-0 text-blue-500">Historique des matchs</h2>
+        <span class="material-symbols-outlined text-slate-700 text-2xl">
+          {{ isHistoryExpanded ? 'expand_less' : 'expand_more' }}
+        </span>
+      </div>
+
+      @if (isHistoryExpanded) {
+      <div class="match-filters p-4 bg-gray-50 border-b border-300">
+        <input type="text" [(ngModel)]="filterText" class="w-full md:w-64 rounded-lg border border-gray-300 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+          placeholder="Rechercher une équipe ou une phase..." />
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7 gap-4 mt-4">
+          <div class="flex flex-col gap-1">
+            <label class="text-xs font-bold text-gray-500 uppercase tracking-wider">Match</label>
+            <input type="text" class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500" [(ngModel)]="columnFilters.match"
+              placeholder="Filtrer..." />
+          </div>
+          <div class="flex flex-col gap-1">
+            <label class="text-xs font-bold text-gray-500 uppercase tracking-wider">Date du</label>
+            <input type="date" class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500" [(ngModel)]="columnFilters.dateFrom" />
+          </div>
+          <div class="flex flex-col gap-1">
+            <label class="text-xs font-bold text-gray-500 uppercase tracking-wider">Date au</label>
+            <input type="date" class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500" [(ngModel)]="columnFilters.dateTo" />
+          </div>
+          <div class="flex flex-col gap-1">
+            <label class="text-xs font-bold text-gray-500 uppercase tracking-wider">Phase</label>
+            <select class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white" [(ngModel)]="columnFilters.phase">
+              <option *ngFor="let opt of phasesList" [ngValue]="opt.value">{{ opt.label }}</option>
+            </select>
+          </div>
+          <div class="flex flex-col gap-1">
+            <label class="text-xs font-bold text-gray-500 uppercase tracking-wider">Score officiel</label>
+            <input type="text" class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500" [(ngModel)]="columnFilters.score"
+              placeholder="ex: 2 - 1" />
+          </div>
+          <div class="flex flex-col gap-1">
+            <label class="text-xs font-bold text-gray-500 uppercase tracking-wider">Pronostic</label>
+            <input type="text" class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500" [(ngModel)]="columnFilters.prediction"
+              placeholder="ex: 1 - 0" />
+          </div>
+          <div class="flex flex-col gap-1">
+            <label class="text-xs font-bold text-gray-500 uppercase tracking-wider">Points (Min - Max)</label>
+            <div class="flex gap-2">
+              <input type="number" class="w-full rounded-md border border-gray-300 px-2 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500" [(ngModel)]="columnFilters.pointsMin"
+                placeholder="Min" />
+              <input type="number" class="w-full rounded-md border border-gray-300 px-2 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500" [(ngModel)]="columnFilters.pointsMax"
+                placeholder="Max" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="detailed-matches overflow-x-auto">
+        <table class="w-full text-left border-collapse min-w-[800px]">
+          <thead class="bg-gray-100 border-y border-gray-200">
+            <tr>
+              <th class="px-4 py-3 text-xs font-bold text-gray-600 uppercase cursor-pointer hover:bg-gray-200 transition-colors" (click)="onTableSort('_id')">
+                <div class="flex items-center gap-1">ID <span class="material-symbols-outlined text-sm" [class.text-emerald-500]="sortField === '_id'">{{ sortField === '_id' ? (sortOrder === 'asc' ? 'arrow_upward' : 'arrow_downward') : 'sort' }}</span></div>
+              </th>
+              <th class="px-4 py-3 text-xs font-bold text-gray-600 uppercase cursor-pointer hover:bg-gray-200 transition-colors" (click)="onTableSort('_matchLabel')">
+                <div class="flex items-center gap-1">Match <span class="material-symbols-outlined text-sm" [class.text-emerald-500]="sortField === '_matchLabel'">{{ sortField === '_matchLabel' ? (sortOrder === 'asc' ? 'arrow_upward' : 'arrow_downward') : 'sort' }}</span></div>
+              </th>
+              <th class="px-4 py-3 text-xs font-bold text-gray-600 uppercase cursor-pointer hover:bg-gray-200 transition-colors" (click)="onTableSort('_dateTs')">
+                <div class="flex items-center gap-1">Date <span class="material-symbols-outlined text-sm" [class.text-emerald-500]="sortField === '_dateTs'">{{ sortField === '_dateTs' ? (sortOrder === 'asc' ? 'arrow_upward' : 'arrow_downward') : 'sort' }}</span></div>
+              </th>
+              <th class="px-4 py-3 text-xs font-bold text-gray-600 uppercase cursor-pointer hover:bg-gray-200 transition-colors" (click)="onTableSort('phase')">
+                <div class="flex items-center gap-1">Phase <span class="material-symbols-outlined text-sm" [class.text-emerald-500]="sortField === 'phase'">{{ sortField === 'phase' ? (sortOrder === 'asc' ? 'arrow_upward' : 'arrow_downward') : 'sort' }}</span></div>
+              </th>
+              <th class="px-4 py-3 text-xs font-bold text-gray-600 uppercase cursor-pointer hover:bg-gray-200 transition-colors text-center" (click)="onTableSort('_scoreNum')">
+                <div class="flex items-center justify-center gap-1">Score Officiel <span class="material-symbols-outlined text-sm" [class.text-emerald-500]="sortField === '_scoreNum'">{{ sortField === '_scoreNum' ? (sortOrder === 'asc' ? 'arrow_upward' : 'arrow_downward') : 'sort' }}</span></div>
+              </th>
+              <th class="px-4 py-3 text-xs font-bold text-gray-600 uppercase cursor-pointer hover:bg-gray-200 transition-colors text-center" (click)="onTableSort('_predictionNum')">
+                <div class="flex items-center justify-center gap-1">Pronostic <span class="material-symbols-outlined text-sm" [class.text-emerald-500]="sortField === '_predictionNum'">{{ sortField === '_predictionNum' ? (sortOrder === 'asc' ? 'arrow_upward' : 'arrow_downward') : 'sort' }}</span></div>
+              </th>
+              <th class="px-4 py-3 text-xs font-bold text-gray-600 uppercase cursor-pointer hover:bg-gray-200 transition-colors text-center" (click)="onTableSort('_points')">
+                <div class="flex items-center justify-center gap-1">Points <span class="material-symbols-outlined text-sm" [class.text-emerald-500]="sortField === '_points'">{{ sortField === '_points' ? (sortOrder === 'asc' ? 'arrow_upward' : 'arrow_downward') : 'sort' }}</span></div>
+              </th>
+              <th class="px-4 py-3 text-xs font-bold text-gray-600 uppercase text-center">Détails</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-200 bg-white">
+            <ng-container *ngFor="let item of paginatedMatches">
+              <tr [ngClass]="{'bg-red-50 hover:bg-red-100': item.breakdown.isFraud, 'hover:bg-gray-50': !item.breakdown.isFraud}" class="transition-colors">
+                <td class="px-4 py-3 text-center text-xs font-mono text-slate-400">{{ item.match.id }}</td>
+                <td class="px-4 py-3">
+                  <div class="flex items-center gap-2 justify-start">
+                    <img *ngIf="getTeamFlag(item.match.team_a)" [src]="getTeamFlag(item.match.team_a)" class="w-6 h-4 object-cover shadow-sm rounded-sm" alt="flag">
+                    <span class="text-black font-bold">{{ getTeamNameShort(item.match.team_a) }}</span>
+                    <span class="text-slate-500 px-1">-</span>
+                    <span class="text-black font-bold">{{ getTeamNameShort(item.match.team_b) }}</span>
+                    <img *ngIf="getTeamFlag(item.match.team_b)" [src]="getTeamFlag(item.match.team_b)" class="w-6 h-4 object-cover shadow-sm rounded-sm" alt="flag">
+                  </div>
+                </td>
+                <td class="px-4 py-3 text-center text-sm text-gray-700">{{ item.match.date | date: 'dd/MM/yyyy HH:mm' }}</td>
+                <td class="px-4 py-3 text-center text-sm uppercase text-gray-700">{{ item.match.phase }}</td>
+                <td class="px-4 py-3 text-center font-bold">
+                  <span *ngIf="item.breakdown.isFraud" class="fraud-badge" title="Match invalidé (fraude)">
+                    <span class="material-symbols-outlined fraud-icon">gavel</span>
+                    {{ item.match.fulltime_a !== null && item.match.fulltime_b !== null ? item.match.fulltime_a + ' - ' + item.match.fulltime_b : '-' }}
+                  </span>
+                  <span *ngIf="!item.breakdown.isFraud" class="text-gray-900">{{ item.match.fulltime_a !== null && item.match.fulltime_b !== null ? item.match.fulltime_a + ' - ' + item.match.fulltime_b : '-' }}</span>
+                </td>
+                <td class="px-4 py-3 text-center text-sm">
+                  <div class="flex flex-col items-center gap-1" [ngStyle]="{'text-decoration': item.breakdown.isFraud ? 'line-through' : 'none', 'opacity': item.breakdown.isFraud ? '0.6' : '1'}">
+                    <span *ngIf="isGroupStage(item) && item.prediction.winner_draw" class="pred-winner-badge">{{ getPronosticWinnerTeamName(item) }}</span>
+                    <span *ngIf="!isGroupStage(item) && item.prediction.fulltime_a !== null && item.prediction.fulltime_b !== null" class="font-semibold text-gray-800">{{ item.prediction.fulltime_a }} - {{ item.prediction.fulltime_b }}</span>
+                    <span *ngIf="(isGroupStage(item) && !item.prediction.winner_draw) || (!isGroupStage(item) && (item.prediction.fulltime_a === null || item.prediction.fulltime_b === null))" class="text-gray-400">-</span>
+                  </div>
+                  <div *ngIf="item.breakdown.isFraud" class="flex justify-center mt-1">
+                    <span class="fraud-pred-badge text-xs flex items-center gap-1 font-semibold text-red-600" title="Pronostic invalidé (fraude)">
+                      <span class="material-symbols-outlined text-xs">block</span>
+                      Invalidé
+                    </span>
+                  </div>
+                </td>
+                <td class="px-4 py-3 text-center">
+                  <div *ngIf="item.breakdown.isFraud" class="rounded px-2 py-1 font-bold inline-flex items-center gap-1 bg-red-100 text-red-600" title="Match invalidé (fraude)">
+                    <span class="material-symbols-outlined text-sm">gavel</span>
+                    0 pts
+                  </div>
+                  <div *ngIf="!item.breakdown.isFraud" class="rounded px-2 py-1 font-bold inline-block" [ngClass]="item.breakdown.total > 0 ? 'bg-green-100 text-green-700' : 'bg-gray-200 text-gray-500'">
+                    {{ item.breakdown.total }} pts
+                  </div>
+                </td>
+                <td class="px-4 py-3 text-center">
+                  <button type="button" class="p-2 hover:bg-gray-200 rounded-full transition-colors flex items-center justify-center mx-auto" (click)="item.expanded = !item.expanded">
+                    <span class="material-symbols-outlined text-gray-800">
+                      {{ item.expanded ? 'expand_more' : 'chevron_right' }}
+                    </span>
+                  </button>
+                </td>
+              </tr>
+              
+              <!-- Master-Detail Expand Row -->
+              <tr *ngIf="item.expanded" class="bg-slate-50 border-b border-gray-200">
+                <td colspan="8" class="p-0">
+                  <div class="p-6">
+                    <div *ngIf="item.breakdown.isFraud" class="bg-red-50 border border-red-200 text-red-700 font-bold p-4 rounded-xl flex flex-col gap-2 shadow-sm mb-6">
+                      <div class="flex items-center gap-2">
+                        <span class="material-symbols-outlined text-2xl">gavel</span>
+                        <span>Match invalidé (Fraude) : Le pronostic a été soumis ou modifié après le coup d'envoi.</span>
+                      </div>
+                      <div class="text-sm font-medium mt-1 flex flex-col gap-1 pl-8">
+                        <div><span class="font-bold">Début du match :</span> {{ item.match.date | date: 'dd/MM/yyyy HH:mm' }}</div>
+                        <div *ngIf="item.prediction.created_on"><span class="font-bold">Création :</span> {{ item.prediction.created_on | date: 'dd/MM/yyyy HH:mm' }}</div>
+                        <div *ngIf="item.prediction.modified_on"><span class="font-bold">Modification :</span> {{ item.prediction.modified_on | date: 'dd/MM/yyyy HH:mm' }}</div>
+                      </div>
+                    </div>
+
+                    <div *ngIf="!item.breakdown.isFraud && item.breakdown.total > 0" class="flex flex-wrap gap-6 items-center bg-white p-4 rounded-xl border border-gray-200 shadow-sm mb-6">
+                      <span class="text-slate-600 font-bold text-sm uppercase tracking-wide">Points alloués</span>
+                      <div class="border-r border-gray-300 h-8"></div>
+                      <div *ngIf="item.breakdown.winner > 0" class="text-sm text-green-600 flex items-center gap-1">
+                        <span class="font-bold text-lg">+{{ item.breakdown.winner }}</span> Vainqueur
+                      </div>
+                      <div *ngIf="item.breakdown.fulltime > 0" class="text-sm text-green-600 flex items-center gap-1">
+                        <span class="font-bold text-lg">+{{ item.breakdown.fulltime }}</span> Score Final
+                      </div>
+                      <div *ngIf="item.breakdown.halftime > 0" class="text-sm text-green-600 flex items-center gap-1">
+                        <span class="font-bold text-lg">+{{ item.breakdown.halftime }}</span> Mi-temps
+                      </div>
+                      <div *ngIf="item.breakdown.scorer > 0" class="text-sm text-green-600 flex items-center gap-1">
+                        <span class="font-bold text-lg">+{{ item.breakdown.scorer }}</span> Buteur
+                      </div>
+                      <div *ngIf="item.breakdown.consolation > 0" class="text-sm text-blue-600 flex items-center gap-1">
+                        <span class="font-bold text-lg">+{{ item.breakdown.consolation }}</span> Consolation
+                      </div>
+                    </div>
+                    <div *ngIf="!item.breakdown.isFraud && item.breakdown.total === 0" class="text-slate-500 text-sm font-medium p-2 mb-4">
+                      Aucun point obtenu pour ce match.
+                    </div>
+
+                    <div class="my-predictions-card mb-6 bg-white p-5 rounded-xl border border-gray-200 shadow-sm" [ngStyle]="{'opacity': item.breakdown.isFraud ? '0.7' : '1'}">
+                      <span class="font-bold text-lg text-emerald-600 flex items-center gap-2 mb-4"><span class="material-symbols-outlined">track_changes</span> Mon Pronostic</span>
+                      <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <div class="flex flex-col bg-slate-50 p-3 rounded-lg border border-slate-100">
+                          <span class="text-xs font-bold text-slate-500 uppercase mb-1">Vainqueur prédit</span>
+                          <span *ngIf="getInferredWinnerTeamName(item)" class="font-bold" [ngClass]="!item.breakdown.isFraud && item.breakdown.winner > 0 ? 'text-green-600' : 'text-gray-800'">
+                            {{ getInferredWinnerTeamName(item) }}
+                          </span>
+                          <span *ngIf="!getInferredWinnerTeamName(item)" class="text-gray-400 italic text-sm">Non renseigné</span>
+                        </div>
+                        <div *ngIf="!isRoundOf32(item)" class="flex flex-col bg-slate-50 p-3 rounded-lg border border-slate-100">
+                          <span class="text-xs font-bold text-slate-500 uppercase mb-1">Score mi-temps</span>
+                          <span *ngIf="item.prediction.halftime_a !== null && item.prediction.halftime_b !== null" class="font-bold tracking-wider" [ngClass]="!item.breakdown.isFraud && item.breakdown.halftime > 0 ? 'text-green-600' : 'text-gray-800'">
+                            {{ item.prediction.halftime_a }} – {{ item.prediction.halftime_b }}
+                          </span>
+                          <span *ngIf="item.prediction.halftime_a === null || item.prediction.halftime_b === null" class="text-gray-400 italic text-sm">Non renseigné</span>
+                        </div>
+                        <div class="flex flex-col bg-slate-50 p-3 rounded-lg border border-slate-100">
+                          <span class="text-xs font-bold text-slate-500 uppercase mb-1">Score final</span>
+                          <span *ngIf="item.prediction.fulltime_a !== null && item.prediction.fulltime_b !== null" class="font-bold tracking-wider" [ngClass]="!item.breakdown.isFraud && item.breakdown.fulltime > 0 ? 'text-green-600' : 'text-gray-800'">
+                            {{ item.prediction.fulltime_a }} – {{ item.prediction.fulltime_b }}
+                          </span>
+                          <span *ngIf="item.prediction.fulltime_a === null || item.prediction.fulltime_b === null" class="text-gray-400 italic text-sm">Non renseigné</span>
+                        </div>
+                        <div class="flex flex-col bg-slate-50 p-3 rounded-lg border border-slate-100">
+                          <span class="text-xs font-bold text-slate-500 uppercase mb-1">Buteur</span>
+                          <span *ngIf="item.prediction.scorer" class="font-bold" [ngClass]="!item.breakdown.isFraud && item.breakdown.scorer > 0 ? 'text-green-600' : 'text-gray-800'">
+                            {{ item.prediction.scorer }}
+                          </span>
+                          <span *ngIf="!item.prediction.scorer" class="text-gray-400 italic text-sm">Non renseigné</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="p-5 rounded-xl border border-gray-200 bg-white shadow-sm">
+                      <span class="font-bold text-lg text-blue-600 flex items-center gap-2 mb-6"><span class="material-symbols-outlined">analytics</span> Résultats officiels</span>
+
+                      <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-6">
+                        <!-- Halftime Score -->
+                        <div>
+                          <span class="block text-sm font-bold text-slate-500 uppercase mb-3 text-center">Mi-temps</span>
+                          <div class="flex items-center justify-center gap-4 bg-slate-50 p-3 rounded-lg border border-slate-100">
+                            <div class="flex flex-col items-center w-24">
+                              <img *ngIf="getTeamFlag(item.match.team_a)" [src]="getTeamFlag(item.match.team_a)" class="w-8 h-6 object-cover rounded shadow-sm mb-1" alt="">
+                              <span class="text-xs font-bold">{{ getTeamNameShort(item.match.team_a) }}</span>
+                            </div>
+                            <div class="flex items-center gap-2 text-2xl font-black">
+                              <span>{{ item.match.halftime_a ?? '-' }}</span>
+                              <span class="text-slate-400 text-lg">-</span>
+                              <span>{{ item.match.halftime_b ?? '-' }}</span>
+                            </div>
+                            <div class="flex flex-col items-center w-24">
+                              <img *ngIf="getTeamFlag(item.match.team_b)" [src]="getTeamFlag(item.match.team_b)" class="w-8 h-6 object-cover rounded shadow-sm mb-1" alt="">
+                              <span class="text-xs font-bold">{{ getTeamNameShort(item.match.team_b) }}</span>
+                            </div>
+                          </div>
+                        </div>
+
+                        <!-- Fulltime Score -->
+                        <div>
+                          <span class="block text-sm font-bold text-slate-500 uppercase mb-3 text-center">Temps réglementaire</span>
+                          <div class="flex items-center justify-center gap-4 bg-slate-50 p-3 rounded-lg border border-slate-100">
+                            <div class="flex flex-col items-center w-24">
+                              <img *ngIf="getTeamFlag(item.match.team_a)" [src]="getTeamFlag(item.match.team_a)" class="w-8 h-6 object-cover rounded shadow-sm mb-1" alt="">
+                              <span class="text-xs font-bold">{{ getTeamNameShort(item.match.team_a) }}</span>
+                            </div>
+                            <div class="flex items-center gap-2 text-2xl font-black">
+                              <span>{{ item.match.fulltime_a ?? '-' }}</span>
+                              <span class="text-slate-400 text-lg">-</span>
+                              <span>{{ item.match.fulltime_b ?? '-' }}</span>
+                            </div>
+                            <div class="flex flex-col items-center w-24">
+                              <img *ngIf="getTeamFlag(item.match.team_b)" [src]="getTeamFlag(item.match.team_b)" class="w-8 h-6 object-cover rounded shadow-sm mb-1" alt="">
+                              <span class="text-xs font-bold">{{ getTeamNameShort(item.match.team_b) }}</span>
+                            </div>
+                          </div>
+                        </div>
+                        
+                        <!-- Penalty Score -->
+                        <div *ngIf="hasPenalty(item)" class="md:col-span-2">
+                          <span class="block text-sm font-bold text-amber-600 uppercase mb-3 text-center">Tirs au but</span>
+                          <div class="flex items-center justify-center gap-4 bg-amber-50 p-3 rounded-lg border border-amber-100 max-w-md mx-auto">
+                            <div class="flex flex-col items-center w-24">
+                              <span class="text-xs font-bold">{{ getTeamNameShort(item.match.team_a) }}</span>
+                            </div>
+                            <div class="flex items-center gap-2 text-2xl font-black text-amber-700">
+                              <span>{{ item.match.penalty_a }}</span>
+                              <span class="text-amber-300 text-lg">-</span>
+                              <span>{{ item.match.penalty_b }}</span>
+                            </div>
+                            <div class="flex flex-col items-center w-24">
+                              <span class="text-xs font-bold">{{ getTeamNameShort(item.match.team_b) }}</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div *ngIf="hasScorersJson(item.match)">
+                        <span class="font-bold text-sm uppercase text-slate-500 mb-3 flex items-center gap-1 border-b border-gray-100 pb-2"><span class="material-symbols-outlined text-sm">sports_soccer</span> Buteurs</span>
+                        <div class="grid grid-cols-2 gap-4 mt-3">
+                          <!-- Team A Scorers -->
+                          <div>
+                            <div class="flex items-center gap-2 mb-2 bg-slate-50 p-2 rounded">
+                              <img *ngIf="getTeamFlag(item.match.team_a)" [src]="getTeamFlag(item.match.team_a)" class="w-5 h-3 object-cover rounded shadow-sm" alt="">
+                              <span class="text-xs font-bold">{{ getTeamNameShort(item.match.team_a) }}</span>
+                            </div>
+                            <ng-container *ngIf="getMatchScorersGrouped(item.match, item.match.team_a).length > 0; else noScorerA">
+                              <div *ngFor="let s of getMatchScorersGrouped(item.match, item.match.team_a)" class="flex justify-between items-center py-1 text-sm border-b border-dashed border-gray-100 last:border-0">
+                                <span class="font-semibold text-gray-800">{{ s.name }}</span>
+                                <span class="text-xs text-emerald-600 font-mono">{{ s.times }}</span>
+                              </div>
+                            </ng-container>
+                            <ng-template #noScorerA>
+                              <span class="text-xs text-gray-400 italic px-2">Aucun buteur</span>
+                            </ng-template>
+                          </div>
+                          <!-- Team B Scorers -->
+                          <div>
+                            <div class="flex items-center gap-2 mb-2 bg-slate-50 p-2 rounded">
+                              <img *ngIf="getTeamFlag(item.match.team_b)" [src]="getTeamFlag(item.match.team_b)" class="w-5 h-3 object-cover rounded shadow-sm" alt="">
+                              <span class="text-xs font-bold">{{ getTeamNameShort(item.match.team_b) }}</span>
+                            </div>
+                            <ng-container *ngIf="getMatchScorersGrouped(item.match, item.match.team_b).length > 0; else noScorerB">
+                              <div *ngFor="let s of getMatchScorersGrouped(item.match, item.match.team_b)" class="flex justify-between items-center py-1 text-sm border-b border-dashed border-gray-100 last:border-0">
+                                <span class="font-semibold text-gray-800">{{ s.name }}</span>
+                                <span class="text-xs text-emerald-600 font-mono">{{ s.times }}</span>
+                              </div>
+                            </ng-container>
+                            <ng-template #noScorerB>
+                              <span class="text-xs text-gray-400 italic px-2">Aucun buteur</span>
+                            </ng-template>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </td>
+              </tr>
+            </ng-container>
+          </tbody>
+        </table>
+
+        <!-- Custom Pagination -->
+        <div class="flex items-center justify-between px-4 py-3 bg-white border-t border-gray-200 sm:px-6">
+          <div class="flex flex-1 justify-between sm:hidden">
+            <button (click)="prevPage()" [disabled]="currentPage === 1" class="relative inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">Précédent</button>
+            <button (click)="nextPage()" [disabled]="currentPage === totalPages" class="relative ml-3 inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">Suivant</button>
+          </div>
+          <div class="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
+            <div>
+              <p class="text-sm text-gray-700">
+                Affichage de <span class="font-medium">{{ (currentPage - 1) * pageSize + 1 }}</span> à <span class="font-medium">{{ (currentPage * pageSize > filteredMatches.length ? filteredMatches.length : currentPage * pageSize) }}</span> sur <span class="font-medium">{{ filteredMatches.length }}</span> matchs
+              </p>
+            </div>
+            <div>
+              <nav class="isolate inline-flex -space-x-px rounded-md shadow-sm" aria-label="Pagination">
+                <button (click)="prevPage()" [disabled]="currentPage === 1" class="relative inline-flex items-center rounded-l-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 disabled:opacity-50 disabled:cursor-not-allowed">
+                  <span class="sr-only">Précédent</span>
+                  <span class="material-symbols-outlined text-sm">chevron_left</span>
+                </button>
+                <button class="relative inline-flex items-center px-4 py-2 text-sm font-semibold text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0">
+                  Page {{ currentPage }} sur {{ totalPages }}
+                </button>
+                <button (click)="nextPage()" [disabled]="currentPage === totalPages" class="relative inline-flex items-center rounded-r-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 disabled:opacity-50 disabled:cursor-not-allowed">
+                  <span class="sr-only">Suivant</span>
+                  <span class="material-symbols-outlined text-sm">chevron_right</span>
+                </button>
+              </nav>
+            </div>
+          </div>
+        </div>
+
+        <div *ngIf="filteredMatches.length === 0" class="text-center text-slate-500 py-12 font-medium text-lg border-t border-gray-200 bg-white">Aucun match trouvé.</div>
+      </div>
+      }
+    </div>
+    }
+  </div>
+</div>
