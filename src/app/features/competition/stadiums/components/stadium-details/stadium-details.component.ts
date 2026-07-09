@@ -1,5 +1,5 @@
 import { Component, Input, ChangeDetectionStrategy } from '@angular/core';
-import { Stadium } from '../../stadiums.component';
+import { Stadium } from '../../pages/stadiums.component';
 
 @Component({
     selector: 'app-stadium-details',

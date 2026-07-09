@@ -1,8 +1,8 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { StadiumsComponent } from './stadiums.component';
-import { BreadcrumbComponent } from '../../../../../shared/components/breadcrumb/breadcrumb.component';
-import { LoaderComponent } from '../../../../../shared/components/loader/loader.component';
+import { BreadcrumbComponent } from '../../../../shared/components/breadcrumb/breadcrumb.component';
+import { LoaderComponent } from '../../../../shared/components/loader/loader.component';
 
 describe('StadiumsComponent', () => {
   let component: StadiumsComponent;

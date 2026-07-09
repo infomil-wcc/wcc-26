@@ -1,12 +1,12 @@
 import { Component, Host, OnInit, Optional, inject, ChangeDetectionStrategy } from '@angular/core';
-import { StateService } from '../../../../../core/services/core/state.service';
-import { TeamsService } from '../../../../../core/services/content/teams.service';
+import { StateService } from '../../../../core/services/core/state.service';
+import { TeamsService } from '../../../../core/services/content/teams.service';
 import { Observable, map } from 'rxjs';
-import { Teams }  from '../../../../../shared/contracts/teams.contract';
-import { breadCrump, BreadcrumbComponent } from '../../../../../shared/components/breadcrumb/breadcrumb.component';
-import { GlobaltimeService } from '../../../../../core/services/core/global-time.service';
+import { Teams }  from '../../../../shared/contracts/teams.contract';
+import { breadCrump, BreadcrumbComponent } from '../../../../shared/components/breadcrumb/breadcrumb.component';
+import { GlobaltimeService } from '../../../../core/services/core/global-time.service';
 import { NgClass, AsyncPipe } from '@angular/common';
-import { LoaderComponent } from '../../../../../shared/components/loader/loader.component';
+import { LoaderComponent } from '../../../../shared/components/loader/loader.component';
 import { TeamDetailsComponent } from '../components/team-details/team-details.component';
 
 @Component({

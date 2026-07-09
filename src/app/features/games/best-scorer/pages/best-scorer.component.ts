@@ -1,14 +1,14 @@
 import { Component, OnInit, inject, ChangeDetectionStrategy } from '@angular/core';
-import { teamsApiData, Teams, Player, TeamResponse } from '../../../../../shared/contracts/teams.contract';
-import { TeamsService } from '../../../../../core/services/content/teams.service';
-import { CorrectscorerService, BestPlayer } from '../../../../../core/services/games/correct-scorer.service';
-import { StateService, user } from '../../../../../core/services/core/state.service';
+import { teamsApiData, Teams, Player, TeamResponse } from '../../../../shared/contracts/teams.contract';
+import { TeamsService } from '../../../../core/services/content/teams.service';
+import { CorrectscorerService, BestPlayer } from '../../../../core/services/games/correct-scorer.service';
+import { StateService, user } from '../../../../core/services/core/state.service';
 import { Observable } from 'rxjs';
 import { ReactiveFormsModule, FormsModule } from '@angular/forms';
-import { NumberInputComponent } from '../../../../../shared/components/number-input/number-input.component';
-import { LoaderComponent } from '../../../../../shared/components/loader/loader.component';
-import { ModalComponent } from '../../../../../shared/components/modal/modal.component';
-import { LoginComponent } from '../../../../../shared/components/login/login.component';
+import { NumberInputComponent } from '../../../../shared/components/number-input/number-input.component';
+import { LoaderComponent } from '../../../../shared/components/loader/loader.component';
+import { ModalComponent } from '../../../../shared/components/modal/modal.component';
+import { LoginComponent } from '../../../../shared/components/login/login.component';
 import { AsyncPipe } from '@angular/common';
 
 @Component({

@@ -2,15 +2,15 @@ import { Component, OnInit, inject, Input, Output, EventEmitter, ChangeDetectorR
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { MatchesService } from '../../../../../../core/services/content/matches.service';
-import { PredictionsApiService } from '../../../../../../core/services/api/predictions-api.service';
-import { PronosticsRankingsApiService } from '../../../../../../core/services/api/pronostics-rankings-api.service';
-import { TeamsService } from '../../../../../../core/services/content/teams.service';
-import { Matches } from '../../../../../../shared/contracts/matches.contract';
-import { Pronostiques } from '../../../../../../shared/contracts/pronostiques.contract';
-import { Teams } from '../../../../../../shared/contracts/teams.contract';
+import { MatchesService } from '../../../../../core/services/content/matches.service';
+import { PredictionsApiService } from '../../../../../core/services/api/predictions-api.service';
+import { PronosticsRankingsApiService } from '../../../../../core/services/api/pronostics-rankings-api.service';
+import { TeamsService } from '../../../../../core/services/content/teams.service';
+import { Matches } from '../../../../../shared/contracts/matches.contract';
+import { Pronostiques } from '../../../../../shared/contracts/pronostiques.contract';
+import { Teams } from '../../../../../shared/contracts/teams.contract';
 import { forkJoin } from 'rxjs';
-import { LoaderComponent } from '../../../../../../shared/components/loader/loader.component';
+import { LoaderComponent } from '../../../../../shared/components/loader/loader.component';
 
 interface PhaseSummary {
   winner: number;

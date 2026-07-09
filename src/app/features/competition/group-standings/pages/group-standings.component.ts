@@ -1,6 +1,6 @@
 import { Component, ChangeDetectionStrategy } from '@angular/core';
 import { GroupTableComponent } from '../components/group-table/group-table.component';
-import { BreadcrumbComponent, breadCrump } from '../../../../../shared/components/breadcrumb/breadcrumb.component';
+import { BreadcrumbComponent, breadCrump } from '../../../../shared/components/breadcrumb/breadcrumb.component';
 
 @Component({
   selector: 'app-group-standings',

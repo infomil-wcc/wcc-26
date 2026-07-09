@@ -1,14 +1,14 @@
 import { Component, OnInit, inject, ChangeDetectionStrategy, signal } from '@angular/core';
 import { toObservable } from '@angular/core/rxjs-interop';
-import { MatchesService } from '../../../../../core/services/content/matches.service';
-import { Matches } from '../../../../../shared/contracts/matches.contract';
-import { GlobaltimeService } from '../../../../../core/services/core/global-time.service';
+import { MatchesService } from '../../../../core/services/content/matches.service';
+import { Matches } from '../../../../shared/contracts/matches.contract';
+import { GlobaltimeService } from '../../../../core/services/core/global-time.service';
 import { Observable, combineLatest } from 'rxjs';
 import { map } from 'rxjs/operators';
-import { MatchComponent } from '../../../../../shared/components/match/match.component';
-import { LoaderComponent } from '../../../../../shared/components/loader/loader.component';
+import { MatchComponent } from '../../../../shared/components/match/match.component';
+import { LoaderComponent } from '../../../../shared/components/loader/loader.component';
 import { AsyncPipe, DatePipe } from '@angular/common';
-import { CalendarStripComponent } from '../../../../../shared/components/calendar-strip/calendar-strip.component';
+import { CalendarStripComponent } from '../../../../shared/components/calendar-strip/calendar-strip.component';
 
 @Component({
     selector: 'app-games',

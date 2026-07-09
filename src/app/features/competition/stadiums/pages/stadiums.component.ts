@@ -1,9 +1,9 @@
 import { Component, OnInit, inject, ChangeDetectionStrategy } from '@angular/core';
-import { breadCrump, BreadcrumbComponent } from '../../../../../shared/components/breadcrumb/breadcrumb.component';
+import { breadCrump, BreadcrumbComponent } from '../../../../shared/components/breadcrumb/breadcrumb.component';
 import { Observable, map } from 'rxjs';
-import { StadiumsService } from '../../../../../core/services/content/stadiums.service';
+import { StadiumsService } from '../../../../core/services/content/stadiums.service';
 import { NgClass, AsyncPipe } from '@angular/common';
-import { LoaderComponent } from '../../../../../shared/components/loader/loader.component';
+import { LoaderComponent } from '../../../../shared/components/loader/loader.component';
 import { StadiumDetailsComponent } from '../components/stadium-details/stadium-details.component';
 
 export interface Stadium {
