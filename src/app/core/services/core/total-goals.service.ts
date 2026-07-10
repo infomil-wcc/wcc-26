@@ -1,11 +1,10 @@
-import { inject, Injectable } from '@angular/core';
+import { inject } from '@angular/core';
 import { Observable, map } from 'rxjs';
 import { HttpHeaders } from '@angular/common/http';
 import { TotalGoalsApiService } from '../api/total-goals-api.service';
+import { Service } from '@angular/core';
 
-@Injectable({
-  providedIn: 'root'
-})
+@Service()
 export class TotalgoalsService {
   private totalGoalsApiService = inject(TotalGoalsApiService);
 

@@ -2,7 +2,6 @@ import { Component, Input, OnInit, inject, ChangeDetectionStrategy } from '@angu
 import { StateService, user } from '../../../core/services/core/state.service';
 import { Observable, Subscription } from 'rxjs';
 import { NavComponent } from '../nav/nav.component';
-import { ModalComponent } from '../modal/modal.component';
 import { LoginComponent } from '../login/login.component';
 import { AsyncPipe } from '@angular/common';
 import { Router } from '@angular/router';
@@ -13,7 +12,7 @@ import { SidebarService } from '../../../core/services/core/sidebar.service';
     templateUrl: './menu.component.html',
     styleUrl: './menu.component.scss',
     changeDetection: ChangeDetectionStrategy.Eager,
-    imports: [NavComponent, ModalComponent, LoginComponent, AsyncPipe]
+    imports: [NavComponent, LoginComponent, AsyncPipe]
 })
 export class MenuComponent implements OnInit{
 

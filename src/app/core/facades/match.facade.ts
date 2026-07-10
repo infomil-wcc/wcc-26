@@ -1,4 +1,7 @@
-import { Injectable, inject } from '@angular/core';
+import { Injectable, inject, Injector } from '@angular/core';
+import { toObservable } from '@angular/core/rxjs-interop';
+import { Observable } from 'rxjs';
+import { Matches } from '../../shared/contracts/matches.contract';
 import { TeamsService } from '../services/content/teams.service';
 import { PredictionsService } from '../services/games/predictions.service';
 import { StateService } from '../services/core/state.service';
@@ -24,6 +27,7 @@ export class MatchFacade {
   private matchScorersService = inject(MatchScorersService);
   private matchOutcomeService = inject(MatchOutcomeService);
   private matchCountdownService = inject(MatchCountdownService);
+  private injector = inject(Injector);
 
   // Expose Observables/Properties
   public userState$ = this.stateService.userState;
@@ -32,15 +36,15 @@ export class MatchFacade {
 
   // TeamsService delegation
   getPlayersByTeamName(teamName: string) {
-    return this.teamsService.getPlayersByTeamName(teamName);
+    return toObservable(this.teamsService.getPlayersByTeamName(teamName), { injector: this.injector });
   }
 
   getTeamByName(teamName: string) {
-    return this.teamsService.getTeamByName(teamName);
+    return toObservable(this.teamsService.getTeamByName(teamName), { injector: this.injector });
   }
 
   getFlags() {
-    return this.teamsService.getFlags();
+    return toObservable(this.teamsService.flags, { injector: this.injector });
   }
 
   // PredictionsService delegation
@@ -79,7 +83,7 @@ export class MatchFacade {
 
   // StadiumsService delegation
   getStadium() {
-    return this.stadiumsService.getStadium();
+    return toObservable(this.stadiumsService.stadiums, { injector: this.injector });
   }
 
   // LineupsApiService delegation
@@ -88,8 +92,8 @@ export class MatchFacade {
   }
 
   // MatchesService delegation
-  getAllMatches() {
-    return this.matchesService.getAllMatches();
+  getAllMatches(): Observable<Matches[]> {
+    return toObservable(this.matchesService.allMatches, { injector: this.injector }) as Observable<Matches[]>;
   }
 
   // MatchScorersService delegation

@@ -1,7 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { TeamDetailsComponent } from './team-details.component';
-import { HyphernatePipe } from '../../pipe/hyphernate.pipe';
+import { HyphernatePipe } from '../../../../../shared/pipe/hyphernate.pipe';
 import { TabContentComponent } from '../tab-content/tab-content.component';
 
 describe('TeamDetailsComponent', () => {

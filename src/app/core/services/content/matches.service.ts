@@ -1,57 +1,39 @@
-import { Injectable, inject } from '@angular/core';
+import { Service, inject, Signal, computed } from '@angular/core';
 import { Matches } from '../../../shared/contracts/matches.contract';
-import { Observable, forkJoin, map, of } from 'rxjs';
-import { catchError } from 'rxjs/operators';
-import { MatchesApiService } from '../api/matches-api.service';
+import { httpResource } from '@angular/common/http';
+import { environment } from '../../../../environments/environment';
 
-@Injectable({
-  providedIn: 'root'
-})
+@Service()
 export class MatchesService {
-  private matchesApiService = inject(MatchesApiService);
+  // Global resources
+  private _allMatchesRes = httpResource<any>(() => `${environment.apiBaseUrl}/items/matches`);
+  readonly allMatches = computed(() => this._allMatchesRes.value()?.data || []);
 
-  getAllMatches(): Observable<Matches[]> {
-    return this.matchesApiService.getMatches().pipe(
-      map(response => response?.data || []),
-      catchError(() => of([]))
-    );
+  private _playedMatchesRes = httpResource<any>(() => `${environment.apiBaseUrl}/items/matches?filter[fulltime_a][_nnull]=true`);
+  readonly playedMatches = computed(() => this._playedMatchesRes.value()?.data || []);
+  getMatchesByGroup(groupName: string | Signal<string>) {
+    const request = typeof groupName === 'string' ? () => `${environment.apiBaseUrl}/items/matches?filter[group]=${groupName}` : () => `${environment.apiBaseUrl}/items/matches?filter[group]=${groupName()}`;
+    const res = httpResource<any>(request);
+    return computed(() => res.value()?.data || []);
   }
 
-  getMatchesByGroup(groupName: string): Observable<Matches[]> {
-    return this.matchesApiService.getMatches(`?filter[group]=${groupName}`).pipe(
-      map(response => response?.data || []),
-      catchError(() => of([]))
-    );
+  getMatchesByPhase(phase: string | Signal<string>) {
+    const request = typeof phase === 'string' ? () => `${environment.apiBaseUrl}/items/matches?filter[phase]=${phase}` : () => `${environment.apiBaseUrl}/items/matches?filter[phase]=${phase()}`;
+    const res = httpResource<any>(request);
+    return computed(() => res.value()?.data || []);
   }
 
-  getMatchesByPhase(phase: string): Observable<Matches[]> {
-    return this.matchesApiService.getMatches(`?filter[phase]=${phase}`).pipe(
-      map(response => response?.data || []),
-      catchError(() => of([]))
-    );
-  }
-
-  getMatchesByTeam(team: string): Observable<Matches[]> {
-    const teamA$ = this.matchesApiService.getMatches(`?filter[team_a]=${team}`).pipe(
-      map(response => response?.data || []),
-      catchError(() => of([]))
-    );
-
-    const teamB$ = this.matchesApiService.getMatches(`?filter[team_b]=${team}`).pipe(
-      map(response => response?.data || []),
-      catchError(() => of([]))
-    );
-
-    return forkJoin([teamA$, teamB$]).pipe(
-      map(([teamAMatches, teamBMatches]) => [...(teamAMatches || []), ...(teamBMatches || [])]),
-      catchError(() => of([]))
-    );
-  }
-
-  getPlayedMatches(): Observable<Matches[]>{
-    return this.matchesApiService.getMatches('?filter[fulltime_b][nnull]').pipe(
-      map(response => response?.data || []),
-      catchError(() => of([]))
-    );
+  getMatchesByTeam(team: string | Signal<string>) {
+    // For multiple requests, we can just fetch all matches or rely on two resources.
+    // Given httpResource limitations for forkJoin, we can do this reactively by creating a combined signal.
+    const teamName = typeof team === 'string' ? () => team : team;
+    
+    const reqA = computed(() => `${environment.apiBaseUrl}/items/matches?filter[team_a]=${teamName()}`);
+    const reqB = computed(() => `${environment.apiBaseUrl}/items/matches?filter[team_b]=${teamName()}`);
+    
+    const resA = httpResource<any>(reqA);
+    const resB = httpResource<any>(reqB);
+    
+    return computed(() => [...(resA.value()?.data || []), ...(resB.value()?.data || [])]);
   }
 }

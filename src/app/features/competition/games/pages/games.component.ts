@@ -8,6 +8,7 @@ import { map } from 'rxjs/operators';
 import { MatchComponent } from '../../../../shared/components/match/match.component';
 import { LoaderComponent } from '../../../../shared/components/loader/loader.component';
 import { AsyncPipe, DatePipe } from '@angular/common';
+import { Injector } from '@angular/core';
 import { CalendarStripComponent } from '../../../../shared/components/calendar-strip/calendar-strip.component';
 
 @Component({
@@ -21,6 +22,7 @@ export class GamesComponent implements OnInit {
 
   private matchesService = inject(MatchesService);
   private globalTime = inject(GlobaltimeService);
+  private injector = inject(Injector);
 
   $groupedMatches!: Observable<{ [key: string]: Matches[] }>;
   protected $today!: Observable<any>;
@@ -40,13 +42,13 @@ export class GamesComponent implements OnInit {
     this.$today = this.globalTime.getMuTime();
 
     this.$matchDates = combineLatest([
-      this.matchesService.getAllMatches(),
+      toObservable(this.matchesService.allMatches, { injector: this.injector }),
       this.$today,
       this.selectedTab$
     ]).pipe(
-      map(([matches, today, tab]) => {
+      map(([matches, today, tab]: [any[], any, any]) => {
         const now = new Date(today.dateTime.slice(0, -6));
-        const filtered = matches.filter(match => {
+        const filtered = matches.filter((match: any) => {
 
           const matchDate = new Date(match.date);
           const isFinished = match.fulltime_a !== null && match.fulltime_b !== null;
@@ -62,22 +64,22 @@ export class GamesComponent implements OnInit {
           return true;
         });
 
-        const dates = filtered.map(m => m.date.split(' ')[0]);
-        return Array.from(new Set(dates)).sort((a, b) => new Date(a).getTime() - new Date(b).getTime());
+        const dates = filtered.map((m: any) => m.date.split(' ')[0]);
+        return Array.from(new Set(dates)).sort((a: any, b: any) => new Date(a).getTime() - new Date(b).getTime());
       })
     );
     this.$groupedMatches = combineLatest([
-      this.matchesService.getAllMatches(),
+      toObservable(this.matchesService.allMatches, { injector: this.injector }),
       this.$today,
       this.selectedTab$,
       this.filterDate$
     ]).pipe(
-      map(([matches, today, tab, filterDate]) => {
+      map(([matches, today, tab, filterDate]: [any[], any, any, any]) => {
         this.activeTab = tab;
         this.filterDate = filterDate;
         const now = new Date(today.dateTime.slice(0, -6));
         
-        const filtered = matches.filter(match => {
+        const filtered = matches.filter((match: any) => {
           
           // If a date filter is selected, check if it matches the match date (YYYY-MM-DD format)
           if (filterDate) {
@@ -105,7 +107,7 @@ export class GamesComponent implements OnInit {
 
         // Sort matches within each date group by time
         for (const dateKey of Object.keys(grouped)) {
-          grouped[dateKey].sort((a, b) => {
+          grouped[dateKey].sort((a: any, b: any) => {
             const timeA = new Date(a.date).getTime();
             const timeB = new Date(b.date).getTime();
             if (tab === 'past') {

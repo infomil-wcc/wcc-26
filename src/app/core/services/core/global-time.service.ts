@@ -1,10 +1,9 @@
-import { Injectable, inject } from '@angular/core';
+import { inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { TimeApiService } from '../api/time-api.service';
+import { Service } from '@angular/core';
 
-@Injectable({
-  providedIn: 'root'
-})
+@Service()
 export class GlobaltimeService {
 
   private timeApiService = inject(TimeApiService);

@@ -248,8 +248,8 @@ export class MatchComponent implements OnInit, OnDestroy {
     this.showTacticalModal = true;
     this.loadingLineups = true;
 
-    this.facade.getPlayersByTeamName(this.match.team_a).subscribe(playersA => {
-      this.facade.getPlayersByTeamName(this.match.team_b).subscribe(playersB => {
+    this.facade.getPlayersByTeamName(this.match.team_a).subscribe((playersA: any) => {
+      this.facade.getPlayersByTeamName(this.match.team_b).subscribe((playersB: any) => {
         const listA = (playersA?.players || []).map((p: any) => ({ ...p, teamName: this.match.team_a }));
         const listB = (playersB?.players || []).map((p: any) => ({ ...p, teamName: this.match.team_b }));
         this.fallbackPlayersList = [...listA, ...listB];
@@ -299,14 +299,14 @@ export class MatchComponent implements OnInit, OnDestroy {
 
   getTeamFlag(teamName: string, callback: (flag: string) => void): void {
     this.facade.getTeamByName(teamName).subscribe({
-      next: (response) => {
+      next: (response: any) => {
         if (response.length > 0 && response[0].flag_url) {
           callback(response[0].flag_url);
         } else {
           callback('assets/flags/unknown.png');
         }
       },
-      error: (err) => {
+      error: (err: any) => {
         console.error('Error fetching team flag:', err);
         callback('assets/flags/unknown.png');
       }
@@ -633,7 +633,7 @@ export class MatchComponent implements OnInit, OnDestroy {
     const loadFlags$ = Object.keys(this.flagsLookup).length > 0
       ? of(null)
       : this.facade.getFlags().pipe(
-        map(flags => {
+        map((flags: any) => {
           (flags || []).forEach((f: any) => {
             this.flagsLookup[f.name] = f.flag_url;
           });
@@ -643,17 +643,17 @@ export class MatchComponent implements OnInit, OnDestroy {
 
     loadFlags$.subscribe(() => {
       this.facade.getAllMatches().subscribe({
-        next: (allMatches) => {
+        next: (allMatches: any) => {
           this.teamPastMatches = (allMatches || [])
-            .filter(m =>
+            .filter((m: any) =>
               m.fulltime_a !== null && m.fulltime_b !== null &&
               (m.team_a === teamName || m.team_b === teamName)
             )
-            .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+            .sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
           this.loadingTeamInfo = false;
         },
-        error: (err) => {
+        error: (err: any) => {
           console.error('Error fetching past matches:', err);
           this.loadingTeamInfo = false;
         }

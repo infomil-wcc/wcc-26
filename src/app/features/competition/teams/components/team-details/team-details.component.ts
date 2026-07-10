@@ -1,6 +1,7 @@
-import { Component, Input, OnInit, inject, ChangeDetectionStrategy } from '@angular/core';
+import { Component, Input, OnInit, inject, ChangeDetectionStrategy, Injector } from '@angular/core';
 import { Teams, TeamResponse, teamsApiData } from '../../../../../shared/contracts/teams.contract';
 import { Matches } from '../../../../../shared/contracts/matches.contract';
+import { toObservable } from '@angular/core/rxjs-interop';
 import { TeamsService } from '../../../../../core/services/content/teams.service';
 import { MatchesService } from '../../../../../core/services/content/matches.service';
 import { Observable } from 'rxjs';
@@ -27,6 +28,7 @@ export class TeamDetailsComponent implements OnInit {
   private teamsService = inject(TeamsService);
   private matchesService = inject(MatchesService);
   private globalTime = inject(GlobaltimeService);
+  private injector = inject(Injector);
 
   protected $today!:Observable<any>;
 
@@ -39,8 +41,8 @@ export class TeamDetailsComponent implements OnInit {
     this.$today = this.globalTime.getMuTime();
 
     // this.$teamPlayers = this.teamsService.getPlayersByTeamName(this.team.name);
-    this.$teamMatches = this.matchesService.getMatchesByTeam(this.team.name);
-        this.$teamDetails = this.teamsService.getTeamsInfo(this.team.iso).pipe(
+    this.$teamMatches = toObservable(this.matchesService.getMatchesByTeam(this.team.name), { injector: this.injector });
+    this.$teamDetails = toObservable(this.teamsService.getTeamsInfo(this.team.iso), { injector: this.injector }).pipe(
       map((countries: Country[]) => {
         return countries.map(country => {
           if (country.timeline) {

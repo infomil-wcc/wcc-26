@@ -1,8 +1,10 @@
-import { Injectable, inject } from '@angular/core';
+import { inject, signal } from '@angular/core';
+import { toObservable } from '@angular/core/rxjs-interop';
 import { CookieService } from './cookie.service';
-import { BehaviorSubject, Observable } from 'rxjs';
 import { AuthService } from './auth.service';
 import { Router } from '@angular/router';
+import { Service } from '@angular/core';
+import { Observable } from 'rxjs';
 
 export interface AppState {
   loggedIn: boolean;
@@ -17,23 +19,18 @@ export interface user {
   status: string | null;
 }
 
-@Injectable({
-  providedIn: 'root'
-})
-
+@Service()
 export class StateService {
 
   private authService = inject(AuthService);
   private router = inject(Router);
 
-  private _loaderState = new BehaviorSubject<boolean>(false);
-
-  private _currentState = new BehaviorSubject<AppState>({
+  private loaderSignal = signal<boolean>(false);
+  private currentStateSignal = signal<AppState>({
     loggedIn: false,
     currentPage: 'accueil'
   });
-
-  private _user = new BehaviorSubject<user>({
+  private userSignal = signal<user>({
     id : null,
     first_name: null,
     last_name: null,
@@ -41,53 +38,46 @@ export class StateService {
     status: null,
   });
 
-  get userState(): Observable<user> {
-    return this._user.asObservable();
-  }
+  loader = this.loaderSignal.asReadonly();
+  state = this.currentStateSignal.asReadonly();
+  user = this.userSignal.asReadonly();
 
-  get currentState() {
-    return this._currentState.asObservable();
-  }
-
-  get loaderState() {
-    return this._loaderState.asObservable();
-  }
+  userState: Observable<user> = toObservable(this.userSignal);
+  currentState: Observable<AppState> = toObservable(this.currentStateSignal);
+  loaderState: Observable<boolean> = toObservable(this.loaderSignal);
 
   updateState(newState: Partial<AppState>) {
-    let currentState = this._currentState.getValue();
-    let updatedState = { ...currentState, ...newState };
-    this._currentState.next(updatedState);
+    this.currentStateSignal.update(state => ({ ...state, ...newState }));
   }
 
   updateUser(userData: user){
     if (!userData) {
       return;
     }
-    this._user.next({
+    this.userSignal.set({
       id : userData.id,
       first_name:  userData.first_name,
       last_name: userData.last_name,
       email: userData.email,
       status: userData.status,
-    })
+    });
   }
 
   toggleLoader() {
-    this._loaderState.next(!this._loaderState.getValue());
+    this.loaderSignal.update(val => !val);
   }
 
   logoutUser() {
-    this._user.next({
+    this.userSignal.set({
       id : null,
       first_name: null,
       last_name: null,
       email: null,
       status: null,
-    })
+    });
 
     this.authService.deleteCookies();
 
     this.router.navigate(['/accueil']);
   }
-
 }

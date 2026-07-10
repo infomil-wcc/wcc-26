@@ -86,9 +86,7 @@
   </div>
 
   <!-- Login Modal -->
-  @if (!userState.email) {
-    <modal [(showModal)]="showLogin" [modalSize]="'md'">
-      <app-login></app-login>
-    </modal>
+  @if (!userState.email && showLogin) {
+    <app-login (close)="showLogin = false"></app-login>
   }
 }

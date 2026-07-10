@@ -26,8 +26,8 @@
                   <select name="team" (change)="nationalitySelected($event, 'goldenBoot')" [disabled]="disabled">
                     <ng-container>
                       <option value="-" selected>Nationalité</option>
-                      @if ($teams | async; as teams) {
-                        @for (team of teams; track team) {
+                      @if (teams(); as teamsList) {
+                        @for (team of teamsList; track team) {
                           <option [value]="team.name">{{ team.name }}</option>
                         }
                       }
@@ -40,7 +40,7 @@
                   <select name="player" [(ngModel)]="goldenScorer" [disabled]="!goldenSelection">
                     <ng-container>
                       <option value="-" selected>-</option>
-                      @if ($goldenBootPlayers | async; as players) {
+                      @if (goldenBootPlayers(); as players) {
                         @for (item of players.players; track item) {
                           <option [value]="item.player_name">{{ item.player_name }} - ({{ item.position }})</option>
                         }
@@ -91,8 +91,8 @@
                   <select name="team" (change)="nationalitySelected($event, 'tournament')" [disabled]="disabled">
                     <ng-container>
                       <option value="-" selected>Nationalité</option>
-                      @if ($teams | async; as teams) {
-                        @for (team of teams; track team) {
+                      @if (teams(); as teamsList) {
+                        @for (team of teamsList; track team) {
                           <option [value]="team.name">{{ team.name }}</option>
                         }
                       }
@@ -105,7 +105,7 @@
                   <select name="player" [(ngModel)]="tournamentPlayer" [disabled]="!bestSelection">
                     <ng-container>
                       <option value="-" selected>-</option>
-                      @if ($tournamentPlayers | async; as players) {
+                      @if (tournamentPlayers(); as players) {
                         @for (item of players.players; track item) {
                           <option [value]="item.player_name">{{ item.player_name }} - ({{ item.position }})</option>
                         }
@@ -146,6 +146,6 @@
   <loader [showLoader]="false" />
 </ng-template>
 
-<modal [(showModal)]="showLogin" [modalSize]="'md'" [showCloseButton]="false">
-  <app-login></app-login>
-</modal>
+@if (showLogin) {
+  <app-login [showCloseButton]="false" />
+}

@@ -1,4 +1,4 @@
-import { Component, inject, ChangeDetectionStrategy } from '@angular/core';
+import { Component, inject, ChangeDetectionStrategy, computed } from '@angular/core';
 import { NewsService } from '../../../../core/services/content/news.service';
 import { Observable, combineLatest } from 'rxjs';
 import { map } from 'rxjs/operators';
@@ -8,6 +8,7 @@ import { Matches } from '../../../../shared/contracts/matches.contract';
 import { MatchComponent } from '../../../../shared/components/match/match.component';
 import { LoaderComponent } from '../../../../shared/components/loader/loader.component';
 import { AsyncPipe, DatePipe, NgClass } from '@angular/common';
+import { toObservable } from '@angular/core/rxjs-interop';
 
 @Component({
     selector: 'news',
@@ -18,11 +19,16 @@ import { AsyncPipe, DatePipe, NgClass } from '@angular/common';
 })
 export class HpNewsComponent {
   private newsService = inject(NewsService);
-  protected $upcomingMatches!: Observable<Matches[]>;
   protected $topNews!: Observable<any[]>;
   protected $today!: Observable<any>;
+  protected $upcomingMatches!: Observable<Matches[]>;
   private matchesService = inject(MatchesService);
   private globalTime = inject(GlobaltimeService);
+  
+  protected upcomingMatches = computed(() => {
+    const matches = this.matchesService.allMatches();
+    return matches;
+  });
 
   protected matchIndex: number = 0;
 
@@ -31,12 +37,12 @@ export class HpNewsComponent {
 
     // Get top 3 news items
     this.$topNews = this.newsService.getHPnews().pipe(
-      map(news => news ? news.slice(0, 3) : [])
+      map((news: any) => news ? news.slice(0, 3) : [])
     );
 
     // Get the next 10 upcoming matches starting from the nearest one
     this.$upcomingMatches = combineLatest([
-      this.matchesService.getAllMatches(),
+      toObservable(this.matchesService.allMatches),
       this.$today
     ]).pipe(
       map(([matches, today]) => {

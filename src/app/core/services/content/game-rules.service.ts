@@ -1,12 +1,11 @@
-import { Injectable, inject } from '@angular/core';
+import { inject, resource } from '@angular/core';
 import { HttpHeaders } from '@angular/common/http';
 import { ApiResponse } from '../../../shared/contracts/game-rules.contract';
-import { Observable } from 'rxjs';
+import { firstValueFrom } from 'rxjs';
 import { GameRulesApiService } from '../api/game-rules-api.service';
+import { Service } from '@angular/core';
 
-@Injectable({
-  providedIn: 'root'
-})
+@Service()
 export class GameRulesService {
   private gameRulesApiService = inject(GameRulesApiService);
 
@@ -16,7 +15,12 @@ export class GameRulesService {
     })
   };
 
-  getGameRules(): Observable<ApiResponse> {
-     return this.gameRulesApiService.getGameRules(this.httpOptions);
-  }
+  private gameRulesResource = resource({
+    loader: async () => {
+      const response = await firstValueFrom(this.gameRulesApiService.getGameRules(this.httpOptions));
+      return response?.data || null;
+    }
+  });
+
+  gameRules = this.gameRulesResource.value;
 }

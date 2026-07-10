@@ -1,8 +1,7 @@
-import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnInit, ChangeDetectionStrategy, computed, inject } from '@angular/core';
 import { CommonModule, KeyValue, NgClass, DatePipe, KeyValuePipe } from '@angular/common';
 import { ApiResponse, GameElement } from '../../../shared/contracts/game-rules.contract';
 import { GameRulesService } from '../../../core/services/content/game-rules.service';
-import { Observable } from 'rxjs';
 import { LoaderComponent } from '../../../shared/components/loader/loader.component';
 import { BreadcrumbComponent, breadCrump } from '../../../shared/components/breadcrumb/breadcrumb.component';
 
@@ -15,10 +14,12 @@ import { BreadcrumbComponent, breadCrump } from '../../../shared/components/brea
 })
 export class GameRulesComponent implements OnInit {
 
-  apiResponse$!: Observable<ApiResponse>;
-  titleGeneral = '';
-  introduction = '';
-  sortedSteps: GameElement[] = [];
+  private gameRulesService = inject(GameRulesService);
+
+  gameRulesData = this.gameRulesService.gameRules;
+
+  titleGeneral = computed(() => this.gameRulesData()?.titre_general || '');
+  introduction = computed(() => this.gameRulesData()?.introduction || '');
 
   activeStepIndex = 0;
   openAccordionIndex: number | null = 0;
@@ -29,31 +30,29 @@ export class GameRulesComponent implements OnInit {
     { label: 'Règlement', route: '/reglement', active: true }
   ];
 
-  constructor(private gameRulesService: GameRulesService) { }
+  sortedSteps = computed(() => {
+    const data = this.gameRulesData();
+    if (!data) return [];
+    
+    const gamePhases = data.elements.filter((e: GameElement) => e.date_debut) as GameElement[];
+    const rulesClauses = data.elements.filter((e: GameElement) => !e.date_debut) as GameElement[];
+
+    gamePhases.sort((a, b) => new Date(a.date_debut!).getTime() - new Date(b.date_debut!).getTime());
+
+    return [...gamePhases, ...rulesClauses];
+  });
 
   ngOnInit() {
-    this.apiResponse$ = this.gameRulesService.getGameRules();
-    this.apiResponse$.subscribe(response => {
-      this.titleGeneral = response.titre_general;
-      this.introduction = response.introduction;
-
-      const gamePhases = response.elements.filter((e: GameElement) => e.date_debut) as GameElement[];
-      const rulesClauses = response.elements.filter((e: GameElement) => !e.date_debut) as GameElement[];
-
-      gamePhases.sort((a, b) => new Date(a.date_debut!).getTime() - new Date(b.date_debut!).getTime());
-
-      this.sortedSteps = [...gamePhases, ...rulesClauses];
-    });
   }
 
   goToStep(index: number) {
-    if (index >= 0 && index < this.sortedSteps.length) {
+    if (index >= 0 && index < this.sortedSteps().length) {
       this.activeStepIndex = index;
     }
   }
 
   nextStep() {
-    if (this.activeStepIndex < this.sortedSteps.length - 1) {
+    if (this.activeStepIndex < this.sortedSteps().length - 1) {
       this.activeStepIndex++;
     }
   }

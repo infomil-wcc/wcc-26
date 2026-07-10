@@ -1,16 +1,17 @@
-import { Injectable, Inject, PLATFORM_ID } from '@angular/core';
+import { Inject, PLATFORM_ID, inject } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
+import { Service } from '@angular/core';
 
 export type AppTheme = 'default' | 'fifa';
 
-@Injectable({
-  providedIn: 'root'
-})
+@Service()
 export class ThemeService {
   private readonly THEME_KEY = 'app-theme';
   private currentTheme: AppTheme = 'default';
 
-  constructor(@Inject(PLATFORM_ID) private platformId: Object) {
+  private platformId = inject(PLATFORM_ID);
+
+  constructor() {
     this.initTheme();
   }
 

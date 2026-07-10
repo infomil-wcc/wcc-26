@@ -1,59 +1,55 @@
-import { Component, Input, SimpleChanges, inject, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectionStrategy, Input, Output, EventEmitter } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
-import { AuthService } from '../../../core/services/core/auth.service';
-import { CookieService } from '../../../core/services/core/cookie.service';
-import { StateService } from '../../../core/services/core/state.service';
-import { MailService } from '../../../core/services/core/mail.service';
 import { ActivatedRoute, Router } from '@angular/router';
+import { LoginFacade } from './login.facade';
+import { sanitizeEmailInput } from './login.utils';
+
+// Import presentational components
+import { LoginFormInterfaceComponent } from './components/login-form.component';
+import { RegisterFormInterfaceComponent } from './components/register-form.component';
+import { ConfirmationFormInterfaceComponent } from './components/confirmation-form.component';
+import { ForgotPasswordComponent } from './components/forgot-password.component';
+import { ResetPasswordComponent } from './components/reset-password.component';
+import { ErrorViewComponent } from './components/error-view.component';
+
 @Component({
     selector: 'app-login',
+    standalone: true,
     templateUrl: './login.component.html',
     styleUrl: './login.component.scss',
     changeDetection: ChangeDetectionStrategy.Eager,
-    imports: [ReactiveFormsModule]
+    imports: [
+      ReactiveFormsModule,
+      LoginFormInterfaceComponent,
+      RegisterFormInterfaceComponent,
+      ConfirmationFormInterfaceComponent,
+      ForgotPasswordComponent,
+      ResetPasswordComponent,
+      ErrorViewComponent
+    ],
+    providers: [LoginFacade]
 })
-export class LoginComponent {
+export class LoginComponent implements OnInit {
+  @Input() showCloseButton: boolean = true;
+  @Output() close = new EventEmitter<void>();
 
-  private authService = inject(AuthService);
+  protected facade = inject(LoginFacade);
   private formBuilder = inject(FormBuilder);
-  private cookieService = inject(CookieService);
-  private stateService = inject(StateService);
-  private mailService = inject(MailService);
-  protected loginLoader: boolean = false;
+  private route = inject(ActivatedRoute);
+  private router = inject(Router);
+
   protected loginForm!: FormGroup;
   protected registerForm!: FormGroup;
   protected confirmationForm!: FormGroup;
-
-  protected login: boolean = true;
-  protected register: boolean = false;
-  protected confirmation: boolean = false;
-  protected forgotPasswordView: boolean = false;
-  protected resetPasswordView: boolean = false;
-  protected issueHandling: boolean = false;
-  protected passType: string = 'password';
-  protected visibility: string = 'visibility_off';
-  protected issueMsg: string = '';
-  protected forgotPassMsg: string = '';
-  protected resetToken: string = '';
-  
   protected forgotPasswordForm!: FormGroup;
   protected resetPasswordForm!: FormGroup;
-  protected confirmationCode!: number;
+
   protected disableConfirm: boolean = true;
-  protected userData: any;
-
-  protected otherError!: string;
-
-
-  private route = inject(ActivatedRoute);
-  private router = inject(Router);
 
   ngOnInit(): void {
     this.route.queryParams.subscribe(params => {
       if (params['token']) {
-        this.resetToken = params['token'];
-        this.login = false;
-        this.resetPasswordView = true;
+        this.facade.setResetToken(params['token']);
       }
     });
 
@@ -61,7 +57,6 @@ export class LoginComponent {
       email: ['', [Validators.required]],
       pass: ['', [Validators.required, Validators.minLength(4)]]
     });
-
 
     this.registerForm = this.formBuilder.group({
       email: ['', [Validators.required]],
@@ -80,172 +75,67 @@ export class LoginComponent {
     this.resetPasswordForm = this.formBuilder.group({
       pass: ['', [Validators.required, Validators.minLength(4)]]
     });
-
   }
 
   protected onEmailInput(type: 'login' | 'register' | 'forgot'): void {
     const form = type === 'login' ? this.loginForm : (type === 'register' ? this.registerForm : this.forgotPasswordForm);
     const emailControl = form.get('email');
     if (emailControl && emailControl.value) {
-      let value = emailControl.value.trim();
-      // Remove @infomil.mu if the user pastes it
-      if (value.includes('@')) {
-        value = value.split('@')[0];
-        emailControl.setValue(value);
+      const sanitized = sanitizeEmailInput(emailControl.value);
+      if (sanitized !== emailControl.value) {
+        emailControl.setValue(sanitized);
       }
     }
   }
 
-  protected verifyLogin(login: string, pass: string):void {
-    this.loginLoader = true;
-
-    this.authService.trylogin(login, pass).subscribe({
-      next: (response) => {
-        this.loginFlow(response);
-      },
-      error: (error) => {
-        this.loginForm.reset();
-        this.otherError = error.error.error.message;
-        this.loginLoader = false;
-      }
+  protected verifyLogin(login: string, pass: string): void {
+    this.facade.verifyLogin(login, pass, () => {
+      this.loginForm.reset();
     });
   }
 
   protected toggleType(): void {
-    if(this.passType == 'password'){
-      this.passType = 'text';
-      this.visibility = 'visibility';
-    } else {
-      this.passType = 'password';
-      this.visibility = 'visibility_off'
-    }
+    this.facade.toggleType();
   }
 
   protected toggleRegister(): void {
-    this.issueHandling = false;
-    this.forgotPasswordView = false;
-    this.login = !this.login;
-    this.register = !this.register;
+    this.facade.toggleRegister();
     this.loginForm.reset();
     this.registerForm.reset();
   }
 
   protected toggleForgotPassword(): void {
-    this.issueHandling = false;
-    this.register = false;
-    this.forgotPasswordView = !this.forgotPasswordView;
-    this.login = !this.forgotPasswordView;
-    this.forgotPassMsg = '';
+    this.facade.toggleForgotPassword();
     this.forgotPasswordForm.reset();
   }
 
   protected requestReset(email: string): void {
-    this.loginLoader = true;
-    const resetUrl = window.location.origin + window.location.pathname;
-    this.authService.requestPasswordReset(email, resetUrl).subscribe({
-      next: () => {
-        this.loginLoader = false;
-        this.forgotPassMsg = "Un email de réinitialisation vous a été envoyé. Veuillez vérifier votre boîte mail.";
-      },
-      error: (error) => {
-        this.loginLoader = false;
-        this.forgotPassMsg = "Si ce compte existe, un email de réinitialisation vous a été envoyé.";
-        console.error(error);
-      }
-    });
+    this.facade.requestReset(email);
   }
 
   protected submitNewPassword(pass: string): void {
-    if (!this.resetToken) return;
-    this.loginLoader = true;
-    this.authService.resetPassword(this.resetToken, pass).subscribe({
-      next: () => {
-        this.loginLoader = false;
-        this.resetPasswordView = false;
-        this.login = true;
-        this.issueHandling = true;
-        this.issueMsg = "Votre mot de passe a été réinitialisé avec succès. Vous pouvez maintenant vous connecter.";
-        // Clean URL from token
-        this.router.navigate([], { queryParams: { token: null }, queryParamsHandling: 'merge' });
-      },
-      error: (error) => {
-        this.loginLoader = false;
-        this.issueHandling = true;
-        this.issueMsg = "Le lien de réinitialisation est invalide ou a expiré.";
-        console.error(error);
-      }
+    this.facade.submitNewPassword(pass, () => {
+      this.resetPasswordForm.reset();
+      this.router.navigate([], { queryParams: { token: null }, queryParamsHandling: 'merge' });
     });
   }
 
   protected registerAccount(email: string, trigramme: string, pass: string): void {
-    this.confirmation = true;
-    this.confirmationCode = this.generateCode();
+    this.facade.registerAccount(email, trigramme, pass);
+  }
 
-    this.userData = [{email: email, trigramme: trigramme, pass: pass}];
-
-    this.mailService.sendConfirmationEmail(trigramme, email, this.confirmationCode.toString()).subscribe({
-      next: (response) => {
-        console.log('Confirmation email sent successfully', response);
-      },
-      error: (error) => {
-        console.error('Error sending confirmation email', error);
-        this.confirmation = false;
-        this.issueHandling = true;
-        this.issueMsg = "Nous rencontrons des difficultés techniques pour envoyer l'email de confirmation. Veuillez contacter l'équipe organisatrice ou réessayer plus tard."
-      }
+  protected confirmRegistration(): void {
+    const uData = this.facade.userData();
+    if (!uData || !uData[0]) return;
+    this.facade.confirmRegistration(uData[0].email, uData[0].trigramme, uData[0].pass, () => {
+      this.loginForm.reset();
+      this.registerForm.reset();
+      this.confirmationForm.reset();
     });
   }
 
-  protected generateCode(): number {
-    return Math.floor(Math.random() * 90000) + 10000;
-  }
-
-  protected confirmRegistration(email: string, trigramme: string, pass: string): void {
-    this.loginLoader = true;
-
-    this.authService.tryCreateUser(email, trigramme, pass).subscribe({
-      next: (response) => {
-        if(response.success) {
-          this.verifyLogin(email, pass);
-        }
-      },
-      error: (error) => {
-        this.loginLoader = false;
-        this.login = false;
-        this.register = false;
-        this.issueHandling = true;
-        this.loginForm.reset();
-        this.registerForm.reset();
-        this.confirmationForm.reset();
-        this.confirmation = false;
-        this.userData = null;
-
-        if(error.error.error.code === 204){
-          this.issueMsg = "Ce compte est déjà enregistré sur notre plateforme. Veuillez contacter l'équipe organisatrice pour réinitialiser votre mot de passe ou supprimer le compte."
-        } else {
-          this.issueMsg = "Nous rencontrons des difficultés techniques pour créer votre compte. Veuillez contacter l'équipe organisatrice ou réessayer plus tard."
-        }
-      }
-    });
-  }
-
-  private loginFlow(obj: any){
-    if (!obj) return;
-    let data = obj.data || obj;
-    let userObj = data.user;
-    let token = data.token || data.access_token;
-
-    if (!userObj || !token) {
-      console.error('Invalid login response:', obj);
-      this.loginLoader = false;
-      return;
-    }
-
-    this.authService.setTokenCookie(token);
-    this.authService.setUserCookie(userObj.id);
-
-    this.loginLoader = false;
-
-    location.reload();
+  protected checkConfirmationCode(inputVal: string): void {
+    const expected = this.facade.confirmationCode();
+    this.disableConfirm = inputVal !== expected.toString();
   }
 }

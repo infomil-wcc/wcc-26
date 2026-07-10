@@ -10,7 +10,7 @@
   <h3 class="text-2xl font-bold text-white mb-6">Règles et Conditions des jeux</h3>
   
   <div class="rules">
-    @if ($rules | async; as rules) {
+    @if (rulesData(); as rules) {
       @for (item of rules; track item) {
         <div class="rule mb-10">
           <h4 class="text-xl font-bold text-[#10b981] mb-4">{{ item.name }}</h4>

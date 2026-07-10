@@ -1,16 +1,24 @@
-import { Injectable, inject } from '@angular/core';
+import { inject, resource } from '@angular/core';
 import { HttpHeaders } from '@angular/common/http';
-import { Observable, map, throwError } from 'rxjs';
+import { Observable, throwError, firstValueFrom } from 'rxjs';
 import { CookieService } from '../core/cookie.service';
 import { BracketApiService } from '../api/bracket-api.service';
+import { Service } from '@angular/core';
 
-@Injectable({
-  providedIn: 'root'
-})
+@Service()
 export class BracketService {
 
   private bracketApiService = inject(BracketApiService);
   private cookieService = inject(CookieService);
+
+  private bracketsResource = resource({
+    loader: async () => {
+      const response = await firstValueFrom(this.bracketApiService.getBrackets());
+      return response?.data || [];
+    }
+  });
+
+  brackets = this.bracketsResource.value;
 
   getUserBracket(user: string | null): Observable<any> {
     let token = this.cookieService.get('currentToken');
@@ -22,18 +30,18 @@ export class BracketService {
           'Authorization': `Bearer ${token}`
         })
       };
-      return this.bracketApiService.getBrackets(`?filter[user]=${user}`, httpOptions).pipe(
-        map(response => response.data)
-      );
+      return new Observable(observer => {
+        this.bracketApiService.getBrackets(`?filter[user]=${user}`, httpOptions).subscribe({
+          next: response => {
+            observer.next(response.data);
+            observer.complete();
+          },
+          error: err => observer.error(err)
+        });
+      });
     } else {
-      return throwError('No token found');
+      return throwError(() => new Error('No token found'));
     }
-  }
-
-  getBrackets(): Observable<any> {
-      return this.bracketApiService.getBrackets().pipe(
-      map(response => response.data)
-    );
   }
 
   postBracket(bracket: any): Observable<any> {
@@ -48,7 +56,7 @@ export class BracketService {
       };
       return this.bracketApiService.createBracket(bracket, httpOptions);
     } else {
-      return throwError('No token found');
+      return throwError(() => new Error('No token found'));
     }
   }
 
@@ -64,7 +72,7 @@ export class BracketService {
 
       return this.bracketApiService.deleteBracket(id, httpOptions);
     } else {
-      return throwError('No token found');
+      return throwError(() => new Error('No token found'));
     }
   }
 

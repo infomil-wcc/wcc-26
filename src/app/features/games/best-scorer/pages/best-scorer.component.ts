@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectionStrategy, signal, ChangeDetectorRef } from '@angular/core';
 import { teamsApiData, Teams, Player, TeamResponse } from '../../../../shared/contracts/teams.contract';
 import { TeamsService } from '../../../../core/services/content/teams.service';
 import { CorrectscorerService, BestPlayer } from '../../../../core/services/games/correct-scorer.service';
@@ -7,30 +7,34 @@ import { Observable } from 'rxjs';
 import { ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { NumberInputComponent } from '../../../../shared/components/number-input/number-input.component';
 import { LoaderComponent } from '../../../../shared/components/loader/loader.component';
-import { ModalComponent } from '../../../../shared/components/modal/modal.component';
 import { LoginComponent } from '../../../../shared/components/login/login.component';
 import { AsyncPipe } from '@angular/common';
 
 @Component({
-    selector: 'app-best-scorer',
-    templateUrl: './best-scorer.component.html',
-    styleUrl: './best-scorer.component.scss',
-    changeDetection: ChangeDetectionStrategy.Eager,
-    imports: [ReactiveFormsModule, FormsModule, NumberInputComponent, LoaderComponent, ModalComponent, LoginComponent, AsyncPipe]
+  selector: 'app-best-scorer',
+  templateUrl: './best-scorer.component.html',
+  styleUrl: './best-scorer.component.scss',
+  changeDetection: ChangeDetectionStrategy.Eager,
+  imports: [ReactiveFormsModule, FormsModule, NumberInputComponent, LoaderComponent, LoginComponent]
 })
 export class BestScorerComponent implements OnInit {
 
   private teamsService = inject(TeamsService);
   private correctScorerService = inject(CorrectscorerService);
   private state = inject(StateService);
+  private cdr = inject(ChangeDetectorRef);
 
   private targetDate = new Date(2026, 5, 11, 22, 55, 0);
   private currentDate = new Date();
 
-  protected $goldenBootPlayers!: Observable<TeamResponse>;
-  protected $tournamentPlayers!: Observable<TeamResponse>;
-  protected $players!: Observable<teamsApiData[]>;
-  protected $teams!: Observable<Teams[]>;
+  protected goldenBootNation = signal<string>('');
+  protected tournamentNation = signal<string>('');
+
+  protected goldenBootPlayers = this.teamsService.getPlayersByTeamName(this.goldenBootNation);
+  protected tournamentPlayers = this.teamsService.getPlayersByTeamName(this.tournamentNation);
+  
+  protected teams = this.teamsService.allTeams;
+  
   protected $bestScorer!: Observable<BestPlayer[]>;
   protected disabled: boolean = false;
   protected goldenSelection: boolean = false;
@@ -53,8 +57,8 @@ export class BestScorerComponent implements OnInit {
     // console.log(this.targetDate);
 
     this.state.userState.subscribe({
-      next: (res)=>{
-        if(res.id){
+      next: (res) => {
+        if (res.id) {
           this.disabled = false;
           this.userId = res.id;
           this.userName = res.last_name;
@@ -75,38 +79,36 @@ export class BestScorerComponent implements OnInit {
     }
   }
 
-  checkPlayed(){
+  checkPlayed() {
     this.$bestScorer = this.correctScorerService.getPronostiqueByUser(this.userName);
 
     this.correctScorerService.getPronostiqueByUser(this.userName).subscribe({
-      next: (response) =>{
-        if(response.length > 0){
+      next: (response) => {
+        if (response.length > 0) {
           this.alreadyPlayed = true;
           this.userPronostique = response[0];
         } else {
           this.alreadyPlayed = false;
           this.userPronostique = null;
-          this.$teams = this.teamsService.getAllTeams();
         }
+        this.cdr.detectChanges();
       }
     });
   }
 
   nationalitySelected(event: Event, game: string): void {
     let nation = event.target as HTMLSelectElement;
-    if(game === 'goldenBoot'){
-      this.$goldenBootPlayers = this.teamsService.getPlayersByTeamName(nation.value);
+    if (game === 'goldenBoot') {
+      this.goldenBootNation.set(nation.value);
       this.goldenSelection = true;
-
     } else {
-      this.$tournamentPlayers = this.teamsService.getPlayersByTeamName(nation.value);
+      this.tournamentNation.set(nation.value);
       this.bestSelection = true;
-      
     }
   }
 
-  validerChoix():void {
-    let prediction: BestPlayer  = {
+  validerChoix(): void {
+    let prediction: BestPlayer = {
       user: this.userName,
       meilleur_buteur: this.goldenScorer,
       meilleur_joueur: this.tournamentPlayer,
@@ -116,7 +118,7 @@ export class BestScorerComponent implements OnInit {
 
     this.correctScorerService.makePronostique(prediction).subscribe({
       next: (response) => {
-        location.reload();
+        this.checkPlayed();
       },
       error: (error) => {
         console.log(error);

@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, Input, Output, EventEmitter, ChangeDetectorRef, HostListener } from '@angular/core';
+import { Component, Input, OnInit, ChangeDetectorRef, HostListener, PLATFORM_ID, inject, Injector, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -6,6 +6,7 @@ import { MatchesService } from '../../../../../core/services/content/matches.ser
 import { PredictionsApiService } from '../../../../../core/services/api/predictions-api.service';
 import { PronosticsRankingsApiService } from '../../../../../core/services/api/pronostics-rankings-api.service';
 import { TeamsService } from '../../../../../core/services/content/teams.service';
+import { toObservable } from '@angular/core/rxjs-interop';
 import { Matches } from '../../../../../shared/contracts/matches.contract';
 import { Pronostiques } from '../../../../../shared/contracts/pronostiques.contract';
 import { Teams } from '../../../../../shared/contracts/teams.contract';
@@ -270,11 +271,12 @@ export class ScoresheetComponent implements OnInit {
       return;
     }
 
+    const injector = inject(Injector);
     forkJoin({
-      matches: this.matchesService.getAllMatches(),
+      matches: toObservable(this.matchesService.allMatches, { injector }),
       predictions: this.predictionsApiService.getPredictions(`?filter[user]=${this.userId}&limit=-1`),
       rankings: this.pronosticsRankingsApiService.getRankings(`?filter[key]=${this.userId}`),
-      teams: this.teamsService.getAllTeams()
+      teams: toObservable(this.teamsService.allTeams, { injector })
     }).subscribe({
       next: (res) => {
         this.matches = res.matches;

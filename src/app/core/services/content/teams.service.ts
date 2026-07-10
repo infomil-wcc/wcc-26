@@ -1,19 +1,13 @@
-import { Injectable, inject } from '@angular/core';
-import { HttpHeaders } from '@angular/common/http';
+import { Service, inject, Signal, computed } from '@angular/core';
+import { HttpHeaders, httpResource } from '@angular/common/http';
 import { Teams, Group } from '../../../shared/contracts/teams.contract';
-import { Observable, map, of } from 'rxjs';
-import { catchError } from 'rxjs/operators';
-import { TeamsApiService } from '../api/teams-api.service';
-import { GroupsApiService } from '../api/groups-api.service';
 import { SquadsApiService } from '../api/squads-api.service';
+import { environment } from '../../../../environments/environment';
 
-@Injectable({
-  providedIn: 'root'
-})
+@Service()
 export class TeamsService {
-  private teamsApiService = inject(TeamsApiService);
-  private groupsApiService = inject(GroupsApiService);
   private squadsApiService = inject(SquadsApiService);
+
 
   private httpOptions = {
     headers: new HttpHeaders({
@@ -21,53 +15,44 @@ export class TeamsService {
     })
   };
 
-  getAllTeams(): Observable<Teams[]> {
-    return this.teamsApiService.getTeams().pipe(
-      map(response => response?.data || []),
-      catchError(() => of([]))
-    );
+  // Global resources cached at the service level
+  private _allTeamsRes = httpResource<any>(() => `${environment.apiBaseUrl}/items/teams`);
+  readonly allTeams = computed(() => this._allTeamsRes.value()?.data || []);
+
+  private _groupsRes = httpResource<any>(() => `${environment.apiBaseUrl}/items/groups`);
+  readonly groups = computed(() => this._groupsRes.value()?.data || []);
+
+  private _flagsRes = httpResource<any>(() => `${environment.apiBaseUrl}/items/teams?fields=flag_url,name,iso`);
+  readonly flags = computed(() => this._flagsRes.value()?.data || []);
+
+  // Methods returning component-scoped resources (must be called in component injection context)
+  getTeamByGroup(groupId: string | Signal<string>) {
+    const request = typeof groupId === 'string' ? () => `${environment.apiBaseUrl}/items/teams?filter[group]=${groupId}` : () => `${environment.apiBaseUrl}/items/teams?filter[group]=${groupId()}`;
+    const res = httpResource<any>(request);
+    return computed(() => res.value()?.data || []);
   }
 
-  getTeamByGroup(groupId: string): Observable<Teams[]> {
-    return this.teamsApiService.getTeams(`?filter[group]=${groupId}`).pipe(
-      map(response => response?.data || []),
-      catchError(() => of([]))
-    );
+  getPlayersByTeamName(teamName: string | Signal<string>) {
+    const request = typeof teamName === 'string' ? () => `${environment.apiUrl}/squads?country=${teamName}` : () => `${environment.apiUrl}/squads?country=${teamName()}`;
+    const res = httpResource<any[]>(request);
+    return computed(() => res.value()?.[0] || null);
   }
 
-  getPlayersByTeamName(teamName: string): Observable<any> {
-    return this.squadsApiService.getPlayersByCountry(teamName).pipe(
-      map(response => response?.[0] || null),
-      catchError(() => of(null))
-    );
+  getTeamByName(teamName: string | Signal<string>) {
+    const request = typeof teamName === 'string' ? () => `${environment.apiBaseUrl}/items/teams?filter[name]=${encodeURIComponent(teamName)}&fields=id,name,flag_url,iso` : () => `${environment.apiBaseUrl}/items/teams?filter[name]=${encodeURIComponent(teamName())}&fields=id,name,flag_url,iso`;
+    const res = httpResource<any>(request);
+    return computed(() => res.value()?.data || []);
   }
 
-  getTeamByName(teamName: string): Observable<Teams[]> {
-    return this.teamsApiService.getTeams(`?filter[name]=${teamName}`).pipe(
-      map(response => response?.data || []),
-      catchError(() => of([]))
-    );
+  getTeamColors(teamName: string | Signal<string>) {
+    const request = typeof teamName === 'string' ? () => `${environment.apiUrl}/teams?name=${teamName}&select=colors` : () => `${environment.apiUrl}/teams?name=${teamName()}&select=colors`;
+    const res = httpResource<any>(request);
+    return computed(() => res.value() || []);
   }
 
-  getTeamColors(teamName: string): Observable<string[]> {
-    return this.teamsApiService.getTeamsJSON(`?name=${teamName}&select=colors`);
-  }
-
-  getGroups(): Observable<Group[]> {
-    return this.groupsApiService.getGroups().pipe(
-      map(response => response?.data || []),
-      catchError(() => of([]))
-    );
-  }
-
-  getFlags(): Observable<any> {
-    return this.teamsApiService.getTeams('?fields=flag_url,name,iso').pipe(
-      map(response => response?.data || []),
-      catchError(() => of([]))
-    );
-  }
-
-  getTeamsInfo(teamisoname: string): any {
-    return this.teamsApiService.getTeamsInfo(teamisoname, this.httpOptions);
+  getTeamsInfo(teamisoname: string | Signal<string>) {
+    const request = typeof teamisoname === 'string' ? () => `${environment.apiUrl}/teams?iso=${teamisoname}` : () => `${environment.apiUrl}/teams?iso=${teamisoname()}`;
+    const res = httpResource<any>(request);
+    return computed(() => res.value());
   }
 }

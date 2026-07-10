@@ -1,4 +1,5 @@
-import { Component, OnInit, OnDestroy, ChangeDetectionStrategy, inject } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectionStrategy, inject, PLATFORM_ID } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 import { StateService, AppState } from '../../../core/services/core/state.service';
 import { Router } from '@angular/router';
 import { Subscription } from 'rxjs';
@@ -28,6 +29,7 @@ export class NavComponent implements OnInit, OnDestroy {
   private stateSubscription!: Subscription;
   protected sidebar = inject(SidebarService);
   public themeService = inject(ThemeService);
+  private platformId = inject(PLATFORM_ID);
 
   constructor(private stateService: StateService, private router: Router) {
     this.navList = [
@@ -131,11 +133,9 @@ export class NavComponent implements OnInit, OnDestroy {
     this.stateService.updateState({ currentPage: currentRoute });
     this.router.navigate(['/' + currentRoute]);
     this.showMenu = false;
-    window.scroll({
-      top: 0,
-      left: 0,
-      behavior: 'smooth'
-    });
+    if (isPlatformBrowser(this.platformId)) {
+      window.scroll({ top: 0, left: 0, behavior: 'smooth' });
+    }
   }
 
   ngOnDestroy() {

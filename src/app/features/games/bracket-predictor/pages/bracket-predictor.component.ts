@@ -1,8 +1,9 @@
-import { Component, inject, OnInit, Output, EventEmitter, ChangeDetectionStrategy } from '@angular/core';
-import { TeamsService } from '../../../core/services/content/teams.service';
+import { Component, inject, OnInit, Output, EventEmitter, ChangeDetectionStrategy, PLATFORM_ID, Injector } from '@angular/core';
+import { TeamsService } from '../../../../core/services/content/teams.service';
+import { toObservable } from '@angular/core/rxjs-interop';
 import { forkJoin } from 'rxjs';
 import { CdkDragDrop, moveItemInArray, CdkDropList, CdkDrag, CdkDragHandle, CdkDragPlaceholder } from '@angular/cdk/drag-drop';
-import { NgClass, NgStyle } from '@angular/common';
+import { NgClass, NgStyle, isPlatformBrowser } from '@angular/common';
 
 interface PredictorTeam {
   name: string;
@@ -26,6 +27,7 @@ interface PredictorGroup {
 })
 export class BracketPredictorComponent implements OnInit {
   private teamService = inject(TeamsService);
+  private platformId = inject(PLATFORM_ID);
 
   // Emit event containing the final ordered 32 qualified teams
   @Output() public groupStageComplete = new EventEmitter<any[]>();
@@ -53,9 +55,10 @@ export class BracketPredictorComponent implements OnInit {
       this.jeuFermer = true;
     }
 
+    const injector = inject(Injector);
     forkJoin({
-      groups: this.teamService.getGroups(),
-      flags: this.teamService.getFlags()
+      groups: toObservable(this.teamService.groups, { injector }),
+      flags: toObservable(this.teamService.flags, { injector })
     }).subscribe({
       next: (res) => {
         const flagMap = new Map(res.flags.map((f: any) => [f.name, { url: f.flag_url, iso: f.iso }]));
@@ -141,7 +144,9 @@ export class BracketPredictorComponent implements OnInit {
     });
     this.updateSelectedCount();
     this.currentStep = 2;
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    if (isPlatformBrowser(this.platformId)) {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
   }
 
   protected goBackToGroups(): void {

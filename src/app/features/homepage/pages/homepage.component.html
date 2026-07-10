@@ -27,8 +27,8 @@
     Les Groupes
   </h3>
 
-  @if ($wcGroups | async; as groups) {
-    @if ($teamsFlags | async; as teamsFlags) {
+  @if (wcGroups(); as groups) {
+    @if (teamsFlags(); as teamsFlags) {
       
       <!-- MOBILE: Single card carousel -->
       <div class="md:hidden w-full">
@@ -124,6 +124,6 @@
   }
 </div>
 
-<modal [(showModal)]="showLogin" [modalSize]="'md'">
-  <app-login></app-login>
-</modal>
+@if (showLogin) {
+  <app-login (close)="showLogin = false"></app-login>
+}

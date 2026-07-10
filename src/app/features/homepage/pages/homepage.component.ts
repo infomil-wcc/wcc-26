@@ -7,7 +7,6 @@ import { Observable } from 'rxjs';
 import { CookieService } from '../../../core/services/core/cookie.service';
 import { NgStyle, AsyncPipe } from '@angular/common';
 import { LoaderComponent } from '../../../shared/components/loader/loader.component';
-import { ModalComponent } from '../../../shared/components/modal/modal.component';
 import { LoginComponent } from '../../../shared/components/login/login.component';
 
 @Component({
@@ -15,13 +14,14 @@ import { LoginComponent } from '../../../shared/components/login/login.component
     templateUrl: './homepage.component.html',
     styleUrl: './homepage.component.scss',
     changeDetection: ChangeDetectionStrategy.Eager,
-    imports: [NgStyle, LoaderComponent, ModalComponent, LoginComponent, AsyncPipe]
+    imports: [NgStyle, LoaderComponent, LoginComponent]
 })
 export class HomepageComponent {
   private teamService = inject<TeamsService>(TeamsService);
   private cookieService = inject<CookieService>(CookieService);
-  protected $teamsFlags!: Observable<any>;
-  protected $wcGroups!: Observable<Group[]>;
+  
+  protected teamsFlags = this.teamService.flags;
+  protected wcGroups = this.teamService.groups;
   protected showLogin: boolean = false;
   protected isLoggedIn: boolean = false;
   protected mobileGroupIndex: number = 0;
@@ -37,8 +37,7 @@ export class HomepageComponent {
   private route = inject(ActivatedRoute);
 
   ngOnInit(): void {
-    this.$wcGroups = this.teamService.getGroups();
-    this.$teamsFlags = this.teamService.getFlags();
+    // Resources are fetched reactively, no need to assign them here.
     
     let currentUser = this.cookieService.get('currentUser');
     (currentUser) ? this.isLoggedIn = true : this.isLoggedIn = false;

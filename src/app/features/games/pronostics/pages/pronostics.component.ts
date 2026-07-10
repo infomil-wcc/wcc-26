@@ -6,7 +6,6 @@ import { NgClass, NgStyle, AsyncPipe, DatePipe, UpperCasePipe, SlicePipe } from 
 import { MatchComponent } from '../../../../shared/components/match/match.component';
 import { LoaderComponent } from '../../../../shared/components/loader/loader.component';
 import { CalendarStripComponent } from '../../../../shared/components/calendar-strip/calendar-strip.component';
-import { ModalComponent } from '../../../../shared/components/modal/modal.component';
 import { LoginComponent } from '../../../../shared/components/login/login.component';
 import { BreadcrumbComponent, breadCrump } from '../../../../shared/components/breadcrumb/breadcrumb.component';
 import { PronosticsFacade } from '../facades/pronostics.facade';
@@ -17,7 +16,7 @@ import * as utils from '../utils/pronostics.utils';
   templateUrl: './pronostics.component.html',
   styleUrl: './pronostics.component.scss',
   changeDetection: ChangeDetectionStrategy.Eager,
-  imports: [NgClass, NgStyle, MatchComponent, LoaderComponent, AsyncPipe, DatePipe, UpperCasePipe, SlicePipe, CalendarStripComponent, ModalComponent, LoginComponent, BreadcrumbComponent]
+  imports: [NgClass, NgStyle, MatchComponent, LoaderComponent, AsyncPipe, DatePipe, UpperCasePipe, SlicePipe, CalendarStripComponent, LoginComponent, BreadcrumbComponent]
 })
 export class PronosticsComponent implements OnInit {
 
@@ -90,7 +89,7 @@ export class PronosticsComponent implements OnInit {
     ]).pipe(
       map(([matches, today, tab]) => {
         const now = new Date(today.dateTime.slice(0, -6));
-        const filtered = matches.filter(match => {
+        const filtered = matches.filter((match: any) => {
 
           // --- FILTER BY STATUS ---
           if (isDraft(match)) return false;
@@ -113,9 +112,9 @@ export class PronosticsComponent implements OnInit {
           }
         });
 
-        const dates = filtered.map(m => m.date.split(' ')[0]);
+        const dates = filtered.map((m: any) => m.date.split(' ')[0]);
         // Sort ascending (earliest first) for upcoming/live, descending (newest first) for played
-        return Array.from(new Set(dates)).sort((a, b) => {
+        return Array.from(new Set(dates)).sort((a: any, b: any) => {
           const timeA = new Date(a).getTime();
           const timeB = new Date(b).getTime();
           return tab === 'played' ? timeB - timeA : timeA - timeB;
@@ -131,14 +130,14 @@ export class PronosticsComponent implements OnInit {
       tap(([matches, today]) => {
         Promise.resolve().then(() => {
           const now = new Date(today.dateTime.slice(0, -6));
-          this.liveCount = matches.filter(m => {
+          this.liveCount = matches.filter((m: any) => {
             const isFinishedStatus = m.current_status?.toLowerCase() === 'finished' || m.played === true;
             const matchDate = new Date(m.date);
             const timeDiffMs = now.getTime() - matchDate.getTime();
             const timeDiffMins = timeDiffMs / (1000 * 60);
             return timeDiffMins >= 0 && timeDiffMins < 150 && !isFinishedStatus;
           }).length;
-          this.upcomingCount = matches.filter(m => {
+          this.upcomingCount = matches.filter((m: any) => {
             const isFinishedStatus = m.current_status?.toLowerCase() === 'finished' || m.played === true;
             const matchDate = new Date(m.date);
             const timeDiffMs = now.getTime() - matchDate.getTime();
@@ -147,7 +146,7 @@ export class PronosticsComponent implements OnInit {
             const isFinished = isFinishedStatus || timeDiffMins >= 150;
             return !hasStarted && !isFinished;
           }).length;
-          this.playedCount = matches.filter(m => {
+          this.playedCount = matches.filter((m: any) => {
             const isFinishedStatus = m.current_status?.toLowerCase() === 'finished' || m.played === true;
             const matchDate = new Date(m.date);
             const timeDiffMs = now.getTime() - matchDate.getTime();
@@ -156,16 +155,16 @@ export class PronosticsComponent implements OnInit {
           }).length;
 
           const todayKey = today.dateTime.split('T')[0];
-          const todayMatches = matches.filter(m => m.date.split(' ')[0] === todayKey);
+          const todayMatches = matches.filter((m: any) => m.date.split(' ')[0] === todayKey);
           this.todayTotalCount = todayMatches.length;
-          this.todayPlayedCount = todayMatches.filter(m => {
+          this.todayPlayedCount = todayMatches.filter((m: any) => {
             const isFinishedStatus = m.current_status?.toLowerCase() === 'finished' || m.played === true;
             const matchDate = new Date(m.date);
             const timeDiffMs = now.getTime() - matchDate.getTime();
             const timeDiffMins = timeDiffMs / (1000 * 60);
             return isFinishedStatus || timeDiffMins >= 150;
           }).length;
-          this.todayMatchCount = todayMatches.filter(m => {
+          this.todayMatchCount = todayMatches.filter((m: any) => {
             const isFinishedStatus = m.current_status?.toLowerCase() === 'finished' || m.played === true;
             const matchDate = new Date(m.date);
             const timeDiffMs = now.getTime() - matchDate.getTime();
@@ -173,9 +172,9 @@ export class PronosticsComponent implements OnInit {
             return !(isFinishedStatus || timeDiffMins >= 150);
           }).length;
 
-          const unplayedToday = todayMatches.filter(m => m.fulltime_a === null);
+          const unplayedToday = todayMatches.filter((m: any) => m.fulltime_a === null);
           if (unplayedToday.length > 0 && this.isLoggedIn) {
-            const ids = unplayedToday.map(m => m.id).join(',');
+            const ids = unplayedToday.map((m: any) => m.id).join(',');
             this.facade.getMyPredictions(`[_in]=${ids}`).subscribe({
               next: (preds: any[]) => {
                 this.todayPredictedCount = preds.length;
@@ -193,7 +192,7 @@ export class PronosticsComponent implements OnInit {
         const now = new Date(today.dateTime.slice(0, -6));
 
         // --- FILTER MATCHES HERE ---
-        let filtered = matches.filter(match => {
+        let filtered = matches.filter((match: any) => {
 
           // 1. Restrict to published only
           if (isDraft(match)) return false;
@@ -219,7 +218,7 @@ export class PronosticsComponent implements OnInit {
 
         // 3. Apply calendar date filter if one is selected
         if (filterDate) {
-          filtered = filtered.filter(m => m.date.split(' ')[0] === filterDate);
+          filtered = filtered.filter((m: any) => m.date.split(' ')[0] === filterDate);
         }
         return utils.groupMatchesByDate(filtered);
       })

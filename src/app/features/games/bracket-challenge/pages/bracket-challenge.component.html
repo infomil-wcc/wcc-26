@@ -1,0 +1,179 @@
+<div class="container mx-auto px-4 lg:px-8 max-w-7xl pt-6 pb-12">
+  <div class="mb-8 border-b border-white/10 pb-4">
+    <app-breadcrumb [bcdata]="breadCrumpData" />
+    <div class="flex items-center justify-between mt-4">
+      <h1 class="text-3xl md:text-4xl font-black text-white flex items-center gap-3">
+        <span class="material-symbols-outlined text-[#10b981] text-4xl">sports_esports</span>
+        Bracket Challenge 2026
+      </h1>
+      @if (isLoggedIn) {
+        @if (bracketPoints$ | async; as total) {
+          @if (total !== null) {
+            <div class="flex items-center gap-2 px-4 py-2 bg-white/5 border border-amber-500/30 rounded-full shadow-[0_0_15px_rgba(245,158,11,0.15)]">
+              <span class="material-symbols-outlined text-amber-400">emoji_events</span>
+              <span class="text-amber-400 font-bold text-lg">{{ total.value }} <small class="text-xs uppercase opacity-80">pts</small></span>
+            </div>
+          }
+        }
+      }
+    </div>
+  </div>
+
+@if (isLoggedIn) {
+  <!-- Phase Selection Sliding Control -->
+  @if (false) {
+    <div class="phase-selector-container pt-4 mb-2 flex justify-center">
+      <div class="phase-selector-tabs">
+        <div class="active-slider" [class.slide-right]="currentPhase === 2"></div>
+        <button 
+          type="button"
+          class="phase-tab-btn" 
+          [class.active]="currentPhase === 1"
+          (click)="setPhase(1)">
+          🏆 Bracket Initial (Phase 1)
+        </button>
+        <button 
+          type="button"
+          class="phase-tab-btn" 
+          [class.active]="currentPhase === 2"
+          (click)="setPhase(2)">
+          ⚡ Bracket Phase Finale (Phase 2)
+        </button>
+      </div>
+    </div>
+  }
+
+  <div class="challenge-container py-6">
+    <div class="">
+      <!-- PHASE 1 CONTENT -->
+      @if (currentPhase === 1) {
+        @if (this.jeuFermer) {
+          <h2 class="text-center mb-6">Le Bracket Initial est clos</h2>
+        }
+        <!-- Stepper / Wizard header -->
+        @if (!this.jeuFermer) {
+          <div class="challenge-stepper mb-6" >
+            <div class="step" [class.active]="activeWizardStep === 'groups'" [class.completed]="activeWizardStep === 'knockout'">
+              <div class="step-icon">1</div>
+              <div class="step-label">Phase de Groupes</div>
+            </div>
+            <div class="step-connector" [class.completed]="activeWizardStep === 'knockout'"></div>
+            <div class="step" [class.active]="activeWizardStep === 'knockout'">
+              <div class="step-icon">2</div>
+              <div class="step-label">Phase à Élimination Directe</div>
+            </div>
+          </div>
+        }
+        <!-- Group Stage Predictor -->
+        <div [hidden]="activeWizardStep !== 'groups'" class="fade-in">
+          <app-bracket-predictor (groupStageComplete)="handleGroupPredictionsFinished($event)"></app-bracket-predictor>
+        </div>
+        <!-- Knockout Stage Bracket -->
+        <div [hidden]="activeWizardStep !== 'knockout'" class="fade-in">
+          @if (!this.jeuFermer) {
+            <div class="controls-bar mb-6">
+              @if (!hasSavedBracket) {
+                <button type="button" class="btn btn-secondary flex items-center gap-2" (click)="backToGroups()">
+                  <span class="material-symbols-outlined">arrow_back</span>
+                  Modifier mes phases de groupes
+                </button>
+              }
+              @if (hasSavedBracket) {
+                <button type="button" class="btn btn-danger flex items-center gap-2" (click)="deleteBracket()">
+                  <span class="material-symbols-outlined">delete_forever</span>
+                  Re-initialiser mon bracket
+                </button>
+              }
+            </div>
+          }
+          <app-bracket-knockout [isKnockoutPhase2]="false" [setupAdvancedTeams]="advancedQualifiers"></app-bracket-knockout>
+        </div>
+      }
+
+      <!-- PHASE 2 CONTENT -->
+      @if (currentPhase === 2) {
+        @if (this.knockoutJeuFermer) {
+          <h2 class="text-center mb-6">Le Bracket de la Phase Finale est clos</h2>
+        }
+        <div class="fade-in">
+          @if (hasSavedKnockoutBracket && !knockoutJeuFermer) {
+            <div class="controls-bar mb-6">
+              <button type="button" class="btn btn-danger flex items-center gap-2" (click)="deleteBracket()">
+                <span class="material-symbols-outlined">delete_forever</span>
+                Re-initialiser mon bracket Phase Finale
+              </button>
+            </div>
+          }
+          <app-bracket-knockout [isKnockoutPhase2]="true" [setupAdvancedTeams]="realKnockoutQualifiers"></app-bracket-knockout>
+        </div>
+      }
+    </div>
+  </div>
+  } @else {
+    @if (!isLoggedIn) {
+      <app-login [showCloseButton]="false" />
+    }
+  }
+</div>
+<app-dialog [(showDialog)]="showDeleteDialog" [dialogTitle]="'Attention !'" [withOverlay]="true" [allowClose]="true">
+  @if (deleteDialogMode === 'confirm') {
+    <p>{{ deleteDialogMessage }}</p>
+    <div class="flex justify-between gap-2 mt-6 w-full">
+      <button class="btn btn-primary" (click)="onDeleteConfirmed()">Oui</button>
+      <button class="btn" (click)="onDeleteDialogClose()">Non</button>
+    </div>
+  }
+  @if (deleteDialogMode === 'info') {
+    <p>{{ deleteDialogMessage }}</p>
+    <div class="flex justify-end gap-2 mt-6 w-full">
+      <button class="btn" (click)="onDeleteDialogClose()">OK</button>
+    </div>
+  }
+</app-dialog>
+
+@if (false) {
+  <div class="fullscreen-takeover">
+    <div class="takeover-backdrop"></div>
+    <div class="takeover-card">
+      <button type="button" class="takeover-close-btn" (click)="closeKnockoutPromptDialog()">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+      
+      <div class="takeover-content">
+        <div class="glow-sphere"></div>
+        
+        <div class="takeover-icon-wrapper">
+          <span class="material-symbols-outlined takeover-icon">emoji_events</span>
+          <span class="takeover-badge">PHASE 2</span>
+        </div>
+        
+        <h2 class="takeover-title">BRACKET PHASE FINALE</h2>
+        <h3 class="takeover-subtitle">🏆 Le Tournoi Réel Commence !</h3>
+        
+        <div class="takeover-info-box">
+          <p class="takeover-desc">
+            Les phases de groupes sont officiellement terminées et l'arbre final est déterminé. 
+            Vous avez jusqu'à <strong>ce soir à 23h00 (coup d'envoi du 1er match)</strong> pour enregistrer vos pronostics de la phase finale.
+          </p>
+          
+          <div class="takeover-deadline">
+            <span class="material-symbols-outlined">schedule</span>
+            <span>Date Limite : Dimanche 28 Juin à 23:00</span>
+          </div>
+        </div>
+        
+        <div class="takeover-actions">
+          <button type="button" class="btn-takeover-primary" (click)="playKnockoutPhase2()">
+            <span class="material-symbols-outlined">sports_esports</span>
+            PRONOSTIQUER MON BRACKET
+          </button>
+          
+          <button type="button" class="btn-takeover-link" (click)="closeKnockoutPromptDialog()">
+            Plus tard, continuer ma navigation
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+}
+

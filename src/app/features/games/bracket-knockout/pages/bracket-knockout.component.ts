@@ -1,14 +1,15 @@
-import { Component, OnInit, inject, Input, ViewChild, ElementRef, ChangeDetectorRef, HostListener, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectorRef, Injector, Input, ViewChild, ElementRef, HostListener, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Observable, forkJoin } from 'rxjs';
-import { CookieService } from '../../../core/services/core/cookie.service';
-import { StateService } from '../../../core/services/core/state.service'; 
-import { BracketService } from '../../../core/services/games/bracket.service';
-import { MatchesService } from '../../../core/services/content/matches.service';
-import { TeamsService } from '../../../core/services/content/teams.service';
-import { BracketResultApiService } from '../../../core/services/api/bracket-result-api.service';
-import { GameRulesService } from '../../../core/services/content/game-rules.service';
-import { KnockoutBracketService } from '../../../core/services/games/knockout-bracket.service';
+import { CookieService } from '../../../../core/services/core/cookie.service';
+import { StateService } from '../../../../core/services/core/state.service'; 
+import { BracketService } from '../../../../core/services/games/bracket.service';
+import { MatchesService } from '../../../../core/services/content/matches.service';
+import { TeamsService } from '../../../../core/services/content/teams.service';
+import { toObservable } from '@angular/core/rxjs-interop';
+import { BracketResultApiService } from '../../../../core/services/api/bracket-result-api.service';
+import { GameRulesService } from '../../../../core/services/content/game-rules.service';
+import { KnockoutBracketService } from '../../../../core/services/games/knockout-bracket.service';
 
 export interface Country {
   name: string;
@@ -455,11 +456,12 @@ export class BracketKnockoutComponent implements OnInit {
     this.initializePlaceholders();
     this.resetSelections();
 
+    const injector = inject(Injector);
     forkJoin({
-      matches: this.matchesService.getAllMatches(),
-      flags: this.teamsService.getFlags(),
+      matches: toObservable(this.matchesService.allMatches, { injector }),
+      flags: toObservable(this.teamsService.flags, { injector }),
       bracketResult: this.bracketResultApiService.getBracketResult(),
-      rules: this.gameRulesService.getGameRules()
+      rules: toObservable(this.gameRulesService.gameRules, { injector })
     }).subscribe({
       next: ({ matches, flags, bracketResult, rules }) => {
         if (bracketResult && bracketResult.data && bracketResult.data.length > 0) {
@@ -1087,10 +1089,10 @@ export class BracketKnockoutComponent implements OnInit {
         // take a snapshot of the current bracket to show as a read-only validated view
         this.takeValidatedSnapshot();
         this.validated = true;
-        // refresh the page to reflect saved state
-        window.location.reload();
+        // Trigger change detection to reflect the saved state without a page reload
+        this.cdr.detectChanges();
       },
-      error: (err) => {
+      error: (err: any) => {
         console.error('Validation error details:', err);
         const msg = err?.error?.errors?.[0]?.message
           || err?.error?.message

@@ -1,8 +1,6 @@
-import { Component, inject, ChangeDetectionStrategy, OnInit } from '@angular/core';
+import { Component, inject, ChangeDetectionStrategy, OnInit, computed } from '@angular/core';
 import { RulesService } from '../../../core/services/content/rules.service';
-import { Observable, map } from 'rxjs';
 import { LoaderComponent } from '../../../shared/components/loader/loader.component';
-import { AsyncPipe } from '@angular/common';
 import { BreadcrumbComponent, breadCrump } from '../../../shared/components/breadcrumb/breadcrumb.component';
 
 @Component({
@@ -10,12 +8,12 @@ import { BreadcrumbComponent, breadCrump } from '../../../shared/components/brea
     templateUrl: './faq.component.html',
     styleUrl: './faq.component.scss',
     changeDetection: ChangeDetectionStrategy.Eager,
-    imports: [LoaderComponent, AsyncPipe, BreadcrumbComponent]
+    imports: [LoaderComponent, BreadcrumbComponent]
 })
 export class FaqComponent implements OnInit {
   private rulesService = inject(RulesService);
 
-  protected $rules!: Observable<any>;
+  rulesData = this.rulesService.rules;
   
   breadCrumpData: breadCrump[] = [
     { label: 'Accueil', route: '/', active: false },
@@ -24,8 +22,5 @@ export class FaqComponent implements OnInit {
   ];
 
   ngOnInit(): void {
-    this.$rules = this.rulesService.getRules().pipe(
-      map((response: { data: any; }) => response.data)
-    );
   }
 }

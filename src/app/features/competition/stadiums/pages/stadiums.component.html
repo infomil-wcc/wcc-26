@@ -7,9 +7,9 @@
     </h1>
   </div>
 
-  @if ($stadiumData | async; as stadiums) {
+  @if (stadiumData().length > 0) {
     <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6 mt-8 transition-all" [ngClass]="{'hidden': choosenStadium}">
-      @for (stadium of stadiums; track stadium) {
+      @for (stadium of stadiumData(); track stadium) {
         <div class="bg-white/5 backdrop-blur-md rounded-2xl p-4 flex flex-col items-center justify-center border border-white/10 shadow-lg group hover:border-[#10b981]/50 transition-colors">
           <button class="flex flex-col items-center w-full focus:outline-none" (click)="showStadium(stadium)">
             <div class="w-full aspect-[4/3] rounded-xl overflow-hidden bg-black/20">

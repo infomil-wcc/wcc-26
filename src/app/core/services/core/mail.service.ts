@@ -1,8 +1,9 @@
-import { Injectable, inject } from '@angular/core';
+import { inject } from '@angular/core';
 import { HttpHeaders } from '@angular/common/http';
 import { Observable, switchMap, tap } from 'rxjs';
 import { MailApiService } from '../api/mail-api.service';
 import { AuthApiService } from '../api/auth-api.service';
+import { Service } from '@angular/core';
 
 export interface MailRecipient {
   name: string;
@@ -15,9 +16,7 @@ export interface MailRequest {
   body: string;
 }
 
-@Injectable({
-  providedIn: 'root'
-})
+@Service()
 export class MailService {
   private mailApiService = inject(MailApiService);
   private authApiService = inject(AuthApiService);

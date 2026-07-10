@@ -345,7 +345,7 @@
 } @else if (!isAuthChecked) {
   <loader [showLoader]="true" />
 } @else {
-  <modal [showModal]="!isLoggedIn" [showCloseButton]="false">
-    <app-login />
-  </modal>
+  @if (!isLoggedIn) {
+    <app-login [showCloseButton]="false" />
+  }
 }

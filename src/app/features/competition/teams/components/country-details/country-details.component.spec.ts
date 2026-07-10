@@ -1,7 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { CountryDetailsComponent } from './country-details.component';
-import { LoaderComponent } from '../loader/loader.component';
+import { LoaderComponent } from '../../../../../shared/components/loader/loader.component';
 
 describe('CountryDetailsComponent', () => {
   let component: CountryDetailsComponent;

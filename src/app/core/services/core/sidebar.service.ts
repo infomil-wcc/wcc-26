@@ -1,6 +1,7 @@
-import { Injectable, signal } from '@angular/core';
+import { signal } from '@angular/core';
+import { Service } from '@angular/core';
 
-@Injectable({ providedIn: 'root' })
+@Service()
 export class SidebarService {
   readonly isCollapsed = signal<boolean>(false);
 

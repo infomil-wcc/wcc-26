@@ -7,7 +7,7 @@
     </h1>
   </div>
 
-  @if ($teamsData | async; as teams) {
+  @if (teamsData(); as teams) {
     <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 md:gap-6 mt-8 transition-all" [ngClass]="{'hidden': choosenTeam}">
       @for (team of teams; track team) {
         <div class="bg-white/5 backdrop-blur-md rounded-2xl p-4 flex flex-col items-center justify-center border border-white/10 shadow-lg group hover:border-[#10b981]/50 transition-colors">

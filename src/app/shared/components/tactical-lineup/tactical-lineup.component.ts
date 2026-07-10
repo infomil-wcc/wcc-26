@@ -1,5 +1,6 @@
-import { Component, Input, Output, EventEmitter, OnInit, inject } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnInit, inject, Injector } from '@angular/core';
 import { NgClass, NgStyle } from '@angular/common';
+import { toObservable } from '@angular/core/rxjs-interop';
 import { TeamsService } from '../../../core/services/content/teams.service';
 
 interface LineupPlayer {
@@ -28,6 +29,7 @@ export class TacticalLineupComponent implements OnInit {
   @Output() playerSelected = new EventEmitter<string>();
 
   private teamsService = inject(TeamsService);
+  private injector = inject(Injector);
 
   protected homeStarters: LineupPlayer[] = [];
   protected homeBench: LineupPlayer[] = [];
@@ -50,13 +52,13 @@ export class TacticalLineupComponent implements OnInit {
   }
 
   private fetchTeamColors() {
-    this.teamsService.getTeamColors(this.teamA).subscribe(colors => {
+    toObservable(this.teamsService.getTeamColors(this.teamA), { injector: this.injector }).subscribe(colors => {
       if (colors && colors.length) {
         this.homeColors = colors;
       }
     });
 
-    this.teamsService.getTeamColors(this.teamB).subscribe(colors => {
+    toObservable(this.teamsService.getTeamColors(this.teamB), { injector: this.injector }).subscribe(colors => {
       if (colors && colors.length) {
         this.awayColors = colors;
       }

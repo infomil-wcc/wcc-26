@@ -1,12 +1,12 @@
-import { Injectable, inject, signal } from '@angular/core';
+import { Injectable, inject, signal, Injector } from '@angular/core';
 import { toObservable } from '@angular/core/rxjs-interop';
+import { Observable, from } from 'rxjs';
 import { MatchesService } from '../../../../core/services/content/matches.service';
 import { StateService } from '../../../../core/services/core/state.service';
 import { GlobaltimeService } from '../../../../core/services/core/global-time.service';
 import { PredictionsService } from '../../../../core/services/games/predictions.service';
 import { RankingsService } from '../../../../core/services/content/rankings.service';
 import { TeamsService } from '../../../../core/services/content/teams.service';
-import { Observable } from 'rxjs';
 import { Matches } from '../../../../shared/contracts/matches.contract';
 
 @Injectable({
@@ -14,6 +14,7 @@ import { Matches } from '../../../../shared/contracts/matches.contract';
 })
 export class PronosticsFacade {
   private matchesService = inject(MatchesService);
+  private injector = inject(Injector);
   private stateService = inject(StateService);
   private globalTime = inject(GlobaltimeService);
   private predictionService = inject(PredictionsService);
@@ -50,7 +51,7 @@ export class PronosticsFacade {
 
   // MatchesService delegation
   getAllMatches(): Observable<Matches[]> {
-    return this.matchesService.getAllMatches();
+    return toObservable(this.matchesService.allMatches, { injector: this.injector }) as Observable<Matches[]>;
   }
 
   // GlobalTimeService delegation
@@ -93,11 +94,15 @@ export class PronosticsFacade {
 
   // RankingsService delegation
   getUserRanking(username: string): Observable<any> {
-    return this.rankingsService.getUserRanking(username);
+    return from(this.rankingsService.getUserRanking(username));
   }
 
   // TeamsService delegation
+  getPlayersByTeamName(teamName: string) {
+    return toObservable(this.teamService.getPlayersByTeamName(teamName), { injector: this.injector });
+  }
+
   getTeamByName(teamName: string) {
-    return this.teamService.getTeamByName(teamName);
+    return toObservable(this.teamService.getTeamByName(teamName), { injector: this.injector });
   }
 }

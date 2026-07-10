@@ -1,11 +1,9 @@
-import { Component, OnInit, inject, ChangeDetectionStrategy } from '@angular/core';
-import { CommonModule, AsyncPipe } from '@angular/common';
+import { Component, OnInit, inject, ChangeDetectionStrategy, computed } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { TeamsService } from '../../../../../core/services/content/teams.service';
 import { MatchesService } from '../../../../../core/services/content/matches.service';
 import { Teams } from '../../../../../shared/contracts/teams.contract';
 import { Matches } from '../../../../../shared/contracts/matches.contract';
-import { combineLatest, Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
 
 // FIFA World Cup 2026: 12 groups, top 2 + best 8 third-placed qualify (32 total)
 const GROUPS_COUNT = 12;
@@ -39,22 +37,17 @@ export interface GroupData {
   styleUrl: './group-table.component.scss',
   changeDetection: ChangeDetectionStrategy.Eager,
   standalone: true,
-  imports: [CommonModule, AsyncPipe]
+  imports: [CommonModule]
 })
-export class GroupTableComponent implements OnInit {
+export class GroupTableComponent {
   private teamsService = inject(TeamsService);
   private matchesService = inject(MatchesService);
 
-  $groups!: Observable<GroupData[]>;
-
-  ngOnInit(): void {
-    this.$groups = combineLatest([
-      this.teamsService.getAllTeams(),
-      this.matchesService.getAllMatches()
-    ]).pipe(
-      map(([teams, matches]) => this.buildGroupStandings(teams, matches))
-    );
-  }
+  groups = computed(() => {
+    const teams = this.teamsService.allTeams();
+    const matches = this.matchesService.allMatches();
+    return this.buildGroupStandings(teams, matches);
+  });
 
   private buildGroupStandings(teams: Teams[], matches: Matches[]): GroupData[] {
     if (!teams || !Array.isArray(teams)) {

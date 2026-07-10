@@ -1,8 +1,5 @@
-import { Component, Input, OnInit, inject, ChangeDetectionStrategy } from '@angular/core';
+import { Component, Input, inject, ChangeDetectionStrategy, computed } from '@angular/core';
 import { MatchesService } from '../../../core/services/content/matches.service';
-import { Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
-import { AsyncPipe } from '@angular/common';
 
 interface FormResult {
   result: 'W' | 'D' | 'L' | '';
@@ -15,22 +12,17 @@ const FORM_SLOTS = 5;
   templateUrl: './team-performance.component.html',
   styleUrl: './team-performance.component.scss',
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
-  imports: [AsyncPipe]
+  changeDetection: ChangeDetectionStrategy.Eager
 })
-export class TeamPerformanceComponent implements OnInit {
+export class TeamPerformanceComponent {
 
   @Input() teamName!: string;
 
   private matchesService = inject(MatchesService);
 
-  protected $form!: Observable<FormResult[]>;
-
-  ngOnInit(): void {
-    this.$form = this.matchesService.getAllMatches().pipe(
-      map(matches => this.computeForm(matches))
-    );
-  }
+  form = computed(() => {
+    return this.computeForm(this.matchesService.allMatches());
+  });
 
   private computeForm(matches: any[]): FormResult[] {
     // Only played matches involving this team, sorted chronologically

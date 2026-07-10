@@ -1,27 +1,30 @@
-import { Component, inject, OnInit, ChangeDetectionStrategy } from '@angular/core';
-import { AsyncPipe, CommonModule } from '@angular/common';
+import { Component, inject, OnInit, ChangeDetectionStrategy, PLATFORM_ID, Injector } from '@angular/core';
+import { FormBuilder, FormGroup, ReactiveFormsModule, FormArray, AbstractControl, ValidatorFn, ValidationErrors } from '@angular/forms';
+import { toObservable } from '@angular/core/rxjs-interop';
+import { AsyncPipe, CommonModule, isPlatformBrowser } from '@angular/common';
 import { Observable, of, forkJoin } from 'rxjs';
 import { map, switchMap, catchError } from 'rxjs/operators';
-import { CookieService } from '../../../core/services/core/cookie.service';
-import { StateService } from '../../../core/services/core/state.service';
-import { BracketService } from '../../../core/services/games/bracket.service';
-import { BracketPredictorComponent } from '../bracket-predictor/bracket-predictor.component';
-import { BracketKnockoutComponent } from '../bracket-knockout/bracket-knockout.component';
+import { CookieService } from '../../../../core/services/core/cookie.service';
+import { StateService } from '../../../../core/services/core/state.service';
+import { BracketService } from '../../../../core/services/games/bracket.service';
+import { BracketPredictorComponent } from '../../bracket-predictor/pages/bracket-predictor.component';
+import { BracketKnockoutComponent } from '../../bracket-knockout/pages/bracket-knockout.component';
 
-import { DialogComponent } from '../../../shared/components/dialog/dialog.component';
-import { RankingsService } from '../../../core/services/content/rankings.service';
-import { MatchesService } from '../../../core/services/content/matches.service';
-import { TeamsService } from '../../../core/services/content/teams.service';
-import { KnockoutBracketService } from '../../../core/services/games/knockout-bracket.service';
-import { PredictionsApiService } from '../../../core/services/api/predictions-api.service';
-import { BreadcrumbComponent, breadCrump } from '../../../shared/components/breadcrumb/breadcrumb.component';
+import { DialogComponent } from '../../../../shared/components/dialog/dialog.component';
+import { RankingsService } from '../../../../core/services/content/rankings.service';
+import { MatchesService } from '../../../../core/services/content/matches.service';
+import { TeamsService } from '../../../../core/services/content/teams.service';
+import { KnockoutBracketService } from '../../../../core/services/games/knockout-bracket.service';
+import { PredictionsApiService } from '../../../../core/services/api/predictions-api.service';
+import { BreadcrumbComponent, breadCrump } from '../../../../shared/components/breadcrumb/breadcrumb.component';
+import { LoginComponent } from '../../../../shared/components/login/login.component';
 
 @Component({
-    selector: 'app-bracket-challenge',
-    templateUrl: './bracket-challenge.component.html',
-    styleUrl: './bracket-challenge.component.scss',
-    changeDetection: ChangeDetectionStrategy.Eager,
-    imports: [BracketPredictorComponent, BracketKnockoutComponent, DialogComponent, AsyncPipe, CommonModule, BreadcrumbComponent]
+  selector: 'app-bracket-challenge',
+  templateUrl: './bracket-challenge.component.html',
+  styleUrl: './bracket-challenge.component.scss',
+  changeDetection: ChangeDetectionStrategy.Eager,
+  imports: [BracketPredictorComponent, BracketKnockoutComponent, DialogComponent, AsyncPipe, CommonModule, BreadcrumbComponent, LoginComponent]
 })
 export class BracketChallengeComponent implements OnInit {
   protected breadCrumpData: breadCrump[] = [
@@ -37,22 +40,24 @@ export class BracketChallengeComponent implements OnInit {
   private teamsService = inject(TeamsService);
   private knockoutBracketService = inject(KnockoutBracketService);
   private predictionsApiService = inject(PredictionsApiService);
+  private platformId = inject(PLATFORM_ID);
+  private injector = inject(Injector);
 
   protected bracketPoints$!: Observable<{ value: number } | null>;
 
   private targetDate = new Date(2026, 5, 12, 22, 55, 0);
   private currentDate = new Date();
-  
+
   protected activeWizardStep: 'groups' | 'knockout' = 'groups';
   protected advancedQualifiers: any[] = [];
   protected realKnockoutQualifiers: any[] = [];
   protected isLoggedIn: boolean = false;
   protected hasSavedBracket: boolean = false;
   private savedBracketId: string | null = null;
-  
+
   protected hasSavedKnockoutBracket: boolean = false;
   protected savedKnockoutBracketId: string | null = null;
-  
+
   protected showDeleteDialog: boolean = false;
   protected deleteDialogMode: 'confirm' | 'info' = 'confirm';
   protected deleteDialogMessage: string = '';
@@ -65,7 +70,7 @@ export class BracketChallengeComponent implements OnInit {
     this.bracketPoints$ = this.stateService.userState.pipe(
       switchMap(user => {
         if (!user?.id || !user?.last_name) return of(null);
-        return this.rankingsService.getBracketRankings().pipe(
+        return toObservable(this.rankingsService.bracketRankings, { injector: this.injector }).pipe(
           map(res => {
             const list = res?.[0]?.ranking_json || [];
             const userRank = list.find((item: any) => (item.user || '').toLowerCase().trim() === (user.last_name || '').toLowerCase().trim());
@@ -86,17 +91,18 @@ export class BracketChallengeComponent implements OnInit {
     }
 
     // 1. Fetch matches and flags first
+    // 1. Fetch matches and flags first
     forkJoin({
-      matches: this.matchesService.getAllMatches(),
-      flags: this.teamsService.getFlags()
+      matches: toObservable(this.matchesService.allMatches, { injector: this.injector }),
+      flags: toObservable(this.teamsService.flags, { injector: this.injector })
     }).subscribe({
       next: ({ matches, flags }) => {
         // Derive knockoutJeuFermer dynamically from the first R32 match kickoff
         const r32Matches = matches
-          .filter(m => m.phase === 'Round of 32' && m.date)
-          .map(m => new Date(m.date))
-          .filter(d => !isNaN(d.getTime()))
-          .sort((a, b) => a.getTime() - b.getTime());
+          .filter((m: any) => m.phase === 'Round of 32' && m.date)
+          .map((m: any) => new Date(m.date))
+          .filter((d: any) => !isNaN(d.getTime()))
+          .sort((a: any, b: any) => a.getTime() - b.getTime());
         const firstR32Kickoff = r32Matches.length > 0 ? r32Matches[0] : null;
         this.knockoutJeuFermer = firstR32Kickoff ? this.currentDate >= firstR32Kickoff : false;
 
@@ -210,17 +216,17 @@ export class BracketChallengeComponent implements OnInit {
 
     this.advancedQualifiers = qualifiedTeams;
     this.activeWizardStep = 'knockout';
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    if (isPlatformBrowser(this.platformId)) { window.scrollTo({ top: 0, behavior: 'smooth' }); }
   }
 
   backToGroups(): void {
     this.activeWizardStep = 'groups';
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    if (isPlatformBrowser(this.platformId)) { window.scrollTo({ top: 0, behavior: 'smooth' }); }
   }
 
   setPhase(phase: 1 | 2): void {
     this.currentPhase = phase;
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    if (isPlatformBrowser(this.platformId)) { window.scrollTo({ top: 0, behavior: 'smooth' }); }
   }
 
   closeKnockoutPromptDialog(): void {
@@ -231,7 +237,7 @@ export class BracketChallengeComponent implements OnInit {
     this.showKnockoutPromptDialog = false;
     this.currentPhase = 2;
     this.activeWizardStep = 'knockout';
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    if (isPlatformBrowser(this.platformId)) { window.scrollTo({ top: 0, behavior: 'smooth' }); }
   }
 
   deleteBracket(): void {
@@ -244,7 +250,7 @@ export class BracketChallengeComponent implements OnInit {
     }
     // show confirmation dialog
     this.deleteDialogMode = 'confirm';
-    this.deleteDialogMessage = this.currentPhase === 1 
+    this.deleteDialogMessage = this.currentPhase === 1
       ? 'Voulez-vous vraiment réinitialiser votre bracket ? Cette action est irréversible.'
       : 'Voulez-vous vraiment réinitialiser votre bracket de la Phase Finale ? Cette action est irréversible.';
     this.showDeleteDialog = true;
@@ -257,8 +263,8 @@ export class BracketChallengeComponent implements OnInit {
       this.deleteDialogMessage = 'Aucun bracket trouvé à réinitialiser.';
       return;
     }
-    
-    const serviceCall = this.currentPhase === 1 
+
+    const serviceCall = this.currentPhase === 1
       ? this.bracketService.deleteBracket(id)
       : this.knockoutBracketService.deleteKnockoutBracket(id);
 
@@ -273,7 +279,7 @@ export class BracketChallengeComponent implements OnInit {
           this.hasSavedKnockoutBracket = false;
           this.savedKnockoutBracketId = null;
         }
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+        if (isPlatformBrowser(this.platformId)) { window.scrollTo({ top: 0, behavior: 'smooth' }); }
         this.deleteDialogMode = 'info';
         this.deleteDialogMessage = 'Bracket réinitialisé.';
         this.showDeleteDialog = true; // keep dialog open to show message

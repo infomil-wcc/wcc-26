@@ -1,14 +1,15 @@
-import { Component, OnDestroy, OnInit, inject, ChangeDetectorRef, ChangeDetectionStrategy, HostListener } from '@angular/core';
+import { Component, OnDestroy, OnInit, inject, ChangeDetectorRef, ChangeDetectionStrategy, HostListener, PLATFORM_ID, Injector } from '@angular/core';
 import { Observable, Subscription } from 'rxjs';
 import { GlobaltimeService } from '../../../../core/services/core/global-time.service';
 import { HttpClient } from '@angular/common/http';
 import { BracketService } from '../../../../core/services/games/bracket.service';
 import { TeamsService } from '../../../../core/services/content/teams.service';
-import { NgClass, UpperCasePipe, DatePipe } from '@angular/common';
+import { NgClass, UpperCasePipe, DatePipe, isPlatformBrowser } from '@angular/common';
 import { LoaderComponent } from '../../../../shared/components/loader/loader.component';
 import { RankingsService } from '../../../../core/services/content/rankings.service';
 import { StateService } from '../../../../core/services/core/state.service';
-import { RouterModule } from '@angular/router';
+import { RouterModule, ActivatedRoute } from '@angular/router';
+import { toObservable } from '@angular/core/rxjs-interop';
 import { ScoresheetComponent } from './scoresheet/scoresheet.component';
 import { BreadcrumbComponent, breadCrump } from '../../../../shared/components/breadcrumb/breadcrumb.component';
 
@@ -33,7 +34,9 @@ export class LeaderboardComponent implements OnInit, OnDestroy {
   private http = inject(HttpClient);
   private bracketService = inject(BracketService);
   private cdr = inject(ChangeDetectorRef);
+  private platformId = inject(PLATFORM_ID);
   private teamsService = inject(TeamsService);
+  private injector = inject(Injector);
   private today: Date = new Date();
 
   protected showLoader: boolean = true;
@@ -60,15 +63,15 @@ export class LeaderboardComponent implements OnInit, OnDestroy {
       }
     });
 
-    this.$ranks = this.rankingsService.getPronosticsRankings();
-    this.$bracketRanks = this.rankingsService.getBracketRankings();
+    this.$ranks = toObservable(this.rankingsService.pronosticsRankings, { injector: this.injector });
+    this.$bracketRanks = toObservable(this.rankingsService.bracketRankings, { injector: this.injector });
 
     this.ranksSub = this.$ranks.subscribe({
       next: (response)=>{
         if(!response || response.length < 1){
           this.updateRanks();
           setTimeout(() => {
-            location.reload();
+            this.rankingsService.reloadPronostics();
           }, 3000);
         }
 
@@ -96,8 +99,8 @@ export class LeaderboardComponent implements OnInit, OnDestroy {
       }
     });
 
-    this.flagsSub = this.teamsService.getFlags().subscribe({
-      next: (flagsData) => {
+    this.flagsSub = toObservable(this.teamsService.flags, { injector: this.injector }).subscribe({
+      next: (flagsData: any) => {
         this.flags = flagsData;
         this.cdr.detectChanges();
       }
@@ -108,7 +111,7 @@ export class LeaderboardComponent implements OnInit, OnDestroy {
 
   loadUserChampions(): void {
 
-    this.bracketService.getBrackets().subscribe({
+    toObservable(this.bracketService.brackets, { injector: this.injector }).subscribe({
       next: (data) => {
         if (data) {
           data.forEach((b: any) => {
@@ -270,12 +273,8 @@ export class LeaderboardComponent implements OnInit, OnDestroy {
     }
 
     const rect = sentinelEl.getBoundingClientRect();
-    const viewportHeight = window.innerHeight;
-
-    // Sticky header and tabs stick to the top.
-    // Desktop: sticky top is 231px.
-    // Mobile: sticky top is 256px.
-    const isMobile = window.innerWidth <= 640;
+    const viewportHeight = isPlatformBrowser(this.platformId) ? window.innerHeight : 0;
+    const isMobile = isPlatformBrowser(this.platformId) ? window.innerWidth <= 640 : false;
     const topBoundary = isMobile ? 256 : 231;
     const bottomBoundary = viewportHeight - 100;
 

@@ -1,4 +1,4 @@
-﻿<layout>
+<layout>
   <ng-container slot="header">
     <cmp-menu></cmp-menu>
   </ng-container>
@@ -11,7 +11,7 @@
     </ng-container>
   }
 
-  <ng-container slot="main" >
+  <ng-container slot="main">
     <router-outlet></router-outlet>
   </ng-container>
 
@@ -20,7 +20,13 @@
   </ng-container>
 </layout>
 
-<app-dialog [(showDialog)]="showDialog" [dialogTitle]="'Bienvenue !'" [withOverlay]="true" [allowClose]="false">
+<!-- ── Total goals prediction dialog ─────────────────────────────────────── -->
+<app-dialog
+  [(showDialog)]="facade.showDialog"
+  [dialogTitle]="'Bienvenue !'"
+  [withOverlay]="true"
+  [allowClose]="false"
+>
   Selon vous, combien de buts seront inscrits au total durant la Coupe du Monde de la FIFA 2026? <br /><br />
   <i>Indice: nombre total de but inscrits lors des précédentes éditions:</i>
   <ul class="textList">
@@ -31,55 +37,53 @@
     <li>Allemagne 2006: 147 buts</li>
   </ul>
 
-  <form class="flex flex-col gap-2" [formGroup]="goalsForm">
+  <form class="flex flex-col gap-2" [formGroup]="facade.goalsForm">
     <div class="input mb-2">
       <input type="number" formControlName="totalGoalsPrediction" name="totalGoalsPrediction" required min="0" class="w-full" />
     </div>
-
-    <button type="button" label="Valider ma prédiction" class="btn btn-primary"(click)="submitGoals()">Soumettre ma proposition</button>
+    <button type="button" label="Valider ma prédiction" class="btn btn-primary" (click)="facade.submitGoals()">Soumettre ma proposition</button>
   </form>
-
-
 </app-dialog>
 
-@if (showKnockoutPhase2Dialog) {
+<!-- ── Knockout Phase 2 takeover ─────────────────────────────────────────── -->
+@if (facade.showKnockoutPhase2Dialog()) {
   <div class="fullscreen-takeover">
     <div class="takeover-backdrop"></div>
     <div class="takeover-card">
-      <button type="button" class="takeover-close-btn" (click)="closeKnockoutPhase2Dialog()">
+      <button type="button" class="takeover-close-btn" (click)="facade.closeKnockoutPhase2Dialog()">
         <span class="material-symbols-outlined">close</span>
       </button>
-      
+
       <div class="takeover-content">
         <div class="glow-sphere"></div>
-        
+
         <div class="takeover-icon-wrapper">
           <span class="material-symbols-outlined takeover-icon">emoji_events</span>
           <span class="takeover-badge">PHASE 2</span>
         </div>
-        
+
         <h2 class="takeover-title">BRACKET PHASE FINALE</h2>
         <h3 class="takeover-subtitle">🏆 Le Tournoi Réel Commence !</h3>
-        
+
         <div class="takeover-info-box">
           <p class="takeover-desc">
-            Les phases de groupes sont officiellement terminées et l'arbre final est déterminé. 
+            Les phases de groupes sont officiellement terminées et l'arbre final est déterminé.
             Vous avez jusqu'à <strong>ce soir à 23h00 (coup d'envoi du 1er match)</strong> pour enregistrer vos pronostics de la phase finale.
           </p>
-          
+
           <div class="takeover-deadline">
             <span class="material-symbols-outlined">schedule</span>
             <span>Date Limite : Dimanche 28 Juin à 23:00</span>
           </div>
         </div>
-        
+
         <div class="takeover-actions">
-          <button type="button" class="btn-takeover-primary" (click)="goToBracketChallenge()">
+          <button type="button" class="btn-takeover-primary" (click)="facade.goToBracketChallenge()">
             <span class="material-symbols-outlined">sports_esports</span>
             PRONOSTIQUER MON BRACKET
           </button>
-          
-          <button type="button" class="btn-takeover-link" (click)="closeKnockoutPhase2Dialog()">
+
+          <button type="button" class="btn-takeover-link" (click)="facade.closeKnockoutPhase2Dialog()">
             Plus tard, continuer ma navigation
           </button>
         </div>
@@ -88,8 +92,5 @@
   </div>
 }
 
-<loader [(showLoader)]="showLoader" />
-
-<modal>
-  <p>Test modal content</p>
-</modal>
+<!-- ── Global loader ──────────────────────────────────────────────────────── -->
+<loader [(showLoader)]="facade.showLoader" />

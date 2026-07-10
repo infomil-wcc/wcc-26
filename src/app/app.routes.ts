@@ -6,66 +6,36 @@ export const routes: Routes = [
     redirectTo: 'accueil',
     pathMatch: 'full'
   },
+
+  // ── Homepage ──────────────────────────────────────────────────────────────
   {
     path: 'accueil',
-    loadComponent: () => import('./features/homepage/pages/homepage.component').then(m => m.HomepageComponent)
+    loadChildren: () => import('@features/homepage/homepage.routes').then(m => m.HOMEPAGE_ROUTES)
   },
+
+  // ── Competition ───────────────────────────────────────────────────────────
   {
-    path: 'les-matchs',
-    loadComponent: () => import('./features/competition/games/pages/games.component').then(m => m.GamesComponent)
+    path: '',
+    loadChildren: () => import('@features/competition/competition.routes').then(m => m.COMPETITION_ROUTES)
   },
+
+  // ── Games ─────────────────────────────────────────────────────────────────
   {
-    path: 'les-equipes',
-    loadComponent: () => import('./features/competition/teams/pages/teams.component').then(m => m.TeamsComponent)
+    path: '',
+    loadChildren: () => import('@features/games/games.routes').then(m => m.GAMES_ROUTES)
   },
-  {
-    path: 'les-stades',
-    loadComponent: () => import('./features/competition/stadiums/pages/stadiums.component').then(m => m.StadiumsComponent)
-  },
-  {
-    path: 'statistiques',
-    loadComponent: () => import('./features/competition/statistics/pages/statistics.component').then(m => m.StatisticsComponent)
-  },
-  {
-    path: 'meilleur-buteur',
-    loadComponent: () => import('./features/games/best-scorer/pages/best-scorer.component').then(m => m.BestScorerComponent)
-  },
-  {
-    path: 'pronostics',
-    loadComponent: () => import('./features/games/pronostics/pages/pronostics.component').then(m => m.PronosticsComponent)
-  },
-  // {
-  //   path: 'bracket',
-  //   loadComponent: () => import('./pages/games/bracket-knockout/bracket-knockout.component').then(m => m.BracketKnockoutComponent)
-  // },
-  // {
-  //   path: 'bracket-challenge',
-  //   loadComponent: () => import('./pages/games/bracket-challenge/bracket-challenge.component').then(m => m.BracketChallengeComponent)
-  // },
-  {
-    path: 'quiz',
-    loadComponent: () => import('./features/games/quiz/pages/quiz.component').then(m => m.QuizComponent)
-  },
-  {
-    path: 'leaderboard',
-    loadComponent: () => import('./features/games/leaderboard/pages/leaderboard.component').then(m => m.LeaderboardComponent)
-  },
-  {
-    path: 'leaderboard/scoresheet/:id',
-    loadComponent: () => import('./features/games/leaderboard/pages/scoresheet/scoresheet.component').then(m => m.ScoresheetComponent)
-  },
+
+  // ── Info pages ────────────────────────────────────────────────────────────
   {
     path: 'faq',
-    loadComponent: () => import('./features/faq/pages/faq.component').then(m => m.FaqComponent)
+    loadChildren: () => import('@features/faq/faq.routes').then(m => m.FAQ_ROUTES)
   },
   {
     path: 'game-rules',
-    loadComponent: () => import('./features/game-rules/pages/game-rules.component').then(m => m.GameRulesComponent)
+    loadChildren: () => import('@features/game-rules/game-rules.routes').then(m => m.GAME_RULES_ROUTES)
   },
-  {
-    path: 'les-groupes',
-    loadComponent: () => import('./features/competition/group-standings/pages/group-standings.component').then(m => m.GroupStandingsComponent)
-  },
+
+  // ── Fallback ──────────────────────────────────────────────────────────────
   {
     path: '**',
     loadComponent: () => import('./pages/error/error.component').then(m => m.ErrorComponent)

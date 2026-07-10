@@ -1,4 +1,4 @@
-@if ($form | async; as form) {
+@if (form(); as form) {
   <div class="form-dots">
     @for (slot of form; track $index) {
       <div class="marking" [class.win]="slot.result === 'W'" [class.draw]="slot.result === 'D'" [class.loose]="slot.result === 'L'" [class.empty]="!slot.result" [title]="slot.result || 'Non joué'">
