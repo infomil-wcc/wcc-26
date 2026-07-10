@@ -1,8 +1,8 @@
 import { Injectable, inject, signal, PLATFORM_ID } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
-import { AuthService } from '../../../core/services/core/auth.service';
-import { MailService } from '../../../core/services/core/mail.service';
-import { StateService } from '../../../core/services/core/state.service';
+import { AuthService } from '../../core/services/core/auth.service';
+import { MailService } from '../../core/services/core/mail.service';
+import { StateService } from '../../core/services/core/state.service';
 import { generateConfirmationCode } from './login.utils';
 
 @Injectable()

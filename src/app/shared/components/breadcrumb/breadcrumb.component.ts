@@ -10,7 +10,6 @@ export interface breadCrump {
 @Component({
     selector: 'app-breadcrumb',
     templateUrl: './breadcrumb.component.html',
-    styleUrl: './breadcrumb.component.scss',
     changeDetection: ChangeDetectionStrategy.Eager,
     imports: [NgClass]
 })

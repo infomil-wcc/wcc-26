@@ -10,21 +10,20 @@ import { BracketService } from '../../../../core/services/games/bracket.service'
 import { BracketPredictorComponent } from '../../bracket-predictor/pages/bracket-predictor.component';
 import { BracketKnockoutComponent } from '../../bracket-knockout/pages/bracket-knockout.component';
 
-import { DialogComponent } from '../../../../shared/components/dialog/dialog.component';
 import { RankingsService } from '../../../../core/services/content/rankings.service';
 import { MatchesService } from '../../../../core/services/content/matches.service';
 import { TeamsService } from '../../../../core/services/content/teams.service';
 import { KnockoutBracketService } from '../../../../core/services/games/knockout-bracket.service';
 import { PredictionsApiService } from '../../../../core/services/api/predictions-api.service';
 import { BreadcrumbComponent, breadCrump } from '../../../../shared/components/breadcrumb/breadcrumb.component';
-import { LoginComponent } from '../../../../shared/components/login/login.component';
+import { LoginComponent } from '../../../../features/auth/login.component';
 
 @Component({
   selector: 'app-bracket-challenge',
   templateUrl: './bracket-challenge.component.html',
   styleUrl: './bracket-challenge.component.scss',
   changeDetection: ChangeDetectionStrategy.Eager,
-  imports: [BracketPredictorComponent, BracketKnockoutComponent, DialogComponent, AsyncPipe, CommonModule, BreadcrumbComponent, LoginComponent]
+  imports: [BracketPredictorComponent, BracketKnockoutComponent, AsyncPipe, CommonModule, BreadcrumbComponent, LoginComponent]
 })
 export class BracketChallengeComponent implements OnInit {
   protected breadCrumpData: breadCrump[] = [

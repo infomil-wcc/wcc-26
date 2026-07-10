@@ -1,49 +1,77 @@
-<layout>
-  <ng-container slot="header">
-    <cmp-menu></cmp-menu>
-  </ng-container>
+<div class="flex flex-col min-h-screen w-full relative">
+  <!-- The slot header now renders the sidebar on desktop and topbar on mobile -->
+  <cmp-menu></cmp-menu>
 
-  @if (router.url === '/accueil' || router.url === '/') {
-    <ng-container slot="hero">
-      <hero [background]="'url(assets/hero-bg.jpg)'">
-        <news></news>
-      </hero>
-    </ng-container>
-  }
+  <!-- Main Content Area: shifts right based on sidebar width on desktop only -->
+  <div class="flex-grow flex flex-col min-h-screen w-full transition-[padding-left] duration-300 ease-in-out md:pl-[var(--sidebar-width)]"
+       [style.--sidebar-width]="sidebar.isCollapsed() ? '72px' : '260px'">
+    
+    <!-- pt-16 to avoid mobile topbar, no padding on desktop because no topbar -->
+    <div class="pt-16 md:pt-0 flex flex-col flex-grow group/layout">
+      
+      <!-- Hero Slot -->
+      @if (router.url === '/accueil' || router.url === '/') {
+        <div class="w-full bg-[#2552FA] relative bg-no-repeat bg-cover bg-top lg:min-h-[65vh]" 
+             style="background-image: url('assets/hero-bg.jpg');" 
+             [ngStyle]="{'background-attachment': 'fixed'}">
+          <!-- Overlay -->
+          <div class="absolute inset-0 bg-black/70 z-10"></div>
+          <!-- Content Container -->
+          <div class="w-full h-auto md:h-full relative z-50">
+            <news></news>
+          </div>
+        </div>
+      }
 
-  <ng-container slot="main">
-    <router-outlet></router-outlet>
-  </ng-container>
+      <!-- Main Slot -->
+      <div class="w-full bg-[var(--theme-bg-main)] min-h-[calc(100vh-28rem)] pb-8 flex-grow">
+        <div class="p-4 md:px-12 lg:px-24 xl:px-32 max-w-[1600px] mx-auto w-full" id="scrollContainer">
+          <router-outlet></router-outlet>
+        </div>
+      </div>
 
-  <ng-container slot="footer">
-    <cmp-footer></cmp-footer>
-  </ng-container>
-</layout>
+      <!-- Footer Slot -->
+      <footer class="w-full py-6 h-auto overflow-hidden bg-[var(--theme-bg-footer)] border-t border-[#10b981]/20 relative z-10 before:absolute before:top-0 before:left-1/2 before:-translate-x-1/2 before:w-[60%] before:h-[150px] before:bg-[radial-gradient(circle_at_top,rgba(16,185,129,0.15)_0%,transparent_70%)] before:pointer-events-none after:absolute after:-top-[1px] after:left-1/2 after:-translate-x-1/2 after:w-[40%] after:h-[1px] after:bg-[linear-gradient(90deg,transparent,rgba(16,185,129,0.8),transparent)] after:shadow-[0_0_20px_rgba(16,185,129,0.6)]">
+        <div class="container m-auto flex justify-center relative z-10">
+          <div class="teaser text-xs md:text-sm flex items-center text-white mt-0">
+            <span class="material-symbols-outlined text-xl mr-2 text-[#10b981] drop-shadow-[0_0_8px_rgba(16,185,129,0.6)]">sports_esports</span>
+            <span class="text-gray-300 font-medium tracking-widest">IML FOOT CHALLENGE - FIFA WORLD CUP 2026™</span>
+          </div>
+        </div>
+      </footer>
+    </div>
+  </div>
+</div>
 
 <!-- ── Total goals prediction dialog ─────────────────────────────────────── -->
-<app-dialog
-  [(showDialog)]="facade.showDialog"
-  [dialogTitle]="'Bienvenue !'"
-  [withOverlay]="true"
-  [allowClose]="false"
->
-  Selon vous, combien de buts seront inscrits au total durant la Coupe du Monde de la FIFA 2026? <br /><br />
-  <i>Indice: nombre total de but inscrits lors des précédentes éditions:</i>
-  <ul class="textList">
-    <li>Qatar 2022: 172 buts</li>
-    <li>Russie 2018: 169 buts</li>
-    <li>Brésil 2014: 171 buts</li>
-    <li>Afrique du Sud 2010: 143 buts</li>
-    <li>Allemagne 2006: 147 buts</li>
-  </ul>
+@if (facade.showDialog()) {
+  <div class="fixed inset-0 bg-black/50 z-[1400] transition-opacity"></div>
 
-  <form class="flex flex-col gap-2" [formGroup]="facade.goalsForm">
-    <div class="input mb-2">
-      <input type="number" formControlName="totalGoalsPrediction" name="totalGoalsPrediction" required min="0" class="w-full" />
+  <div class="fixed top-[30%] left-1/2 -translate-x-1/2 w-11/12 max-w-lg z-[1500] rounded-xl overflow-hidden shadow-2xl bg-white flex flex-col">
+    <div class="p-4 sm:px-6 bg-[#00B140] bg-[url('/assets/corner-bg.png')] bg-no-repeat bg-[position:bottom_right] bg-[length:40%] text-white flex justify-between items-center uppercase text-sm font-bold">
+      <span class="flex items-center">Bienvenue !</span>
     </div>
-    <button type="button" label="Valider ma prédiction" class="btn btn-primary" (click)="facade.submitGoals()">Soumettre ma proposition</button>
-  </form>
-</app-dialog>
+    
+    <div class="p-4 sm:p-8 text-base text-gray-800">
+      Selon vous, combien de buts seront inscrits au total durant la Coupe du Monde de la FIFA 2026? <br /><br />
+      <i>Indice: nombre total de but inscrits lors des précédentes éditions:</i>
+      <ul class="textList mb-4">
+        <li>Qatar 2022: 172 buts</li>
+        <li>Russie 2018: 169 buts</li>
+        <li>Brésil 2014: 171 buts</li>
+        <li>Afrique du Sud 2010: 143 buts</li>
+        <li>Allemagne 2006: 147 buts</li>
+      </ul>
+
+      <form class="flex flex-col gap-2" [formGroup]="facade.goalsForm">
+        <div class="input mb-2">
+          <input type="number" formControlName="totalGoalsPrediction" name="totalGoalsPrediction" required min="0" class="w-full p-2 border border-gray-300 rounded" />
+        </div>
+        <button type="button" class="btn btn-primary bg-[#10b981] text-white px-4 py-2 rounded-lg font-bold" (click)="facade.submitGoals()">Soumettre ma proposition</button>
+      </form>
+    </div>
+  </div>
+}
 
 <!-- ── Knockout Phase 2 takeover ─────────────────────────────────────────── -->
 @if (facade.showKnockoutPhase2Dialog()) {

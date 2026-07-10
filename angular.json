@@ -3,7 +3,7 @@
   "version": 1,
   "newProjectRoot": "projects",
   "projects": {
-    "euroapp": {
+    "imlfootballapp": {
       "projectType": "application",
       "schematics": {
         "@schematics/angular:component": {
@@ -87,10 +87,10 @@
           "builder": "@angular/build:dev-server",
           "configurations": {
             "production": {
-              "buildTarget": "euroapp:build:production"
+              "buildTarget": "imlfootballapp:build:production"
             },
             "development": {
-              "buildTarget": "euroapp:build:development"
+              "buildTarget": "imlfootballapp:build:development"
             }
           },
           "defaultConfiguration": "development"
@@ -99,10 +99,10 @@
           "builder": "@angular/ssr:dev-server",
           "configurations": {
             "production": {
-              "buildTarget": "euroapp:build:production"
+              "buildTarget": "imlfootballapp:build:production"
             },
             "development": {
-              "buildTarget": "euroapp:build:development"
+              "buildTarget": "imlfootballapp:build:development"
             }
           },
           "defaultConfiguration": "development"
@@ -110,7 +110,7 @@
         "extract-i18n": {
           "builder": "@angular/build:extract-i18n",
           "options": {
-            "buildTarget": "euroapp:build"
+            "buildTarget": "imlfootballapp:build"
           }
         },
         "test": {

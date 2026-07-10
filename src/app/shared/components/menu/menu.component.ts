@@ -2,7 +2,7 @@ import { Component, Input, OnInit, inject, ChangeDetectionStrategy } from '@angu
 import { StateService, user } from '../../../core/services/core/state.service';
 import { Observable, Subscription } from 'rxjs';
 import { NavComponent } from '../nav/nav.component';
-import { LoginComponent } from '../login/login.component';
+import { LoginComponent } from '../../../features/auth/login.component';
 import { AsyncPipe } from '@angular/common';
 import { Router } from '@angular/router';
 import { SidebarService } from '../../../core/services/core/sidebar.service';

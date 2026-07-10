@@ -7,7 +7,7 @@ import { Observable } from 'rxjs';
 import { ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { NumberInputComponent } from '../../../../shared/components/number-input/number-input.component';
 import { LoaderComponent } from '../../../../shared/components/loader/loader.component';
-import { LoginComponent } from '../../../../shared/components/login/login.component';
+import { LoginComponent } from '../../../../features/auth/login.component';
 import { AsyncPipe } from '@angular/common';
 
 @Component({

@@ -1,13 +1,13 @@
 import { Injectable, inject, signal, Injector } from '@angular/core';
 import { toObservable } from '@angular/core/rxjs-interop';
 import { Observable, from } from 'rxjs';
-import { MatchesService } from '../../../../core/services/content/matches.service';
-import { StateService } from '../../../../core/services/core/state.service';
-import { GlobaltimeService } from '../../../../core/services/core/global-time.service';
-import { PredictionsService } from '../../../../core/services/games/predictions.service';
-import { RankingsService } from '../../../../core/services/content/rankings.service';
-import { TeamsService } from '../../../../core/services/content/teams.service';
-import { Matches } from '../../../../shared/contracts/matches.contract';
+import { MatchesService } from '../../../core/services/content/matches.service';
+import { StateService } from '../../../core/services/core/state.service';
+import { GlobaltimeService } from '../../../core/services/core/global-time.service';
+import { PredictionsService } from '../../../core/services/games/predictions.service';
+import { RankingsService } from '../../../core/services/content/rankings.service';
+import { TeamsService } from '../../../core/services/content/teams.service';
+import { Matches } from '../../../shared/contracts/matches.contract';
 
 @Injectable({
   providedIn: 'root'

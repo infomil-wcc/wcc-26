@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { HomepageComponent } from './homepage.component';
-import { LoginComponent } from '../../../shared/components/login/login.component';
+import { LoginComponent } from '../../../features/auth/login.component';
 import { LoaderComponent } from '../../../shared/components/loader/loader.component';
 import { ReactiveFormsModule } from '@angular/forms';
 

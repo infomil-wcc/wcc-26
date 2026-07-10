@@ -115,21 +115,34 @@
     }
   }
 </div>
-<app-dialog [(showDialog)]="showDeleteDialog" [dialogTitle]="'Attention !'" [withOverlay]="true" [allowClose]="true">
-  @if (deleteDialogMode === 'confirm') {
-    <p>{{ deleteDialogMessage }}</p>
-    <div class="flex justify-between gap-2 mt-6 w-full">
-      <button class="btn btn-primary" (click)="onDeleteConfirmed()">Oui</button>
-      <button class="btn" (click)="onDeleteDialogClose()">Non</button>
+@if (showDeleteDialog) {
+  <div class="fixed inset-0 bg-black/50 z-[1400] transition-opacity"></div>
+
+  <div class="fixed top-[30%] left-1/2 -translate-x-1/2 w-11/12 max-w-lg z-[1500] rounded-xl overflow-hidden shadow-2xl bg-white flex flex-col">
+    <div class="p-4 sm:px-6 bg-[#00B140] bg-[url('/assets/corner-bg.png')] bg-no-repeat bg-[position:bottom_right] bg-[length:40%] text-white flex justify-between items-center uppercase text-sm font-bold">
+      <span class="flex items-center">Attention !</span>
+      <button class="text-white hover:text-gray-200 transition-colors ml-4 focus:outline-none" (click)="showDeleteDialog = false">
+        <span class="material-symbols-outlined text-xl">close</span>
+      </button>
     </div>
-  }
-  @if (deleteDialogMode === 'info') {
-    <p>{{ deleteDialogMessage }}</p>
-    <div class="flex justify-end gap-2 mt-6 w-full">
-      <button class="btn" (click)="onDeleteDialogClose()">OK</button>
+    
+    <div class="p-4 sm:p-8 text-base text-gray-800">
+      @if (deleteDialogMode === 'confirm') {
+        <p>{{ deleteDialogMessage }}</p>
+        <div class="flex justify-between gap-2 mt-6 w-full">
+          <button class="btn btn-primary" (click)="onDeleteConfirmed()">Oui</button>
+          <button class="btn" (click)="onDeleteDialogClose()">Non</button>
+        </div>
+      }
+      @if (deleteDialogMode === 'info') {
+        <p>{{ deleteDialogMessage }}</p>
+        <div class="flex justify-end gap-2 mt-6 w-full">
+          <button class="btn" (click)="onDeleteDialogClose()">OK</button>
+        </div>
+      }
     </div>
-  }
-</app-dialog>
+  </div>
+}
 
 @if (false) {
   <div class="fullscreen-takeover">

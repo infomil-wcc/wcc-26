@@ -23,7 +23,7 @@ export function app(): express.Express {
 
   // Serve static files from /browser (skip for routes handled by Angular)
   server.get(
-    '*',
+    '**',
     express.static(browserDistFolder, {
       maxAge: '1y',
       index: false,
@@ -31,7 +31,7 @@ export function app(): express.Express {
   );
 
   // All regular routes use the Angular engine
-  server.get('*', (req, res, next: any) => {
+  server.get('**', (req, res, next: any) => {
     const { protocol, originalUrl, baseUrl, headers } = req;
 
     commonEngine

@@ -7,7 +7,7 @@ import { Observable } from 'rxjs';
 import { CookieService } from '../../../core/services/core/cookie.service';
 import { NgStyle, AsyncPipe } from '@angular/common';
 import { LoaderComponent } from '../../../shared/components/loader/loader.component';
-import { LoginComponent } from '../../../shared/components/login/login.component';
+import { LoginComponent } from '../../../features/auth/login.component';
 
 @Component({
     selector: 'app-homepage',

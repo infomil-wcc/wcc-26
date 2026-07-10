@@ -6,9 +6,9 @@ import { NgClass, NgStyle, AsyncPipe, DatePipe, UpperCasePipe, SlicePipe } from 
 import { MatchComponent } from '../../../../shared/components/match/match.component';
 import { LoaderComponent } from '../../../../shared/components/loader/loader.component';
 import { CalendarStripComponent } from '../../../../shared/components/calendar-strip/calendar-strip.component';
-import { LoginComponent } from '../../../../shared/components/login/login.component';
+import { LoginComponent } from '../../../../features/auth/login.component';
 import { BreadcrumbComponent, breadCrump } from '../../../../shared/components/breadcrumb/breadcrumb.component';
-import { PronosticsFacade } from '../facades/pronostics.facade';
+import { PronosticsFacade } from '../pronostics.facade';
 import * as utils from '../utils/pronostics.utils';
 
 @Component({
@@ -251,7 +251,7 @@ export class PronosticsComponent implements OnInit {
       })
     );
 
-    this.facade.drafts$.subscribe(drafts => {
+    this.facade.drafts$.subscribe((drafts: any[]) => {
       this.draftsCount = drafts.length;
       this.cdr.detectChanges();
     });
@@ -330,7 +330,7 @@ export class PronosticsComponent implements OnInit {
 
     this.facade.getAllMatches().pipe(take(1)).subscribe((allMatches: any) => {
       // Find drafts that require penalty winner
-      this.pendingDraftsForPenalty = drafts.map(draft => {
+      this.pendingDraftsForPenalty = drafts.map((draft: any) => {
         const match = allMatches.find((m: any) => m.id === draft.game_id);
         const isTie = draft.fulltime_a !== null && draft.fulltime_b !== null && draft.fulltime_a === draft.fulltime_b;
         if (match && match.phase !== 'Group Stage' && isTie && (!draft.winner_draw || draft.winner_draw.trim() === '' || draft.winner_draw === 'Draw')) {
@@ -347,7 +347,7 @@ export class PronosticsComponent implements OnInit {
           return item;
         }
         return null;
-      }).filter(item => item !== null);
+      }).filter((item: any) => item !== null);
 
       if (this.pendingDraftsForPenalty.length > 0) {
         this.allMatchesForPenalty = allMatches; // save for later
@@ -378,7 +378,7 @@ export class PronosticsComponent implements OnInit {
     
     // Update drafts with the selected winner
     this.pendingDraftsForPenalty.forEach(item => {
-      const draft = drafts.find(d => d.game_id === item.draft.game_id);
+      const draft = drafts.find((d: any) => d.game_id === item.draft.game_id);
       if (draft) {
         draft.winner_draw = item.selectedWinner;
         // Update it in prediction service too so UI syncs if needed
