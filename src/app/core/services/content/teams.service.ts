@@ -1,4 +1,4 @@
-import { Service, inject, Signal, computed } from '@angular/core';
+import { Service, inject, Signal, computed, Injector } from '@angular/core';
 import { HttpHeaders, httpResource } from '@angular/common/http';
 import { Teams, Group } from '../../../shared/contracts/teams.contract';
 import { SquadsApiService } from '../api/squads-api.service';
@@ -19,34 +19,34 @@ export class TeamsService {
   private _allTeamsRes = httpResource<any>(() => `${environment.apiBaseUrl}/items/teams`);
   readonly allTeams = computed(() => this._allTeamsRes.value()?.data || []);
 
-  private _groupsRes = httpResource<any>(() => `${environment.apiBaseUrl}/items/groups`);
+  private _groupsRes = httpResource<any>(() => `${environment.apiBaseUrl}/items/group`);
   readonly groups = computed(() => this._groupsRes.value()?.data || []);
 
   private _flagsRes = httpResource<any>(() => `${environment.apiBaseUrl}/items/teams?fields=flag_url,name,iso`);
   readonly flags = computed(() => this._flagsRes.value()?.data || []);
 
   // Methods returning component-scoped resources (must be called in component injection context)
-  getTeamByGroup(groupId: string | Signal<string>) {
+  getTeamByGroup(groupId: string | Signal<string>, options?: { injector?: Injector }) {
     const request = typeof groupId === 'string' ? () => `${environment.apiBaseUrl}/items/teams?filter[group]=${groupId}` : () => `${environment.apiBaseUrl}/items/teams?filter[group]=${groupId()}`;
-    const res = httpResource<any>(request);
+    const res = httpResource<any>(request, { injector: options?.injector });
     return computed(() => res.value()?.data || []);
   }
 
-  getPlayersByTeamName(teamName: string | Signal<string>) {
+  getPlayersByTeamName(teamName: string | Signal<string>, options?: { injector?: Injector }) {
     const request = typeof teamName === 'string' ? () => `${environment.apiUrl}/squads?country=${teamName}` : () => `${environment.apiUrl}/squads?country=${teamName()}`;
-    const res = httpResource<any[]>(request);
+    const res = httpResource<any[]>(request, { injector: options?.injector });
     return computed(() => res.value()?.[0] || null);
   }
 
-  getTeamByName(teamName: string | Signal<string>) {
+  getTeamByName(teamName: string | Signal<string>, options?: { injector?: Injector }) {
     const request = typeof teamName === 'string' ? () => `${environment.apiBaseUrl}/items/teams?filter[name]=${encodeURIComponent(teamName)}&fields=id,name,flag_url,iso` : () => `${environment.apiBaseUrl}/items/teams?filter[name]=${encodeURIComponent(teamName())}&fields=id,name,flag_url,iso`;
-    const res = httpResource<any>(request);
+    const res = httpResource<any>(request, { injector: options?.injector });
     return computed(() => res.value()?.data || []);
   }
 
-  getTeamColors(teamName: string | Signal<string>) {
+  getTeamColors(teamName: string | Signal<string>, options?: { injector?: Injector }) {
     const request = typeof teamName === 'string' ? () => `${environment.apiUrl}/teams?name=${teamName}&select=colors` : () => `${environment.apiUrl}/teams?name=${teamName()}&select=colors`;
-    const res = httpResource<any>(request);
+    const res = httpResource<any>(request, { injector: options?.injector });
     return computed(() => res.value() || []);
   }
 

@@ -5,9 +5,9 @@ import { fileURLToPath } from 'node:url';
 import { dirname, join, resolve } from 'node:path';
 import { AppComponent } from './app/app.component';
 import { config } from './app/app.config.server';
-import { bootstrapApplication } from '@angular/platform-browser';
+import { bootstrapApplication, BootstrapContext } from '@angular/platform-browser';
 
-const bootstrap = () => bootstrapApplication(AppComponent, config);
+const bootstrap = (context: BootstrapContext) => bootstrapApplication(AppComponent, config, context);
 
 // The Express app is exported so that it can be used by serverless Functions.
 export function app(): express.Express {
@@ -60,4 +60,4 @@ if (process.env['NODE_ENV'] !== 'production' || process.env['PORT']) {
   });
 }
 
-export default server;
+export default bootstrap;

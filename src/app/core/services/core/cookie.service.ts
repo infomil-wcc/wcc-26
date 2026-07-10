@@ -3,12 +3,18 @@ import { Service } from '@angular/core';
 @Service()
 export class CookieService {
   check(name: string): boolean {
+    if (typeof document === 'undefined') {
+      return false;
+    }
     name = encodeURIComponent(name);
     const regexp = new RegExp('(?:^|;\\s*)' + name.replace(/[\-\.\+\*]/g, '\\$&') + '\\s*\\=');
     return regexp.test(document.cookie);
   }
 
   get(name: string): string {
+    if (typeof document === 'undefined') {
+      return '';
+    }
     if (this.check(name)) {
       name = encodeURIComponent(name);
       const regexp = new RegExp('(?:^|;\\s*)' + name.replace(/[\-\.\+\*]/g, '\\$&') + '\\s*\\=\\s*([^;]*)');
@@ -20,6 +26,9 @@ export class CookieService {
 
   getAll(): { [key: string]: string } {
     const cookies: { [key: string]: string } = {};
+    if (typeof document === 'undefined') {
+      return cookies;
+    }
     if (document.cookie && document.cookie !== '') {
       const split = document.cookie.split(';');
       for (let i = 0; i < split.length; i++) {
@@ -41,6 +50,9 @@ export class CookieService {
     secure?: boolean,
     sameSite: 'Lax' | 'Strict' | 'None' = 'Lax'
   ): void {
+    if (typeof document === 'undefined') {
+      return;
+    }
     let cookieString = `${encodeURIComponent(name)}=${encodeURIComponent(value)};path=${path};`;
 
     if (expires) {

@@ -22,7 +22,8 @@ export class LoaderComponent implements OnChanges {
   }
 
   ngOnChanges(change: any) {
-    if(change.showLoader['currentValue']) {
+    if (typeof document === 'undefined') return;
+    if(change.showLoader && change.showLoader['currentValue']) {
       document.querySelector('body')?.classList.add('fixed');
     } else {
       document.querySelector('body')?.classList.remove('fixed');
@@ -36,6 +37,8 @@ export class LoaderComponent implements OnChanges {
   }
 
   ngOnDestroy():void {
-    document.querySelector('body')?.classList.remove('fixed');
+    if (typeof document !== 'undefined') {
+      document.querySelector('body')?.classList.remove('fixed');
+    }
   }
 }

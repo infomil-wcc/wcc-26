@@ -53,8 +53,8 @@ async function loadApiRoutes() {
     }
   }
 
-  // 2. Map all other /api/*splat requests directly to your central itty-router entrypoint
-  app.all('/api/*splat', async (req, res) => {
+  // 2. Map all other /api/* requests directly to your central itty-router entrypoint
+  app.all('/api/*', async (req, res) => {
     try {
       await indexHandler(req, res);
     } catch (error) {

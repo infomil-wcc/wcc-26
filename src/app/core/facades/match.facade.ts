@@ -36,11 +36,11 @@ export class MatchFacade {
 
   // TeamsService delegation
   getPlayersByTeamName(teamName: string) {
-    return toObservable(this.teamsService.getPlayersByTeamName(teamName), { injector: this.injector });
+    return toObservable(this.teamsService.getPlayersByTeamName(teamName, { injector: this.injector }), { injector: this.injector });
   }
 
   getTeamByName(teamName: string) {
-    return toObservable(this.teamsService.getTeamByName(teamName), { injector: this.injector });
+    return toObservable(this.teamsService.getTeamByName(teamName, { injector: this.injector }), { injector: this.injector });
   }
 
   getFlags() {

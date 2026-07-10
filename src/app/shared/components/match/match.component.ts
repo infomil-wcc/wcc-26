@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, OnInit, OnDestroy, Output, inject, ChangeDetectionStrategy, ChangeDetectorRef, PLATFORM_ID } from '@angular/core';
+import { Component, EventEmitter, Input, OnInit, OnDestroy, Output, inject, ChangeDetectionStrategy, ChangeDetectorRef, PLATFORM_ID, NgZone } from '@angular/core';
 import { Matches } from '../../contracts/matches.contract';
 import { Observable, Subscription } from 'rxjs';
 import { map, of } from 'rxjs';
@@ -29,6 +29,7 @@ export class MatchComponent implements OnInit, OnDestroy {
   private platformId = inject(PLATFORM_ID);
   private facade = inject(MatchFacade);
   private cdr = inject(ChangeDetectorRef);
+  private ngZone = inject(NgZone);
 
   @Input() match!: Matches;
   @Input() isPronostiques: boolean = false;
@@ -568,7 +569,12 @@ export class MatchComponent implements OnInit, OnDestroy {
 
     updateCountdown();
     if (isPlatformBrowser(this.platformId)) {
-      this.countdownIntervalId = setInterval(updateCountdown, 1000);
+      this.ngZone.runOutsideAngular(() => {
+        this.countdownIntervalId = setInterval(() => {
+          updateCountdown();
+          this.cdr.detectChanges();
+        }, 1000);
+      });
     }
   }
 

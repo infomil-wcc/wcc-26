@@ -1,4 +1,4 @@
-import { Component, inject, ChangeDetectionStrategy, computed } from '@angular/core';
+import { Component, inject, ChangeDetectionStrategy, computed, Injector } from '@angular/core';
 import { NewsService } from '../../../../core/services/content/news.service';
 import { Observable, combineLatest } from 'rxjs';
 import { map } from 'rxjs/operators';
@@ -24,6 +24,7 @@ export class HpNewsComponent {
   protected $upcomingMatches!: Observable<Matches[]>;
   private matchesService = inject(MatchesService);
   private globalTime = inject(GlobaltimeService);
+  private injector = inject(Injector);
   
   protected upcomingMatches = computed(() => {
     const matches = this.matchesService.allMatches();
@@ -40,9 +41,8 @@ export class HpNewsComponent {
       map((news: any) => news ? news.slice(0, 3) : [])
     );
 
-    // Get the next 10 upcoming matches starting from the nearest one
     this.$upcomingMatches = combineLatest([
-      toObservable(this.matchesService.allMatches),
+      toObservable(this.matchesService.allMatches, { injector: this.injector }),
       this.$today
     ]).pipe(
       map(([matches, today]) => {

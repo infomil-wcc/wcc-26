@@ -27,6 +27,7 @@ export class AppFacade {
   private readonly matchesService         = inject(MatchesService);
   private readonly formBuilder            = inject(FormBuilder);
   readonly appUpdate                      = inject(AppUpdateService);
+  private readonly injector               = inject(Injector);
 
   // ── Signals (UI state) ────────────────────────────────────────────────────
   readonly showLoader               = signal(true);
@@ -137,8 +138,7 @@ export class AppFacade {
 
   // ── Knockout phase 2 popup ────────────────────────────────────────────────
   private getFirstR32KickoffTime(): Observable<Date | null> {
-    const injector = inject(Injector);
-    return toObservable(this.matchesService.getMatchesByPhase('Round of 32'), { injector }).pipe(
+    return toObservable(this.matchesService.getMatchesByPhase('Round of 32', { injector: this.injector }), { injector: this.injector }).pipe(
       switchMap((matches: any[]) => of(getEarliestMatchDate(matches))),
       catchError(() => of(null)),
     );

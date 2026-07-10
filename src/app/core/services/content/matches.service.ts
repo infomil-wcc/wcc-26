@@ -1,4 +1,4 @@
-import { Service, inject, Signal, computed } from '@angular/core';
+import { Service, inject, Signal, computed, Injector } from '@angular/core';
 import { Matches } from '../../../shared/contracts/matches.contract';
 import { httpResource } from '@angular/common/http';
 import { environment } from '../../../../environments/environment';
@@ -9,17 +9,17 @@ export class MatchesService {
   private _allMatchesRes = httpResource<any>(() => `${environment.apiBaseUrl}/items/matches`);
   readonly allMatches = computed(() => this._allMatchesRes.value()?.data || []);
 
-  private _playedMatchesRes = httpResource<any>(() => `${environment.apiBaseUrl}/items/matches?filter[fulltime_a][_nnull]=true`);
+  private _playedMatchesRes = httpResource<any>(() => `${environment.apiBaseUrl}/items/matches?filter[fulltime_a][nnull]=true`);
   readonly playedMatches = computed(() => this._playedMatchesRes.value()?.data || []);
-  getMatchesByGroup(groupName: string | Signal<string>) {
+  getMatchesByGroup(groupName: string | Signal<string>, options?: { injector?: Injector }) {
     const request = typeof groupName === 'string' ? () => `${environment.apiBaseUrl}/items/matches?filter[group]=${groupName}` : () => `${environment.apiBaseUrl}/items/matches?filter[group]=${groupName()}`;
-    const res = httpResource<any>(request);
+    const res = httpResource<any>(request, { injector: options?.injector });
     return computed(() => res.value()?.data || []);
   }
 
-  getMatchesByPhase(phase: string | Signal<string>) {
+  getMatchesByPhase(phase: string | Signal<string>, options?: { injector?: Injector }) {
     const request = typeof phase === 'string' ? () => `${environment.apiBaseUrl}/items/matches?filter[phase]=${phase}` : () => `${environment.apiBaseUrl}/items/matches?filter[phase]=${phase()}`;
-    const res = httpResource<any>(request);
+    const res = httpResource<any>(request, { injector: options?.injector });
     return computed(() => res.value()?.data || []);
   }
 
