@@ -1,3 +1,4 @@
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { MatchOfficialScoreComponent } from './match-official-score.component';
 import { By } from '@angular/platform-browser';

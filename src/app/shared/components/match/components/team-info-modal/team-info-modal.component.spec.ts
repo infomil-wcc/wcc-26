@@ -1,3 +1,4 @@
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { TeamInfoModalComponent } from './team-info-modal.component';
 import { By } from '@angular/platform-browser';

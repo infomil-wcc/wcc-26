@@ -1,3 +1,4 @@
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Router, RouterOutlet } from '@angular/router';
 import { signal } from '@angular/core';
@@ -47,11 +48,11 @@ function createFacadeMock() {
     showKnockoutPhase2Dialog:  signal(false),
     goalsForm:                 fb.group({ totalGoalsPrediction: [''] }),
     appUpdate:                 { isUpdateAvailable: signal(false) },
-    init:                      jasmine.createSpy('init'),
-    submitGoals:               jasmine.createSpy('submitGoals'),
-    closeGoalsDialog:          jasmine.createSpy('closeGoalsDialog'),
-    goToBracketChallenge:      jasmine.createSpy('goToBracketChallenge'),
-    closeKnockoutPhase2Dialog: jasmine.createSpy('closeKnockoutPhase2Dialog'),
+    init:                      vi.fn(),
+    submitGoals:               vi.fn(),
+    closeGoalsDialog:          vi.fn(),
+    goToBracketChallenge:      vi.fn(),
+    closeKnockoutPhase2Dialog: vi.fn(),
   };
 }
 
@@ -65,7 +66,7 @@ describe('AppComponent (App Shell)', () => {
 
   beforeEach(async () => {
     facadeMock = createFacadeMock();
-    routerMock = { url: '/', navigate: jasmine.createSpy('navigate') };
+    routerMock = { url: '/', navigate: vi.fn() };
 
     await TestBed.configureTestingModule({
       imports: [

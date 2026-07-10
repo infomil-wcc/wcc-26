@@ -1,3 +1,4 @@
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { HpNewsComponent } from './news.component';
 import { NewsService } from '../../../../core/services/content/news.service';
@@ -43,10 +44,10 @@ describe('HpNewsComponent', () => {
 
   it('should correctly identify today\'s date', () => {
     // Both same day
-    expect(component['isToday']('2026-07-09T15:00:00', '2026-07-09T08:00:00')).toBeTrue();
+    expect(component['isToday']('2026-07-09T15:00:00', '2026-07-09T08:00:00')).toBe(true);
     
     // Different days
-    expect(component['isToday']('2026-07-10T15:00:00', '2026-07-09T08:00:00')).toBeFalse();
+    expect(component['isToday']('2026-07-10T15:00:00', '2026-07-09T08:00:00')).toBe(false);
   });
 
   it('should correctly navigate to previous and next match', () => {

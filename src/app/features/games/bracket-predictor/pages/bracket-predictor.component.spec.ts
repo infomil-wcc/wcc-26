@@ -1,3 +1,4 @@
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { BracketPredictorComponent } from './bracket-predictor.component';
 import { TeamsService } from '../../../../core/services/content/teams.service';
@@ -13,8 +14,8 @@ describe('BracketPredictorComponent', () => {
 
   beforeEach(async () => {
     mockTeamsService = {
-      getGroups: jasmine.createSpy('getGroups').and.returnValue(of([])),
-      getFlags: jasmine.createSpy('getFlags').and.returnValue(of([]))
+      getGroups: vi.fn().and.returnValue(of([])),
+      getFlags: vi.fn().and.returnValue(of([]))
     };
 
     await TestBed.configureTestingModule({

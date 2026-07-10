@@ -1,3 +1,4 @@
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { LoginComponent } from './login.component';
 import { ReactiveFormsModule } from '@angular/forms';
@@ -22,30 +23,30 @@ describe('LoginComponent', () => {
 
   beforeEach(async () => {
     authServiceMock = {
-      trylogin: jasmine.createSpy('trylogin').and.returnValue(of({ data: { user: { id: 1 }, token: 'mock-token' } })),
-      requestPasswordReset: jasmine.createSpy('requestPasswordReset').and.returnValue(of({})),
-      resetPassword: jasmine.createSpy('resetPassword').and.returnValue(of({})),
-      tryCreateUser: jasmine.createSpy('tryCreateUser').and.returnValue(of({ success: true })),
-      setTokenCookie: jasmine.createSpy('setTokenCookie'),
-      setUserCookie: jasmine.createSpy('setUserCookie')
+      trylogin: vi.fn().and.returnValue(of({ data: { user: { id: 1 }, token: 'mock-token' } })),
+      requestPasswordReset: vi.fn().and.returnValue(of({})),
+      resetPassword: vi.fn().and.returnValue(of({})),
+      tryCreateUser: vi.fn().and.returnValue(of({ success: true })),
+      setTokenCookie: vi.fn(),
+      setUserCookie: vi.fn()
     };
 
     cookieServiceMock = {
-      getCookie: jasmine.createSpy('getCookie'),
-      setCookie: jasmine.createSpy('setCookie')
+      getCookie: vi.fn(),
+      setCookie: vi.fn()
     };
 
     stateServiceMock = {
-      updateState: jasmine.createSpy('updateState'),
-      updateUser: jasmine.createSpy('updateUser')
+      updateState: vi.fn(),
+      updateUser: vi.fn()
     };
 
     mailServiceMock = {
-      sendConfirmationEmail: jasmine.createSpy('sendConfirmationEmail').and.returnValue(of({}))
+      sendConfirmationEmail: vi.fn().and.returnValue(of({}))
     };
 
     routerMock = {
-      navigate: jasmine.createSpy('navigate')
+      navigate: vi.fn()
     };
 
     activatedRouteMock = {
@@ -98,23 +99,23 @@ describe('LoginComponent', () => {
     });
 
     it('should toggle register view', () => {
-      expect(component['facade'].login()).toBeTrue();
-      expect(component['facade'].register()).toBeFalse();
+      expect(component['facade'].login()).toBe(true);
+      expect(component['facade'].register()).toBe(false);
       
       component['toggleRegister']();
       
-      expect(component['facade'].login()).toBeFalse();
-      expect(component['facade'].register()).toBeTrue();
+      expect(component['facade'].login()).toBe(false);
+      expect(component['facade'].register()).toBe(true);
     });
 
     it('should toggle forgot password view', () => {
-      expect(component['facade'].login()).toBeTrue();
-      expect(component['facade'].forgotPasswordView()).toBeFalse();
+      expect(component['facade'].login()).toBe(true);
+      expect(component['facade'].forgotPasswordView()).toBe(false);
       
       component['toggleForgotPassword']();
       
-      expect(component['facade'].login()).toBeFalse();
-      expect(component['facade'].forgotPasswordView()).toBeTrue();
+      expect(component['facade'].login()).toBe(false);
+      expect(component['facade'].forgotPasswordView()).toBe(true);
     });
   });
 
@@ -131,7 +132,7 @@ describe('LoginComponent', () => {
       component['verifyLogin']('wrong@infomil.mu', 'wrongpass');
       
       expect(component['facade'].otherError()).toBe('Identifiants incorrects.');
-      expect(component['facade'].loginLoader()).toBeFalse();
+      expect(component['facade'].loginLoader()).toBe(false);
     });
   });
 
@@ -139,7 +140,7 @@ describe('LoginComponent', () => {
     it('should generate a confirmation code and send email on registerAccount', () => {
       component['registerAccount']('newuser@infomil.mu', 'iml-new', 'password123');
       
-      expect(component['facade'].confirmation()).toBeTrue();
+      expect(component['facade'].confirmation()).toBe(true);
       expect(component['facade'].confirmationCode()).toBeGreaterThanOrEqual(10000);
       expect(component['facade'].confirmationCode()).toBeLessThanOrEqual(99999);
       expect(mailServiceMock.sendConfirmationEmail).toHaveBeenCalled();
@@ -150,8 +151,8 @@ describe('LoginComponent', () => {
       
       component['registerAccount']('newuser@infomil.mu', 'iml-new', 'password123');
       
-      expect(component['facade'].confirmation()).toBeFalse();
-      expect(component['facade'].issueHandling()).toBeTrue();
+      expect(component['facade'].confirmation()).toBe(false);
+      expect(component['facade'].issueHandling()).toBe(true);
       expect(component['facade'].issueMsg()).toContain('difficultés techniques');
     });
 
@@ -171,7 +172,7 @@ describe('LoginComponent', () => {
       
       component['confirmRegistration']();
       
-      expect(component['facade'].issueHandling()).toBeTrue();
+      expect(component['facade'].issueHandling()).toBe(true);
       expect(component['facade'].issueMsg()).toContain('Ce compte est déjà enregistré');
     });
   });
@@ -189,7 +190,7 @@ describe('LoginComponent', () => {
       component['submitNewPassword']('newpassword123');
       
       expect(authServiceMock.resetPassword).toHaveBeenCalledWith('valid-token', 'newpassword123');
-      expect(component['facade'].issueHandling()).toBeTrue();
+      expect(component['facade'].issueHandling()).toBe(true);
       expect(component['facade'].issueMsg()).toContain('réinitialisé avec succès');
       expect(routerMock.navigate).toHaveBeenCalled();
     });

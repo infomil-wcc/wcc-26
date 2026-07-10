@@ -1,19 +1,17 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { MenuComponent } from './menu.component';
 
-import { LoaderComponent } from './loader.component';
-
-describe('LoaderComponent', () => {
-  let component: LoaderComponent;
-  let fixture: ComponentFixture<LoaderComponent>;
+describe('MenuComponent', () => {
+  let component: MenuComponent;
+  let fixture: ComponentFixture<MenuComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-    imports: [LoaderComponent]
-})
-    .compileComponents();
-    
-    fixture = TestBed.createComponent(LoaderComponent);
+      imports: [MenuComponent]
+    }).compileComponents();
+
+    fixture = TestBed.createComponent(MenuComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

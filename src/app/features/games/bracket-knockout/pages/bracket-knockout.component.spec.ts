@@ -1,3 +1,4 @@
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { BracketKnockoutComponent } from './bracket-knockout.component';
 import { StateService } from '../../../../core/services/core/state.service';
@@ -18,11 +19,11 @@ describe('BracketKnockoutComponent', () => {
 
   beforeEach(async () => {
     mockBracketService = {
-      getUserBracket: jasmine.createSpy('getUserBracket').and.returnValue(of({})),
-      postBracket: jasmine.createSpy('postBracket').and.returnValue(of({}))
+      getUserBracket: vi.fn().and.returnValue(of({})),
+      postBracket: vi.fn().and.returnValue(of({}))
     };
     mockCookieService = {
-      get: jasmine.createSpy('get').and.returnValue('test-user')
+      get: vi.fn().and.returnValue('test-user')
     };
     mockStateService = {
       currentState: of({})
