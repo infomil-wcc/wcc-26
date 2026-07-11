@@ -4,15 +4,33 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { TeamsComponent } from './teams.component';
 import { BreadcrumbComponent } from '../../../../shared/components/breadcrumb/breadcrumb.component';
 import { LoaderComponent } from '../../../../shared/components/loader/loader.component';
+import { TeamsFacade } from '../teams.facade';
+import { signal } from '@angular/core';
+import { Teams } from '../../../../shared/contracts/teams.contract';
 
 describe('TeamsComponent', () => {
   let component: TeamsComponent;
   let fixture: ComponentFixture<TeamsComponent>;
 
+  let mockFacade: any;
+
   beforeEach(async () => {
+    mockFacade = {
+      teamsData: signal([{ name: 'France', iso: 'FR', flag_url: '' } as Teams]),
+      selectedTeam: signal(null),
+      selectedTeamMatches: signal([]),
+      selectedTeamDetails: signal([]),
+      today: signal({ dateTime: '2026-06-15T12:00:00Z' }),
+      selectTeam: vi.fn(),
+      clearSelection: vi.fn()
+    };
+
     await TestBed.configureTestingModule({
-    imports: [TeamsComponent, BreadcrumbComponent, LoaderComponent]
-})
+      imports: [TeamsComponent, BreadcrumbComponent, LoaderComponent],
+      providers: [
+        { provide: TeamsFacade, useValue: mockFacade }
+      ]
+    })
     .compileComponents();
     
     fixture = TestBed.createComponent(TeamsComponent);
@@ -22,5 +40,18 @@ describe('TeamsComponent', () => {
 
   it('should create', () => {
     expect(component).toBeTruthy();
+  });
+
+  it('should call facade selectTeam when showTeam is triggered', () => {
+    const team = { name: 'France', iso: 'FR', flag_url: '' } as Teams;
+    component.showTeam(team);
+    expect(mockFacade.selectTeam).toHaveBeenCalledWith(team);
+    expect(component['breadCrumpData'][1].label).toBe('France');
+  });
+
+  it('should call facade clearSelection when resetTeamSelection is triggered', () => {
+    component.resetTeamSelection('closeTeamDetails');
+    expect(mockFacade.clearSelection).toHaveBeenCalled();
+    expect(component['breadCrumpData'].length).toBe(1);
   });
 });

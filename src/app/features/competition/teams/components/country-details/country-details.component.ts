@@ -1,7 +1,7 @@
 import { Component, Input, ChangeDetectionStrategy } from '@angular/core';
 import { Observable } from 'rxjs';
 import { LoaderComponent } from '../../../../../shared/components/loader/loader.component';
-import { AsyncPipe } from '@angular/common';
+
 
 export interface Country {
   name: string;
@@ -41,11 +41,11 @@ export interface Country {
     templateUrl: './country-details.component.html',
     styleUrl: './country-details.component.scss',
     changeDetection: ChangeDetectionStrategy.Eager,
-    imports: [LoaderComponent, AsyncPipe]
+    imports: [LoaderComponent]
 })
 export class CountryDetailsComponent {
 
-  @Input() $country!: Observable<Country[]>;
+  @Input() country!: Country[];
 
   ngOnInit(): void {
     // this.$country.subscribe({

@@ -50,9 +50,12 @@ export class TeamsService {
     return computed(() => res.value() || []);
   }
 
-  getTeamsInfo(teamisoname: string | Signal<string>) {
-    const request = typeof teamisoname === 'string' ? () => `${environment.apiUrl}/teams?iso=${teamisoname}` : () => `${environment.apiUrl}/teams?iso=${teamisoname()}`;
-    const res = httpResource<any>(request);
+  getTeamsInfo(teamisoname: string | Signal<string>, options?: { injector?: Injector }) {
+    const request = computed(() => {
+      const val = typeof teamisoname === 'string' ? teamisoname : teamisoname();
+      return val ? `${environment.apiUrl}/teams?iso=${val}` : undefined;
+    });
+    const res = httpResource<any>(request, { injector: options?.injector });
     return computed(() => res.value());
   }
 }

@@ -23,16 +23,22 @@ export class MatchesService {
     return computed(() => res.value()?.data || []);
   }
 
-  getMatchesByTeam(team: string | Signal<string>) {
+  getMatchesByTeam(team: string | Signal<string>, options?: { injector?: Injector }) {
     // For multiple requests, we can just fetch all matches or rely on two resources.
     // Given httpResource limitations for forkJoin, we can do this reactively by creating a combined signal.
     const teamName = typeof team === 'string' ? () => team : team;
     
-    const reqA = computed(() => `${environment.apiBaseUrl}/items/matches?filter[team_a]=${teamName()}`);
-    const reqB = computed(() => `${environment.apiBaseUrl}/items/matches?filter[team_b]=${teamName()}`);
+    const reqA = computed(() => {
+      const val = teamName();
+      return val ? `${environment.apiBaseUrl}/items/matches?filter[team_a]=${val}` : undefined;
+    });
+    const reqB = computed(() => {
+      const val = teamName();
+      return val ? `${environment.apiBaseUrl}/items/matches?filter[team_b]=${val}` : undefined;
+    });
     
-    const resA = httpResource<any>(reqA);
-    const resB = httpResource<any>(reqB);
+    const resA = httpResource<any>(reqA, { injector: options?.injector });
+    const resB = httpResource<any>(reqB, { injector: options?.injector });
     
     return computed(() => [...(resA.value()?.data || []), ...(resB.value()?.data || [])]);
   }

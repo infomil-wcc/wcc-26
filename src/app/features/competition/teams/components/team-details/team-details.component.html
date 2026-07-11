@@ -12,7 +12,7 @@
       </div>
       <!-- A propos de l'equipe -->
 
-      <app-country-details [$country]="$teamDetails"></app-country-details>
+      <app-country-details [country]="teamDetails"></app-country-details>
 
     </ng-template>
 
@@ -105,10 +105,10 @@
 
   <ng-template tabContent title="Matchs">
     <div class="p-6 matchDetails mt-4">
-      @if (this.$teamMatches | async; as matches) {
+      @if (teamMatches; as matches) {
         <div class="flex flex-wrap gap-2 mb-20">
           @for (match of matches; track match) {
-            @if (this.$today | async; as today;) {
+            @if (today) {
               <div class="col-span-12 p-0 sm:col-span-4">
                 <app-match [match]="match" [dateTime]="today.dateTime" />
               </div>

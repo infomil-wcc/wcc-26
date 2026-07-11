@@ -99,10 +99,10 @@ export class PronosticsFacade {
 
   // TeamsService delegation
   getPlayersByTeamName(teamName: string) {
-    return toObservable(this.teamService.getPlayersByTeamName(teamName), { injector: this.injector });
+    return toObservable(this.teamService.getPlayersByTeamName(teamName, { injector: this.injector }), { injector: this.injector });
   }
 
   getTeamByName(teamName: string) {
-    return toObservable(this.teamService.getTeamByName(teamName), { injector: this.injector });
+    return toObservable(this.teamService.getTeamByName(teamName, { injector: this.injector }), { injector: this.injector });
   }
 }
