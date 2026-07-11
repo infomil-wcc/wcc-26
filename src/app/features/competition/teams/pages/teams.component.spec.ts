@@ -2,7 +2,6 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { TeamsComponent } from './teams.component';
-import { BreadcrumbComponent } from '../../../../shared/components/breadcrumb/breadcrumb.component';
 import { LoaderComponent } from '../../../../shared/components/loader/loader.component';
 import { TeamsFacade } from '../teams.facade';
 import { signal } from '@angular/core';
@@ -26,7 +25,7 @@ describe('TeamsComponent', () => {
     };
 
     await TestBed.configureTestingModule({
-      imports: [TeamsComponent, BreadcrumbComponent, LoaderComponent],
+      imports: [TeamsComponent, LoaderComponent],
       providers: [
         { provide: TeamsFacade, useValue: mockFacade }
       ]
@@ -46,12 +45,7 @@ describe('TeamsComponent', () => {
     const team = { name: 'France', iso: 'FR', flag_url: '' } as Teams;
     component.showTeam(team);
     expect(mockFacade.selectTeam).toHaveBeenCalledWith(team);
-    expect(component['breadCrumpData'][1].label).toBe('France');
   });
 
-  it('should call facade clearSelection when resetTeamSelection is triggered', () => {
-    component.resetTeamSelection('closeTeamDetails');
-    expect(mockFacade.clearSelection).toHaveBeenCalled();
-    expect(component['breadCrumpData'].length).toBe(1);
-  });
+
 });

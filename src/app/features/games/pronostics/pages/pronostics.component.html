@@ -3,7 +3,22 @@
   <div class="header-bar w-full bg-white/5 backdrop-blur-md border-b border-white/10 p-4">
     <div class="container mx-auto max-w-7xl header-bar-inner">
       <div class="w-full mb-4">
-        <app-breadcrumb [bcdata]="breadCrumpData" />
+        <!-- Tailwind Breadcrumb -->
+        <nav aria-label="Breadcrumb" class="mb-4">
+          <ol class="flex items-center space-x-2 text-sm font-medium">
+            <li class="flex items-center">
+              <a href="/" class="text-gray-400 hover:text-white transition-colors duration-200">Accueil</a>
+            </li>
+            <li class="flex items-center">
+              <span class="material-symbols-outlined text-[16px] text-gray-500 mx-2">chevron_right</span>
+              <span class="text-gray-400 cursor-default transition-colors duration-200">Jeux</span>
+            </li>
+            <li class="flex items-center">
+              <span class="material-symbols-outlined text-[16px] text-gray-500 mx-2">chevron_right</span>
+              <a href="/pronostics" class="text-[#10b981] cursor-default font-bold transition-colors duration-200">Pronostics</a>
+            </li>
+          </ol>
+        </nav>
       </div>
 
       <div class="header-title">

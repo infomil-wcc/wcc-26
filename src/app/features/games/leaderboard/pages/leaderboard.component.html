@@ -3,7 +3,22 @@
   <div class="sticky top-0 z-50 w-full bg-[#0a1a0f]/95 backdrop-blur-xl border-b border-emerald-500/20 pt-6 pb-4 px-4 shadow-[0_10px_30px_-10px_rgba(0,0,0,0.5)]">
     <div class="container mx-auto max-w-7xl text-left">
       <div class="mb-3">
-        <app-breadcrumb [bcdata]="breadCrumpData" />
+        <!-- Tailwind Breadcrumb -->
+        <nav aria-label="Breadcrumb" class="mb-4">
+          <ol class="flex items-center space-x-2 text-sm font-medium">
+            <li class="flex items-center">
+              <a href="/" class="text-gray-400 hover:text-white transition-colors duration-200">Accueil</a>
+            </li>
+            <li class="flex items-center">
+              <span class="material-symbols-outlined text-[16px] text-gray-500 mx-2">chevron_right</span>
+              <span class="text-gray-400 cursor-default transition-colors duration-200">Jeux</span>
+            </li>
+            <li class="flex items-center">
+              <span class="material-symbols-outlined text-[16px] text-gray-500 mx-2">chevron_right</span>
+              <a href="/ranking" class="text-[#10b981] cursor-default font-bold transition-colors duration-200">Classement</a>
+            </li>
+          </ol>
+        </nav>
       </div>
       <h1 class="text-white flex items-center gap-3 text-3xl md:text-4xl font-black m-0">
         <span class="material-symbols-outlined text-emerald-400 text-4xl">sports_esports</span>

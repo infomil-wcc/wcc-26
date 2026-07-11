@@ -7,7 +7,7 @@ import { MatchComponent } from '../../../../shared/components/match/match.compon
 import { LoaderComponent } from '../../../../shared/components/loader/loader.component';
 import { CalendarStripComponent } from '../../../../shared/components/calendar-strip/calendar-strip.component';
 import { LoginComponent } from '../../../../features/auth/login.component';
-import { BreadcrumbComponent, breadCrump } from '../../../../shared/components/breadcrumb/breadcrumb.component';
+
 import { PronosticsFacade } from '../pronostics.facade';
 import * as utils from '../utils/pronostics.utils';
 
@@ -16,18 +16,14 @@ import * as utils from '../utils/pronostics.utils';
   templateUrl: './pronostics.component.html',
   styleUrl: './pronostics.component.scss',
   changeDetection: ChangeDetectionStrategy.Eager,
-  imports: [NgClass, NgStyle, MatchComponent, LoaderComponent, AsyncPipe, DatePipe, UpperCasePipe, SlicePipe, CalendarStripComponent, LoginComponent, BreadcrumbComponent]
+  imports: [NgClass, NgStyle, MatchComponent, LoaderComponent, AsyncPipe, DatePipe, UpperCasePipe, SlicePipe, CalendarStripComponent, LoginComponent]
 })
 export class PronosticsComponent implements OnInit {
 
   private facade = inject(PronosticsFacade);
   private cdr = inject(ChangeDetectorRef);
 
-  protected breadCrumpData: breadCrump[] = [
-    { label: 'Accueil', route: '/', active: false },
-    { label: 'Jeux', route: '/pronostics', active: false },
-    { label: 'Pronostics', route: '/pronostics', active: true }
-  ];
+
 
   protected isLoggedIn: boolean = false;
   protected isAuthChecked: boolean = false;

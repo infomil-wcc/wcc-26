@@ -8,6 +8,7 @@ import { CommonModule } from '@angular/common';
   templateUrl: './match-official-score.component.html',
   styleUrl: './match-official-score.component.scss'
 })
+
 export class MatchOfficialScoreComponent {
   @Input() match!: any;
   @Input() teamAFlag!: string;
@@ -15,4 +16,9 @@ export class MatchOfficialScoreComponent {
   @Input() isScorersJson!: boolean;
   @Input() teamAScorersGrouped!: any[];
   @Input() teamBScorersGrouped!: any[];
+
+  formatTeamName(name: string | undefined | null): string {
+    if (!name) return '';
+    return name.substring(0, 3).toUpperCase();
+  }
 }

@@ -15,7 +15,7 @@ import { MatchesService } from '../../../../core/services/content/matches.servic
 import { TeamsService } from '../../../../core/services/content/teams.service';
 import { KnockoutBracketService } from '../../../../core/services/games/knockout-bracket.service';
 import { PredictionsApiService } from '../../../../core/services/api/predictions-api.service';
-import { BreadcrumbComponent, breadCrump } from '../../../../shared/components/breadcrumb/breadcrumb.component';
+
 import { LoginComponent } from '../../../../features/auth/login.component';
 
 @Component({
@@ -23,14 +23,10 @@ import { LoginComponent } from '../../../../features/auth/login.component';
   templateUrl: './bracket-challenge.component.html',
   styleUrl: './bracket-challenge.component.scss',
   changeDetection: ChangeDetectionStrategy.Eager,
-  imports: [BracketPredictorComponent, BracketKnockoutComponent, AsyncPipe, CommonModule, BreadcrumbComponent, LoginComponent]
+  imports: [BracketPredictorComponent, BracketKnockoutComponent, AsyncPipe, CommonModule, LoginComponent]
 })
 export class BracketChallengeComponent implements OnInit {
-  protected breadCrumpData: breadCrump[] = [
-    { label: 'Accueil', route: '/', active: false },
-    { label: 'Jeux', route: '/bracket-challenge', active: false },
-    { label: 'Bracket Challenge', route: '/bracket-challenge', active: true }
-  ];
+
   private cookieService = inject(CookieService);
   private bracketService = inject(BracketService);
   private stateService = inject(StateService);

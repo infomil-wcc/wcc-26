@@ -3,14 +3,14 @@ import { CommonModule, KeyValue, NgClass, DatePipe, KeyValuePipe } from '@angula
 import { ApiResponse, GameElement } from '../../../shared/contracts/game-rules.contract';
 import { GameRulesService } from '../../../core/services/content/game-rules.service';
 import { LoaderComponent } from '../../../shared/components/loader/loader.component';
-import { BreadcrumbComponent, breadCrump } from '../../../shared/components/breadcrumb/breadcrumb.component';
+
 
 @Component({
   selector: 'app-game-rules',
   templateUrl: './game-rules.component.html',
   styleUrls: ['./game-rules.component.scss'],
   changeDetection: ChangeDetectionStrategy.Eager,
-  imports: [NgClass, LoaderComponent, DatePipe, KeyValuePipe, BreadcrumbComponent]
+  imports: [NgClass, LoaderComponent, DatePipe, KeyValuePipe]
 })
 export class GameRulesComponent implements OnInit {
 
@@ -24,11 +24,7 @@ export class GameRulesComponent implements OnInit {
   activeStepIndex = 0;
   openAccordionIndex: number | null = 0;
 
-  breadCrumpData: breadCrump[] = [
-    { label: 'Accueil', route: '/', active: false },
-    { label: 'Informations', route: '/reglement', active: false },
-    { label: 'Règlement', route: '/reglement', active: true }
-  ];
+
 
   sortedSteps = computed(() => {
     const data = this.gameRulesData();

@@ -11,21 +11,17 @@ import { StateService } from '../../../../core/services/core/state.service';
 import { RouterModule, ActivatedRoute } from '@angular/router';
 import { toObservable } from '@angular/core/rxjs-interop';
 import { ScoresheetComponent } from './scoresheet/scoresheet.component';
-import { BreadcrumbComponent, breadCrump } from '../../../../shared/components/breadcrumb/breadcrumb.component';
+
 
 @Component({
   selector: 'app-leaderboard',
   templateUrl: './leaderboard.component.html',
   styleUrl: './leaderboard.component.scss',
   changeDetection: ChangeDetectionStrategy.Eager,
-  imports: [NgClass, LoaderComponent, UpperCasePipe, DatePipe, RouterModule, ScoresheetComponent, BreadcrumbComponent]
+  imports: [NgClass, LoaderComponent, UpperCasePipe, DatePipe, RouterModule, ScoresheetComponent]
 })
 export class LeaderboardComponent implements OnInit, OnDestroy {
-  protected breadCrumpData: breadCrump[] = [
-    { label: 'Accueil', route: '/', active: false },
-    { label: 'Jeux', route: '/ranking', active: false },
-    { label: 'Classement', route: '/ranking', active: true }
-  ];
+
   protected selectedUserId: string | null = null;
 
   private rankingsService = inject(RankingsService);
