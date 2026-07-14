@@ -1,4 +1,4 @@
-@use "../../../../../variables" as *;
+@use "@variables" as *;
 
 .filter {
   background: $darkPrimary;
@@ -7,7 +7,7 @@
   width: calc(100% + 2rem) !important;
 }
 
-@media screen and (min-width: 576px){
+@media screen and (min-width: 576px) {
   .filter {
     margin-top: -1rem;
     margin-left: -1.5rem;
@@ -15,7 +15,7 @@
   }
 }
 
-@media screen and (min-width: 991px){
+@media screen and (min-width: 991px) {
   .lg\:col-span-4 {
     width: 32.8% !important;
   }
@@ -23,9 +23,12 @@
 
 /* Premium Tabs Styling */
 .tabs-container {
-  scrollbar-width: none; /* Hide scrollbar for Firefox */
+  scrollbar-width: none;
+
+  /* Hide scrollbar for Firefox */
   &::-webkit-scrollbar {
-    display: none; /* Hide scrollbar for Chrome, Safari, and Opera */
+    display: none;
+    /* Hide scrollbar for Chrome, Safari, and Opera */
   }
 }
 
@@ -79,9 +82,11 @@
   0% {
     box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
   }
+
   70% {
     box-shadow: 0 0 0 6px rgba(239, 68, 68, 0);
   }
+
   100% {
     box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
   }
@@ -91,9 +96,11 @@
   0% {
     box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.9);
   }
+
   70% {
     box-shadow: 0 0 0 6px rgba(239, 68, 68, 0);
   }
+
   100% {
     box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
   }
@@ -131,7 +138,8 @@
   gap: 0.5rem;
   transition: all 0.25s ease;
 
-  &:hover, &:focus-within {
+  &:hover,
+  &:focus-within {
     background: rgba(255, 255, 255, 0.1);
     border-color: rgba(255, 255, 255, 0.25);
   }
@@ -215,13 +223,14 @@
   max-height: calc(100vh - 130px);
   overflow-y: auto;
   scrollbar-width: thin;
-  scrollbar-color: rgba(255,255,255,0.1) transparent;
+  scrollbar-color: rgba(255, 255, 255, 0.1) transparent;
 
   &::-webkit-scrollbar {
     width: 4px;
   }
+
   &::-webkit-scrollbar-thumb {
-    background: rgba(255,255,255,0.1);
+    background: rgba(255, 255, 255, 0.1);
     border-radius: 2px;
   }
 }
@@ -254,26 +263,26 @@
 /* Modern Next Date Button */
 //trigger deployment
 .btn-next-date {
-  
+
   background: #ffffff;
-  border: 1px solid rgba(17, 24, 39, 0.1); 
-  color: #111827; 
-  
+  border: 1px solid rgba(17, 24, 39, 0.1);
+  color: #111827;
+
   padding: 0.75rem 1.75rem;
   border-radius: 9999px;
   font-size: 0.9rem;
   font-weight: 600;
   cursor: pointer;
   outline: none;
-  
- 
-  transition: 
+
+
+  transition:
     background-color 0.25s cubic-bezier(0.4, 0, 0.2, 1),
     border-color 0.25s cubic-bezier(0.4, 0, 0.2, 1),
     color 0.25s cubic-bezier(0.4, 0, 0.2, 1),
     transform 0.25s cubic-bezier(0.4, 0, 0.2, 1),
     box-shadow 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-  
+
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04), 0 2px 4px rgba(0, 0, 0, 0.02);
 
   span {
@@ -287,16 +296,16 @@
   }
 
   &:hover {
-    background: #111827; 
+    background: #111827;
     color: #ffffff;
     border-color: #111827;
-    
+
     transform: translateY(-2px);
     box-shadow: 0 8px 20px rgba(17, 24, 39, 0.15);
 
     .material-symbols-outlined {
       color: #34d399;
-      transform: translateX(4px); 
+      transform: translateX(4px);
     }
   }
 
@@ -308,9 +317,35 @@
 
 
 
-.filter { position: sticky; top: $pagesHeader; z-index: 50; @media screen and (max-width: 640px) { top: 128px; } }
+.filter {
+  position: sticky;
+  top: $pagesHeader;
+  z-index: 50;
 
-.games-date-header { position: sticky; top: calc(#{$pagesHeader} + 172px); z-index: 40; background: #3b5bdb; margin: 0 0 1rem 0; padding: 0.5rem 1rem; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.15); @media screen and (max-width: 640px) { top: calc(128px + 172px); } }
+  @media screen and (max-width: 640px) {
+    top: 128px;
+  }
+}
 
-.calendar-collapsed .games-date-header { top: calc(#{$pagesHeader} + 92px); @media screen and (max-width: 640px) { top: calc(128px + 92px); } }
+.games-date-header {
+  position: sticky;
+  top: calc(#{$pagesHeader} + 172px);
+  z-index: 40;
+  background: #3b5bdb;
+  margin: 0 0 1rem 0;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
 
+  @media screen and (max-width: 640px) {
+    top: calc(128px + 172px);
+  }
+}
+
+.calendar-collapsed .games-date-header {
+  top: calc(#{$pagesHeader} + 92px);
+
+  @media screen and (max-width: 640px) {
+    top: calc(128px + 92px);
+  }
+}

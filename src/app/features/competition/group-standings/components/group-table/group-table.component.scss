@@ -1,4 +1,4 @@
-@use "../../../../../../variables" as *;
+@use "@variables" as *;
 
 // ─── Container ───────────────────────────────────────────────────────────────
 
@@ -54,9 +54,11 @@
   &::-webkit-scrollbar {
     height: 4px;
   }
+
   &::-webkit-scrollbar-track {
     background: transparent;
   }
+
   &::-webkit-scrollbar-thumb {
     background: rgba(255, 255, 255, 0.1);
     border-radius: 2px;
@@ -116,6 +118,7 @@
 
   &.row-even {
     background: rgba(255, 255, 255, 0.015);
+
     &:hover {
       background: rgba(255, 255, 255, 0.045);
     }
@@ -124,12 +127,18 @@
   // Subtle row tint for qualified rows
   &.row-qualified-auto {
     background: rgba(59, 130, 246, 0.04);
-    &:hover { background: rgba(59, 130, 246, 0.09); }
+
+    &:hover {
+      background: rgba(59, 130, 246, 0.09);
+    }
   }
 
   &.row-qualified-third {
     background: rgba(245, 158, 11, 0.04);
-    &:hover { background: rgba(245, 158, 11, 0.09); }
+
+    &:hover {
+      background: rgba(245, 158, 11, 0.09);
+    }
   }
 
   // Dashed separator between 2nd (auto) and 3rd row
@@ -209,7 +218,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  
+
   span {
     font-size: 0.85rem;
     color: rgba(255, 255, 255, 0.4);
@@ -375,8 +384,15 @@
 }
 
 @keyframes loadingPulse {
-  0%, 100% { opacity: 0.6; }
-  50% { opacity: 1; }
+
+  0%,
+  100% {
+    opacity: 0.6;
+  }
+
+  50% {
+    opacity: 1;
+  }
 }
 
 // ─── Responsive ───────────────────────────────────────────────────────────────

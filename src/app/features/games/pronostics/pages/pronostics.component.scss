@@ -1,5 +1,5 @@
 @use "sass:color";
-@use "../../../../../variables" as *;
+@use "@variables" as *;
 
 // ─── Header ──────────────────────────────────────────────────────────────────
 
@@ -183,7 +183,7 @@
 
   @media screen and (max-width: 640px) {
     padding-top: 1.5rem;
-    
+
     &.calendar-collapsed {
       padding-top: 1.5rem;
     }
@@ -197,7 +197,7 @@
   bottom: 24px;
   right: 24px;
   max-width: 360px;
-  z-index: 101; 
+  z-index: 101;
   margin: 0;
   display: flex;
   align-items: center;
@@ -213,7 +213,8 @@
   @media screen and (max-width: 640px) {
     left: 16px;
     right: 16px;
-    bottom: 95px; /* Above the bulk save dock */
+    bottom: 95px;
+    /* Above the bulk save dock */
     max-width: none;
   }
 
@@ -281,8 +282,13 @@
     }
 
     .today-banner-text {
-      strong { color: #a7f3d0; }
-      span { color: rgba(255, 255, 255, 0.7); }
+      strong {
+        color: #a7f3d0;
+      }
+
+      span {
+        color: rgba(255, 255, 255, 0.7);
+      }
     }
   }
 
@@ -298,8 +304,13 @@
     }
 
     .today-banner-text {
-      strong { color: #c7d2fe; }
-      span { color: rgba(255, 255, 255, 0.7); }
+      strong {
+        color: #c7d2fe;
+      }
+
+      span {
+        color: rgba(255, 255, 255, 0.7);
+      }
     }
   }
 }
@@ -309,6 +320,7 @@
     opacity: 0;
     transform: translateY(20px) scale(0.95);
   }
+
   to {
     opacity: 1;
     transform: translateY(0) scale(1);
@@ -320,6 +332,7 @@
     opacity: 0;
     transform: translateY(-10px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -327,8 +340,15 @@
 }
 
 @keyframes pulseAlarm {
-  0%, 100% { transform: rotate(-10deg); }
-  50% { transform: rotate(10deg); }
+
+  0%,
+  100% {
+    transform: rotate(-10deg);
+  }
+
+  50% {
+    transform: rotate(10deg);
+  }
 }
 
 // ─── Phase Section ────────────────────────────────────────────────────────────
@@ -479,7 +499,7 @@
   border-radius: 20px;
   box-shadow: 0 2px 8px rgba(239, 68, 68, 0.4);
   pointer-events: none;
-  
+
   .live-text {
     color: #ffffff;
     font-size: 0.65rem;
@@ -502,10 +522,12 @@
     transform: scale(0.85);
     opacity: 0.5;
   }
+
   50% {
     transform: scale(1.2);
     opacity: 1;
   }
+
   100% {
     transform: scale(0.85);
     opacity: 0.5;
@@ -654,6 +676,7 @@
     transform: translateY(100px) scale(0.9);
     opacity: 0;
   }
+
   to {
     transform: translateY(0) scale(1);
     opacity: 1;
@@ -666,26 +689,26 @@ app-calendar-strip {
 
 /* Modern Next Date Button */
 .btn-next-date {
-  
+
   background: #ffffff;
-  border: 1px solid rgba(17, 24, 39, 0.1); 
-  color: #111827; 
-  
+  border: 1px solid rgba(17, 24, 39, 0.1);
+  color: #111827;
+
   padding: 0.75rem 1.75rem;
   border-radius: 9999px;
   font-size: 0.9rem;
   font-weight: 600;
   cursor: pointer;
   outline: none;
-  
- 
-  transition: 
+
+
+  transition:
     background-color 0.25s cubic-bezier(0.4, 0, 0.2, 1),
     border-color 0.25s cubic-bezier(0.4, 0, 0.2, 1),
     color 0.25s cubic-bezier(0.4, 0, 0.2, 1),
     transform 0.25s cubic-bezier(0.4, 0, 0.2, 1),
     box-shadow 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-  
+
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04), 0 2px 4px rgba(0, 0, 0, 0.02);
 
   span {
@@ -699,16 +722,16 @@ app-calendar-strip {
   }
 
   &:hover {
-    background: #111827; 
+    background: #111827;
     color: #ffffff;
     border-color: #111827;
-    
+
     transform: translateY(-2px);
     box-shadow: 0 8px 20px rgba(17, 24, 39, 0.15);
 
     .material-symbols-outlined {
       color: #34d399;
-      transform: translateX(4px); 
+      transform: translateX(4px);
     }
   }
 
@@ -790,8 +813,15 @@ app-calendar-strip {
 }
 
 @keyframes floatingPtsSlideIn {
-  0%   { transform: translateX(60px); opacity: 0; }
-  100% { transform: translateX(0);    opacity: 1; }
+  0% {
+    transform: translateX(60px);
+    opacity: 0;
+  }
+
+  100% {
+    transform: translateX(0);
+    opacity: 1;
+  }
 }
 
 /* Pulsing Live Dot */
@@ -810,9 +840,11 @@ app-calendar-strip {
   0% {
     box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
   }
+
   70% {
     box-shadow: 0 0 0 6px rgba(239, 68, 68, 0);
   }
+
   100% {
     box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
   }
@@ -822,9 +854,11 @@ app-calendar-strip {
   0% {
     box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.9);
   }
+
   70% {
     box-shadow: 0 0 0 6px rgba(239, 68, 68, 0);
   }
+
   100% {
     box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
   }
@@ -910,7 +944,9 @@ app-calendar-strip {
     display: flex;
     transition: all 0.2s ease;
 
-    span { font-size: 1.2rem; }
+    span {
+      font-size: 1.2rem;
+    }
 
     &:hover {
       background: rgba(255, 255, 255, 0.1);
@@ -924,6 +960,7 @@ app-calendar-strip {
     opacity: 0;
     transform: translateY(40px) scale(0.9);
   }
+
   to {
     opacity: 1;
     transform: translateY(0) scale(1);
@@ -1019,6 +1056,7 @@ app-calendar-strip {
     &::-webkit-scrollbar {
       width: 6px;
     }
+
     &::-webkit-scrollbar-thumb {
       background: #cbd5e0;
       border-radius: 10px;
@@ -1079,7 +1117,7 @@ app-calendar-strip {
           background-size: cover;
           background-position: center;
           border-radius: 4px;
-          box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
           transition: transform 0.2s ease;
         }
 
@@ -1103,7 +1141,7 @@ app-calendar-strip {
           .penalty-flag {
             transform: scale(1.1);
           }
-          
+
           .penalty-name {
             color: #f57c00;
           }
@@ -1122,14 +1160,16 @@ app-calendar-strip {
 
     @media (max-width: 640px) {
       padding: 1rem;
-      
-      .btn-bulk-cancel, .btn-bulk-save {
-        font-size: 0; /* Hide the text */
+
+      .btn-bulk-cancel,
+      .btn-bulk-save {
+        font-size: 0;
+        /* Hide the text */
         padding: 0;
         width: 56px;
         height: 56px;
         border-radius: 50%;
-        
+
         .material-symbols-outlined {
           font-size: 1.8rem;
           margin: 0 !important;
@@ -1140,9 +1180,17 @@ app-calendar-strip {
 }
 
 @keyframes slideUpFade {
-  0% { opacity: 0; transform: translateY(20px); }
-  100% { opacity: 1; transform: translateY(0); }
+  0% {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
+
 .success-popup-toast {
   position: fixed;
   bottom: 24px;
@@ -1153,7 +1201,8 @@ app-calendar-strip {
   gap: 16px;
   background: rgba(15, 23, 42, 0.9);
   backdrop-filter: blur(12px);
-  border: 1.5px solid rgba(16, 185, 129, 0.4); /* Green glow border */
+  border: 1.5px solid rgba(16, 185, 129, 0.4);
+  /* Green glow border */
   border-radius: 16px;
   padding: 16px 20px;
   width: calc(100% - 48px);
@@ -1200,4 +1249,3 @@ app-calendar-strip {
     }
   }
 }
-

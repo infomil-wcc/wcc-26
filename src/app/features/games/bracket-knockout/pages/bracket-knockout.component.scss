@@ -1,7 +1,7 @@
 @use "sass:color";
-@use "../../../../../variables" as *;
+@use "@variables" as *;
 
-$bg-stadium-dark: #0f172a; 
+$bg-stadium-dark: #0f172a;
 $card-white: #ffffff;
 $text-dark-navy: #1e293b;
 $fifa-orange: #f97316;
@@ -59,6 +59,7 @@ $line-connector-color: #94a3b8; // Tree connector layout lines color
 }
 
 .stage-final .match-list {
+
   // Horizontal line connecting to the vertical line, only for final stage
   &::after {
     content: '';
@@ -104,11 +105,14 @@ $line-connector-color: #94a3b8; // Tree connector layout lines color
   margin: 15px 0;
 
   // Stems entering from preceding matches on the left side
-  .stage-r16 &, .stage-r4 &, .stage-r2 &, .stage-final & {
+  .stage-r16 &,
+  .stage-r4 &,
+  .stage-r2 &,
+  .stage-final & {
     &::before {
       content: '';
       position: absolute;
-      left: -40px; 
+      left: -40px;
       top: 50%;
       width: 40px;
       height: 2px;
@@ -129,7 +133,9 @@ $line-connector-color: #94a3b8; // Tree connector layout lines color
   border: 2px solid $line-connector-color;
   border-left: none;
 }
+
 .stage-final {
+
   .matchup-pair-group::after,
   .match-node::before {
     display: none !important;
@@ -152,7 +158,7 @@ $line-connector-color: #94a3b8; // Tree connector layout lines color
   font-size: 1.5rem;
   cursor: pointer;
   transition: all 0.3s ease;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
 
   &:hover {
     transform: scale(1.1) rotate(15deg);
@@ -172,8 +178,11 @@ $line-connector-color: #94a3b8; // Tree connector layout lines color
   z-index: 10;
   border: 1px solid rgba(255, 255, 255, 0.1);
   padding-bottom: 6px; // Padding at the bottom for aesthetic spacing
-  
-  &.final-accent-card { border: 2px solid $fifa-gold; padding: 6px; }
+
+  &.final-accent-card {
+    border: 2px solid $fifa-gold;
+    padding: 6px;
+  }
 }
 
 .team-slot {
@@ -185,43 +194,97 @@ $line-connector-color: #94a3b8; // Tree connector layout lines color
   margin: 6px 10px; // Spacing to separate slots as rounded cards
   border-radius: 8px;
   border: 1px solid #e2e8f0;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 
-  &.large-slot { padding: 20px 16px; }
-  &.disabled { opacity: 0.4; cursor: not-allowed; }
+  &.large-slot {
+    padding: 20px 16px;
+  }
+
+  &.disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
 
   &.selected {
     background-color: #ffedd5 !important;
     border-color: $fifa-orange;
-    .slot-name, .slot-name-text { color: $fifa-orange; font-weight: 800; }
+
+    .slot-name,
+    .slot-name-text {
+      color: $fifa-orange;
+      font-weight: 800;
+    }
   }
 
-  .slot-flag { 
-    width: 42px; 
-    height: 26px; 
-    object-fit: cover; 
-    border-radius: 6px; 
-    margin-right: 14px; 
-    box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+  .slot-flag {
+    width: 42px;
+    height: 26px;
+    object-fit: cover;
+    border-radius: 6px;
+    margin-right: 14px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
   }
-  .slot-name, .slot-name-text { 
-    color: #0f172a; 
-    font-size: 0.95rem; 
-    font-weight: 600; 
+
+  .slot-name,
+  .slot-name-text {
+    color: #0f172a;
+    font-size: 0.95rem;
+    font-weight: 600;
     line-height: 1.25;
   }
 }
 
-.node-index { 
-  color: #94a3b8; 
-  font-size: 0.8rem; 
-  font-weight: 700; 
-  margin-bottom: 6px; 
-  text-transform: uppercase; 
+.node-index {
+  color: #94a3b8;
+  font-size: 0.8rem;
+  font-weight: 700;
+  margin-bottom: 6px;
+  text-transform: uppercase;
   letter-spacing: 0.5px;
 }
-.versus-divider-badge { text-align: center; margin: -11px auto; background-color: #0f172a; color: #ffffff; font-size: 0.7rem; font-weight: 900; padding: 3px 12px; border-radius: 20px; z-index: 20; }
-.trophy-announcement-container { margin-top: 20px; text-align: center; .gold-title { color: #fde047; font-size: 0.8rem; font-weight: 900; margin-bottom: 8px; } .winner-gold-badge { display: inline-flex; align-items: center; gap: 10px; background: linear-gradient(135deg, #fef08a 0%, #facc15 100%); padding: 10px 20px; border-radius: 30px; color: #713f12; font-size: 1rem; font-weight: 800; img { width: 32px; height: 20px; border-radius: 3px; } } }
+
+.versus-divider-badge {
+  text-align: center;
+  margin: -11px auto;
+  background-color: #0f172a;
+  color: #ffffff;
+  font-size: 0.7rem;
+  font-weight: 900;
+  padding: 3px 12px;
+  border-radius: 20px;
+  z-index: 20;
+}
+
+.trophy-announcement-container {
+  margin-top: 20px;
+  text-align: center;
+
+  .gold-title {
+    color: #fde047;
+    font-size: 0.8rem;
+    font-weight: 900;
+    margin-bottom: 8px;
+  }
+
+  .winner-gold-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    background: linear-gradient(135deg, #fef08a 0%, #facc15 100%);
+    padding: 10px 20px;
+    border-radius: 30px;
+    color: #713f12;
+    font-size: 1rem;
+    font-weight: 800;
+
+    img {
+      width: 32px;
+      height: 20px;
+      border-radius: 3px;
+    }
+  }
+}
+
 .winner-modal-overlay {
   position: fixed;
   top: 0;
@@ -244,16 +307,25 @@ $line-connector-color: #94a3b8; // Tree connector layout lines color
   width: 90%;
   max-width: 400px;
   border: 1px solid rgba(255, 255, 255, 0.1);
-  
-  h3 { font-size: 1.25rem; font-weight: 800; margin-bottom: 20px; }
-  p { color: #94a3b8; font-size: 0.9rem; margin-bottom: 30px; }
+
+  h3 {
+    font-size: 1.25rem;
+    font-weight: 800;
+    margin-bottom: 20px;
+  }
+
+  p {
+    color: #94a3b8;
+    font-size: 0.9rem;
+    margin-bottom: 30px;
+  }
 }
 
 .modal-options {
   display: flex;
   flex-direction: column;
   gap: 15px;
-  
+
   button {
     padding: 20px;
     border: 1px solid rgba(255, 255, 255, 0.1);
@@ -267,9 +339,17 @@ $line-connector-color: #94a3b8; // Tree connector layout lines color
     font-size: 1rem;
     font-weight: 700;
     transition: all 0.2s;
-    
-    &:hover { background: #334155; border-color: $fifa-orange; }
-    .slot-flag { width: 40px; height: 26px; border-radius: 4px; }
+
+    &:hover {
+      background: #334155;
+      border-color: $fifa-orange;
+    }
+
+    .slot-flag {
+      width: 40px;
+      height: 26px;
+      border-radius: 4px;
+    }
   }
 }
 
@@ -364,7 +444,7 @@ $line-connector-color: #94a3b8; // Tree connector layout lines color
   padding: 12px 20px;
   border-radius: 30px;
   border: 1px solid rgba(255, 255, 255, 0.15);
-  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
   cursor: pointer;
   transition: all 0.2s ease;
   font-family: inherit;
@@ -412,11 +492,11 @@ $line-connector-color: #94a3b8; // Tree connector layout lines color
   cursor: default !important;
   background-color: #eff6ff;
   border: 1px dashed #3b82f6;
-  
+
   &:hover {
     background-color: #dbeafe;
   }
-  
+
   .slot-click-area {
     flex-grow: 1;
     display: flex;
@@ -450,7 +530,7 @@ $line-connector-color: #94a3b8; // Tree connector layout lines color
   padding: 2px;
   border-radius: 6px;
   transition: all 0.2s ease;
-  
+
   &:hover {
     background-color: #cbd5e1;
     color: #0f172a;
@@ -466,7 +546,7 @@ $line-connector-color: #94a3b8; // Tree connector layout lines color
   background-color: #1e293b;
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 8px;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
   min-width: 220px;
   max-height: 250px;
   overflow-y: auto;
@@ -480,20 +560,20 @@ $line-connector-color: #94a3b8; // Tree connector layout lines color
   padding: 10px 16px;
   cursor: pointer;
   transition: all 0.2s ease;
-  
+
   &:hover {
     background-color: #334155;
   }
-  
+
   .dropdown-item-flag {
     width: 30px;
     height: 20px;
     object-fit: cover;
     border-radius: 4px;
     margin-right: 12px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
   }
-  
+
   .dropdown-item-text {
     color: #ffffff;
     font-size: 0.85rem;
@@ -594,7 +674,9 @@ $line-connector-color: #94a3b8; // Tree connector layout lines color
       font-weight: 600;
     }
   }
-}.match-card {
+}
+
+.match-card {
   position: relative;
 }
 
@@ -649,6 +731,7 @@ $line-connector-color: #94a3b8; // Tree connector layout lines color
 
   &.points-zero {
     border-color: rgba(255, 255, 255, 0.15);
+
     .points-value {
       background: linear-gradient(180deg, #e2e8f0 0%, #94a3b8 35%, #64748b 70%, #334155 100%);
       -webkit-background-clip: text;
@@ -656,6 +739,7 @@ $line-connector-color: #94a3b8; // Tree connector layout lines color
       -webkit-text-fill-color: transparent;
       filter: drop-shadow(0 1px 0 rgba(255, 255, 255, 0.2)) drop-shadow(0 2px 5px rgba(0, 0, 0, 0.4));
     }
+
     .points-unit {
       background: linear-gradient(90deg, #94a3b8, #64748b, #94a3b8);
       -webkit-background-clip: text;
@@ -666,7 +750,17 @@ $line-connector-color: #94a3b8; // Tree connector layout lines color
 }
 
 @keyframes ptsReveal {
-  0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
-  60% { transform: translate(-50%, -50%) scale(1.15); }
-  100% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.5);
+  }
+
+  60% {
+    transform: translate(-50%, -50%) scale(1.15);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
 }

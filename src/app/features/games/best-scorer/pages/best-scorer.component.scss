@@ -1,4 +1,4 @@
-@use "../../../../../variables" as *;
+@use "@variables" as *;
 
 .filter {
   background: $darkSecondary;
@@ -18,7 +18,7 @@
   }
 }
 
-@media screen and (min-width: 576px){
+@media screen and (min-width: 576px) {
   .filter {
     margin-top: -1rem;
     margin-left: -1.5rem;
@@ -26,13 +26,13 @@
   }
 }
 
-@media screen and (min-width: 991px){
+@media screen and (min-width: 991px) {
   .lg\:col-span-4 {
     width: 32.8% !important;
   }
 }
 
-@media screen and (max-width: 990px){
+@media screen and (max-width: 990px) {
   .validateWrapper {
     left: 0;
     width: 100%;

@@ -1,4 +1,4 @@
-@use "../../../../variables" as *;
+@use "@variables" as *;
 
 :host {
   height: 100%;
@@ -10,8 +10,9 @@
 
 .menu-item {
   &.active {
-    color: $secondaryColor; /* Le jaune/cyan choisi pour le site */
-    
+    color: $secondaryColor;
+    /* Le jaune/cyan choisi pour le site */
+
     .material-symbols-outlined {
       color: $secondaryColor;
       font-variation-settings: 'FILL' 1, 'wght' 600;

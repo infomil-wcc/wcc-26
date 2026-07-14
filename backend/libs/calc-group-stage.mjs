@@ -63,7 +63,10 @@ export function calcGroupStagePoints(game, pronostique, ruleMatrix = []) {
         }
     }
 
-    // Consolation points not awarded in Group Stage
+    if (accurateFieldsCount === 0 && rule.consolation_points > 0) {
+        breakdown.consolation = Number(rule.consolation_points);
+    }
+
     breakdown.total = breakdown.winner + breakdown.fulltime + breakdown.halftime + breakdown.scorer + breakdown.consolation;
 
     return breakdown;
