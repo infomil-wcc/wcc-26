@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { CountryDetailsComponent } from './country-details.component';
-import { LoaderComponent } from '../../../../../shared/components/loader/loader.component';
+import { LoaderComponent } from '../../../../shared/components/loader/loader.component';
 
 describe('CountryDetailsComponent', () => {
   let component: CountryDetailsComponent;
@@ -10,9 +10,9 @@ describe('CountryDetailsComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-    imports: [CountryDetailsComponent, LoaderComponent]
-})
-    .compileComponents();
+      imports: [CountryDetailsComponent, LoaderComponent]
+    })
+      .compileComponents();
 
     fixture = TestBed.createComponent(CountryDetailsComponent);
     component = fixture.componentInstance;

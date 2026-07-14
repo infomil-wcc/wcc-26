@@ -4,8 +4,8 @@
     <h2 class="text-xl ml-6 pt-1 text-white md:text-6xl">{{ team.name | uppercase }}</h2>
   </div>
 
-  <app-tab-content>
-    <ng-template tabContent title="A propos">
+  <app-team-tabs>
+    <ng-template teamTabs title="A propos">
       <!-- Poster Equipe -->
       <div class="mb-2rem">
         <img src="assets/teams/poster/{{team.name | hyphernate }}.jpg" width="100%" height="auto" alt="{{team.name}}" />
@@ -16,7 +16,7 @@
 
     </ng-template>
 
-    <!-- <ng-template tabContent title="Joueurs">
+    <!-- <ng-template teamTabs title="Joueurs">
     <ng-container *ngIf="this.$teamPlayers | async as players; else loader">
       <div class="playersView" class="p-6">
         <div class="">
@@ -103,7 +103,7 @@
     </ng-container>
   </ng-template> -->
 
-  <ng-template tabContent title="Matchs">
+  <ng-template teamTabs title="Matchs">
     <div class="p-6 matchDetails mt-4">
       @if (teamMatches; as matches) {
         <div class="flex flex-wrap gap-2 mb-20">
@@ -120,6 +120,5 @@
       }
     </div>
   </ng-template>
-</app-tab-content>
+</app-team-tabs>
 </div>
-

@@ -1,19 +1,19 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { TabContentComponent } from './tab-content.component';
+import { TeamTabsComponent } from './team-tabs.component';
 
-describe('TabContentComponent', () => {
-  let component: TabContentComponent;
-  let fixture: ComponentFixture<TabContentComponent>;
+describe('TeamTabsComponent', () => {
+  let component: TeamTabsComponent;
+  let fixture: ComponentFixture<TeamTabsComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-    imports: [TabContentComponent]
+    imports: [TeamTabsComponent]
 })
     .compileComponents();
     
-    fixture = TestBed.createComponent(TabContentComponent);
+    fixture = TestBed.createComponent(TeamTabsComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

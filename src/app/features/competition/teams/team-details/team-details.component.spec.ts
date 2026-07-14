@@ -2,8 +2,8 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { TeamDetailsComponent } from './team-details.component';
-import { HyphernatePipe } from '../../../../../shared/pipe/hyphernate.pipe';
-import { TabContentComponent } from '../tab-content/tab-content.component';
+import { HyphernatePipe } from '../../../../shared/pipe/hyphernate.pipe';
+import { TeamTabsComponent } from '../team-tabs/team-tabs.component';
 
 describe('TeamDetailsComponent', () => {
   let component: TeamDetailsComponent;
@@ -11,10 +11,10 @@ describe('TeamDetailsComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-    imports: [TeamDetailsComponent, HyphernatePipe, TabContentComponent]
-})
-    .compileComponents();
-    
+      imports: [TeamDetailsComponent, HyphernatePipe, TeamTabsComponent]
+    })
+      .compileComponents();
+
     fixture = TestBed.createComponent(TeamDetailsComponent);
     component = fixture.componentInstance;
     component.team = { name: 'Test Team', iso: 'TST' } as any;

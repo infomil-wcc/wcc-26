@@ -4,7 +4,7 @@ import { MatchesService } from '../../../core/services/content/matches.service';
 import { GlobaltimeService } from '../../../core/services/core/global-time.service';
 import { Teams } from '../../../shared/contracts/teams.contract';
 import { Matches } from '../../../shared/contracts/matches.contract';
-import { Country } from './components/country-details/country-details.component';
+import { Country } from '@shared/contracts/country.contract';
 import { sortTeamsByName, addShowDetailsProperty, sortCountryTimeline } from './utils/teams.utils';
 
 @Injectable({

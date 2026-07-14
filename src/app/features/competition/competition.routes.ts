@@ -7,7 +7,7 @@ export const COMPETITION_ROUTES: Routes = [
   },
   {
     path: 'les-equipes',
-    loadComponent: () => import('./teams/pages/teams.component').then(m => m.TeamsComponent)
+    loadComponent: () => import('./teams/teams.component').then(m => m.TeamsComponent)
   },
   {
     path: 'les-stades',

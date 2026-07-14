@@ -1,5 +1,5 @@
-import { Teams } from '../../../../shared/contracts/teams.contract';
-import { Country } from '../components/country-details/country-details.component';
+import { Teams } from '@shared/contracts/teams.contract';
+import { Country } from '@shared/contracts/country.contract';
 
 export function sortTeamsByName(teams: Teams[]): Teams[] {
   return [...teams].sort((a, b) => a.name.localeCompare(b.name));

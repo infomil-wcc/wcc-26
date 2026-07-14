@@ -1,5 +1,5 @@
 import { Component, Input, Output, EventEmitter, ChangeDetectionStrategy } from '@angular/core';
-import { Teams } from '../../../../../shared/contracts/teams.contract';
+import { Teams } from '@shared/contracts/teams.contract';
 import { NgClass } from '@angular/common';
 
 @Component({
@@ -12,7 +12,7 @@ import { NgClass } from '@angular/common';
 export class TeamListComponent {
   @Input() teams!: Teams[];
   @Input() hideList: boolean = false;
-  
+
   @Output() teamSelected = new EventEmitter<Teams>();
 
   onTeamSelected(team: Teams): void {

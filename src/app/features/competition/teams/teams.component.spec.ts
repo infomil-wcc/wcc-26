@@ -2,10 +2,10 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { TeamsComponent } from './teams.component';
-import { LoaderComponent } from '../../../../shared/components/loader/loader.component';
-import { TeamsFacade } from '../teams.facade';
+import { LoaderComponent } from '../../../shared/components/loader/loader.component';
+import { TeamsFacade } from './teams.facade';
 import { signal } from '@angular/core';
-import { Teams } from '../../../../shared/contracts/teams.contract';
+import { Teams } from '../../../shared/contracts/teams.contract';
 
 describe('TeamsComponent', () => {
   let component: TeamsComponent;
@@ -30,8 +30,8 @@ describe('TeamsComponent', () => {
         { provide: TeamsFacade, useValue: mockFacade }
       ]
     })
-    .compileComponents();
-    
+      .compileComponents();
+
     fixture = TestBed.createComponent(TeamsComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();

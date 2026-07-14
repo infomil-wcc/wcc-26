@@ -1,6 +1,6 @@
 import { sortTeamsByName, addShowDetailsProperty, sortCountryTimeline } from './teams.utils';
 import { Teams } from '../../../../shared/contracts/teams.contract';
-import { Country } from '../components/country-details/country-details.component';
+import { Country } from '@shared/contracts/country.contract';
 
 describe('Teams Utils', () => {
   describe('sortTeamsByName', () => {
