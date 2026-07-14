@@ -7,7 +7,7 @@ import { Observable, combineLatest } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { MatchComponent } from '../../../../shared/components/match/match.component';
 import { LoaderComponent } from '../../../../shared/components/loader/loader.component';
-import { AsyncPipe, DatePipe } from '@angular/common';
+import { AsyncPipe, DatePipe, NgClass } from '@angular/common';
 import { Injector } from '@angular/core';
 import { CalendarStripComponent } from '../../../../shared/components/calendar-strip/calendar-strip.component';
 
@@ -16,7 +16,7 @@ import { CalendarStripComponent } from '../../../../shared/components/calendar-s
     templateUrl: './games.component.html',
     styleUrl: './games.component.scss',
     changeDetection: ChangeDetectionStrategy.Eager,
-    imports: [MatchComponent, LoaderComponent, AsyncPipe, DatePipe, CalendarStripComponent]
+    imports: [MatchComponent, LoaderComponent, AsyncPipe, DatePipe, CalendarStripComponent, NgClass]
 })
 export class GamesComponent implements OnInit {
 

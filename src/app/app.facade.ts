@@ -91,7 +91,8 @@ export class AppFacade {
             next: (resUser: any) => {
               if (resUser?.data) {
                 this.stateService.updateUser(resUser.data);
-                this.checkTotalGoals(this.currentUser.last_name ?? '');
+                // Do not show the 'pronostics global' modal if already logged in
+                // this.checkTotalGoals(this.currentUser.last_name ?? '');
               }
               this.showLoader.set(false);
             },

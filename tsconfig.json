@@ -38,6 +38,9 @@
       "@variables": [
         "./src/variables.scss"
       ],
+      "@core": [
+        "./src/core/*"
+      ],
       "@assets/*": [
         "./src/assets/*"
       ]

@@ -1,52 +1,152 @@
-<div class="fixed inset-0 z-[100] bg-black/70 backdrop-blur-sm flex items-center justify-center p-6" (click)="closeModal()">
-  <div class="w-full max-w-2xl bg-slate-900 rounded-2xl p-12 relative shadow-2xl border border-slate-700"
-    (click)="$event.stopPropagation()">
-    <button class="absolute top-4 right-4 text-slate-400 hover:text-white transition-colors cursor-pointer flex items-center justify-center" (click)="closeModal()">
-      <span class="material-symbols-outlined">close</span>
-    </button>
-    <div class="text-center mb-6">
-      <h2 class="text-2xl font-bold m-0 flex items-center justify-center gap-2" style="color: #e2e8f0;">
-        <span class="material-symbols-outlined" style="color: #3f51b5;">history</span>
-        Historique : {{ selectedTeamName }}
-      </h2>
+<div class="fixed inset-0 z-[100] bg-[#0c1017]/80 backdrop-blur-sm flex items-center justify-center p-2 sm:p-4" (click)="closeModal()">
+  <div class="w-full max-w-xl bg-[#1f2937] rounded-xl relative shadow-2xl border border-slate-700/50 flex flex-col max-h-[95vh] overflow-hidden" (click)="$event.stopPropagation()">
+    
+    <!-- Header -->
+    <div class="flex items-center justify-between p-3 border-b border-slate-700/50 bg-[#161b26]">
+      <div class="flex items-center gap-2">
+        <div class="w-8 h-8 bg-slate-800 rounded flex items-center justify-center border border-slate-700">
+          <span class="material-symbols-outlined text-white text-[18px]">bar_chart</span>
+        </div>
+        <h2 class="text-lg font-bold text-white m-0">Historique : {{ selectedTeamName }}</h2>
+      </div>
+      <button class="w-7 h-7 rounded-full bg-slate-800 flex items-center justify-center text-slate-300 hover:text-white transition-colors border border-slate-700 cursor-pointer" (click)="closeModal()">
+        <span class="material-symbols-outlined text-[16px]">close</span>
+      </button>
     </div>
 
-    @if (loadingTeamInfo) {
-    <div class="flex justify-center items-center p-6">
-      <span class="material-symbols-outlined spin" style="font-size: 2rem; color: #a0aec0;">sync</span>
-    </div>
-    } @else {
-    @if (teamPastMatches.length === 0) {
-    <div class="text-center p-6" style="color: #a0aec0; background: #1a202c; border-radius: 8px;">
-      Aucun match passé disponible pour cette équipe.
-    </div>
-    } @else {
-    <div class="past-matches-list flex flex-col gap-4" style="max-height: 60vh; overflow-y: auto; padding-right: 8px;">
-      @for (m of teamPastMatches; track m.id) {
-      <div class="past-match-card flex flex-col p-4"
-        style="background: #2d3748; border-radius: 8px; border-left: 4px solid #3f51b5;">
-        <div class="flex justify-between items-center mb-2" style="font-size: 0.85rem; color: #a0aec0;">
-          <span class="font-semibold">{{ m.phase }}</span>
-          <span>{{ m.date | date:'dd MMM yyyy' }}</span>
+    <!-- Body -->
+    <div class="flex-1 overflow-y-auto p-3 sm:p-4 bg-[#171e2b] custom-scrollbar">
+      @if (loadingTeamInfo) {
+        <div class="flex justify-center items-center p-8">
+          <span class="material-symbols-outlined spin text-3xl text-slate-500">sync</span>
         </div>
-        <div class="flex justify-center items-center gap-4">
-          <span class="font-bold text-right" style="flex: 1; color: #e2e8f0;"
-            [ngStyle]="{'color': m.fulltime_a > m.fulltime_b ? '#4ade80' : (m.fulltime_a < m.fulltime_b ? '#ef4444' : '#e2e8f0')}">
-            {{ m.team_a }}
-          </span>
-          <div class="flex items-center justify-center bg-gray-800 px-4 py-1 rounded font-bold text-lg"
-            style="min-width: 80px; color: #fff;">
-            {{ m.fulltime_a }} - {{ m.fulltime_b }}
+      } @else {
+        @if (teamPastMatches.length === 0) {
+          <div class="text-center p-6 text-sm text-slate-400 bg-slate-800/50 rounded-xl border border-slate-700/50">
+            Aucun match passé disponible pour cette équipe.
           </div>
-          <span class="font-bold text-left" style="flex: 1; color: #e2e8f0;"
-            [ngStyle]="{'color': m.fulltime_b > m.fulltime_a ? '#4ade80' : (m.fulltime_b < m.fulltime_a ? '#ef4444' : '#e2e8f0')}">
-            {{ m.team_b }}
-          </span>
-        </div>
-      </div>
+        } @else {
+          @for (group of groupedMatches; track group.phase) {
+            <div class="mb-5 last:mb-0">
+              <!-- Phase Banner -->
+              <div class="bg-[#4f46e5] rounded-lg px-3 py-2 flex items-center gap-1.5 mb-2 shadow-sm shadow-[#4f46e5]/20">
+                <span class="material-symbols-outlined text-white text-[16px]">groups</span>
+                <span class="text-white font-black text-[11px] tracking-wider uppercase">{{ group.phase }}</span>
+              </div>
+
+              <!-- Match Cards -->
+              <div class="flex flex-col gap-3">
+                @for (m of group.matches; track m.id) {
+                  <div class="rounded-lg overflow-hidden bg-[#242e42] border border-slate-700/40 shadow-md relative">
+                    <!-- Match Header -->
+                    <div class="bg-[#1e2738] px-3 py-1.5 flex justify-between items-center border-b border-slate-700/40 text-[10px] font-bold text-slate-400">
+                      <span class="tracking-wider uppercase">MATCH M{{ m.id }}</span>
+                      <!-- Date formatter fallback -->
+                      <span>{{ m.date | date:'EEEE dd MMM yyyy | HH:mm' }}</span>
+                    </div>
+
+                    <!-- Match Body -->
+                    <div class="p-3 sm:p-4 relative">
+                      <div class="flex justify-between items-start">
+                        <!-- Team A -->
+                        <div class="flex-1 flex flex-col items-end gap-1.5 pr-2 sm:pr-4">
+                          <div class="flex flex-col sm:flex-row items-end sm:items-center gap-1.5 sm:gap-2">
+                            <img [src]="getTeamFlagUrl(m.team_a)" class="w-8 h-5 sm:w-9 sm:h-[20px] rounded-[3px] object-cover shadow-sm hidden sm:block" alt="">
+                            <span class="text-lg sm:text-xl font-black text-white uppercase tracking-tight">{{ m.team_a | slice:0:3 }}</span>
+                            <img [src]="getTeamFlagUrl(m.team_a)" class="w-8 h-5 rounded-[3px] object-cover shadow-sm sm:hidden" alt="">
+                          </div>
+                          <div class="scale-[0.65] sm:scale-75 origin-right">
+                            <teamperformance [teamName]="m.team_a"></teamperformance>
+                          </div>
+                        </div>
+
+                        <!-- Score Pill -->
+                        <div class="w-[80px] sm:w-[90px] flex-shrink-0 flex flex-col items-center justify-start relative z-10 pt-0.5">
+                          <div class="bg-[#4ade80] rounded-[10px] px-2 py-1 flex items-center gap-1.5 sm:gap-2 shadow-[0_0_15px_rgba(74,222,128,0.2)] min-w-[70px] sm:min-w-[80px] justify-center relative">
+                            <span class="text-xl sm:text-2xl font-black text-[#064e3b]">{{ m.fulltime_a ?? '-' }}</span>
+                            <span class="text-emerald-700/40 text-sm font-light">|</span>
+                            <span class="text-xl sm:text-2xl font-black text-[#064e3b]">{{ m.fulltime_b ?? '-' }}</span>
+                            
+                            <!-- HT Badge -->
+                            @if (m.halftime_a !== null && m.halftime_b !== null) {
+                              <div class="absolute -bottom-3 left-1/2 -translate-x-1/2 bg-[#3b5bdb] rounded px-1.5 py-[1px] text-[8.5px] font-black text-white whitespace-nowrap shadow-sm">
+                                HT : {{ m.halftime_a }} - {{ m.halftime_b }}
+                              </div>
+                            }
+                          </div>
+                        </div>
+
+                        <!-- Team B -->
+                        <div class="flex-1 flex flex-col items-start gap-1.5 pl-2 sm:pl-4">
+                          <div class="flex flex-col sm:flex-row items-start sm:items-center gap-1.5 sm:gap-2">
+                            <span class="text-lg sm:text-xl font-black text-white uppercase tracking-tight sm:hidden">{{ m.team_b | slice:0:3 }}</span>
+                            <img [src]="getTeamFlagUrl(m.team_b)" class="w-8 h-5 rounded-[3px] object-cover shadow-sm sm:hidden" alt="">
+                            
+                            <span class="text-lg sm:text-xl font-black text-white uppercase tracking-tight hidden sm:block">{{ m.team_b | slice:0:3 }}</span>
+                            <img [src]="getTeamFlagUrl(m.team_b)" class="w-8 h-5 sm:w-9 sm:h-[20px] rounded-[3px] object-cover shadow-sm hidden sm:block" alt="">
+                          </div>
+                          <div class="scale-[0.65] sm:scale-75 origin-left">
+                            <teamperformance [teamName]="m.team_b"></teamperformance>
+                          </div>
+                        </div>
+                      </div>
+
+                      <!-- Scorers -->
+                      @if (m.scorers) {
+                        <div class="mt-5 text-[9px] sm:text-[10px] text-[#94a3b8] flex justify-between">
+                          <!-- Team A Scorers -->
+                          <div class="flex-1 text-right flex flex-col gap-0.5 pr-4 sm:pr-6 border-r border-slate-700/50">
+                            @if (isScorersJson(m)) {
+                              @for (scorer of getTeamAScorers(m); track scorer.name) {
+                                <div class="flex items-center justify-end gap-1">
+                                  <span class="material-symbols-outlined text-[11px]" [ngClass]="scorer.iconColor || 'text-slate-500'">{{ scorer.icon || 'sports_soccer' }}</span>
+                                  <span class="font-bold text-slate-300 uppercase tracking-wide">{{ scorer.name }}</span>
+                                  <span class="text-slate-500" [innerHTML]="scorer.times"></span>
+                                </div>
+                              }
+                            } @else {
+                              <div class="flex items-center justify-end gap-1">
+                                <span class="material-symbols-outlined text-[11px] text-yellow-500">sports_soccer</span>
+                                <span class="italic text-slate-300">{{ m.scorers }}</span>
+                              </div>
+                            }
+                          </div>
+                          
+                          <!-- Team B Scorers -->
+                          <div class="flex-1 text-left flex flex-col gap-0.5 pl-4 sm:pl-6">
+                            @if (isScorersJson(m)) {
+                              @for (scorer of getTeamBScorers(m); track scorer.name) {
+                                <div class="flex items-center justify-start gap-1">
+                                  <span class="font-bold text-slate-300 uppercase tracking-wide">{{ scorer.name }}</span>
+                                  <span class="text-slate-500" [innerHTML]="scorer.times"></span>
+                                  <span class="material-symbols-outlined text-[11px]" [ngClass]="scorer.iconColor || 'text-slate-500'">{{ scorer.icon || 'sports_soccer' }}</span>
+                                </div>
+                              }
+                            }
+                          </div>
+                        </div>
+                      }
+                    </div>
+
+                    <!-- Rainbow Footer Line -->
+                    <div class="h-1 w-full" style="background: linear-gradient(90deg, #f97316 0%, #eab308 30%, #22c55e 60%, #a855f7 100%);"></div>
+                    
+                    <!-- Bottom Bar -->
+                    <div class="bg-[#111827] px-3 py-1 flex justify-between items-center">
+                      @if (getMatchOutcome(m); as outcome) {
+                        <span [ngClass]="[outcome.bgClass, outcome.textClass]" class="text-[8px] font-black tracking-wider px-1.5 py-0.5 rounded">
+                          {{ outcome.label }}
+                        </span>
+                      }
+                      <span class="text-[9px] text-slate-500 font-bold">M{{ m.id }}</span>
+                    </div>
+                  </div>
+                }
+              </div>
+            </div>
+          }
+        }
       }
     </div>
-    }
-    }
   </div>
 </div>
