@@ -21,6 +21,7 @@ const PHASE_CONFIG: { key: string; label: string; icon: string; color: string }[
   { key: 'Round of 16', label: 'Huitièmes de finale', icon: 'filter_8', color: '#9c36b5' },
   { key: 'Quarter-finals', label: 'Quarts de finale', icon: 'emoji_events', color: '#d6336c' },
   { key: 'Semi-finals', label: 'Demi-finales', icon: 'military_tech', color: '#f76707' },
+  { key: 'Third Place', label: 'Troisième place', icon: 'workspace_premium', color: '#d9480f' },
   { key: 'Final', label: 'Finale', icon: 'workspace_premium', color: '#f59f00' },
 ];
 
