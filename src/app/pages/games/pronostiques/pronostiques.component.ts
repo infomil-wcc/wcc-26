@@ -107,8 +107,10 @@ export class PronostiquesComponent implements OnInit {
           const timeDiffMins = timeDiffMs / (1000 * 60);
           
           const hasStarted = now >= matchDate;
-          const isOngoing = timeDiffMins >= 0 && timeDiffMins < 150 && !isFinishedStatus;
-          const isFinished = isFinishedStatus || timeDiffMins >= 150;
+          const isKnockout = ['Round of 16', 'Quarter-finals', 'Semi-finals', 'Third Place', 'Final'].includes(match.phase || '');
+          const maxMins = isKnockout ? 190 : 150;
+          const isOngoing = timeDiffMins >= 0 && timeDiffMins < maxMins && !isFinishedStatus;
+          const isFinished = isFinishedStatus || timeDiffMins >= maxMins;
 
           if (tab === 'live') {
             return isOngoing;
@@ -142,7 +144,9 @@ export class PronostiquesComponent implements OnInit {
             const matchDate = new Date(m.date);
             const timeDiffMs = now.getTime() - matchDate.getTime();
             const timeDiffMins = timeDiffMs / (1000 * 60);
-            return timeDiffMins >= 0 && timeDiffMins < 150 && !isFinishedStatus;
+            const isKnockout = ['Round of 16', 'Quarter-finals', 'Semi-finals', 'Third Place', 'Final'].includes(m.phase || '');
+            const maxMins = isKnockout ? 190 : 150;
+            return timeDiffMins >= 0 && timeDiffMins < maxMins && !isFinishedStatus;
           }).length;
           this.upcomingCount = matches.filter(m => {
             const isFinishedStatus = m.current_status?.toLowerCase() === 'finished' || m.played === true;
@@ -150,7 +154,9 @@ export class PronostiquesComponent implements OnInit {
             const timeDiffMs = now.getTime() - matchDate.getTime();
             const timeDiffMins = timeDiffMs / (1000 * 60);
             const hasStarted = now >= matchDate;
-            const isFinished = isFinishedStatus || timeDiffMins >= 150;
+            const isKnockout = ['Round of 16', 'Quarter-finals', 'Semi-finals', 'Third Place', 'Final'].includes(m.phase || '');
+            const maxMins = isKnockout ? 190 : 150;
+            const isFinished = isFinishedStatus || timeDiffMins >= maxMins;
             return !hasStarted && !isFinished;
           }).length;
           this.playedCount = matches.filter(m => {
@@ -158,7 +164,9 @@ export class PronostiquesComponent implements OnInit {
             const matchDate = new Date(m.date);
             const timeDiffMs = now.getTime() - matchDate.getTime();
             const timeDiffMins = timeDiffMs / (1000 * 60);
-            return isFinishedStatus || timeDiffMins >= 150;
+            const isKnockout = ['Round of 16', 'Quarter-finals', 'Semi-finals', 'Third Place', 'Final'].includes(m.phase || '');
+            const maxMins = isKnockout ? 190 : 150;
+            return isFinishedStatus || timeDiffMins >= maxMins;
           }).length;
 
           const todayKey = today.dateTime.split('T')[0];
@@ -169,14 +177,18 @@ export class PronostiquesComponent implements OnInit {
             const matchDate = new Date(m.date);
             const timeDiffMs = now.getTime() - matchDate.getTime();
             const timeDiffMins = timeDiffMs / (1000 * 60);
-            return isFinishedStatus || timeDiffMins >= 150;
+            const isKnockout = ['Round of 16', 'Quarter-finals', 'Semi-finals', 'Third Place', 'Final'].includes(m.phase || '');
+            const maxMins = isKnockout ? 190 : 150;
+            return isFinishedStatus || timeDiffMins >= maxMins;
           }).length;
           this.todayMatchCount = todayMatches.filter(m => {
             const isFinishedStatus = m.current_status?.toLowerCase() === 'finished' || m.played === true;
             const matchDate = new Date(m.date);
             const timeDiffMs = now.getTime() - matchDate.getTime();
             const timeDiffMins = timeDiffMs / (1000 * 60);
-            return !(isFinishedStatus || timeDiffMins >= 150);
+            const isKnockout = ['Round of 16', 'Quarter-finals', 'Semi-finals', 'Third Place', 'Final'].includes(m.phase || '');
+            const maxMins = isKnockout ? 190 : 150;
+            return !(isFinishedStatus || timeDiffMins >= maxMins);
           }).length;
 
           const unplayedToday = todayMatches.filter(m => m.fulltime_a === null);
@@ -212,8 +224,10 @@ export class PronostiquesComponent implements OnInit {
           const timeDiffMins = timeDiffMs / (1000 * 60);
           
           const hasStarted = now >= matchDate;
-          const isOngoing = timeDiffMins >= 0 && timeDiffMins < 150 && !isFinishedStatus;
-          const isFinished = isFinishedStatus || timeDiffMins >= 150;
+          const isKnockout = ['Round of 16', 'Quarter-finals', 'Semi-finals', 'Third Place', 'Final'].includes(match.phase || '');
+          const maxMins = isKnockout ? 190 : 150;
+          const isOngoing = timeDiffMins >= 0 && timeDiffMins < maxMins && !isFinishedStatus;
+          const isFinished = isFinishedStatus || timeDiffMins >= maxMins;
 
           if (this.activeTab === 'live') {
             return isOngoing;
@@ -312,7 +326,11 @@ export class PronostiquesComponent implements OnInit {
     const isFinishedStatus = match.current_status?.toLowerCase() === 'finished' || match.played === true;
     const timeDiffMs = now.getTime() - matchDate.getTime();
     const timeDiffMins = timeDiffMs / (1000 * 60);
-    return timeDiffMins >= 0 && timeDiffMins < 150 && !isFinishedStatus;
+    
+    const isKnockout = ['Round of 16', 'Quarter-finals', 'Semi-finals', 'Third Place', 'Final'].includes(match.phase || '');
+    const maxMins = isKnockout ? 190 : 150;
+    
+    return timeDiffMins >= 0 && timeDiffMins < maxMins && !isFinishedStatus;
   }
 
   getSortedPlayedMatchesForDate(matches: Matches[]): Matches[] {
