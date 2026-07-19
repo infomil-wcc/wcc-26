@@ -86,15 +86,20 @@ export function createHandler(deps = {}) {
           console.error("Failed to advance knockout matches automatically:", advanceErr.message);
         }
 
+        const offset = queryData.offset !== undefined ? parseInt(queryData.offset, 10) : 0;
+        const batchSize = queryData.batchSize !== undefined ? parseInt(queryData.batchSize, 10) : null;
+
         let targetUser = (pointsParam && pointsParam !== 'all') ? pointsParam : null;
         if (shouldSyncAndCalcAll) {
-          calculationLogs = await _recalculateRankings(directusUrl, adminToken, null, loggedInUser, true, { fetch });
+          calculationLogs = await _recalculateRankings(directusUrl, adminToken, null, loggedInUser, true, { fetch }, offset, batchSize);
         } else if (targetUser || shouldCalcAll) {
-          calculationLogs = await _recalculateRankings(directusUrl, adminToken, targetUser, loggedInUser, true, { fetch });
+          calculationLogs = await _recalculateRankings(directusUrl, adminToken, targetUser, loggedInUser, true, { fetch }, offset, batchSize);
         }
       } else {
+        const offset = queryData.offset !== undefined ? parseInt(queryData.offset, 10) : 0;
+        const batchSize = queryData.batchSize !== undefined ? parseInt(queryData.batchSize, 10) : null;
         let targetUser = (pointsParam && pointsParam !== 'all') ? pointsParam : null;
-        calculationLogs = await _recalculateRankings(directusUrl, adminToken, targetUser, loggedInUser, isExplicitOverride, { fetch });
+        calculationLogs = await _recalculateRankings(directusUrl, adminToken, targetUser, loggedInUser, isExplicitOverride, { fetch }, offset, batchSize);
       }
     } catch (error) {
       return response.status(500).json({ error: error.message });

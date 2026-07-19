@@ -71,7 +71,12 @@ export class RankingsService {
     );
   }
 
-  recalculateRankings(): Observable<any> {
-    return this.http.get('/api/match-results?points=all');
+
+  recalculateRankings(offset: number = 0, batchSize: number | null = null): Observable<any> {
+    let url = `/api/match-results?points=all&matches=all&offset=${offset}`;
+    if (batchSize !== null) {
+      url += `&batchSize=${batchSize}`;
+    }
+    return this.http.get(url);
   }
 }

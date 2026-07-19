@@ -15,7 +15,118 @@
         <span class="material-symbols-outlined" [class.spin]="isRecalculating">sync</span>
         {{ isRecalculating ? 'Recalcul en cours...' : 'Recalculer & Sync Directus' }}
       </button>
-      <div *ngIf="recalcSuccessMessage" class="toast-success">{{ recalcSuccessMessage }}</div>
+      <button class="btn btn-nav text-xs" *ngIf="recalcSummary && !isRecalculating" (click)="showRecalcProgress = !showRecalcProgress">
+        <span class="material-symbols-outlined">{{ showRecalcProgress ? 'expand_less' : 'expand_more' }}</span>
+        {{ showRecalcProgress ? 'Masquer le rapport' : 'Voir le rapport' }}
+      </button>
+    </div>
+  </div>
+
+  <!-- Recalculation Progress Panel -->
+  <div class="recalc-progress-panel" *ngIf="showRecalcProgress">
+
+    <!-- In-Progress State: live log -->
+    <div class="recalc-running" *ngIf="isRecalculating">
+      <div class="recalc-spinner-wrap">
+        <div class="spinner"></div>
+        <div class="recalc-running-text">
+          <strong>Recalcul Directus en cours...</strong>
+          <p class="text-xs text-muted">Estimation du déroulement en temps réel. Les logs réels du serveur s'afficheront à la fin.</p>
+        </div>
+      </div>
+
+      <!-- Explanation callout for "Sync rules → matches" -->
+      <div class="recalc-explain-box">
+        <span class="material-symbols-outlined">info</span>
+        <div>
+          <strong>Que fait « Sync règles → matches » ?</strong>
+          <p>
+            La table <code>game_scoring_rules</code> définit les points par phase (ex. : Group Stage = 1pt vainqueur, 2pt score exact).
+            Chaque match possède ses propres champs dupliqués <code>winner_point</code>, <code>fulltime_point</code>, <code>halftime_point</code>, <code>scorer_point</code>.
+            Cette étape <strong>compare et resynchronise</strong> ces champs avec les règles actives : si le barème a été modifié, chaque match reçoit un PATCH Directus pour refléter la nouvelle valeur avant que les points des joueurs soient recalculés.
+          </p>
+        </div>
+      </div>
+
+      <!-- Live log box -->
+      <div class="recalc-log-box">
+        <div class="recalc-log-header">
+          <span class="material-symbols-outlined spin" style="font-size:1rem">refresh</span>
+          Journal en direct ({{ recalcLiveLines.length }} étape(s) estimée(s)...)
+        </div>
+        <div class="recalc-log-body" #liveLogBody>
+          <div *ngFor="let line of recalcLiveLines; let last = last"
+               class="recalc-log-line"
+               [class.log-sync]="line.includes('Sync règles')"
+               [class.log-warn]="line.includes('⚠️')"
+               [class.log-saved]="line.includes('💾')"
+               [class.log-active]="last">
+            <span class="log-prefix">›</span> {{ line }}
+            <span *ngIf="last" class="log-cursor">█</span>
+          </div>
+          <div *ngIf="recalcLiveLines.length === 0" class="recalc-log-line text-muted">
+            <span class="log-prefix">›</span> Initialisation...
+            <span class="log-cursor">█</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Completed Summary State -->
+    <div class="recalc-summary" *ngIf="recalcSummary && !isRecalculating">
+      <div class="recalc-summary-header">
+        <span class="material-symbols-outlined text-success">check_circle</span>
+        <h3>Recalcul terminé <span class="text-muted text-xs">en {{ recalcSummary.durationMs / 1000 | number:'1.1-1' }}s</span></h3>
+      </div>
+      <div class="recalc-kpis">
+        <div class="recalc-kpi">
+          <span class="material-symbols-outlined">sports_soccer</span>
+          <div>
+            <strong>{{ recalcSummary.matchesSynced }}</strong>
+            <span>Matches synchronisés</span>
+          </div>
+        </div>
+        <div class="recalc-kpi">
+          <span class="material-symbols-outlined text-success">group</span>
+          <div>
+            <strong>{{ recalcSummary.usersSaved }}</strong>
+            <span>Joueurs mis à jour</span>
+          </div>
+        </div>
+        <div class="recalc-kpi" [class.recalc-kpi-danger]="recalcSummary.fraudDetected > 0">
+          <span class="material-symbols-outlined" [class.text-danger]="recalcSummary.fraudDetected > 0">warning</span>
+          <div>
+            <strong>{{ recalcSummary.fraudDetected }}</strong>
+            <span>Fraudes détectées</span>
+          </div>
+        </div>
+        <div class="recalc-kpi" [class.recalc-kpi-warn]="recalcSummary.duplicatesDetected > 0">
+          <span class="material-symbols-outlined" [class.text-warning]="recalcSummary.duplicatesDetected > 0">content_copy</span>
+          <div>
+            <strong>{{ recalcSummary.duplicatesDetected }}</strong>
+            <span>Doublons</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Scrollable server log output -->
+      <div class="recalc-log-box">
+        <div class="recalc-log-header">
+          <span class="material-symbols-outlined">terminal</span>
+          Journal serveur réel ({{ recalcSummary.logs.length }} entrées)
+        </div>
+        <div class="recalc-log-body">
+          <div *ngFor="let log of recalcSummary.logs" class="recalc-log-line"
+            [class.log-fraud]="log.includes('FRAUD')"
+            [class.log-duplicate]="log.includes('DUPLICATE')"
+            [class.log-sync]="log.startsWith('Synced')"
+            [class.log-saved]="log.startsWith('Saved')"
+            [class.log-error]="log.startsWith('❌')">
+            <span class="log-prefix">›</span> {{ log }}
+          </div>
+          <div *ngIf="recalcSummary.logs.length === 0" class="text-xs text-muted" style="padding:10px 16px">Aucun log disponible.</div>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -58,6 +169,18 @@
         <div class="coherence-info-text text-xs">
           <strong>Règles de Calcul Audité :</strong> Les calculs locaux intègrent 100% des règles du moteur de points Directus :
           (1) Déduction du vainqueur si `winner_draw` est vide, (2) Consolidation minimale garantie de 1 point pour les phases à élimination directe (hors 16e), (3) Invalidation automatique en cas de soumission ou modification après le coup d'envoi officiel.
+        </div>
+
+        <!-- Trigger Global Audit -->
+        <div class="global-audit-action flex-start margin-top-sm" *ngIf="!isGlobalAuditRun">
+          <button class="btn btn-detail flex-center" [disabled]="isGlobalAuditing" (click)="runFullAudit()">
+            <span class="material-symbols-outlined" [class.spin]="isGlobalAuditing">manage_search</span>
+            {{ isGlobalAuditing ? 'Audit en cours...' : 'Lancer un Audit Global Complet (Tous les Joueurs)' }}
+          </button>
+          <span class="text-xs text-muted margin-left-sm flex-center">Recommandé pour calculer les statistiques globales de fraude et d'écart de points sur toute la base de données.</span>
+        </div>
+        <div class="global-audit-success text-xs text-success margin-top-sm" *ngIf="isGlobalAuditRun">
+          ✅ L'Audit Global Complet a été effectué. Tous les écarts et cas de fraudes de la base de données sont affichés.
         </div>
 
         <!-- Mismatch list -->
@@ -171,7 +294,7 @@
               </tr>
             </thead>
             <tbody>
-              <tr *ngFor="let p of getFilteredPlayers()" [class.row-mismatch]="!p.isCalculating && p.pointDiscrepancy" [class.row-fraud]="!p.isCalculating && p.hasFraud">
+              <tr *ngFor="let p of getPaginatedPlayers()" [class.row-mismatch]="!p.isCalculating && p.pointDiscrepancy" [class.row-fraud]="!p.isCalculating && p.hasFraud">
                 <td class="font-bold">{{ p.username | uppercase }}</td>
                 <td>{{ p.email }}</td>
                 <td>
@@ -212,6 +335,21 @@
               </tr>
             </tbody>
           </table>
+        </div>
+
+        <!-- Pagination Controls -->
+        <div class="pagination-controls flex-between margin-top-sm" *ngIf="totalPages > 1">
+          <button class="btn btn-nav flex-center" [disabled]="currentPage === 1" (click)="goToPage(currentPage - 1)">
+            <span class="material-symbols-outlined">navigate_before</span>
+            Précédent
+          </button>
+          
+          <span class="page-indicator font-semibold text-sm">Page {{ currentPage }} sur {{ totalPages }}</span>
+          
+          <button class="btn btn-nav flex-center" [disabled]="currentPage === totalPages" (click)="goToPage(currentPage + 1)">
+            Suivant
+            <span class="material-symbols-outlined">navigate_next</span>
+          </button>
         </div>
       </div>
     </div>
@@ -255,9 +393,9 @@
                 <div class="details">
                   <strong>Biais des Pronostics (Victoires)</strong>
                   <p class="value-mini">
-                    Domicile: <span class="text-success font-bold">{{ selectedPlayer.homePredictionsPct }}%</span> | 
-                    Nul: <span class="text-warning font-bold">{{ selectedPlayer.drawPredictionsPct }}%</span> | 
-                    Extérieur: <span class="text-danger font-bold">{{ selectedPlayer.awayPredictionsPct }}%</span>
+                    Domicile: <span class="text-success font-bold">{{ selectedPlayer.homePredictionsPct | number:'1.3-3' }}%</span> | 
+                    Nul: <span class="text-warning font-bold">{{ selectedPlayer.drawPredictionsPct | number:'1.3-3' }}%</span> | 
+                    Extérieur: <span class="text-danger font-bold">{{ selectedPlayer.awayPredictionsPct | number:'1.3-3' }}%</span>
                   </p>
                   <span class="desc">Distribution des choix de vainqueurs</span>
                 </div>
@@ -266,7 +404,7 @@
                 <span class="icon material-symbols-outlined">sports_soccer</span>
                 <div class="details">
                   <strong>Habitude de Buts</strong>
-                  <p class="value">{{ selectedPlayer.averageGoalsPredicted }} buts / match</p>
+                  <p class="value">{{ selectedPlayer.averageGoalsPredicted | number:'1.3-3' }} buts / match</p>
                   <span class="desc">Nombre moyen de buts pronostiqués</span>
                 </div>
               </div>

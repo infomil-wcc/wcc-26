@@ -6,7 +6,7 @@ import { calcBracketPoints } from './calc-bracket-stage.mjs';
  * USER LEADERBOARD RANKING CALCULATIONS
  * Validates timestamps to eliminate post-kickoff submissions or modifications.
  */
-export async function recalculateRankings(directusUrl, adminToken, specificUser = null, loggedInUser = null, isExplicitOverride = false, deps = {}) {
+export async function recalculateRankings(directusUrl, adminToken, specificUser = null, loggedInUser = null, isExplicitOverride = false, deps = {}, batchOffset = 0, batchSize = null) {
   const fetch = deps.fetch || fetchWithBypass;
   const apiLogs = [];
   try {
@@ -54,38 +54,40 @@ export async function recalculateRankings(directusUrl, adminToken, specificUser 
       try { const d = await bracketRankingsRes.json(); existingBracketRankings = d.data || []; } catch (e) { }
     }
 
-    // Sync match point fields with the rules matrix
-    for (const game of matches) {
-      const targetPhase = game.phase === 'Third Place' ? 'Final' : game.phase;
-      const rule = ruleMatrix.find(r => r.game_type === 'pronostics' && r.phase === targetPhase);
-      if (rule) {
-        const expectedWinnerPoint = Number(rule.winner_draw_points) || 0;
-        const expectedFulltimePoint = Number(rule.fulltime_exact_points) || 0;
-        const expectedHalftimePoint = Number(rule.halftime_exact_points) || 0;
-        const expectedScorerPoint = Number(rule.scorer_points) || 0;
+    // Sync match point fields with rules matrix — only on the FIRST batch to avoid redundant PATCH calls
+    if (batchOffset === 0) {
+      for (const game of matches) {
+        const targetPhase = game.phase === 'Third Place' ? 'Final' : game.phase;
+        const rule = ruleMatrix.find(r => r.game_type === 'pronostics' && r.phase === targetPhase);
+        if (rule) {
+          const expectedWinnerPoint = Number(rule.winner_draw_points) || 0;
+          const expectedFulltimePoint = Number(rule.fulltime_exact_points) || 0;
+          const expectedHalftimePoint = Number(rule.halftime_exact_points) || 0;
+          const expectedScorerPoint = Number(rule.scorer_points) || 0;
 
-        if (
-          game.winner_point !== expectedWinnerPoint ||
-          game.fulltime_point !== expectedFulltimePoint ||
-          game.halftime_point !== expectedHalftimePoint ||
-          game.scorer_point !== expectedScorerPoint
-        ) {
-          await fetch(`${directusUrl}/items/matches/${game.id}`, {
-            method: 'PATCH',
-            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${adminToken}` },
-            body: JSON.stringify({
-              winner_point: expectedWinnerPoint,
-              fulltime_point: expectedFulltimePoint,
-              halftime_point: expectedHalftimePoint,
-              scorer_point: expectedScorerPoint
-            })
-          });
+          if (
+            game.winner_point !== expectedWinnerPoint ||
+            game.fulltime_point !== expectedFulltimePoint ||
+            game.halftime_point !== expectedHalftimePoint ||
+            game.scorer_point !== expectedScorerPoint
+          ) {
+            await fetch(`${directusUrl}/items/matches/${game.id}`, {
+              method: 'PATCH',
+              headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${adminToken}` },
+              body: JSON.stringify({
+                winner_point: expectedWinnerPoint,
+                fulltime_point: expectedFulltimePoint,
+                halftime_point: expectedHalftimePoint,
+                scorer_point: expectedScorerPoint
+              })
+            });
 
-          game.winner_point = expectedWinnerPoint;
-          game.fulltime_point = expectedFulltimePoint;
-          game.halftime_point = expectedHalftimePoint;
-          game.scorer_point = expectedScorerPoint;
-          apiLogs.push(`Synced points in Directus for Match ID: ${game.id} (${game.phase})`);
+            game.winner_point = expectedWinnerPoint;
+            game.fulltime_point = expectedFulltimePoint;
+            game.halftime_point = expectedHalftimePoint;
+            game.scorer_point = expectedScorerPoint;
+            apiLogs.push(`Synced points in Directus for Match ID: ${game.id} (${game.phase})`);
+          }
         }
       }
     }
@@ -194,7 +196,14 @@ export async function recalculateRankings(directusUrl, adminToken, specificUser 
       });
     }
 
-    for (const player of rankingObj) {
+    // ── Batch write: only save the current slice of users ──────────────────────
+    const totalUsers = rankingObj.length;
+    const effectiveBatchSize = batchSize !== null ? batchSize : totalUsers;
+    const batchSlice = rankingObj.slice(batchOffset, batchOffset + effectiveBatchSize);
+    const nextOffset = batchOffset + effectiveBatchSize;
+    const isDone = nextOffset >= totalUsers;
+
+    for (const player of batchSlice) {
       const isTargetedUser = specificUser !== null ? (player.key === specificUser) : true;
       const shouldSaveToDb = isExplicitOverride ? isTargetedUser : (!loggedInUser || player.key === loggedInUser);
 
@@ -229,7 +238,8 @@ export async function recalculateRankings(directusUrl, adminToken, specificUser 
       apiLogs.push(`Saved row in Directus for user: ${player.key}`);
     }
 
-    if (isExplicitOverride && specificUser === null) {
+    // ── Cleanup stale records — only on the last batch ───────────────────────
+    if (isDone && isExplicitOverride && specificUser === null) {
       for (const existingItem of existingRankings) {
         const stillActive = rankingObj.some(player => player.key === existingItem.key);
         if (!stillActive) {
@@ -330,7 +340,7 @@ export async function recalculateRankings(directusUrl, adminToken, specificUser 
       }
     }
 
-    return apiLogs;
+    return { logs: apiLogs, totalUsers, processedCount: batchSlice.length, nextOffset: Math.min(nextOffset, totalUsers), isDone };
   } catch (err) {
     console.error("Error during ranking recalculation:", err);
     throw err;
