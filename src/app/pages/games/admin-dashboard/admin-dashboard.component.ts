@@ -136,8 +136,62 @@ export class AdminDashboardComponent implements OnInit {
     { delayMs:24000, text: '⏳ Toujours en cours — attente de la réponse du serveur...' },
   ];
 
+  private syncInterval: any;
+
   ngOnInit(): void {
     this.loadAdminData();
+    this.checkBackgroundRecalc();
+  }
+
+  ngOnDestroy(): void {
+    if (this.syncInterval) clearInterval(this.syncInterval);
+  }
+
+  private tryDetectChanges() {
+    try {
+      this.cdr.detectChanges();
+    } catch (e) {
+      // Ignore ViewDestroyedError
+    }
+  }
+
+  checkBackgroundRecalc() {
+    const checkState = () => {
+      const saved = localStorage.getItem('recalc_bg_state');
+      if (saved) {
+        try {
+          const state = JSON.parse(saved);
+          if (state.isRunning) {
+            const now = Date.now();
+            if (now - state.lastTick > 20000) {
+              state.isRunning = false;
+              state.errorMessage = 'La tâche a été interrompue (fermeture du navigateur ou délai expiré).';
+              localStorage.setItem('recalc_bg_state', JSON.stringify(state));
+            }
+          }
+
+          if (state.isRunning || state.recalcSummary || state.errorMessage) {
+            // Only update UI if we are polling from another instance OR finishing
+            // Don't overwrite if WE are the active running instance
+            if (!this.isRecalculating || state.errorMessage || state.recalcSummary) {
+              this.isRecalculating = state.isRunning;
+              this.showRecalcProgress = true;
+              this.recalcLiveLines = state.recalcLiveLines || [];
+              this.recalcSummary = state.recalcSummary || null;
+              this.recalcSuccessMessage = state.recalcSuccessMessage || '';
+              if (state.errorMessage) this.errorMessage = state.errorMessage;
+              this.tryDetectChanges();
+            }
+            if (!state.isRunning && this.syncInterval) {
+              clearInterval(this.syncInterval);
+              this.syncInterval = null;
+            }
+          }
+        } catch (e) {}
+      }
+    };
+    checkState();
+    this.syncInterval = setInterval(checkState, 1500);
   }
 
   recalculateDirectusPoints(): void {
@@ -155,9 +209,21 @@ export class AdminDashboardComponent implements OnInit {
     let totalFraudDetected = 0;
     let totalDuplicatesDetected = 0;
 
+    const saveState = (isRunning: boolean) => {
+      localStorage.setItem('recalc_bg_state', JSON.stringify({
+        isRunning,
+        recalcLiveLines: this.recalcLiveLines,
+        recalcSummary: this.recalcSummary,
+        recalcSuccessMessage: this.recalcSuccessMessage,
+        errorMessage: this.errorMessage,
+        lastTick: Date.now()
+      }));
+    };
+
     const executeBatch = (offset: number) => {
       this.recalcLiveLines = [...this.recalcLiveLines, `👤 Calcul du joueur ${offset + 1}...`].slice(-8);
-      this.cdr.detectChanges();
+      saveState(true);
+      this.tryDetectChanges();
 
       this.rankingsService.recalculateRankings(offset, batchSize).subscribe({
         next: (res: any) => {
@@ -168,7 +234,8 @@ export class AdminDashboardComponent implements OnInit {
           if (batchResult.processedUsers && batchResult.processedUsers.length > 0) {
             const trigrammes = batchResult.processedUsers.join(', ');
             this.recalcLiveLines[this.recalcLiveLines.length - 1] = `👤 Calcul du joueur ${offset + 1} (${trigrammes})... terminé.`;
-            this.cdr.detectChanges();
+            saveState(true);
+            this.tryDetectChanges();
           }
 
           // Update aggregated counts
@@ -191,9 +258,10 @@ export class AdminDashboardComponent implements OnInit {
             };
             this.recalcSuccessMessage = 'Points recalculés avec succès dans Directus !';
             this.isRecalculating = false;
+            saveState(false);
             this.loadAdminData();
-            this.cdr.detectChanges();
-            setTimeout(() => this.recalcSuccessMessage = '', 5000);
+            this.tryDetectChanges();
+            setTimeout(() => { this.recalcSuccessMessage = ''; saveState(false); }, 5000);
           } else {
             // Process next batch
             executeBatch(batchResult.nextOffset);
@@ -212,7 +280,8 @@ export class AdminDashboardComponent implements OnInit {
           };
           this.errorMessage = 'Erreur lors du recalcul des points : ' + (err.message || err);
           this.isRecalculating = false;
-          this.cdr.detectChanges();
+          saveState(false);
+          this.tryDetectChanges();
         }
       });
     };
@@ -220,9 +289,36 @@ export class AdminDashboardComponent implements OnInit {
     executeBatch(0);
   }
 
-  loadAdminData(): void {
+  recalculateSinglePlayer(player: PlayerStats): void {
+    player.isCalculating = true;
+    this.isRecalculating = true;
+    this.recalcSuccessMessage = '';
+    this.showRecalcProgress = true;
+    this.recalcSummary = null;
+    this.recalcLiveLines = [`👤 Lancement recalcul individuel pour ${player.username}...`];
+    localStorage.removeItem('recalc_bg_state'); // Clear background state to prevent poller interference
+    this.tryDetectChanges();
+
+    this.rankingsService.recalculateRankings(0, 1, player.username).subscribe({
+      next: (res: any) => {
+        this.isRecalculating = false;
+        this.recalcSuccessMessage = `Points recalculés avec succès pour ${player.username} !`;
+        this.loadAdminData(true);
+        this.tryDetectChanges();
+        setTimeout(() => this.recalcSuccessMessage = '', 5000);
+      },
+      error: (err) => {
+        player.isCalculating = false;
+        this.isRecalculating = false;
+        this.errorMessage = `Erreur lors du recalcul pour ${player.username} : ` + (err.message || err);
+        this.tryDetectChanges();
+      }
+    });
+  }
+
+  loadAdminData(silent: boolean = false): void {
     console.log('[Admin] loadAdminData started');
-    this.isLoading = true;
+    if (!silent) this.isLoading = true;
     this.errorMessage = '';
     this.isGlobalAuditRun = false;
     this.fraudCases = [];
@@ -325,7 +421,7 @@ export class AdminDashboardComponent implements OnInit {
             this.errorMessage = 'Aucun joueur trouvé dans la base de données.';
           }
 
-          this.isLoading = false;
+          if (!silent) this.isLoading = false;
           console.log('[Admin] Initial loading completed successfully');
           this.cdr.detectChanges();
           
@@ -334,14 +430,14 @@ export class AdminDashboardComponent implements OnInit {
         } catch (e) {
           console.error('[Admin] Exception in forkJoin next handler:', e);
           this.errorMessage = 'Exception lors de l\'initialisation : ' + e;
-          this.isLoading = false;
+          if (!silent) this.isLoading = false;
           this.cdr.detectChanges();
         }
       },
       error: (err) => {
         console.error('[Admin] forkJoin error handler:', err);
         this.errorMessage = 'Erreur lors de l\'initialisation des données : ' + (err.message || err);
-        this.isLoading = false;
+        if (!silent) this.isLoading = false;
       }
     });
   }
@@ -429,6 +525,15 @@ export class AdminDashboardComponent implements OnInit {
               let hasFraud = false;
               const recentMatches: any[] = [];
 
+              // Sort userPredictions DESCENDING to take the newest valid occurrence of multiple records
+              userPredictions.sort((a, b) => {
+                const dateA = a.created_on ? new Date(a.created_on).getTime() : 0;
+                const dateB = b.created_on ? new Date(b.created_on).getTime() : 0;
+                return dateB - dateA;
+              });
+
+              const processedGames = new Set<string>();
+
               userPredictions.forEach(p => {
                 stats.totalPredictions++;
 
@@ -448,7 +553,15 @@ export class AdminDashboardComponent implements OnInit {
                     isLate = true;
                   }
 
-                  if (isLate) {
+                  const gameIdStr = String(p.game_id);
+                  let isDuplicate = false;
+                  if (!isLate && !processedGames.has(gameIdStr)) {
+                    processedGames.add(gameIdStr);
+                  } else if (processedGames.has(gameIdStr)) {
+                    isDuplicate = true;
+                  }
+
+                  if (isLate || isDuplicate) {
                     hasFraud = true;
                     // Add to visible fraud cases if not already present
                     if (!this.fraudCases.some(f => f.user === stats.username && f.matchId === match.id)) {
@@ -459,7 +572,7 @@ export class AdminDashboardComponent implements OnInit {
                         kickoff: kickoffTime,
                         submittedAt: createdTime,
                         modifiedAt: modifiedTime,
-                        reason: createdTime && createdTime > kickoffTime ? 'Création après coup d\'envoi' : 'Modification après coup d\'envoi'
+                        reason: isDuplicate ? 'Doublon détecté' : (createdTime && createdTime > kickoffTime ? 'Création après coup d\'envoi' : 'Modification après coup d\'envoi')
                       });
                     }
                   }
@@ -482,7 +595,7 @@ export class AdminDashboardComponent implements OnInit {
                   let pointsEarned = 0;
                   let breakdown = { winner: 0, fulltime: 0, halftime: 0, scorer: 0, consolation: 0, total: 0 };
 
-                  if (!isLate && match.fulltime_a !== null && match.fulltime_b !== null) {
+                  if (!isLate && !isDuplicate && match.fulltime_a !== null && match.fulltime_b !== null) {
                     breakdown = this.calculatePoints(match, p, this.rules);
                     pointsEarned = breakdown.total;
                     calculatedPoints += pointsEarned;
@@ -500,8 +613,8 @@ export class AdminDashboardComponent implements OnInit {
                     modifiedAt: modifiedTime,
                     prediction: `${p.fulltime_a ?? '-'} - ${p.fulltime_b ?? '-'} (${p.winner_draw || 'N/A'})`,
                     actualScore: match.fulltime_a !== null ? `${match.fulltime_a} - ${match.fulltime_b}` : 'À venir',
-                    calculatedPoints: isLate ? 0 : pointsEarned,
-                    isLate: isLate,
+                    calculatedPoints: (isLate || isDuplicate) ? 0 : pointsEarned,
+                    isLate: isLate || isDuplicate,
                     breakdown: breakdown,
                     winner_draw: p.winner_draw,
                     team_a: match.team_a,
@@ -601,6 +714,15 @@ export class AdminDashboardComponent implements OnInit {
           let calculatedPoints = 0;
           let hasFraud = false;
 
+          // Sort userPredictions DESCENDING to take the newest valid occurrence of multiple records
+          userPredictions.sort((a, b) => {
+            const dateA = a.created_on ? new Date(a.created_on).getTime() : 0;
+            const dateB = b.created_on ? new Date(b.created_on).getTime() : 0;
+            return dateB - dateA;
+          });
+
+          const processedGames = new Set<string>();
+
           userPredictions.forEach(p => {
             const createdTime = p.created_on ? new Date(p.created_on) : null;
             const modifiedTime = p.modified_on ? new Date(p.modified_on) : null;
@@ -615,7 +737,15 @@ export class AdminDashboardComponent implements OnInit {
                 isLate = true;
               }
 
-              if (isLate) {
+              const gameIdStr = String(p.game_id);
+              let isDuplicate = false;
+              if (!isLate && !processedGames.has(gameIdStr)) {
+                processedGames.add(gameIdStr);
+              } else if (processedGames.has(gameIdStr)) {
+                isDuplicate = true;
+              }
+
+              if (isLate || isDuplicate) {
                 hasFraud = true;
                 this.fraudCases.push({
                   user: stats.username,
@@ -624,11 +754,11 @@ export class AdminDashboardComponent implements OnInit {
                   kickoff: kickoffTime,
                   submittedAt: createdTime,
                   modifiedAt: modifiedTime,
-                  reason: createdTime && createdTime > kickoffTime ? 'Création après coup d\'envoi' : 'Modification après coup d\'envoi'
+                  reason: isDuplicate ? 'Doublon détecté' : (createdTime && createdTime > kickoffTime ? 'Création après coup d\'envoi' : 'Modification après coup d\'envoi')
                 });
               }
 
-              if (!isLate && match.fulltime_a !== null && match.fulltime_b !== null) {
+              if (!isLate && !isDuplicate && match.fulltime_a !== null && match.fulltime_b !== null) {
                 const breakdown = this.calculatePoints(match, p, this.rules);
                 calculatedPoints += breakdown.total;
               }

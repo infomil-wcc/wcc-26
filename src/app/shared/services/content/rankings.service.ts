@@ -73,8 +73,14 @@ export class RankingsService {
   }
 
 
-  recalculateRankings(offset: number = 0, batchSize: number | null = null): Observable<any> {
-    let url = `${environment.apiUrl}/match-results?points=all&matches=all&offset=${offset}`;
+  recalculateRankings(offset: number = 0, batchSize: number | null = null, user: string | null = null): Observable<any> {
+    let url = `${environment.apiUrl}/match-results?`;
+    if (user) {
+      url += `points=${user}&matches=all`;
+    } else {
+      url += `points=all&matches=all`;
+    }
+    url += `&offset=${offset}`;
     if (batchSize !== null) {
       url += `&batchSize=${batchSize}`;
     }

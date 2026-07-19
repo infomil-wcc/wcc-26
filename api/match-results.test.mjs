@@ -93,7 +93,7 @@ test('Should accurately calculate rankings for a 72-match random tournament scen
     }
 
     let actualTotalPoints = 0;
-    responseBody.calculationLogs.filter(l => l.includes(`User: ${targetUsername}`)).forEach(log => {
+    responseBody.calculationLogs.logs.filter(l => l.includes(`User: ${targetUsername}`)).forEach(log => {
         const m = log.match(/Earned:\s+(\d+)\s+pts/);
         if (m) actualTotalPoints += parseInt(m[1], 10);
     });
@@ -159,7 +159,7 @@ test('Should accurately calculate and display points across all separate Knockou
 
     const breakdown = [];
     expectationTracker.forEach(exp => {
-        const log = response.body.calculationLogs.find(l => l.includes(`Match ID: ${exp.matchId}`));
+        const log = response.body.calculationLogs.logs.find(l => l.includes(`Match ID: ${exp.matchId}`));
         let actual = 0; if (log) { const p = log.match(/Earned:\s+(\d+)\s+pts/); if (p) actual = parseInt(p[1], 10); }
         breakdown.push({ 'Phase': exp.phase, 'Mode': exp.type, 'Expected': `${exp.expected} pts`, 'Actual': `${actual} pts`, 'State': exp.expected === actual ? '✅ PASS' : '❌ FAIL' });
     });

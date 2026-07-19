@@ -231,13 +231,16 @@
 
 /* BADGES */
 .badge {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
   padding: 4px 8px;
   border-radius: 6px;
   font-size: 0.7rem;
   font-weight: 800;
   letter-spacing: 0.3px;
   text-align: center;
+  white-space: nowrap;
 }
 
 .badge-danger { background: rgba(240, 62, 62, 0.15); color: #ff6b6b; border: 1px solid rgba(240, 62, 62, 0.3); }

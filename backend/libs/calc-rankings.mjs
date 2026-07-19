@@ -11,7 +11,7 @@ export async function recalculateRankings(directusUrl, adminToken, specificUser 
   const apiLogs = [];
   try {
     const headers = { 'Authorization': `Bearer ${adminToken}` };
-    const pronoFilter = specificUser ? `&filter[user][eq]=${specificUser}` : "";
+    const pronoFilter = specificUser ? `&filter[user]=${specificUser}` : "";
 
     const [matchesRes, predictionsRes, rankingsRes, rulesRes, bracketResultsRes, bracketsRes, knockoutBracketsRes, bracketRankingsRes] = await Promise.all([
       fetch(`${directusUrl}/items/matches?limit=-1`, { headers }),
@@ -117,21 +117,17 @@ export async function recalculateRankings(directusUrl, adminToken, specificUser 
         breakdown: { winner: 0, fulltime: 0, halftime: 0, scorer: 0, consolation: 0, total: 0, isFraud: false }
       }));
 
-      // Sort by created_on ascending to ensure we take the first occurrence of multiple records
+      // Sort by created_on DESCENDING to ensure we take the newest valid occurrence of multiple records
       userPredictions[username].sort((a, b) => {
         const dateA = a.created_on ? new Date(a.created_on).getTime() : 0;
         const dateB = b.created_on ? new Date(b.created_on).getTime() : 0;
-        return dateA - dateB;
+        return dateB - dateA;
       });
 
       const processedGames = new Set();
 
       for (const prono of userPredictions[username]) {
         const gameIdStr = String(prono.game_id);
-        const isDuplicate = processedGames.has(gameIdStr);
-        if (!isDuplicate) {
-          processedGames.add(gameIdStr);
-        }
 
         const game = playedMatches.find(m => String(m.id) === gameIdStr);
         if (game) {
@@ -143,6 +139,13 @@ export async function recalculateRankings(directusUrl, adminToken, specificUser 
           let isInvalidated = false;
           if (predictionCreated && predictionCreated > matchKickoff) isInvalidated = true;
           if (predictionModified && predictionModified > matchKickoff) isInvalidated = true;
+
+          let isDuplicate = false;
+          if (!isInvalidated && !processedGames.has(gameIdStr)) {
+            processedGames.add(gameIdStr);
+          } else if (processedGames.has(gameIdStr)) {
+            isDuplicate = true;
+          }
 
           let pts = { winner: 0, fulltime: 0, halftime: 0, scorer: 0, consolation: 0, total: 0, isFraud: false };
           if (isDuplicate) {
@@ -171,41 +174,55 @@ export async function recalculateRankings(directusUrl, adminToken, specificUser 
       });
     }
 
-    if (specificUser) {
-      const dynamicRankings = [...existingRankings];
-      const calculatedUser = rankingObj.find(u => u.key === specificUser);
-
-      if (calculatedUser) {
-        const matchingIndex = dynamicRankings.findIndex(r => r.key === specificUser);
-        if (matchingIndex !== -1) dynamicRankings[matchingIndex].point = calculatedUser.point;
-        else dynamicRankings.push({ key: specificUser, point: calculatedUser.point });
+    // ── Merge in other existing rankings for full ranking recalculation ──
+    for (const ext of existingRankings) {
+      const alreadyAdded = rankingObj.some(u => u.key.toLowerCase() === ext.key.toLowerCase());
+      if (!alreadyAdded) {
+        rankingObj.push({
+          key: ext.key,
+          point: Number(ext.point) || 0,
+          pronostiques: ext.pronostiques || [],
+          rank: Number(ext.rank) || 999
+        });
       }
-
-      dynamicRankings.sort((a, b) => b.point - a.point);
-      let runningRank = 1;
-      dynamicRankings.forEach((obj, idx) => {
-        if (idx > 0 && obj.point !== dynamicRankings[idx - 1].point) runningRank = idx + 1;
-        if (obj.key === specificUser && calculatedUser) calculatedUser.rank = runningRank;
-      });
-    } else {
-      rankingObj.sort((a, b) => b.point - a.point || a.key.localeCompare(b.key));
-      let rank = 1;
-      rankingObj.forEach((obj, index) => {
-        if (index > 0 && obj.point !== rankingObj[index - 1].point) rank = index + 1;
-        obj.rank = rank;
-      });
     }
 
-    // ── Batch write: only save the current slice of users ──────────────────────
+    // Sort and calculate ranks for ALL users in rankingObj
+    rankingObj.sort((a, b) => b.point - a.point || a.key.localeCompare(b.key));
+    let rank = 1;
+    rankingObj.forEach((obj, index) => {
+      if (index > 0 && obj.point !== rankingObj[index - 1].point) rank = index + 1;
+      obj.rank = rank;
+    });
+
+    // ── Batch write logic ──
     const totalUsers = rankingObj.length;
-    const effectiveBatchSize = batchSize !== null ? batchSize : totalUsers;
-    const batchSlice = rankingObj.slice(batchOffset, batchOffset + effectiveBatchSize);
-    const nextOffset = batchOffset + effectiveBatchSize;
-    const isDone = nextOffset >= totalUsers;
+    let batchSlice = [];
+    let nextOffset = batchOffset;
+    let isDone = true;
+
+    if (specificUser !== null) {
+      batchSlice = rankingObj;
+      isDone = true;
+    } else {
+      const effectiveBatchSize = batchSize !== null ? batchSize : totalUsers;
+      batchSlice = rankingObj.slice(batchOffset, batchOffset + effectiveBatchSize);
+      nextOffset = batchOffset + effectiveBatchSize;
+      isDone = nextOffset >= totalUsers;
+    }
 
     for (const player of batchSlice) {
-      const isTargetedUser = specificUser !== null ? (player.key === specificUser) : true;
-      const shouldSaveToDb = isExplicitOverride ? isTargetedUser : (!loggedInUser || player.key === loggedInUser);
+      const isTargetedUser = specificUser !== null ? (player.key.toLowerCase() === specificUser.toLowerCase()) : true;
+      const existingRow = existingRankings.find(item => item.key.toLowerCase() === player.key.toLowerCase());
+
+      let rankChanged = false;
+      if (existingRow && Number(existingRow.rank) !== Number(player.rank)) {
+        rankChanged = true;
+      }
+
+      const shouldSaveToDb = isExplicitOverride
+        ? (isTargetedUser || rankChanged)
+        : (!loggedInUser || player.key === loggedInUser);
 
       if (!shouldSaveToDb) continue;
 
@@ -217,17 +234,19 @@ export async function recalculateRankings(directusUrl, adminToken, specificUser 
         pronostiques: player.pronostiques
       };
 
-      const existingRow = existingRankings.find(item => item.key === player.key);
-
       if (existingRow) {
         if (Number(existingRow.point) === Number(rankingRow.point) && Number(existingRow.rank) === Number(rankingRow.rank) && JSON.stringify(existingRow.pronostiques) === JSON.stringify(rankingRow.pronostiques)) {
           continue;
         }
-        await fetch(`${directusUrl}/items/pronostics_rankings/${existingRow.id}`, {
+        const patchRes = await fetch(`${directusUrl}/items/pronostics_rankings/${existingRow.id}`, {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${adminToken}` },
           body: JSON.stringify(rankingRow)
         });
+        if (!patchRes.ok) {
+          const errText = await patchRes.text();
+          apiLogs.push(`❌ Directus PATCH failed for ${player.key}: Status ${patchRes.status} - ${errText}`);
+        }
       } else {
         await fetch(`${directusUrl}/items/pronostics_rankings`, {
           method: 'POST',

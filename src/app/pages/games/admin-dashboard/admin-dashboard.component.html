@@ -307,7 +307,10 @@
                     {{ p.modifiedCount }}
                   </span>
                 </td>
-                <td class="font-semibold">{{ p.directusPoints }}</td>
+                <td class="font-semibold">
+                  <span *ngIf="p.isCalculating" class="inline-spinner"></span>
+                  <span *ngIf="!p.isCalculating">{{ p.directusPoints }}</span>
+                </td>
                 <td class="font-semibold">
                   <span *ngIf="p.isCalculating" class="inline-spinner"></span>
                   <span *ngIf="!p.isCalculating">{{ p.calculatedPoints }}</span>
@@ -330,7 +333,12 @@
                   </span>
                 </td>
                 <td>
-                  <button class="btn btn-detail" [disabled]="p.isCalculating" (click)="selectPlayer(p)">Détails</button>
+                  <div class="flex gap-2">
+                    <button class="btn btn-detail" [disabled]="isRecalculating" (click)="selectPlayer(p)">Détails</button>
+                    <button class="btn btn-detail" style="border-color: #ff9800; color: #ff9800;" [disabled]="isRecalculating" (click)="recalculateSinglePlayer(p)" title="Recalculer points pour ce joueur uniquement">
+                      <span class="material-symbols-outlined" style="font-size: 1rem;">sync</span>
+                    </button>
+                  </div>
                 </td>
               </tr>
             </tbody>
