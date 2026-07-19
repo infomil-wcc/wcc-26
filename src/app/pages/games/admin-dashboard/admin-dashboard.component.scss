@@ -1,7 +1,7 @@
 .admin-dashboard-container {
   min-height: 100vh;
   background-color: #0b0c10 !important;
-  padding: 120px 30px 40px;
+  padding: 80px 15px 15px;
   margin: 0;
   width: 100%;
   max-width: 100%;
@@ -10,15 +10,15 @@
   box-sizing: border-box;
 
   @media (max-width: 768px) {
-    padding: 100px 15px 20px;
+    padding: 60px 10px 10px;
   }
 }
 
 .dashboard-header {
-  margin-bottom: 30px;
+  margin-bottom: 15px;
 
   h1 {
-    font-size: 2.2rem;
+    font-size: 1.8rem;
     font-weight: 800;
     background: linear-gradient(135deg, #FF4B4B, #FF8F00);
     -webkit-background-clip: text;
@@ -44,16 +44,16 @@
 /* STATS GRID */
 .stats-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 20px;
-  margin-bottom: 30px;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 10px;
+  margin-bottom: 15px;
 }
 
 .stat-card {
   background: rgba(30, 30, 45, 0.65);
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 12px;
-  padding: 20px;
+  padding: 12px 15px;
   display: flex;
   align-items: center;
   gap: 15px;
@@ -87,7 +87,7 @@
       letter-spacing: 0.5px;
     }
     .value {
-      font-size: 1.8rem;
+      font-size: 1.4rem;
       font-weight: 800;
       margin: 0;
     }
@@ -193,7 +193,7 @@
       border-bottom: 1px solid rgba(255,255,255,0.1);
     }
     th {
-      padding: 15px 20px;
+      padding: 8px 12px;
       font-weight: 700;
       color: rgba(255,255,255,0.5);
       text-transform: uppercase;
@@ -223,7 +223,7 @@
     }
 
     td {
-      padding: 15px 20px;
+      padding: 6px 12px;
       vertical-align: middle;
     }
   }
@@ -821,6 +821,40 @@
   }
 }
 
+.recalc-explain-box {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.03);
+  padding: 15px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  border-left: 3px solid #ff9800;
+
+  .material-symbols-outlined {
+    font-size: 2rem;
+    color: #ff9800;
+  }
+
+  div {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+
+    strong {
+      color: #fff;
+      font-size: 1.1rem;
+    }
+
+    p {
+      margin: 0;
+      color: rgba(255, 255, 255, 0.7);
+      font-size: 0.9rem;
+      line-height: 1.4;
+    }
+  }
+}
+
 .recalc-log-box {
   border-radius: 10px;
   border: 1px solid rgba(255,255,255,0.08);
@@ -870,4 +904,76 @@
   &.log-sync   { color: #74c0fc; .log-prefix { color: #74c0fc; } }
   &.log-saved  { color: #63e6be; .log-prefix { color: #63e6be; } }
   &.log-error  { color: #ff6b6b; font-weight: 600; }
+}
+
+/* PRIME NG TABS OVERRIDE */
+:host ::ng-deep {
+  p-tabs {
+    .p-tablist-tab-list {
+      background: transparent !important;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+    }
+    
+    .p-tab {
+      color: darkblue !important;
+      font-weight: 600 !important;
+      background: transparent !important;
+      border: none !important;
+      padding: 10px 20px !important;
+      font-family: 'Inter', sans-serif !important;
+      
+      * { 
+        color: inherit !important; 
+        background: transparent !important; 
+        border: none !important;
+      }
+      
+      &:hover {
+        color: navy !important;
+      }
+      
+      &[data-p-active="true"], &.p-tab-active, &.p-highlight {
+        color: #FF8F00 !important; 
+        border-bottom: 2px solid #FF8F00 !important;
+      }
+    }
+    
+    .p-tabpanel {
+      padding: 15px 0 0 0 !important;
+      background: transparent !important;
+      color: white !important;
+    }
+  }
+}
+
+.floating-rank-btn {
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #1864ab, #339af0);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+  cursor: pointer;
+  z-index: 1000;
+  transition: all 0.3s ease;
+
+  .material-symbols-outlined {
+    font-size: 28px;
+  }
+
+  &:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(24, 100, 171, 0.6);
+  }
+
+  &:active {
+    transform: translateY(0);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+  }
 }

@@ -1,4 +1,4 @@
-import { fetchWithBypass } from './utils.mjs';
+import { fetchWithBypass, parseMauritianDate } from './utils.mjs';
 import { calcResultForRanking } from './match-calculations.mjs';
 import { calcBracketPoints } from './calc-bracket-stage.mjs';
 
@@ -6,12 +6,12 @@ import { calcBracketPoints } from './calc-bracket-stage.mjs';
  * USER LEADERBOARD RANKING CALCULATIONS
  * Validates timestamps to eliminate post-kickoff submissions or modifications.
  */
-export async function recalculateRankings(directusUrl, adminToken, specificUser = null, loggedInUser = null, isExplicitOverride = false, deps = {}, batchOffset = 0, batchSize = null) {
+export async function recalculateRankings(directusUrl, adminToken, specificUser = null, loggedInUser = null, isExplicitOverride = false, deps = {}, batchOffset = 0, batchSize = null, forceUpdate = false) {
   const fetch = deps.fetch || fetchWithBypass;
   const apiLogs = [];
   try {
     const headers = { 'Authorization': `Bearer ${adminToken}` };
-    const pronoFilter = specificUser ? `&filter[user]=${specificUser}` : "";
+    const pronoFilter = specificUser ? `&filter[user][_eq]=${specificUser}` : "";
 
     const [matchesRes, predictionsRes, rankingsRes, rulesRes, bracketResultsRes, bracketsRes, knockoutBracketsRes, bracketRankingsRes] = await Promise.all([
       fetch(`${directusUrl}/items/matches?limit=-1`, { headers }),
@@ -132,19 +132,19 @@ export async function recalculateRankings(directusUrl, adminToken, specificUser 
         const game = playedMatches.find(m => String(m.id) === gameIdStr);
         if (game) {
           // 🚨 TIMESTAMP FRAUD CHECK
-          const predictionCreated = prono.created_on ? new Date(prono.created_on) : null;
-          const predictionModified = prono.modified_on ? new Date(prono.modified_on) : null;
-          const matchKickoff = new Date(game.date);
+          const predictionCreated = prono.created_on ? parseMauritianDate(prono.created_on) : null;
+          const predictionModified = prono.modified_on ? parseMauritianDate(prono.modified_on) : null;
+          const matchKickoff = parseMauritianDate(game.date);
 
           let isInvalidated = false;
           if (predictionCreated && predictionCreated > matchKickoff) isInvalidated = true;
           if (predictionModified && predictionModified > matchKickoff) isInvalidated = true;
 
           let isDuplicate = false;
-          if (!isInvalidated && !processedGames.has(gameIdStr)) {
-            processedGames.add(gameIdStr);
-          } else if (processedGames.has(gameIdStr)) {
+          if (processedGames.has(gameIdStr)) {
             isDuplicate = true;
+          } else if (!isInvalidated && prono.fulltime_a !== null && prono.fulltime_a !== "") {
+            processedGames.add(gameIdStr);
           }
 
           let pts = { winner: 0, fulltime: 0, halftime: 0, scorer: 0, consolation: 0, total: 0, isFraud: false };
@@ -162,7 +162,7 @@ export async function recalculateRankings(directusUrl, adminToken, specificUser 
           }
           const userPronoIndex = userPronos.findIndex(p => p.id === prono.id);
           if (userPronoIndex > -1) {
-             userPronos[userPronoIndex].breakdown = pts;
+            userPronos[userPronoIndex].breakdown = pts;
           }
         }
       }
@@ -226,6 +226,10 @@ export async function recalculateRankings(directusUrl, adminToken, specificUser 
 
       if (!shouldSaveToDb) continue;
 
+      if (isTargetedUser) {
+        apiLogs.push(`[DEBUG] Recalculating ${player.key} | Calculated Points: ${player.point} | DB Points: ${existingRow ? existingRow.point : 'N/A'} | ForceUpdate: ${forceUpdate}`);
+      }
+
       const rankingRow = {
         key: player.key,
         point: player.point,
@@ -235,7 +239,7 @@ export async function recalculateRankings(directusUrl, adminToken, specificUser 
       };
 
       if (existingRow) {
-        if (Number(existingRow.point) === Number(rankingRow.point) && Number(existingRow.rank) === Number(rankingRow.rank) && JSON.stringify(existingRow.pronostiques) === JSON.stringify(rankingRow.pronostiques)) {
+        if (!forceUpdate && Number(existingRow.point) === Number(rankingRow.point) && Number(existingRow.rank) === Number(rankingRow.rank) && JSON.stringify(existingRow.pronostiques) === JSON.stringify(rankingRow.pronostiques)) {
           continue;
         }
         const patchRes = await fetch(`${directusUrl}/items/pronostics_rankings/${existingRow.id}`, {
@@ -246,6 +250,8 @@ export async function recalculateRankings(directusUrl, adminToken, specificUser 
         if (!patchRes.ok) {
           const errText = await patchRes.text();
           apiLogs.push(`❌ Directus PATCH failed for ${player.key}: Status ${patchRes.status} - ${errText}`);
+        } else {
+          apiLogs.push(`✅ PATCH success for ${player.key}. Old points: ${existingRow.point}, New points: ${player.point}`);
         }
       } else {
         await fetch(`${directusUrl}/items/pronostics_rankings`, {

@@ -1,4 +1,41 @@
 <div class="admin-dashboard-container">
+  <!-- Alert Modal -->
+  <div class="modal-takeover" *ngIf="alertDialog" style="z-index: 10001;">
+    <div class="modal-card" style="max-width: 400px; margin: 0 auto;">
+      <div class="modal-header">
+        <h2 [ngStyle]="{'color': alertDialog.isError ? '#ff4d4f' : '#4caf50'}">
+          <span class="material-symbols-outlined" style="vertical-align: bottom;">{{ alertDialog.isError ? 'error' : 'check_circle' }}</span>
+          {{ alertDialog.title }}
+        </h2>
+      </div>
+      <div class="modal-body">
+        <p style="white-space: pre-wrap;">{{ alertDialog.message }}</p>
+        <div style="text-align: right; margin-top: 20px;">
+          <button class="btn btn-recalc" (click)="alertDialog = null">OK</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Confirm Modal -->
+  <div class="modal-takeover" *ngIf="confirmDialog" style="z-index: 10001;">
+    <div class="modal-card" style="max-width: 500px; margin: 0 auto;">
+      <div class="modal-header">
+        <h2>
+          <span class="material-symbols-outlined" style="vertical-align: bottom; color: #ff9800;">help</span>
+          {{ confirmDialog.title }}
+        </h2>
+      </div>
+      <div class="modal-body">
+        <p style="white-space: pre-wrap;">{{ confirmDialog.message }}</p>
+        <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
+          <button class="btn btn-report" (click)="confirmDialog = null">Annuler</button>
+          <button class="btn btn-recalc" (click)="confirmDialog.onConfirm()">Confirmer</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Title / Header -->
   <div class="dashboard-header flex-between">
     <div>
@@ -23,7 +60,13 @@
   </div>
 
   <!-- Recalculation Progress Panel -->
-  <div class="recalc-progress-panel" *ngIf="showRecalcProgress">
+  <div class="modal-takeover" *ngIf="showRecalcProgress">
+    <div class="modal-card recalc-progress-panel" style="margin: 0; max-height: 90vh;">
+      <div class="modal-header">
+        <h2>Progression du recalcul global</h2>
+        <button class="btn-close" (click)="showRecalcProgress = false" *ngIf="!isRecalculating"><span class="material-symbols-outlined">close</span></button>
+      </div>
+      <div class="modal-body" style="padding: 0;">
 
     <!-- In-Progress State: live log -->
     <div class="recalc-running" *ngIf="isRecalculating">
@@ -31,20 +74,6 @@
         <div class="spinner"></div>
         <div class="recalc-running-text">
           <strong>Recalcul Directus en cours...</strong>
-          <p class="text-xs text-muted">Estimation du déroulement en temps réel. Les logs réels du serveur s'afficheront à la fin.</p>
-        </div>
-      </div>
-
-      <!-- Explanation callout for "Sync rules → matches" -->
-      <div class="recalc-explain-box">
-        <span class="material-symbols-outlined">info</span>
-        <div>
-          <strong>Que fait « Sync règles → matches » ?</strong>
-          <p>
-            La table <code>game_scoring_rules</code> définit les points par phase (ex. : Huitièmes de finale = 1pt vainqueur, 2pt score exact).
-            Chaque match possède ses propres champs dupliqués <code>winner_point</code>, <code>fulltime_point</code>, <code>halftime_point</code>, <code>scorer_point</code>.
-            Cette étape <strong>compare et resynchronise</strong> ces champs avec les règles actives : si le barème a été modifié, chaque match reçoit un PATCH Directus pour refléter la nouvelle valeur avant que les points des joueurs soient recalculés.
-          </p>
         </div>
       </div>
 
@@ -127,7 +156,9 @@
           <div *ngIf="recalcSummary.logs.length === 0" class="text-xs text-muted" style="padding:10px 16px">Aucun log disponible.</div>
         </div>
       </div>
+      </div>
     </div>
+  </div>
   </div>
 
   <!-- Loading State -->
@@ -146,62 +177,8 @@
   <!-- Main Content -->
   <div *ngIf="!isLoading && !errorMessage" class="dashboard-content">
 
-    <!-- Coherence Auditor Panel -->
-    <div class="card coherence-card">
-      <div class="card-header">
-        <span class="material-symbols-outlined">fact_check</span>
-        <h2>AUDIT DE COHÉRENCE DES CALCULS</h2>
-      </div>
-      <div class="card-body padding-all">
-        <div class="coherence-grid">
-          <div class="coherence-metric">
-            <span class="label">Statut Global :</span>
-            <span class="value badge" [class.badge-success]="totalDiscrepancies === 0" [class.badge-danger]="totalDiscrepancies > 0">
-              {{ totalDiscrepancies === 0 ? 'CALCULS COHÉRENTS (100% OK)' : 'ÉCARTS DE CALCULS DÉTECTÉS' }}
-            </span>
-          </div>
-          <div class="coherence-metric">
-            <span class="label">Nombre d'écarts :</span>
-            <span class="value font-bold" [class.text-danger]="totalDiscrepancies > 0">{{ totalDiscrepancies }} joueur(s)</span>
-          </div>
-        </div>
-
-        <div class="coherence-info-text text-xs">
-          <strong>Règles de Calcul Audité :</strong> Les calculs locaux intègrent 100% des règles du moteur de points Directus :
-          (1) Déduction du vainqueur si `winner_draw` est vide, (2) Consolidation minimale garantie de 1 point pour les phases à élimination directe (hors 16e), (3) Invalidation automatique en cas de soumission ou modification après le coup d'envoi officiel.
-        </div>
-
-        <!-- Trigger Global Audit -->
-        <div class="global-audit-action flex-start margin-top-sm" *ngIf="!isGlobalAuditRun">
-          <button class="btn btn-audit flex-center" [disabled]="isGlobalAuditing" (click)="runFullAudit()">
-            <span class="material-symbols-outlined" [class.spin]="isGlobalAuditing">manage_search</span>
-            {{ isGlobalAuditing ? 'Audit en cours...' : 'Lancer un Audit Global Complet (Tous les Joueurs)' }}
-          </button>
-          <span class="text-xs text-muted margin-left-sm flex-center">Recommandé pour calculer les statistiques globales de fraude et d'écart de points sur toute la base de données.</span>
-        </div>
-        <div class="global-audit-success text-xs text-success margin-top-sm" *ngIf="isGlobalAuditRun">
-          ✅ L'Audit Global Complet a été effectué. Tous les écarts et cas de fraudes de la base de données sont affichés.
-        </div>
-
-        <!-- Mismatch list -->
-        <div class="mismatch-box" *ngIf="totalDiscrepancies > 0">
-          <h4>Détail des écarts de calcul identifiés :</h4>
-          <ul class="mismatch-list">
-            <ng-container *ngFor="let p of playersReport">
-              <li *ngIf="p.pointDiscrepancy" class="mismatch-item">
-                Utilisateur <strong>{{ p.username | uppercase }}</strong> : 
-                Directus = <span class="badge badge-warning">{{ p.directusPoints }} pts</span> vs 
-                Recalculé = <span class="badge badge-success">{{ p.calculatedPoints }} pts</span> 
-                (Différence: <strong class="text-danger">{{ p.calculatedPoints - p.directusPoints }} pts</strong>)
-              </li>
-            </ng-container>
-          </ul>
-        </div>
-      </div>
-    </div>
-    
     <!-- Stat Cards Grid -->
-    <div class="stats-grid">
+    <div class="stats-grid margin-bottom-md">
       <div class="stat-card">
         <div class="stat-icon users-icon"><span class="material-symbols-outlined">group</span></div>
         <div class="stat-info">
@@ -232,50 +209,125 @@
       </div>
     </div>
 
-    <!-- Late Submissions / Fraud alert table -->
-    <div class="card fraud-alert-panel" *ngIf="fraudCases.length > 0">
-      <div class="card-header">
-        <span class="material-symbols-outlined text-danger">warning</span>
-        <h2>PREDICTIONS ENVOYEES/MODIFIEES APRES COUP D'ENVOI (FRAUDE HAUTE PRIORITE)</h2>
-      </div>
-      <div class="card-body">
-        <div class="table-responsive">
-          <table class="dashboard-table">
-            <thead>
-              <tr>
-                <th>Utilisateur</th>
-                <th>Match</th>
-                <th>Coup d'envoi (Kickoff)</th>
-                <th>Date Envoi (Created)</th>
-                <th>Date Modif (Modified)</th>
-                <th>Infraction</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr *ngFor="let case of fraudCases">
-                <td class="font-bold text-danger">{{ case.user | uppercase }}</td>
-                <td class="font-semibold">{{ case.matchName }}</td>
-                <td>{{ case.kickoff | date: 'dd/MM/yyyy HH:mm' }}</td>
-                <td>{{ case.submittedAt ? (case.submittedAt | date: 'dd/MM/yyyy HH:mm:ss') : 'N/A' }}</td>
-                <td>{{ case.modifiedAt ? (case.modifiedAt | date: 'dd/MM/yyyy HH:mm:ss') : 'N/A' }}</td>
-                <td>
-                  <span class="badge badge-danger">{{ case.reason }}</span>
-                </td>
-              </tr>
-            </tbody>
-          </table>
+    <p-tabs [(value)]="activeTab">
+      <p-tablist>
+        <p-tab value="summary">
+          <span class="material-symbols-outlined margin-right-xs" style="vertical-align: middle;">group</span> Résumé des Joueurs
+        </p-tab>
+        <p-tab value="audit">
+          <span class="material-symbols-outlined margin-right-xs" style="vertical-align: middle;">fact_check</span> Audit & Fraudes
+        </p-tab>
+      </p-tablist>
+      
+      <p-tabpanels>
+        <p-tabpanel value="audit">
+          <!-- Coherence Auditor Panel -->
+      <div class="card coherence-card">
+        <div class="card-header">
+          <span class="material-symbols-outlined">fact_check</span>
+          <h2>AUDIT DE COHÉRENCE DES CALCULS</h2>
+        </div>
+        <div class="card-body padding-all">
+          <div class="coherence-grid">
+            <div class="coherence-metric">
+              <span class="label">Statut Global :</span>
+              <span class="value badge" [class.badge-success]="totalDiscrepancies === 0" [class.badge-danger]="totalDiscrepancies > 0">
+                {{ totalDiscrepancies === 0 ? 'CALCULS COHÉRENTS (100% OK)' : 'ÉCARTS DE CALCULS DÉTECTÉS' }}
+              </span>
+            </div>
+            <div class="coherence-metric">
+              <span class="label">Nombre d'écarts :</span>
+              <span class="value font-bold" [class.text-danger]="totalDiscrepancies > 0">{{ totalDiscrepancies }} joueur(s)</span>
+            </div>
+          </div>
+
+          <div class="coherence-info-text text-xs">
+            <strong>Règles de Calcul Audité :</strong> Les calculs locaux intègrent 100% des règles du moteur de points Directus :
+            (1) Déduction du vainqueur si `winner_draw` est vide, (2) Consolidation minimale garantie de 1 point pour les phases à élimination directe (hors 16e), (3) Invalidation automatique en cas de soumission ou modification après le coup d'envoi officiel.
+          </div>
+
+          <!-- Trigger Global Audit -->
+          <div class="global-audit-action flex-start margin-top-sm" *ngIf="!isGlobalAuditRun">
+            <button class="btn btn-audit flex-center" [disabled]="isGlobalAuditing" (click)="runFullAudit()">
+              <span class="material-symbols-outlined" [class.spin]="isGlobalAuditing">manage_search</span>
+              {{ isGlobalAuditing ? 'Audit en cours...' : 'Lancer un Audit Global Complet (Tous les Joueurs)' }}
+            </button>
+            <span class="text-xs text-muted margin-left-sm flex-center">Recommandé pour calculer les statistiques globales de fraude et d'écart de points sur toute la base de données.</span>
+          </div>
+          <div class="global-audit-success text-xs text-success margin-top-sm" *ngIf="isGlobalAuditRun">
+            ✅ L'Audit Global Complet a été effectué. Tous les écarts et cas de fraudes de la base de données sont affichés.
+          </div>
+
+          <!-- Mismatch list -->
+          <div class="mismatch-box" *ngIf="totalDiscrepancies > 0">
+            <h4>Détail des écarts de calcul identifiés :</h4>
+            <ul class="mismatch-list">
+              <ng-container *ngFor="let p of playersReport">
+                <li *ngIf="p.pointDiscrepancy" class="mismatch-item">
+                  Utilisateur <strong>{{ p.username | uppercase }}</strong> : 
+                  Directus = <span class="badge badge-warning">{{ p.directusPoints }} pts</span> vs 
+                  Recalculé = <span class="badge badge-success">{{ p.calculatedPoints }} pts</span> 
+                  (Différence: <strong class="text-danger">{{ p.calculatedPoints - p.directusPoints }} pts</strong>)
+                </li>
+              </ng-container>
+            </ul>
+          </div>
         </div>
       </div>
-    </div>
+      
 
-    <!-- Players summary list -->
-    <div class="card players-list-panel">
+
+      <!-- Late Submissions / Fraud alert table -->
+      <div class="card fraud-alert-panel" *ngIf="fraudCases.length > 0">
+        <div class="card-header">
+          <span class="material-symbols-outlined text-danger">warning</span>
+          <h2>PREDICTIONS ENVOYEES/MODIFIEES APRES COUP D'ENVOI (FRAUDE HAUTE PRIORITE)</h2>
+        </div>
+        <div class="card-body">
+          <div class="table-responsive">
+            <table class="dashboard-table">
+              <thead>
+                <tr>
+                  <th>Utilisateur</th>
+                  <th>Match</th>
+                  <th>Coup d'envoi (Kickoff)</th>
+                  <th>Date Envoi (Created)</th>
+                  <th>Date Modif (Modified)</th>
+                  <th>Infraction</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let case of fraudCases">
+                  <td class="font-bold text-danger">{{ case.user | uppercase }}</td>
+                  <td class="font-semibold">{{ case.matchName }}</td>
+                  <td>{{ case.kickoff | date: 'dd/MM/yyyy HH:mm' }}</td>
+                  <td>{{ case.submittedAt ? (case.submittedAt | date: 'dd/MM/yyyy HH:mm:ss') : 'N/A' }}</td>
+                  <td>{{ case.modifiedAt ? (case.modifiedAt | date: 'dd/MM/yyyy HH:mm:ss') : 'N/A' }}</td>
+                  <td>
+                    <span class="badge" [ngClass]="case.reason === 'Doublon détecté' ? 'badge-warning' : 'badge-danger'" [style.color]="case.reason === 'Doublon détecté' ? '#856404' : ''" [style.background-color]="case.reason === 'Doublon détecté' ? '#fff3cd' : ''">{{ case.reason }}</span>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+        </p-tabpanel>
+
+        <!-- SUMMARY TAB -->
+        <p-tabpanel value="summary">
+      <!-- Players summary list -->
+      <div class="card players-list-panel">
       <div class="card-header flex-between">
         <h2>Rapport Complet des Pronostiqueurs</h2>
         <div class="search-box">
           <span class="material-symbols-outlined">search</span>
           <input type="text" placeholder="Rechercher par trigramme / email..." [(ngModel)]="searchTerm" />
         </div>
+        <button class="btn btn-warning flex-center" [disabled]="isRecalculating" (click)="recalculateAllPlayers()" title="Lancer un recalcul total et forcer la mise à jour Directus">
+          <span class="material-symbols-outlined" [class.spin]="isRecalculating">sync</span>
+          Recalculation Totale (Forcer)
+        </button>
       </div>
       <div class="card-body">
         <div class="table-responsive">
@@ -298,25 +350,25 @@
                 <td class="font-bold">{{ p.username | uppercase }}</td>
                 <td>{{ p.email }}</td>
                 <td>
-                  <span *ngIf="p.isCalculating" class="inline-spinner"></span>
+                  <span *ngIf="p.isCalculating" class="material-symbols-outlined spin" style="font-size: 1rem; vertical-align: middle;">sync</span>
                   <span *ngIf="!p.isCalculating">{{ p.totalPredictions }}</span>
                 </td>
                 <td>
-                  <span *ngIf="p.isCalculating" class="inline-spinner"></span>
+                  <span *ngIf="p.isCalculating" class="material-symbols-outlined spin" style="font-size: 1rem; vertical-align: middle;">sync</span>
                   <span *ngIf="!p.isCalculating" class="badge" [class.badge-warning]="p.modifiedCount > 0" [class.badge-dark]="p.modifiedCount === 0">
                     {{ p.modifiedCount }}
                   </span>
                 </td>
                 <td class="font-semibold">
-                  <span *ngIf="p.isCalculating" class="inline-spinner"></span>
+                  <span *ngIf="p.isCalculating" class="material-symbols-outlined spin" style="font-size: 1rem; vertical-align: middle;">sync</span>
                   <span *ngIf="!p.isCalculating">{{ p.directusPoints }}</span>
                 </td>
                 <td class="font-semibold">
-                  <span *ngIf="p.isCalculating" class="inline-spinner"></span>
+                  <span *ngIf="p.isCalculating" class="material-symbols-outlined spin" style="font-size: 1rem; vertical-align: middle;">sync</span>
                   <span *ngIf="!p.isCalculating">{{ p.calculatedPoints }}</span>
                 </td>
                 <td>
-                  <span *ngIf="p.isCalculating" class="inline-spinner"></span>
+                  <span *ngIf="p.isCalculating" class="material-symbols-outlined spin" style="font-size: 1rem; vertical-align: middle;">sync</span>
                   <div *ngIf="!p.isCalculating">
                     <span class="badge badge-danger" *ngIf="p.hasFraud">FRAUDE DETECTEE ⚠️</span>
                     <span class="badge badge-warning" *ngIf="!p.hasFraud && p.pointDiscrepancy">ECART POINTS ⚙️</span>
@@ -324,7 +376,7 @@
                   </div>
                 </td>
                 <td>
-                  <span *ngIf="p.isCalculating" class="inline-spinner"></span>
+                  <span *ngIf="p.isCalculating" class="material-symbols-outlined spin" style="font-size: 1rem; vertical-align: middle;">sync</span>
                   <span *ngIf="!p.isCalculating" class="form-guide-span">
                     <span *ngFor="let g of p.formGuide" class="form-icon" [title]="g === '⭐' ? 'Score Exact' : (g === '🟢' ? 'Bon Vainqueur' : (g === '🟡' ? 'Consolation' : 'Perdu'))">
                       {{ g }}
@@ -337,6 +389,9 @@
                     <button class="btn btn-detail" [disabled]="isRecalculating" (click)="selectPlayer(p)">Détails</button>
                     <button class="btn btn-detail" style="border-color: #ff9800; color: #ff9800;" [disabled]="isRecalculating" (click)="recalculateSinglePlayer(p)" title="Recalculer points pour ce joueur uniquement">
                       <span class="material-symbols-outlined" style="font-size: 1rem;">sync</span>
+                    </button>
+                    <button class="btn btn-detail" style="border-color: #f44336; color: #f44336;" [disabled]="isRecalculating" (click)="forcePointsToDirectus(p)" title="Forcer points calculés en base (bypass de sécurité)">
+                      <span class="material-symbols-outlined" style="font-size: 1rem;">upload</span>
                     </button>
                   </div>
                 </td>
@@ -360,7 +415,10 @@
           </button>
         </div>
       </div>
-    </div>
+          </div>
+        </p-tabpanel>
+      </p-tabpanels>
+    </p-tabs>
 
     <!-- Collapsible detailed view for a selected player -->
     <div class="modal-takeover" *ngIf="selectedPlayer">

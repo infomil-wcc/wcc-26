@@ -4,6 +4,7 @@ import { generateGameRules } from '../backend/libs/gameRulesHelper.mjs';
 import { getMatchLineups } from '../backend/libs/lineupsHelper.mjs';
 import { getRegisteredUserCount, registerNewUser } from '../backend/libs/usersHelper.mjs';
 import { getTeamsOrSquads } from '../backend/libs/teamsSquadsHelper.mjs';
+import { forcePoints, recalculateRanksOnly } from '../backend/libs/adminHelper.mjs';
 
 // 1. Initialisation du routeur centralisé pour l'API Infomil
 const router = Router();
@@ -384,6 +385,24 @@ const proxyDirectus = async (request, response) => {
 
 
 // Intercept both creations (POST) and updates (PATCH/PUT) for the collection
+router.post('/api/force-points', async (request, response) => {
+    try {
+        const result = await forcePoints(request.body?.username, request.body?.points);
+        return response.status(result.status).json(result.data);
+    } catch (e) {
+        return response.status(500).json({ error: e.message });
+    }
+});
+
+router.post('/api/recalc-ranks-only', async (request, response) => {
+    try {
+        const result = await recalculateRanksOnly();
+        return response.status(result.status).json(result.data);
+    } catch (e) {
+        return response.status(500).json({ error: e.message });
+    }
+});
+
 router.post('/api/items/pronostiques', handleMatchPredictionValidation);
 router.patch('/api/items/pronostiques/*', handleMatchPredictionValidation);
 router.put('/api/items/pronostiques/*', handleMatchPredictionValidation);

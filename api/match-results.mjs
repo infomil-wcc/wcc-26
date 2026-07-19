@@ -38,6 +38,7 @@ export function createHandler(deps = {}) {
     const shouldCalcAll = (pointsParam === 'all' && matchesParam !== 'all');
     const shouldSyncMatches = matchesParam !== null && !shouldSyncAndCalcAll;
     const syncMatchId = (matchesParam && matchesParam !== 'all') ? parseInt(matchesParam, 10) : null;
+    const forceUpdate = queryData.force === 'true';
 
     const isExplicitOverride = matchesParam !== null || pointsParam !== null;
 
@@ -91,15 +92,15 @@ export function createHandler(deps = {}) {
 
         let targetUser = (pointsParam && pointsParam !== 'all') ? pointsParam : null;
         if (shouldSyncAndCalcAll) {
-          calculationLogs = await _recalculateRankings(directusUrl, adminToken, null, loggedInUser, true, { fetch }, offset, batchSize);
+          calculationLogs = await _recalculateRankings(directusUrl, adminToken, null, loggedInUser, true, { fetch }, offset, batchSize, forceUpdate);
         } else if (targetUser || shouldCalcAll) {
-          calculationLogs = await _recalculateRankings(directusUrl, adminToken, targetUser, loggedInUser, true, { fetch }, offset, batchSize);
+          calculationLogs = await _recalculateRankings(directusUrl, adminToken, targetUser, loggedInUser, true, { fetch }, offset, batchSize, forceUpdate);
         }
       } else {
         const offset = queryData.offset !== undefined ? parseInt(queryData.offset, 10) : 0;
         const batchSize = queryData.batchSize !== undefined ? parseInt(queryData.batchSize, 10) : null;
         let targetUser = (pointsParam && pointsParam !== 'all') ? pointsParam : null;
-        calculationLogs = await _recalculateRankings(directusUrl, adminToken, targetUser, loggedInUser, isExplicitOverride, { fetch }, offset, batchSize);
+        calculationLogs = await _recalculateRankings(directusUrl, adminToken, targetUser, loggedInUser, isExplicitOverride, { fetch }, offset, batchSize, forceUpdate);
       }
     } catch (error) {
       return response.status(500).json({ error: error.message });

@@ -73,7 +73,7 @@ export class RankingsService {
   }
 
 
-  recalculateRankings(offset: number = 0, batchSize: number | null = null, user: string | null = null): Observable<any> {
+  recalculateRankings(offset: number = 0, batchSize: number | null = null, user: string | null = null, forceUpdate: boolean = false): Observable<any> {
     let url = `${environment.apiUrl}/match-results?`;
     if (user) {
       url += `points=${user}&matches=all`;
@@ -84,6 +84,19 @@ export class RankingsService {
     if (batchSize !== null) {
       url += `&batchSize=${batchSize}`;
     }
+    if (forceUpdate) {
+      url += `&force=true`;
+    }
     return this.http.get(url);
+  }
+
+  forcePoints(username: string, points: number): Observable<any> {
+    const url = `${environment.apiUrl}/force-points`;
+    return this.http.post(url, { username, points });
+  }
+
+  recalculateRanksOnly(): Observable<any> {
+    const url = `${environment.apiUrl}/recalc-ranks-only`;
+    return this.http.post(url, {});
   }
 }
