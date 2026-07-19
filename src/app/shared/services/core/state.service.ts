@@ -15,6 +15,7 @@ export interface user {
   last_name: string | null;
   email: string | null;
   status: string | null;
+  role: string | null;
 }
 
 @Injectable({
@@ -39,6 +40,7 @@ export class StateService {
     last_name: null,
     email: null,
     status: null,
+    role: null,
   });
 
   get userState(): Observable<user> {
@@ -59,16 +61,18 @@ export class StateService {
     this._currentState.next(updatedState);
   }
 
-  updateUser(userData: user){
+  updateUser(userData: any){
     if (!userData) {
       return;
     }
+    const roleName = userData.role?.name || userData.role || null;
     this._user.next({
       id : userData.id,
       first_name:  userData.first_name,
       last_name: userData.last_name,
       email: userData.email,
       status: userData.status,
+      role: roleName,
     })
   }
 
@@ -83,6 +87,7 @@ export class StateService {
       last_name: null,
       email: null,
       status: null,
+      role: null,
     })
 
     this.authService.deleteCookies();

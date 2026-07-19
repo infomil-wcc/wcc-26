@@ -23,6 +23,8 @@ export class NavComponent implements OnInit, OnDestroy {
   public showMenu: boolean = false;
   public navList: NavigationItem[];
   private stateSubscription!: Subscription;
+  private userSubscription!: Subscription;
+  protected isAdmin: boolean = false;
 
   constructor(private stateService: StateService, private router: Router) {
     this.navList = [
@@ -68,22 +70,11 @@ export class NavComponent implements OnInit, OnDestroy {
             "route": "meilleur-buteur",
             "active": false
           },
-          // {
-          //   "label": "Bracket challenge",
-          //   "route": "bracket-challenge",
-          //   "active": false
-          // },
           {
             "label": "Pronostics",
             "route": "pronostiques",
             "active": false
-          },
-          //     {
-          //       "label": "Jeu du bracket",
-          //       "route": "bracket",
-          //       "active": false
-          //     },
-
+          }
         ]
       },
       {
@@ -104,8 +95,23 @@ export class NavComponent implements OnInit, OnDestroy {
       const currentRoute = state.currentPage;
       this.updateActiveNavItem(currentRoute);
     });
+
+    this.userSubscription = this.stateService.userState.subscribe(user => {
+      this.isAdmin = user && user.role === 'Administrator';
+      this.updateAdminMenu();
+    });
   }
 
+  private updateAdminMenu() {
+    this.navList = this.navList.filter(item => item.route !== 'admin-dashboard');
+    if (this.isAdmin) {
+      this.navList.push({
+        label: "Admin",
+        route: "admin-dashboard",
+        active: this.router.url.includes('admin-dashboard')
+      });
+    }
+  }
 
   private updateActiveNavItem(currentRoute: string) {
     this.navList.forEach(item => {
@@ -136,6 +142,9 @@ export class NavComponent implements OnInit, OnDestroy {
   ngOnDestroy() {
     if (this.stateSubscription) {
       this.stateSubscription.unsubscribe();
+    }
+    if (this.userSubscription) {
+      this.userSubscription.unsubscribe();
     }
   }
 }

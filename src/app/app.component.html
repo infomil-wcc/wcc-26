@@ -93,3 +93,9 @@
 <modal>
   <p>Test modal content</p>
 </modal>
+
+@if (showWinnerPopup) {
+  <app-tournament-winner-popup (close)="closeWinnerPopup()"></app-tournament-winner-popup>
+}
+
+

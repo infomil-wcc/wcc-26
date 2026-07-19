@@ -44,6 +44,7 @@
     "@angular/build": "^22.0.4",
     "@angular/cli": "^22.0.4",
     "@angular/compiler-cli": "^22.0.4",
+    "@types/canvas-confetti": "^1.9.0",
     "@types/jasmine": "^6.0.0",
     "concurrently": "^10.0.3",
     "dotenv": "^17.4.2",

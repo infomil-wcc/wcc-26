@@ -1,4 +1,5 @@
 import { Routes } from '@angular/router';
+import { adminGuard } from './shared/guards/admin.guard';
 
 export const routes: Routes = [
   {
@@ -53,6 +54,11 @@ export const routes: Routes = [
   {
     path: 'classement/scoresheet/:id',
     loadComponent: () => import('./pages/games/ranking/scoresheet/scoresheet.component').then(m => m.ScoresheetComponent)
+  },
+  {
+    path: 'admin-dashboard',
+    loadComponent: () => import('./pages/games/admin-dashboard/admin-dashboard.component').then(m => m.AdminDashboardComponent),
+    canActivate: [adminGuard]
   },
   {
     path: 'faq',

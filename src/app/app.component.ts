@@ -22,13 +22,14 @@ import { ModalComponent } from './shared/components/modal/modal.component';
 import { AppUpdateService } from './shared/services/core/app-update.service';
 import { KnockoutBracketService } from './shared/services/games/knockout-bracket.service';
 import { MatchesService } from './shared/services/content/matches.service';
+import { TournamentWinnerPopupComponent } from './shared/components/tournament-winner-popup/tournament-winner-popup.component';
 
 @Component({
     selector: 'app-root',
     templateUrl: './app.component.html',
     styleUrl: './app.component.scss',
     changeDetection: ChangeDetectionStrategy.Eager,
-    imports: [LayoutComponent, HeaderComponent, HeroComponent, HpnewsComponent, RouterOutlet, FooterComponent, DialogComponent, ReactiveFormsModule, LoaderComponent, ModalComponent]
+    imports: [LayoutComponent, HeaderComponent, HeroComponent, HpnewsComponent, RouterOutlet, FooterComponent, DialogComponent, ReactiveFormsModule, LoaderComponent, ModalComponent, TournamentWinnerPopupComponent]
 })
 export class AppComponent implements OnInit {
 
@@ -41,6 +42,7 @@ export class AppComponent implements OnInit {
   public page: number = 0;
   public showDialog: boolean = false;
   public showKnockoutPhase2Dialog: boolean = false;
+  public showWinnerPopup: boolean = false;
 
   private cookieToken!: string;
   private cookieUser!: string;
@@ -71,6 +73,8 @@ export class AppComponent implements OnInit {
     } else {
       this.showLoader = false;
     }
+
+    this.checkFinalWinner();
 
     this.stateService.userState.subscribe({
       next:(res) => {
@@ -213,5 +217,30 @@ export class AppComponent implements OnInit {
 
   closeKnockoutPhase2Dialog(): void {
     this.showKnockoutPhase2Dialog = false;
+  }
+
+  checkFinalWinner(): void {
+    const hasSeen = localStorage.getItem('hasSeenWinnerPopup');
+    if (hasSeen === 'true') return;
+
+    this.matchesService.getMatchesByPhase('Final').subscribe({
+      next: (matches) => {
+        if (matches && matches.length > 0) {
+          const finalMatch = matches[0];
+          if (finalMatch.current_status?.toLowerCase() === 'finished' || finalMatch.played) {
+            this.showWinnerPopup = true;
+          }
+        }
+      }
+    });
+  }
+
+  closeWinnerPopup(): void {
+    this.showWinnerPopup = false;
+    localStorage.setItem('hasSeenWinnerPopup', 'true');
+  }
+
+  testWinnerPopup(): void {
+    this.showWinnerPopup = true;
   }
 }

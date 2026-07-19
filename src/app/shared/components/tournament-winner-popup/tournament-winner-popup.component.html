@@ -1,0 +1,112 @@
+<div class="fullscreen-takeover">
+  <div class="takeover-backdrop"></div>
+  <div class="takeover-card">
+    <button type="button" class="takeover-close-btn" (click)="closePopup()">
+      <span class="material-symbols-outlined">close</span>
+    </button>
+    
+    <div class="takeover-content">
+      <div class="carousel-wrapper">
+        <div class="carousel-container" [ngClass]="{'slide-1-active': activeSlide === 0, 'slide-2-active': activeSlide === 1}">
+        
+        <!-- SLIDE 1: Winner Announcement -->
+        <div class="carousel-slide slide-winner">
+          <div class="glow-sphere"></div>
+          
+          <div class="takeover-icon-wrapper">
+            <span class="material-symbols-outlined takeover-icon">workspace_premium</span>
+            <span class="takeover-badge">CHAMPION</span>
+          </div>
+          
+          <h2 class="takeover-title">COUPE DU MONDE DE LA FIFA 2026™</h2>
+          <h3 class="takeover-subtitle">🏆 Le Vainqueur Est...</h3>
+          
+          <div class="winner-info-box">
+            <ng-container *ngIf="isLoadingWinner; else winnerLoaded">
+              <div class="loading-spinner"></div>
+            </ng-container>
+            <ng-template #winnerLoaded>
+              <ng-container *ngIf="winningTeam; else noWinner">
+                <div class="winner-flag-container">
+                  <img *ngIf="winningTeamFlag" [src]="winningTeamFlag" alt="{{ winningTeam }} Flag" class="winner-flag" />
+                </div>
+                <h1 class="winner-name">{{ winningTeam | uppercase }}</h1>
+              </ng-container>
+              <ng-template #noWinner>
+                <h1 class="winner-name">À DÉTERMINER</h1>
+              </ng-template>
+            </ng-template>
+          </div>
+        </div>
+
+        <!-- SLIDE 2: Leaderboard Podium -->
+        <div class="carousel-slide slide-podium">
+          <h2 class="takeover-title">CLASSEMENT FINAL</h2>
+          <h3 class="takeover-subtitle">Les Meilleurs Pronostiqueurs</h3>
+
+          <div class="podium-container">
+            <ng-container *ngIf="isLoadingLeaderboard; else leaderboardLoaded">
+              <div class="loading-spinner"></div>
+            </ng-container>
+            <ng-template #leaderboardLoaded>
+              
+              <!-- Silver (Rank 2) -->
+              <div class="podium-place place-2">
+                <div class="podium-avatar silver-glow">
+                  <span class="material-symbols-outlined">person</span>
+                </div>
+                <span class="podium-name">{{ (topPlayers[1]?.key || topPlayers[1]?.user || topPlayers[1]?.trigramme) | uppercase }}</span>
+                <span class="podium-pts">{{ topPlayers[1]?.point }} pts</span>
+                <div class="podium-block block-silver">
+                  <span class="podium-rank">2</span>
+                </div>
+              </div>
+
+              <!-- Gold (Rank 1) -->
+              <div class="podium-place place-1">
+                <div class="podium-avatar gold-glow">
+                  <span class="material-symbols-outlined">person</span>
+                </div>
+                <span class="podium-name">{{ (topPlayers[0]?.key || topPlayers[0]?.user || topPlayers[0]?.trigramme) | uppercase }}</span>
+                <span class="podium-pts">{{ topPlayers[0]?.point }} pts</span>
+                <div class="podium-block block-gold">
+                  <span class="podium-rank">1</span>
+                </div>
+              </div>
+
+              <!-- Bronze (Rank 3) -->
+              <div class="podium-place place-3">
+                <div class="podium-avatar bronze-glow">
+                  <span class="material-symbols-outlined">person</span>
+                </div>
+                <span class="podium-name">{{ (topPlayers[2]?.key || topPlayers[2]?.user || topPlayers[2]?.trigramme) | uppercase }}</span>
+                <span class="podium-pts">{{ topPlayers[2]?.point }} pts</span>
+                <div class="podium-block block-bronze">
+                  <span class="podium-rank">3</span>
+                </div>
+              </div>
+
+            </ng-template>
+          </div>
+        </div>
+
+      </div>
+      </div>
+
+      <!-- Carousel Controls -->
+      <div class="carousel-controls">
+        <button class="btn-carousel" [disabled]="activeSlide === 0" (click)="prevSlide()">
+          <span class="material-symbols-outlined">arrow_back</span>
+        </button>
+        <div class="carousel-indicators">
+          <span class="indicator" [class.active]="activeSlide === 0" (click)="setSlide(0)"></span>
+          <span class="indicator" [class.active]="activeSlide === 1" (click)="setSlide(1)"></span>
+        </div>
+        <button class="btn-carousel" [disabled]="activeSlide === 1" (click)="nextSlide()">
+          <span class="material-symbols-outlined">arrow_forward</span>
+        </button>
+      </div>
+
+    </div>
+  </div>
+</div>

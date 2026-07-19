@@ -1,0 +1,330 @@
+<div class="admin-dashboard-container">
+  <!-- Title / Header -->
+  <div class="dashboard-header flex-between">
+    <div>
+      <h1>
+        <span class="material-symbols-outlined">shield_person</span>
+        PANNEAU D'ADMINISTRATION & AUDIT DE FRAUDE
+      </h1>
+      <p class="subtitle font-semibold">Analyse de la validité des scores, des modifications et détection des fraudes de pronostics</p>
+    </div>
+    
+    <!-- Recalculation Trigger Button -->
+    <div class="header-actions">
+      <button class="btn btn-recalc" [disabled]="isRecalculating" (click)="recalculateDirectusPoints()">
+        <span class="material-symbols-outlined" [class.spin]="isRecalculating">sync</span>
+        {{ isRecalculating ? 'Recalcul en cours...' : 'Recalculer & Sync Directus' }}
+      </button>
+      <div *ngIf="recalcSuccessMessage" class="toast-success">{{ recalcSuccessMessage }}</div>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="isLoading" class="loading-state">
+    <div class="spinner"></div>
+    <p>Chargement des statistiques de tous les joueurs et matches...</p>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="errorMessage" class="error-state">
+    <span class="material-symbols-outlined">error</span>
+    <p>{{ errorMessage }}</p>
+    <button class="btn btn-retry" (click)="loadAdminData()">Réessayer</button>
+  </div>
+
+  <!-- Main Content -->
+  <div *ngIf="!isLoading && !errorMessage" class="dashboard-content">
+
+    <!-- Coherence Auditor Panel -->
+    <div class="card coherence-card">
+      <div class="card-header">
+        <span class="material-symbols-outlined">fact_check</span>
+        <h2>AUDIT DE COHÉRENCE DES CALCULS</h2>
+      </div>
+      <div class="card-body padding-all">
+        <div class="coherence-grid">
+          <div class="coherence-metric">
+            <span class="label">Statut Global :</span>
+            <span class="value badge" [class.badge-success]="totalDiscrepancies === 0" [class.badge-danger]="totalDiscrepancies > 0">
+              {{ totalDiscrepancies === 0 ? 'CALCULS COHÉRENTS (100% OK)' : 'ÉCARTS DE CALCULS DÉTECTÉS' }}
+            </span>
+          </div>
+          <div class="coherence-metric">
+            <span class="label">Nombre d'écarts :</span>
+            <span class="value font-bold" [class.text-danger]="totalDiscrepancies > 0">{{ totalDiscrepancies }} joueur(s)</span>
+          </div>
+        </div>
+
+        <div class="coherence-info-text text-xs">
+          <strong>Règles de Calcul Audité :</strong> Les calculs locaux intègrent 100% des règles du moteur de points Directus :
+          (1) Déduction du vainqueur si `winner_draw` est vide, (2) Consolidation minimale garantie de 1 point pour les phases à élimination directe (hors 16e), (3) Invalidation automatique en cas de soumission ou modification après le coup d'envoi officiel.
+        </div>
+
+        <!-- Mismatch list -->
+        <div class="mismatch-box" *ngIf="totalDiscrepancies > 0">
+          <h4>Détail des écarts de calcul identifiés :</h4>
+          <ul class="mismatch-list">
+            <ng-container *ngFor="let p of playersReport">
+              <li *ngIf="p.pointDiscrepancy" class="mismatch-item">
+                Utilisateur <strong>{{ p.username | uppercase }}</strong> : 
+                Directus = <span class="badge badge-warning">{{ p.directusPoints }} pts</span> vs 
+                Recalculé = <span class="badge badge-success">{{ p.calculatedPoints }} pts</span> 
+                (Différence: <strong class="text-danger">{{ p.calculatedPoints - p.directusPoints }} pts</strong>)
+              </li>
+            </ng-container>
+          </ul>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Stat Cards Grid -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-icon users-icon"><span class="material-symbols-outlined">group</span></div>
+        <div class="stat-info">
+          <h3>Joueurs inscrits</h3>
+          <p class="value">{{ playersReport.length }}</p>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon predictions-icon"><span class="material-symbols-outlined">sports_esports</span></div>
+        <div class="stat-info">
+          <h3>Prédictions Totales</h3>
+          <p class="value">{{ predictions.length }}</p>
+        </div>
+      </div>
+      <div class="stat-card warning-card" [class.highlight]="totalDiscrepancies > 0">
+        <div class="stat-icon mismatch-icon"><span class="material-symbols-outlined">compare_arrows</span></div>
+        <div class="stat-info">
+          <h3>Miroirs de Points (Écarts)</h3>
+          <p class="value">{{ totalDiscrepancies }}</p>
+        </div>
+      </div>
+      <div class="stat-card danger-card" [class.highlight]="fraudCases.length > 0">
+        <div class="stat-icon fraud-icon"><span class="material-symbols-outlined">warning</span></div>
+        <div class="stat-info">
+          <h3>Fraudes Suspectées</h3>
+          <p class="value">{{ fraudCases.length }}</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Late Submissions / Fraud alert table -->
+    <div class="card fraud-alert-panel" *ngIf="fraudCases.length > 0">
+      <div class="card-header">
+        <span class="material-symbols-outlined text-danger">warning</span>
+        <h2>PREDICTIONS ENVOYEES/MODIFIEES APRES COUP D'ENVOI (FRAUDE HAUTE PRIORITE)</h2>
+      </div>
+      <div class="card-body">
+        <div class="table-responsive">
+          <table class="dashboard-table">
+            <thead>
+              <tr>
+                <th>Utilisateur</th>
+                <th>Match</th>
+                <th>Coup d'envoi (Kickoff)</th>
+                <th>Date Envoi (Created)</th>
+                <th>Date Modif (Modified)</th>
+                <th>Infraction</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let case of fraudCases">
+                <td class="font-bold text-danger">{{ case.user | uppercase }}</td>
+                <td class="font-semibold">{{ case.matchName }}</td>
+                <td>{{ case.kickoff | date: 'dd/MM/yyyy HH:mm' }}</td>
+                <td>{{ case.submittedAt ? (case.submittedAt | date: 'dd/MM/yyyy HH:mm:ss') : 'N/A' }}</td>
+                <td>{{ case.modifiedAt ? (case.modifiedAt | date: 'dd/MM/yyyy HH:mm:ss') : 'N/A' }}</td>
+                <td>
+                  <span class="badge badge-danger">{{ case.reason }}</span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Players summary list -->
+    <div class="card players-list-panel">
+      <div class="card-header flex-between">
+        <h2>Rapport Complet des Pronostiqueurs</h2>
+        <div class="search-box">
+          <span class="material-symbols-outlined">search</span>
+          <input type="text" placeholder="Rechercher par trigramme / email..." [(ngModel)]="searchTerm" />
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="table-responsive">
+          <table class="dashboard-table">
+            <thead>
+              <tr>
+                <th>Joueur</th>
+                <th>Email</th>
+                <th>Prédictions</th>
+                <th>Modifications</th>
+                <th>Points Directus</th>
+                <th>Points Calculés</th>
+                <th>Statut Audit</th>
+                <th>Forme (Derniers 5)</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let p of getFilteredPlayers()" [class.row-mismatch]="!p.isCalculating && p.pointDiscrepancy" [class.row-fraud]="!p.isCalculating && p.hasFraud">
+                <td class="font-bold">{{ p.username | uppercase }}</td>
+                <td>{{ p.email }}</td>
+                <td>
+                  <span *ngIf="p.isCalculating" class="inline-spinner"></span>
+                  <span *ngIf="!p.isCalculating">{{ p.totalPredictions }}</span>
+                </td>
+                <td>
+                  <span *ngIf="p.isCalculating" class="inline-spinner"></span>
+                  <span *ngIf="!p.isCalculating" class="badge" [class.badge-warning]="p.modifiedCount > 0" [class.badge-dark]="p.modifiedCount === 0">
+                    {{ p.modifiedCount }}
+                  </span>
+                </td>
+                <td class="font-semibold">{{ p.directusPoints }}</td>
+                <td class="font-semibold">
+                  <span *ngIf="p.isCalculating" class="inline-spinner"></span>
+                  <span *ngIf="!p.isCalculating">{{ p.calculatedPoints }}</span>
+                </td>
+                <td>
+                  <span *ngIf="p.isCalculating" class="inline-spinner"></span>
+                  <div *ngIf="!p.isCalculating">
+                    <span class="badge badge-danger" *ngIf="p.hasFraud">FRAUDE DETECTEE ⚠️</span>
+                    <span class="badge badge-warning" *ngIf="!p.hasFraud && p.pointDiscrepancy">ECART POINTS ⚙️</span>
+                    <span class="badge badge-success" *ngIf="!p.hasFraud && !p.pointDiscrepancy">CONFORME ✅</span>
+                  </div>
+                </td>
+                <td>
+                  <span *ngIf="p.isCalculating" class="inline-spinner"></span>
+                  <span *ngIf="!p.isCalculating" class="form-guide-span">
+                    <span *ngFor="let g of p.formGuide" class="form-icon" [title]="g === '⭐' ? 'Score Exact' : (g === '🟢' ? 'Bon Vainqueur' : (g === '🟡' ? 'Consolation' : 'Perdu'))">
+                      {{ g }}
+                    </span>
+                    <span *ngIf="p.formGuide.length === 0" class="text-xs color-gray">Aucun match joué</span>
+                  </span>
+                </td>
+                <td>
+                  <button class="btn btn-detail" [disabled]="p.isCalculating" (click)="selectPlayer(p)">Détails</button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Collapsible detailed view for a selected player -->
+    <div class="modal-takeover" *ngIf="selectedPlayer">
+      <div class="modal-card">
+        <div class="modal-header">
+          <h2>Détails d'audit & Analyse : {{ selectedPlayer.username | uppercase }}</h2>
+          <button class="btn-close" (click)="closeDetails()"><span class="material-symbols-outlined">close</span></button>
+        </div>
+        <div class="modal-body">
+          
+          <!-- Trend & Analytics Row -->
+          <div class="trend-analytics-panel">
+            <h3>ANALYSE DES TENDANCES ET HABITUDES</h3>
+            <div class="analytics-grid">
+              <div class="analytics-item">
+                <span class="icon material-symbols-outlined">trending_up</span>
+                <div class="details">
+                  <strong>Forme Récente (Derniers 5 matches)</strong>
+                  <div class="form-guide-large">
+                    <span *ngFor="let g of selectedPlayer.formGuide" class="form-icon">
+                      {{ g }}
+                    </span>
+                    <span *ngIf="selectedPlayer.formGuide.length === 0" class="text-xs">Aucune donnée</span>
+                  </div>
+                  <span class="legend">⭐ Score Exact | 🟢 Correct | 🟡 Consolation | 🔴 Perdu</span>
+                </div>
+              </div>
+              <div class="analytics-item">
+                <span class="icon material-symbols-outlined">hourglass_empty</span>
+                <div class="details">
+                  <strong>Anticipation des Pronostics</strong>
+                  <p class="value">{{ selectedPlayer.averageLeadTimeMinutes | number }} min</p>
+                  <span class="desc">Temps moyen de soumission avant le coup d'envoi</span>
+                </div>
+              </div>
+              <div class="analytics-item">
+                <span class="icon material-symbols-outlined">bar_chart</span>
+                <div class="details">
+                  <strong>Biais des Pronostics (Victoires)</strong>
+                  <p class="value-mini">
+                    Domicile: <span class="text-success font-bold">{{ selectedPlayer.homePredictionsPct }}%</span> | 
+                    Nul: <span class="text-warning font-bold">{{ selectedPlayer.drawPredictionsPct }}%</span> | 
+                    Extérieur: <span class="text-danger font-bold">{{ selectedPlayer.awayPredictionsPct }}%</span>
+                  </p>
+                  <span class="desc">Distribution des choix de vainqueurs</span>
+                </div>
+              </div>
+              <div class="analytics-item">
+                <span class="icon material-symbols-outlined">sports_soccer</span>
+                <div class="details">
+                  <strong>Habitude de Buts</strong>
+                  <p class="value">{{ selectedPlayer.averageGoalsPredicted }} buts / match</p>
+                  <span class="desc">Nombre moyen de buts pronostiqués</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="player-meta-info">
+            <p><strong>Email : </strong> {{ selectedPlayer.email }}</p>
+            <p><strong>Points Directus : </strong> {{ selectedPlayer.directusPoints }} pts</p>
+            <p><strong>Points Calculés Localement : </strong> {{ selectedPlayer.calculatedPoints }} pts</p>
+            <p *ngIf="selectedPlayer.pointDiscrepancy" class="text-warning">⚠️ Écart de point détecté. Veuillez synchroniser la base Directus.</p>
+          </div>
+          
+          <div class="table-responsive modal-table-container">
+            <table class="dashboard-table">
+              <thead>
+                <tr>
+                  <th>Match</th>
+                  <th>Phase</th>
+                  <th>Coup d'envoi</th>
+                  <th>Envoi (Created)</th>
+                  <th>Modif (Modified)</th>
+                  <th>Pronostic</th>
+                  <th>Score Réel</th>
+                  <th>Points Calculés</th>
+                  <th>Audit</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let d of selectedPlayer.predictionsDetail" [class.row-mismatch]="d.isLate">
+                  <td class="font-bold">{{ d.match }}</td>
+                  <td class="text-xs">{{ d.phase }}</td>
+                  <td>{{ d.kickoff | date: 'dd/MM HH:mm' }}</td>
+                  <td>{{ d.submittedAt ? (d.submittedAt | date: 'dd/MM/yyyy HH:mm:ss') : '-' }}</td>
+                  <td>{{ d.modifiedAt ? (d.modifiedAt | date: 'dd/MM/yyyy HH:mm:ss') : '-' }}</td>
+                  <td class="font-semibold">{{ d.prediction }}</td>
+                  <td class="font-semibold">{{ d.actualScore }}</td>
+                  <td class="font-bold">
+                    {{ d.calculatedPoints }} pts
+                    <div class="breakdown-subtext" *ngIf="d.calculatedPoints > 0 && d.breakdown && !d.isLate">
+                      <span *ngIf="d.breakdown.winner > 0" class="badge-bk text-success" title="Vainqueur Correct">V: +{{d.breakdown.winner}}</span>
+                      <span *ngIf="d.breakdown.fulltime > 0" class="badge-bk text-info" title="Score Exact">S: +{{d.breakdown.fulltime}}</span>
+                      <span *ngIf="d.breakdown.halftime > 0" class="badge-bk text-warning" title="Mi-temps Exacte">MT: +{{d.breakdown.halftime}}</span>
+                      <span *ngIf="d.breakdown.scorer > 0" class="badge-bk text-accent" title="Buteur Correct">B: +{{d.breakdown.scorer}}</span>
+                      <span *ngIf="d.breakdown.consolation > 0" class="badge-bk text-gray" title="Consolation">C: +{{d.breakdown.consolation}}</span>
+                    </div>
+                  </td>
+                  <td>
+                    <span class="badge badge-danger" *ngIf="d.isLate">TARDIF: {{ d.lateReason }}</span>
+                    <span class="badge badge-success" *ngIf="!d.isLate">OK</span>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>

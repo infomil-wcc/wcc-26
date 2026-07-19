@@ -12,4 +12,8 @@ export class RulesApiService {
   getRules(): Observable<any> {
     return this.http.get<any>(`${environment.apiBaseUrl}/items/rules`);
   }
+
+  getScoringRules(options?: any): Observable<any> {
+    return this.http.get<any>(`${environment.apiBaseUrl}/items/game_scoring_rules?limit=-1`, options);
+  }
 }

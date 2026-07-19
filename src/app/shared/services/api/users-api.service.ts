@@ -22,6 +22,6 @@ export class UsersApiService {
   }
 
   getUserInfo(id: string, token: string): Observable<any> {
-    return this.http.get<any>(`${environment.apiBaseUrl}/users/${id}?access_token=${token}`);
+    return this.http.get<any>(`${environment.apiBaseUrl}/users/${id}?fields=*,role.name&access_token=${token}`);
   }
 }

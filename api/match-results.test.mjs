@@ -64,7 +64,7 @@ test('Should accurately calculate rankings for a 72-match random tournament scen
 
     const rulesMatrixMock = [{
         game_type: 'pronostics', phase: 'Group Stage',
-        winner_draw_points: 3, fulltime_exact_points: 2, halftime_exact_points: 0, scorer_points: 0, consolation_points: 1
+        winner_draw_points: 3, fulltime_exact_points: 2, halftime_exact_points: 0, scorer_points: 0, consolation_points: 0
     }];
 
     const mockBulkFetch = async (url, options) => {
@@ -86,10 +86,9 @@ test('Should accurately calculate rankings for a 72-match random tournament scen
     let expectedTotalPoints = 0;
     for (let i = 0; i < totalMatchesCount; i++) {
         const match = mockMatches[i]; const prono = mockPredictions[i];
-        let rPts = 0; let hit = false;
-        if (match.winner_draw === prono.winner_draw) { rPts += 3; hit = true; }
-        if (match.fulltime_a === prono.fulltime_a && match.fulltime_b === prono.fulltime_b) { rPts += 2; hit = true; }
-        if (!hit) rPts += 1;
+        let rPts = 0;
+        if (match.winner_draw === prono.winner_draw) { rPts += 3; }
+        if (match.fulltime_a === prono.fulltime_a && match.fulltime_b === prono.fulltime_b) { rPts += 2; }
         expectedTotalPoints += rPts;
     }
 
