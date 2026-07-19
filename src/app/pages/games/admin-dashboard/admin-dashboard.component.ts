@@ -147,7 +147,7 @@ export class AdminDashboardComponent implements OnInit {
     this.recalcSummary = null;
     this.recalcLiveLines = ['🔌 Initialisation du recalcul par lots...'];
     const startTime = Date.now();
-    const batchSize = 10;
+    const batchSize = 1;
     const allLogs: string[] = [];
 
     let totalMatchesSynced = 0;
@@ -156,7 +156,7 @@ export class AdminDashboardComponent implements OnInit {
     let totalDuplicatesDetected = 0;
 
     const executeBatch = (offset: number) => {
-      this.recalcLiveLines = [...this.recalcLiveLines, `📦 Envoi du lot : offset ${offset}, taille ${batchSize}...`].slice(-8);
+      this.recalcLiveLines = [...this.recalcLiveLines, `👤 Calcul du joueur ${offset + 1}...`].slice(-8);
       this.cdr.detectChanges();
 
       this.rankingsService.recalculateRankings(offset, batchSize).subscribe({
@@ -164,6 +164,12 @@ export class AdminDashboardComponent implements OnInit {
           const batchResult = res?.calculationLogs || {};
           const batchLogs = batchResult.logs || [];
           allLogs.push(...batchLogs);
+          
+          if (batchResult.processedUsers && batchResult.processedUsers.length > 0) {
+            const trigrammes = batchResult.processedUsers.join(', ');
+            this.recalcLiveLines[this.recalcLiveLines.length - 1] = `👤 Calcul du joueur ${offset + 1} (${trigrammes})... terminé.`;
+            this.cdr.detectChanges();
+          }
 
           // Update aggregated counts
           totalMatchesSynced += batchLogs.filter((l: string) => l.startsWith('Synced points in Directus')).length;

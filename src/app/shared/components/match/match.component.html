@@ -208,7 +208,7 @@
       </div>
       @if (!closed && !hidePointsBadge) {
       <div class="pronostiqueWrapper">
-        @if (match.fulltime || match.halftime) {
+        @if ((match.fulltime || match.halftime) && match.phase !== 'Group Stage') {
         <div class="scores-compact-grid mt-1 mb-1">
           <div class="grid-header-row" [class.has-both]="match.fulltime && match.halftime">
             <div class="team-col"></div>
@@ -277,7 +277,7 @@
           </div>
         </div>
         }
-        @if (match.scorer) {
+        @if (match.scorer && match.phase !== 'Group Stage') {
         <div class="scorerContainer mt-1 mb-1">
           <div class="flex flex-column align-items-center gap-1" [ngClass]="{'disabled': this.userTrigramme ===''}">
             <button class="btn btn-select-scorer w-full flex align-items-center justify-content-center gap-2 py-2"

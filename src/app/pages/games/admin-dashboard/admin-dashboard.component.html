@@ -15,7 +15,7 @@
         <span class="material-symbols-outlined" [class.spin]="isRecalculating">sync</span>
         {{ isRecalculating ? 'Recalcul en cours...' : 'Recalculer & Sync Directus' }}
       </button>
-      <button class="btn btn-nav text-xs" *ngIf="recalcSummary && !isRecalculating" (click)="showRecalcProgress = !showRecalcProgress">
+      <button class="btn btn-report" *ngIf="recalcSummary && !isRecalculating" (click)="showRecalcProgress = !showRecalcProgress">
         <span class="material-symbols-outlined">{{ showRecalcProgress ? 'expand_less' : 'expand_more' }}</span>
         {{ showRecalcProgress ? 'Masquer le rapport' : 'Voir le rapport' }}
       </button>
@@ -41,7 +41,7 @@
         <div>
           <strong>Que fait « Sync règles → matches » ?</strong>
           <p>
-            La table <code>game_scoring_rules</code> définit les points par phase (ex. : Group Stage = 1pt vainqueur, 2pt score exact).
+            La table <code>game_scoring_rules</code> définit les points par phase (ex. : Huitièmes de finale = 1pt vainqueur, 2pt score exact).
             Chaque match possède ses propres champs dupliqués <code>winner_point</code>, <code>fulltime_point</code>, <code>halftime_point</code>, <code>scorer_point</code>.
             Cette étape <strong>compare et resynchronise</strong> ces champs avec les règles actives : si le barème a été modifié, chaque match reçoit un PATCH Directus pour refléter la nouvelle valeur avant que les points des joueurs soient recalculés.
           </p>
@@ -173,7 +173,7 @@
 
         <!-- Trigger Global Audit -->
         <div class="global-audit-action flex-start margin-top-sm" *ngIf="!isGlobalAuditRun">
-          <button class="btn btn-detail flex-center" [disabled]="isGlobalAuditing" (click)="runFullAudit()">
+          <button class="btn btn-audit flex-center" [disabled]="isGlobalAuditing" (click)="runFullAudit()">
             <span class="material-symbols-outlined" [class.spin]="isGlobalAuditing">manage_search</span>
             {{ isGlobalAuditing ? 'Audit en cours...' : 'Lancer un Audit Global Complet (Tous les Joueurs)' }}
           </button>

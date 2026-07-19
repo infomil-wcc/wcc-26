@@ -340,7 +340,7 @@ export async function recalculateRankings(directusUrl, adminToken, specificUser 
       }
     }
 
-    return { logs: apiLogs, totalUsers, processedCount: batchSlice.length, nextOffset: Math.min(nextOffset, totalUsers), isDone };
+    return { logs: apiLogs, totalUsers, processedCount: batchSlice.length, processedUsers: batchSlice.map(p => p.key), nextOffset: Math.min(nextOffset, totalUsers), isDone };
   } catch (err) {
     console.error("Error during ranking recalculation:", err);
     throw err;

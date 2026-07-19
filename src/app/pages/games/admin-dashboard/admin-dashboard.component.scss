@@ -247,20 +247,22 @@
 
 /* BUTTONS */
 .btn {
-  padding: 8px 16px;
+  padding: 12px 24px;
   border-radius: 8px;
-  font-weight: 700;
-  font-size: 0.8rem;
+  font-weight: 800;
+  font-size: 0.85rem;
   border: none;
   cursor: pointer;
   transition: all 0.2s ease;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 5px;
+  gap: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 
   &:hover {
-    transform: translateY(-1px);
+    transform: translateY(-2px);
   }
 }
 
@@ -445,11 +447,51 @@
   background: linear-gradient(135deg, #109268, #0ca678);
   color: #fff;
   border: 1px solid rgba(12, 166, 120, 0.4);
-  padding: 10px 20px;
-  font-size: 0.85rem;
+  /* Use explicit padding and height to match adjacent buttons perfectly */
+  padding: 0 24px;
+  height: 48px;
+  border-radius: 8px;
+  
   &:hover {
     box-shadow: 0 4px 12px rgba(12, 166, 120, 0.3);
   }
+}
+
+.btn-report {
+  background: #f59f00;
+  color: #fff;
+  border: 1px solid rgba(245, 159, 0, 0.4);
+  /* Match the green button */
+  padding: 0 24px;
+  height: 48px;
+  border-radius: 8px;
+  
+  &:hover {
+    background: #e67e22;
+    box-shadow: 0 4px 12px rgba(245, 159, 0, 0.3);
+  }
+}
+
+.btn-audit {
+  background: linear-gradient(135deg, #3b5bdb, #228be6);
+  color: #fff;
+  border: 1px solid rgba(34, 139, 230, 0.4);
+  padding: 0 24px;
+  height: 48px;
+  border-radius: 8px;
+  width: 100%;
+  max-width: 500px;
+  
+  &:hover {
+    box-shadow: 0 4px 12px rgba(34, 139, 230, 0.3);
+  }
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  /* Very tight gap so they appear as a solid group, similar to the screenshot */
+  gap: 4px; 
 }
 
 .toast-success {

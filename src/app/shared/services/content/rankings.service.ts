@@ -5,6 +5,7 @@ import { map, switchMap } from 'rxjs/operators';
 import { PronosticsRankingsApiService } from '../api/pronostics-rankings-api.service';
 import { BracketRankingsApiService } from '../api/bracket-rankings-api.service';
 import { AuthService } from '../core/auth.service';
+import { environment } from '../../../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
@@ -73,7 +74,7 @@ export class RankingsService {
 
 
   recalculateRankings(offset: number = 0, batchSize: number | null = null): Observable<any> {
-    let url = `/api/match-results?points=all&matches=all&offset=${offset}`;
+    let url = `${environment.apiUrl}/match-results?points=all&matches=all&offset=${offset}`;
     if (batchSize !== null) {
       url += `&batchSize=${batchSize}`;
     }
