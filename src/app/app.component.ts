@@ -74,7 +74,8 @@ export class AppComponent implements OnInit {
       this.showLoader = false;
     }
 
-    this.checkFinalWinner();
+    // this.checkFinalWinner();
+    this.testWinnerPopup();
 
     this.stateService.userState.subscribe({
       next:(res) => {

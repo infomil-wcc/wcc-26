@@ -33,7 +33,13 @@ export class TournamentWinnerPopupComponent implements OnInit {
   isLoadingLeaderboard = true;
 
   ngOnInit(): void {
-    // 1. Fetch Winner
+    // Hardcoded mock for testing UI
+    this.winningTeam = 'Spain';
+    this.fetchFlag('Spain');
+    this.isLoadingWinner = false;
+
+    // 1. Fetch Winner (disabled for testing)
+    /*
     this.matchesService.getMatchesByPhase('Final').subscribe(matches => {
       if (matches && matches.length > 0) {
         const finalMatch = matches[0];
@@ -56,6 +62,7 @@ export class TournamentWinnerPopupComponent implements OnInit {
       }
       this.isLoadingWinner = false;
     });
+    */
 
     // 2. Fetch Leaderboard Top 3
     this.rankingsService.getPronosticsRankings().subscribe(rankings => {
@@ -111,7 +118,7 @@ export class TournamentWinnerPopupComponent implements OnInit {
     this.teamsService.getFlags().subscribe(flags => {
       const match = flags.find((f: any) => f.name === teamName);
       if (match) {
-        this.winningTeamFlag = match.flag_url;
+        this.winningTeamFlag = match.flag_url.startsWith('/') ? match.flag_url : '/' + match.flag_url;
       }
     });
   }
