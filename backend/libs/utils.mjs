@@ -111,8 +111,6 @@ export function fetchWithBypass(url, options = {}) {
   const client = isHttps ? https : http;
   const method = options.method || 'GET';
 
-  console.log(`[fetchWithBypass] START: ${method} ${url}`);
-
   return new Promise((resolve, reject) => {
     const headers = { ...(options.headers || {}) };
     let body = options.body;
@@ -149,7 +147,6 @@ export function fetchWithBypass(url, options = {}) {
       stream.on('end', () => {
         const buffer = Buffer.concat(chunks);
         const data = buffer.toString('utf8');
-        console.log(`[fetchWithBypass] SUCCESS: ${method} ${url} - Status: ${res.statusCode}`);
         resolve({
           ok: res.statusCode >= 200 && res.statusCode < 300,
           status: res.statusCode,
@@ -164,7 +161,6 @@ export function fetchWithBypass(url, options = {}) {
     });
 
     req.setTimeout(15000, () => {
-      console.warn(`[fetchWithBypass] TIMEOUT: ${method} ${url} after 15000ms`);
       req.destroy(new Error('Timeout'));
     });
 

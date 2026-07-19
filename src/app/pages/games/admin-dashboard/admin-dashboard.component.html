@@ -48,10 +48,7 @@
     
     <!-- Recalculation Trigger Button -->
     <div class="header-actions">
-      <button class="btn btn-recalc" [disabled]="isRecalculating" (click)="recalculateDirectusPoints()">
-        <span class="material-symbols-outlined" [class.spin]="isRecalculating">sync</span>
-        {{ isRecalculating ? 'Recalcul en cours...' : 'Recalculer & Sync Directus' }}
-      </button>
+
       <button class="btn btn-report" *ngIf="recalcSummary && !isRecalculating" (click)="showRecalcProgress = !showRecalcProgress">
         <span class="material-symbols-outlined">{{ showRecalcProgress ? 'expand_less' : 'expand_more' }}</span>
         {{ showRecalcProgress ? 'Masquer le rapport' : 'Voir le rapport' }}
@@ -144,7 +141,7 @@
           <span class="material-symbols-outlined">terminal</span>
           Journal serveur réel ({{ recalcSummary.logs.length }} entrées)
         </div>
-        <div class="recalc-log-body">
+        <div class="recalc-log-body" #summaryLogBody>
           <div *ngFor="let log of recalcSummary.logs" class="recalc-log-line"
             [class.log-fraud]="log.includes('FRAUD')"
             [class.log-duplicate]="log.includes('DUPLICATE')"
@@ -246,17 +243,7 @@
             (1) Déduction du vainqueur si `winner_draw` est vide, (2) Consolidation minimale garantie de 1 point pour les phases à élimination directe (hors 16e), (3) Invalidation automatique en cas de soumission ou modification après le coup d'envoi officiel.
           </div>
 
-          <!-- Trigger Global Audit -->
-          <div class="global-audit-action flex-start margin-top-sm" *ngIf="!isGlobalAuditRun">
-            <button class="btn btn-audit flex-center" [disabled]="isGlobalAuditing" (click)="runFullAudit()">
-              <span class="material-symbols-outlined" [class.spin]="isGlobalAuditing">manage_search</span>
-              {{ isGlobalAuditing ? 'Audit en cours...' : 'Lancer un Audit Global Complet (Tous les Joueurs)' }}
-            </button>
-            <span class="text-xs text-muted margin-left-sm flex-center">Recommandé pour calculer les statistiques globales de fraude et d'écart de points sur toute la base de données.</span>
-          </div>
-          <div class="global-audit-success text-xs text-success margin-top-sm" *ngIf="isGlobalAuditRun">
-            ✅ L'Audit Global Complet a été effectué. Tous les écarts et cas de fraudes de la base de données sont affichés.
-          </div>
+          <!-- Removed Global Audit Button as requested -->
 
           <!-- Mismatch list -->
           <div class="mismatch-box" *ngIf="totalDiscrepancies > 0">

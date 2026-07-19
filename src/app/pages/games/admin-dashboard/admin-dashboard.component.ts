@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectorRef, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TabsModule, Tabs, TabList, Tab, TabPanels, TabPanel } from 'primeng/tabs';
@@ -150,13 +150,25 @@ export class AdminDashboardComponent implements OnInit {
     this.checkBackgroundRecalc();
   }
 
+  @ViewChild('liveLogBody') liveLogBody!: ElementRef;
+
   ngOnDestroy(): void {
     if (this.syncInterval) clearInterval(this.syncInterval);
   }
 
+  @ViewChild('summaryLogBody') summaryLogBody!: ElementRef;
+
   private tryDetectChanges() {
     try {
       this.cdr.detectChanges();
+      setTimeout(() => {
+        if (this.liveLogBody?.nativeElement) {
+          this.liveLogBody.nativeElement.scrollTop = this.liveLogBody.nativeElement.scrollHeight;
+        }
+        if (this.summaryLogBody?.nativeElement) {
+          this.summaryLogBody.nativeElement.scrollTop = this.summaryLogBody.nativeElement.scrollHeight;
+        }
+      }, 150);
     } catch (e) {
       // Ignore ViewDestroyedError
     }
@@ -170,7 +182,7 @@ export class AdminDashboardComponent implements OnInit {
           const state = JSON.parse(saved);
           if (state.isRunning) {
             const now = Date.now();
-            if (now - state.lastTick > 20000) {
+            if (now - state.lastTick > 60000) {
               state.isRunning = false;
               state.errorMessage = 'La tâche a été interrompue (fermeture du navigateur ou délai expiré).';
               localStorage.setItem('recalc_bg_state', JSON.stringify(state));
@@ -182,11 +194,16 @@ export class AdminDashboardComponent implements OnInit {
             // Don't overwrite if WE are the active running instance
             if (!this.isRecalculating || state.errorMessage || state.recalcSummary) {
               this.isRecalculating = state.isRunning;
-              this.showRecalcProgress = true;
+              if (this.isRecalculating) {
+                this.showRecalcProgress = true;
+              }
               this.recalcLiveLines = state.recalcLiveLines || [];
               this.recalcSummary = state.recalcSummary || null;
               this.recalcSuccessMessage = state.recalcSuccessMessage || '';
-              if (state.errorMessage) this.errorMessage = state.errorMessage;
+              if (state.errorMessage) {
+                this.errorMessage = state.errorMessage;
+                this.showRecalcProgress = false;
+              }
               this.tryDetectChanges();
             }
             if (!state.isRunning && this.syncInterval) {
@@ -337,6 +354,7 @@ export class AdminDashboardComponent implements OnInit {
 
     this.rankingsService.recalculateRankings(0, 1, player.username, true).subscribe({
       next: (res: any) => {
+        player.isCalculating = false;
         this.isRecalculating = false;
         this.recalcSuccessMessage = `Points recalculés avec succès pour ${player.username} !`;
         
@@ -346,15 +364,15 @@ export class AdminDashboardComponent implements OnInit {
           usersSaved: 1,
           fraudDetected: 0,
           duplicatesDetected: 0,
-          logs: res.calculationLogs || [res.message || 'Succès'],
+          logs: res.calculationLogs?.logs || [res.message || 'Succès'],
           durationMs: 0
         };
 
-        this.tryDetectChanges();
+        // Update the UI via reload to get the REAL points from the backend
         setTimeout(() => {
           this.loadAdminData(true);
           this.tryDetectChanges();
-        }, 3000);
+        }, 1500);
         setTimeout(() => this.recalcSuccessMessage = '', 6000);
       },
       error: (err) => {
@@ -416,14 +434,82 @@ export class AdminDashboardComponent implements OnInit {
   }
 
   recalculateAllPlayers(): void {
+    const playersWithEcart = this.playersReport.filter(p => p.pointDiscrepancy);
+    
+    if (playersWithEcart.length === 0) {
+      this.confirmDialog = {
+        title: 'Recalcul des rangs',
+        message: 'Aucun écart détecté. Voulez-vous lancer le recalcul des rangs uniquement ?',
+        onConfirm: () => {
+          this.confirmDialog = null;
+          this.recalculateRanksOnlyAction();
+        }
+      };
+      return;
+    }
+
     this.confirmDialog = {
-      title: 'Recalcul total',
-      message: 'Êtes-vous sûr de vouloir relancer un recalcul total et FORCER la mise à jour de Directus pour tous les joueurs ? Cette action peut prendre du temps.',
+      title: 'Mise à jour des écarts',
+      message: `Voulez-vous forcer la mise à jour de ${playersWithEcart.length} joueur(s) ayant un écart de points avec la valeur calculée localement, puis relancer le recalcul des rangs ?`,
       onConfirm: () => {
         this.confirmDialog = null;
-        this.recalculateDirectusPoints(true);
+        this.isRecalculating = true;
+        this.showRecalcProgress = true;
+        this.recalcSummary = null;
+        this.recalcLiveLines = [`Mise à jour de ${playersWithEcart.length} joueur(s)...`];
+        this.tryDetectChanges();
+
+        const observables = playersWithEcart.map(p => this.rankingsService.forcePoints(p.username, p.calculatedPoints));
+        
+        forkJoin(observables).subscribe({
+          next: () => {
+            this.recalcLiveLines.push('✅ Mise à jour des points terminée.');
+            this.recalcLiveLines.push('🔄 Lancement du recalcul des rangs...');
+            this.tryDetectChanges();
+            
+            this.rankingsService.recalculateRanksOnly().subscribe({
+              next: (res: any) => {
+                this.isRecalculating = false;
+                this.recalcSuccessMessage = res.message || 'Recalcul terminé avec succès !';
+                setTimeout(() => {
+                  this.loadAdminData(true);
+                  this.tryDetectChanges();
+                }, 3000);
+              },
+              error: (err) => {
+                this.isRecalculating = false;
+                this.errorMessage = 'Erreur lors du recalcul des rangs: ' + (err.error?.error || err.message);
+                this.tryDetectChanges();
+              }
+            });
+          },
+          error: (err) => {
+            this.isRecalculating = false;
+            this.errorMessage = 'Erreur lors de la mise à jour des points: ' + (err.error?.error || err.message);
+            this.tryDetectChanges();
+          }
+        });
       }
     };
+  }
+
+  private recalculateRanksOnlyAction(): void {
+    this.isRecalculating = true;
+    this.rankingsService.recalculateRanksOnly().subscribe({
+      next: (res: any) => {
+        this.isRecalculating = false;
+        this.recalcSuccessMessage = res.message || 'Recalcul terminé avec succès !';
+        setTimeout(() => {
+          this.loadAdminData(true);
+          this.tryDetectChanges();
+        }, 3000);
+      },
+      error: (err) => {
+        this.isRecalculating = false;
+        this.errorMessage = 'Erreur: ' + (err.error?.error || err.message);
+        this.tryDetectChanges();
+      }
+    });
   }
 
   loadAdminData(silent: boolean = false): void {
@@ -453,7 +539,7 @@ export class AdminDashboardComponent implements OnInit {
           return of({ data: [] });
         })
       ),
-      rankings: this.pronosticsRankingsApi.getRankings('?limit=-1', { headers: { 'Authorization': `Bearer ${token}` } }).pipe(
+      rankings: this.pronosticsRankingsApi.getRankings(`?limit=-1&_=${Date.now()}`, { headers: { 'Authorization': `Bearer ${token}` } }).pipe(
         tap(() => console.log('[Admin] getRankings finished')),
         timeout(10000),
         map(r => r?.data || r || []),
