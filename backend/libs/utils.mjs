@@ -19,10 +19,14 @@ export function parseMauritianDate(dateStr) {
 
 export function convertDirectusToMauritianString(dateStr) {
   if (!dateStr) return '';
-  const d = new Date(dateStr);
-  // Directus sends UTC. Add 4 hours for Mauritius.
+  let normalized = String(dateStr).trim();
+  if (!normalized.endsWith('Z') && !/[+-]\d{2}:?\d{2}$/.test(normalized)) {
+    normalized += 'Z';
+  }
+  const d = new Date(normalized);
   d.setUTCHours(d.getUTCHours() + 4);
-  return d.toISOString().replace('.000Z', '').replace('Z', '');
+  const pad = (n) => String(n).padStart(2, '0');
+  return `${d.getUTCFullYear()}-${pad(d.getUTCMonth() + 1)}-${pad(d.getUTCDate())}T${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())}:${pad(d.getUTCSeconds())}`;
 }
 
 /**
