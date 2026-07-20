@@ -209,6 +209,7 @@ export class AdminDashboardComponent implements OnInit {
             if (!state.isRunning && this.syncInterval) {
               clearInterval(this.syncInterval);
               this.syncInterval = null;
+              this.loadAdminData(true);
             }
           }
         } catch (e) { }
