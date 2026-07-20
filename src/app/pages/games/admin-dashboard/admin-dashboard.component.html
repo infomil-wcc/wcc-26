@@ -484,6 +484,7 @@
             <table class="dashboard-table">
               <thead>
                 <tr>
+                  <th>ID</th>
                   <th>Match</th>
                   <th>Phase</th>
                   <th>Coup d'envoi</th>
@@ -499,6 +500,7 @@
               </thead>
               <tbody>
                 <tr *ngFor="let d of selectedPlayer.predictionsDetail" [class.row-mismatch]="d.isLate">
+                  <td class="font-bold text-xs text-muted">#{{ d.matchId }}</td>
                   <td class="font-bold">{{ d.match }}</td>
                   <td class="text-xs">{{ d.phase }}</td>
                   <td>{{ d.kickoff | date: 'dd/MM HH:mm' }}</td>

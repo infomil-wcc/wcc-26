@@ -813,6 +813,7 @@ export class AdminDashboardComponent implements OnInit {
 
                   // Build detail object
                   stats.predictionsDetail.push({
+                    matchId: match.id,
                     match: `${match.team_a} vs ${match.team_b}`,
                     phase: match.phase || 'Groupe',
                     kickoff: kickoffTime,
