@@ -23,6 +23,29 @@ export function parseMauritianDate(dateStr) {
 }
 
 /**
+ * Returns the current server time strictly formatted as an ISO string with the Mauritian timezone offset (+04:00).
+ * Example: '2026-06-15T18:00:00+04:00'
+ */
+export function getCurrentMauritianDateStr() {
+  const now = new Date();
+  
+  // Calculate Mauritian time (+4 hours from UTC)
+  const utcMs = now.getTime() + (now.getTimezoneOffset() * 60000);
+  const muMs = utcMs + (4 * 3600000);
+  const muDate = new Date(muMs);
+
+  const pad = (n) => String(n).padStart(2, '0');
+  const YYYY = muDate.getFullYear();
+  const MM = pad(muDate.getMonth() + 1);
+  const DD = pad(muDate.getDate());
+  const hh = pad(muDate.getHours());
+  const mm = pad(muDate.getMinutes());
+  const ss = pad(muDate.getSeconds());
+
+  return `${YYYY}-${MM}-${DD}T${hh}:${mm}:${ss}+04:00`;
+}
+
+/**
  * Handles CORS preflight requests.
  * @param {object} request - The request object.
  * @param {object} response - The response object.

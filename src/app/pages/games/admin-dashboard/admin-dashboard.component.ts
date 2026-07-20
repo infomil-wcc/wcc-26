@@ -549,7 +549,7 @@ export class AdminDashboardComponent implements OnInit {
           return of([]);
         })
       ),
-      matches: this.matchesService.getAllMatches().pipe(
+      matches: this.matchesService.getAllMatches(`?limit=-1&_=${Date.now()}`).pipe(
         tap(() => console.log('[Admin] getAllMatches finished')),
         timeout(15000),
         catchError((err) => {
@@ -557,7 +557,7 @@ export class AdminDashboardComponent implements OnInit {
           return of([]);
         })
       ),
-      rules: this.rulesApi.getScoringRules({ headers: { 'Authorization': `Bearer ${token}` } }).pipe(
+      rules: this.rulesApi.getScoringRules({ headers: { 'Authorization': `Bearer ${token}` }, params: { '_': Date.now() } }).pipe(
         tap(() => console.log('[Admin] getScoringRules finished')),
         timeout(10000),
         catchError((err) => {
@@ -819,6 +819,8 @@ export class AdminDashboardComponent implements OnInit {
                     submittedAt: createdTime,
                     modifiedAt: modifiedTime,
                     prediction: `${p.fulltime_a ?? '-'} - ${p.fulltime_b ?? '-'} (${p.winner_draw || 'N/A'})`,
+                    halftime_prediction: `${p.halftime_a ?? '-'} - ${p.halftime_b ?? '-'}`,
+                    scorer_prediction: p.scorer || '-',
                     actualScore: match.fulltime_a !== null ? `${match.fulltime_a} - ${match.fulltime_b}` : 'À venir',
                     calculatedPoints: (isLate || isDuplicate) ? 0 : pointsEarned,
                     isLate: isLate || isDuplicate,

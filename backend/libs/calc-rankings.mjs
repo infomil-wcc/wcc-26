@@ -10,18 +10,25 @@ export async function recalculateRankings(directusUrl, adminToken, specificUser 
   const fetch = deps.fetch || fetchWithBypass;
   const apiLogs = [];
   try {
-    const headers = { 'Authorization': `Bearer ${adminToken}` };
+    const headers = { 
+      'Authorization': `Bearer ${adminToken}`,
+      'Cache-Control': 'no-cache, no-store, must-revalidate',
+      'Pragma': 'no-cache',
+      'Expires': '0'
+    };
+    const fetchOptions = { headers, cache: 'no-store' };
+    const cb = `_cb=${Date.now()}`;
     const pronoFilter = specificUser ? `&filter[user][_eq]=${specificUser}` : "";
 
     const [matchesRes, predictionsRes, rankingsRes, rulesRes, bracketResultsRes, bracketsRes, knockoutBracketsRes, bracketRankingsRes] = await Promise.all([
-      fetch(`${directusUrl}/items/matches?limit=-1`, { headers }),
-      fetch(`${directusUrl}/items/pronostiques?limit=-1${pronoFilter}`, { headers }),
-      fetch(`${directusUrl}/items/pronostics_rankings?limit=-1`, { headers }),
-      fetch(`${directusUrl}/items/game_scoring_rules?limit=-1`, { headers }),
-      fetch(`${directusUrl}/items/bracket_result?limit=-1`, { headers }),
-      fetch(`${directusUrl}/items/bracket?limit=-1`, { headers }),
-      fetch(`${directusUrl}/items/bracket_knockout?limit=-1`, { headers }),
-      fetch(`${directusUrl}/items/bracket_rankings?limit=-1`, { headers })
+      fetch(`${directusUrl}/items/matches?limit=-1&${cb}`, fetchOptions),
+      fetch(`${directusUrl}/items/pronostiques?limit=-1${pronoFilter}&${cb}`, fetchOptions),
+      fetch(`${directusUrl}/items/pronostics_rankings?limit=-1&${cb}`, fetchOptions),
+      fetch(`${directusUrl}/items/game_scoring_rules?limit=-1&${cb}`, fetchOptions),
+      fetch(`${directusUrl}/items/bracket_result?limit=-1&${cb}`, fetchOptions),
+      fetch(`${directusUrl}/items/bracket?limit=-1&${cb}`, fetchOptions),
+      fetch(`${directusUrl}/items/bracket_knockout?limit=-1&${cb}`, fetchOptions),
+      fetch(`${directusUrl}/items/bracket_rankings?limit=-1&${cb}`, fetchOptions)
     ]);
 
     const matchesData = matchesRes.ok ? await matchesRes.json() : {};
@@ -119,8 +126,8 @@ export async function recalculateRankings(directusUrl, adminToken, specificUser 
 
       // Sort by created_on DESCENDING to ensure we take the newest valid occurrence of multiple records
       userPredictions[username].sort((a, b) => {
-        const dateA = a.created_on ? new Date(a.created_on).getTime() : 0;
-        const dateB = b.created_on ? new Date(b.created_on).getTime() : 0;
+        const dateA = a.created_on ? parseMauritianDate(a.created_on) : 0;
+        const dateB = b.created_on ? parseMauritianDate(b.created_on) : 0;
         return dateB - dateA;
       });
 

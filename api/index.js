@@ -1,5 +1,5 @@
 import { Router } from 'itty-router';
-import { handleCors, applyFiltersAndSelect, fetchWithBypass } from '../backend/libs/utils.mjs';
+import { handleCors, applyFiltersAndSelect, fetchWithBypass, parseMauritianDate, getCurrentMauritianDateStr } from '../backend/libs/utils.mjs';
 import { generateGameRules } from '../backend/libs/gameRulesHelper.mjs';
 import { getMatchLineups } from '../backend/libs/lineupsHelper.mjs';
 import { getRegisteredUserCount, registerNewUser } from '../backend/libs/usersHelper.mjs';
@@ -283,8 +283,8 @@ const handleMatchPredictionValidation = async (request, response) => {
             return response.status(500).json({ error: "Match baseline timing configuration is missing on the server." });
         }
 
-        const matchTime = new Date(matchTimeStr);
-        const currentTime = new Date(); // Use internal system server time synchronized with your Time API
+        const matchTime = parseMauritianDate(matchTimeStr);
+        const currentTime = Date.now(); // Universal epoch ms
 
         // 2. Core validation logic: If current time is past the match kick-off, lock predictions
         if (currentTime >= matchTime) {
@@ -298,8 +298,12 @@ const handleMatchPredictionValidation = async (request, response) => {
         if (request.method === 'PATCH' || request.method === 'PUT') {
             delete body.game_id;
             delete body.user;
-            request.body = body; // Update the request body so proxyDirectus uses the stripped payload
-        }
+            body.modified_on = getCurrentMauritianDateStr();
+        } else if (request.method === 'POST') {
+            body.created_on = getCurrentMauritianDateStr();
+            body.modified_on = getCurrentMauritianDateStr();
+        }    
+        request.body = body; // Update the request body so proxyDirectus uses the stripped payload
 
         // 4. If validation passes, hand over execution context to the standard Directus proxy handler
         return proxyDirectus(request, response);

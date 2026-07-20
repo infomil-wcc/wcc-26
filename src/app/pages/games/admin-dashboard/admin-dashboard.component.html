@@ -314,10 +314,16 @@
           <span class="material-symbols-outlined">search</span>
           <input type="text" placeholder="Rechercher par trigramme / email..." [(ngModel)]="searchTerm" />
         </div>
-        <button class="btn btn-warning flex-center" [disabled]="isRecalculating" (click)="recalculateAllPlayers()" title="Lancer un recalcul total et forcer la mise à jour Directus">
-          <span class="material-symbols-outlined" [class.spin]="isRecalculating">sync</span>
-          Recalculation Totale (Forcer)
-        </button>
+        <div style="display: flex; gap: 10px;">
+          <button class="btn btn-detail flex-center" [disabled]="isLoading" (click)="loadAdminData()" title="Rafraîchir les données (sans recalcul)">
+            <span class="material-symbols-outlined" [class.spin]="isLoading">refresh</span>
+            Rafraîchir
+          </button>
+          <button class="btn btn-warning flex-center" [disabled]="isRecalculating" (click)="recalculateAllPlayers()" title="Lancer un recalcul total et forcer la mise à jour Directus">
+            <span class="material-symbols-outlined" [class.spin]="isRecalculating">sync</span>
+            Recalculation Totale (Forcer)
+          </button>
+        </div>
       </div>
       <div class="card-body">
         <div class="table-responsive">
@@ -483,7 +489,9 @@
                   <th>Coup d'envoi</th>
                   <th>Envoi (Created)</th>
                   <th>Modif (Modified)</th>
-                  <th>Pronostic</th>
+                  <th>Prono (FM)</th>
+                  <th>Prono (MT)</th>
+                  <th>Buteur</th>
                   <th>Score Réel</th>
                   <th>Points Calculés</th>
                   <th>Audit</th>
@@ -497,6 +505,8 @@
                   <td>{{ d.submittedAt ? (d.submittedAt | date: 'dd/MM/yyyy HH:mm:ss') : '-' }}</td>
                   <td>{{ d.modifiedAt ? (d.modifiedAt | date: 'dd/MM/yyyy HH:mm:ss') : '-' }}</td>
                   <td class="font-semibold">{{ d.prediction }}</td>
+                  <td class="font-semibold">{{ d.halftime_prediction }}</td>
+                  <td class="font-semibold">{{ d.scorer_prediction }}</td>
                   <td class="font-semibold">{{ d.actualScore }}</td>
                   <td class="font-bold">
                     {{ d.calculatedPoints }} pts
