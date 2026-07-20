@@ -682,7 +682,7 @@ export class AdminDashboardComponent implements OnInit {
       // Build filter string to fetch predictions ONLY for visible page users
       // Directus filter syntax: filter[user][_in]=username1,username2...
       const usernames = playersToFetch.map(p => p.username.toLowerCase().trim()).join(',');
-      const predictionsUrl = `?limit=-1&fields=id,user,game_id,fulltime_a,fulltime_b,winner_draw,scorer,created_on,modified_on&filter[fulltime_a][nnull]&filter[user][in]=${usernames}`;
+      const predictionsUrl = `?limit=-1&fields=id,user,game_id,fulltime_a,fulltime_b,halftime_a,halftime_b,winner_draw,scorer,created_on,modified_on&filter[fulltime_a][nnull]&filter[user][in]=${usernames}`;
 
       console.log('[Admin] Fetching predictions with URL:', predictionsUrl);
       this.predictionsApi.getPredictions(predictionsUrl, httpOptions).pipe(
@@ -895,7 +895,7 @@ export class AdminDashboardComponent implements OnInit {
     };
 
     // Load ALL predictions for full audit
-    this.predictionsApi.getPredictions('?limit=-1&fields=id,user,game_id,fulltime_a,fulltime_b,winner_draw,scorer,created_on,modified_on&filter[fulltime_a][nnull]', httpOptions).pipe(
+    this.predictionsApi.getPredictions('?limit=-1&fields=id,user,game_id,fulltime_a,fulltime_b,halftime_a,halftime_b,winner_draw,scorer,created_on,modified_on&filter[fulltime_a][nnull]', httpOptions).pipe(
       timeout(30000),
       catchError(() => of({ data: [] }))
     ).subscribe({
