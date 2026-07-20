@@ -734,8 +734,8 @@ export class AdminDashboardComponent implements OnInit {
 
               // Sort userPredictions DESCENDING to take the newest valid occurrence of multiple records
               userPredictions.sort((a, b) => {
-                const dateA = a.created_on ? new Date(this.pointsCalculatorService.parseMauritianDate(a.created_on)).getTime() : 0;
-                const dateB = b.created_on ? new Date(this.pointsCalculatorService.parseMauritianDate(b.created_on)).getTime() : 0;
+                const dateA = a.created_on ? new Date(this.pointsCalculatorService.parseMauritianDate(this.pointsCalculatorService.convertDirectusToMauritianString(a.created_on))).getTime() : 0;
+                const dateB = b.created_on ? new Date(this.pointsCalculatorService.parseMauritianDate(this.pointsCalculatorService.convertDirectusToMauritianString(b.created_on))).getTime() : 0;
                 return dateB - dateA;
               });
 
@@ -744,8 +744,8 @@ export class AdminDashboardComponent implements OnInit {
               userPredictions.forEach(p => {
                 stats.totalPredictions++;
 
-                const createdTime = p.created_on ? new Date(this.pointsCalculatorService.parseMauritianDate(p.created_on)) : null;
-                const modifiedTime = p.modified_on ? new Date(this.pointsCalculatorService.parseMauritianDate(p.modified_on)) : null;
+                const createdTime = p.created_on ? new Date(this.pointsCalculatorService.parseMauritianDate(this.pointsCalculatorService.convertDirectusToMauritianString(p.created_on))) : null;
+                const modifiedTime = p.modified_on ? new Date(this.pointsCalculatorService.parseMauritianDate(this.pointsCalculatorService.convertDirectusToMauritianString(p.modified_on))) : null;
                 if (createdTime && modifiedTime && Math.abs(modifiedTime.getTime() - createdTime.getTime()) > 5000) {
                   stats.modifiedCount++;
                 }
@@ -926,16 +926,16 @@ export class AdminDashboardComponent implements OnInit {
 
           // Sort userPredictions DESCENDING to take the newest valid occurrence of multiple records
           userPredictions.sort((a, b) => {
-            const dateA = a.created_on ? new Date(this.pointsCalculatorService.parseMauritianDate(a.created_on)).getTime() : 0;
-            const dateB = b.created_on ? new Date(this.pointsCalculatorService.parseMauritianDate(b.created_on)).getTime() : 0;
+            const dateA = a.created_on ? new Date(this.pointsCalculatorService.parseMauritianDate(this.pointsCalculatorService.convertDirectusToMauritianString(a.created_on))).getTime() : 0;
+            const dateB = b.created_on ? new Date(this.pointsCalculatorService.parseMauritianDate(this.pointsCalculatorService.convertDirectusToMauritianString(b.created_on))).getTime() : 0;
             return dateB - dateA;
           });
 
           const processedGames = new Set<string>();
 
           userPredictions.forEach(p => {
-            const createdTime = p.created_on ? new Date(this.pointsCalculatorService.parseMauritianDate(p.created_on)) : null;
-            const modifiedTime = p.modified_on ? new Date(this.pointsCalculatorService.parseMauritianDate(p.modified_on)) : null;
+            const createdTime = p.created_on ? new Date(this.pointsCalculatorService.parseMauritianDate(this.pointsCalculatorService.convertDirectusToMauritianString(p.created_on))) : null;
+            const modifiedTime = p.modified_on ? new Date(this.pointsCalculatorService.parseMauritianDate(this.pointsCalculatorService.convertDirectusToMauritianString(p.modified_on))) : null;
             const match = this.matches.find(m => String(m.id) === String(p.game_id));
 
             if (match) {

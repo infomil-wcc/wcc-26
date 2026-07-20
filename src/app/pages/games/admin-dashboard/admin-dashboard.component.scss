@@ -397,7 +397,8 @@
 .modal-table-container {
   border: 1px solid rgba(255,255,255,0.05);
   border-radius: 12px;
-  overflow: hidden;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 /* LOADING / ERROR STATES */

@@ -1,4 +1,4 @@
-import { fetchWithBypass, parseMauritianDate } from './utils.mjs';
+import { fetchWithBypass, parseMauritianDate, convertDirectusToMauritianString } from './utils.mjs';
 import { calcResultForRanking } from './match-calculations.mjs';
 import { calcBracketPoints } from './calc-bracket-stage.mjs';
 
@@ -126,8 +126,8 @@ export async function recalculateRankings(directusUrl, adminToken, specificUser 
 
       // Sort by created_on DESCENDING to ensure we take the newest valid occurrence of multiple records
       userPredictions[username].sort((a, b) => {
-        const dateA = a.created_on ? parseMauritianDate(a.created_on) : 0;
-        const dateB = b.created_on ? parseMauritianDate(b.created_on) : 0;
+        const dateA = a.created_on ? parseMauritianDate(convertDirectusToMauritianString(a.created_on)) : 0;
+        const dateB = b.created_on ? parseMauritianDate(convertDirectusToMauritianString(b.created_on)) : 0;
         return dateB - dateA;
       });
 
@@ -139,8 +139,8 @@ export async function recalculateRankings(directusUrl, adminToken, specificUser 
         const game = playedMatches.find(m => String(m.id) === gameIdStr);
         if (game) {
           // 🚨 TIMESTAMP FRAUD CHECK
-          const predictionCreated = prono.created_on ? parseMauritianDate(prono.created_on) : null;
-          const predictionModified = prono.modified_on ? parseMauritianDate(prono.modified_on) : null;
+          const predictionCreated = prono.created_on ? parseMauritianDate(convertDirectusToMauritianString(prono.created_on)) : null;
+          const predictionModified = prono.modified_on ? parseMauritianDate(convertDirectusToMauritianString(prono.modified_on)) : null;
           const matchKickoff = parseMauritianDate(game.date);
 
           let isInvalidated = false;

@@ -25,15 +25,18 @@ export class PointsCalculatorService {
     if (!dateStr) return 0;
     let normalized = String(dateStr).trim();
 
-    // If the string doesn't specify Z or an offset (+/-), append the Mauritian timezone offset (+04:00)
-    if (!normalized.endsWith('Z') && !/[+-]\d{2}:?\d{2}$/.test(normalized)) {
-      normalized += '+04:00';
-    }
-
     // Replace space with T for cross-browser support (e.g., Safari/Firefox)
     normalized = normalized.replace(' ', 'T');
 
     return new Date(normalized).getTime();
+  }
+
+  public convertDirectusToMauritianString(dateStr: string): string {
+    if (!dateStr) return '';
+    const d = new Date(dateStr);
+    // Directus sends UTC. Add 4 hours for Mauritius.
+    d.setUTCHours(d.getUTCHours() + 4);
+    return d.toISOString().replace('.000Z', '').replace('Z', '');
   }
 
   /**
@@ -46,7 +49,8 @@ export class PointsCalculatorService {
     const dateToUse = prediction.modified_on ? prediction.modified_on : prediction.created_on;
     if (!dateToUse) return false;
 
-    const predTimestamp = this.parseMauritianDate(dateToUse);
+    const mauritianStr = this.convertDirectusToMauritianString(dateToUse);
+    const predTimestamp = this.parseMauritianDate(mauritianStr);
     const matchTimestamp = this.parseMauritianDate(match.date);
 
     // Returns true if the prediction was made/modified AFTER or AT the exact match kick-off time

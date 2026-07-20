@@ -12,14 +12,17 @@ export function parseMauritianDate(dateStr) {
   if (!dateStr) return 0;
   let normalized = String(dateStr).trim();
 
-  // If the string doesn't specify Z or an offset (+/-), append Mauritian offset (+04:00)
-  if (!normalized.endsWith('Z') && !/[+-]\d{2}:?\d{2}$/.test(normalized)) {
-    normalized += '+04:00';
-  }
-
   // Cross-browser/environment standard replacement
   normalized = normalized.replace(' ', 'T');
   return new Date(normalized).getTime();
+}
+
+export function convertDirectusToMauritianString(dateStr) {
+  if (!dateStr) return '';
+  const d = new Date(dateStr);
+  // Directus sends UTC. Add 4 hours for Mauritius.
+  d.setUTCHours(d.getUTCHours() + 4);
+  return d.toISOString().replace('.000Z', '').replace('Z', '');
 }
 
 /**
