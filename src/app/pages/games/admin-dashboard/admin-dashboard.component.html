@@ -499,7 +499,7 @@
                 </tr>
               </thead>
               <tbody>
-                <tr *ngFor="let d of selectedPlayer.predictionsDetail" [class.row-mismatch]="d.isLate">
+                <tr *ngFor="let d of selectedPlayer.predictionsDetail" [class.row-mismatch]="d.isLate || d.isDuplicate">
                   <td class="font-bold text-xs text-muted">#{{ d.matchId }}</td>
                   <td class="font-bold">{{ d.match }}</td>
                   <td class="text-xs">{{ d.phase }}</td>
@@ -512,7 +512,7 @@
                   <td class="font-semibold">{{ d.actualScore }}</td>
                   <td class="font-bold">
                     {{ d.calculatedPoints }} pts
-                    <div class="breakdown-subtext" *ngIf="d.calculatedPoints > 0 && d.breakdown && !d.isLate">
+                    <div class="breakdown-subtext" *ngIf="d.calculatedPoints > 0 && d.breakdown && !d.isLate && !d.isDuplicate">
                       <span *ngIf="d.breakdown.winner > 0" class="badge-bk text-success" title="Vainqueur Correct">V: +{{d.breakdown.winner}}</span>
                       <span *ngIf="d.breakdown.fulltime > 0" class="badge-bk text-info" title="Score Exact">S: +{{d.breakdown.fulltime}}</span>
                       <span *ngIf="d.breakdown.halftime > 0" class="badge-bk text-warning" title="Mi-temps Exacte">MT: +{{d.breakdown.halftime}}</span>
@@ -521,8 +521,9 @@
                     </div>
                   </td>
                   <td>
-                    <span class="badge badge-danger" *ngIf="d.isLate">TARDIF: {{ d.lateReason }}</span>
-                    <span class="badge badge-success" *ngIf="!d.isLate">OK</span>
+                    <span class="badge badge-danger" *ngIf="d.isDuplicate">DOUBLON</span>
+                    <span class="badge badge-danger" *ngIf="d.isLate">TARDIF</span>
+                    <span class="badge badge-success" *ngIf="!d.isLate && !d.isDuplicate">OK</span>
                   </td>
                 </tr>
               </tbody>
