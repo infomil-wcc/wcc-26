@@ -75,6 +75,7 @@ export class AdminDashboardComponent implements OnInit {
 
   playersReport: PlayerStats[] = [];
   fraudCases: FraudReport[] = [];
+  duplicateCases: FraudReport[] = [];
   totalDiscrepancies = 0;
 
   selectedPlayer: PlayerStats | null = null;
@@ -274,7 +275,7 @@ export class AdminDashboardComponent implements OnInit {
             this.recalcLiveLines = [...this.recalcLiveLines, '🏆 Lancement du recalcul global des rangs...'].slice(-8);
             saveState(true);
             this.tryDetectChanges();
-            
+
             this.rankingsService.recalculateRanksOnly().subscribe({
               next: () => {
                 const durationMs = Date.now() - startTime;
@@ -358,7 +359,7 @@ export class AdminDashboardComponent implements OnInit {
         player.isCalculating = false;
         this.isRecalculating = false;
         this.recalcSuccessMessage = `Points recalculés avec succès pour ${player.username} !`;
-        
+
         // Populate summary to show the logs in the modal
         this.recalcSummary = {
           matchesSynced: 0,
@@ -385,6 +386,13 @@ export class AdminDashboardComponent implements OnInit {
     });
   }
 
+  refreshPlayerLocal(player: PlayerStats): void {
+    player.isCalculating = true;
+    this.tryDetectChanges();
+    // This will fetch their latest predictions and recalculate local points and fraud status
+    this.calculatePageData();
+  }
+
   forcePointsToDirectus(player: PlayerStats): void {
     this.confirmDialog = {
       title: 'Forcer la sauvegarde',
@@ -394,7 +402,7 @@ export class AdminDashboardComponent implements OnInit {
         this.rankingsService.forcePoints(player.username, player.calculatedPoints).subscribe({
           next: (res: any) => {
             this.alertDialog = { title: 'Succès', message: res.message };
-            
+
             // Update the UI instantly
             if (player.pointDiscrepancy && !player.hasFraud) {
               this.totalDiscrepancies = Math.max(0, this.totalDiscrepancies - 1);
@@ -436,7 +444,7 @@ export class AdminDashboardComponent implements OnInit {
 
   recalculateAllPlayers(): void {
     const playersWithEcart = this.playersReport.filter(p => p.pointDiscrepancy);
-    
+
     if (playersWithEcart.length === 0) {
       this.confirmDialog = {
         title: 'Recalcul des rangs',
@@ -461,13 +469,13 @@ export class AdminDashboardComponent implements OnInit {
         this.tryDetectChanges();
 
         const observables = playersWithEcart.map(p => this.rankingsService.forcePoints(p.username, p.calculatedPoints));
-        
+
         forkJoin(observables).subscribe({
           next: () => {
             this.recalcLiveLines.push('✅ Mise à jour des points terminée.');
             this.recalcLiveLines.push('🔄 Lancement du recalcul des rangs...');
             this.tryDetectChanges();
-            
+
             this.rankingsService.recalculateRanksOnly().subscribe({
               next: (res: any) => {
                 this.isRecalculating = false;
@@ -519,6 +527,7 @@ export class AdminDashboardComponent implements OnInit {
     this.errorMessage = '';
     this.isGlobalAuditRun = false;
     this.fraudCases = [];
+    this.duplicateCases = [];
     this.totalDiscrepancies = 0;
     const token = this.cookieService.get('currentToken');
     console.log('[Admin] token from cookies:', token ? 'exists (starts with ' + token.substring(0, 10) + '...)' : 'missing');
@@ -621,17 +630,18 @@ export class AdminDashboardComponent implements OnInit {
           console.log('DEBUG ARRAYS: recalcLiveLines isArray?', Array.isArray(this.recalcLiveLines), 'type:', typeof this.recalcLiveLines);
           console.log('DEBUG ARRAYS: recalcSummary.logs isArray?', this.recalcSummary ? Array.isArray(this.recalcSummary.logs) : 'N/A');
           console.log('DEBUG ARRAYS: getPaginatedPlayers() isArray?', Array.isArray(this.getPaginatedPlayers()), 'type:', typeof this.getPaginatedPlayers());
-          
+
           if (!Array.isArray(this.playersReport)) this.playersReport = [];
           if (!Array.isArray(this.fraudCases)) this.fraudCases = [];
+          if (!Array.isArray(this.duplicateCases)) this.duplicateCases = [];
           if (!Array.isArray(this.recalcLiveLines)) this.recalcLiveLines = [];
           if (this.recalcSummary && !Array.isArray(this.recalcSummary.logs)) this.recalcSummary.logs = [];
-          
+
           this.cdr.detectChanges();
 
           // 2. Fetch and calculate only the active page's users
           this.calculatePageData();
-          
+
           // 3. Trigger a full background audit to pre-populate global stats and fraud cases
           this.runFullAudit();
         } catch (e) {
@@ -768,7 +778,7 @@ export class AdminDashboardComponent implements OnInit {
                     processedGames.add(gameIdStr);
                   }
 
-                  if (isLate || isDuplicate) {
+                  if (isLate) {
                     hasFraud = true;
                     // Add to visible fraud cases if not already present
                     if (!this.fraudCases.some(f => f.user === stats.username && f.matchId === match.id)) {
@@ -779,7 +789,7 @@ export class AdminDashboardComponent implements OnInit {
                         kickoff: kickoffTime,
                         submittedAt: createdTime,
                         modifiedAt: modifiedTime,
-                        reason: isDuplicate ? 'Doublon détecté' : (createdTime && createdTime > kickoffTime ? 'Création après coup d\'envoi' : 'Modification après coup d\'envoi')
+                        reason: createdTime && createdTime > kickoffTime ? 'Création après coup d\'envoi' : 'Modification après coup d\'envoi'
                       });
                     }
                   }
@@ -956,7 +966,7 @@ export class AdminDashboardComponent implements OnInit {
                 processedGames.add(gameIdStr);
               }
 
-              if (isLate || isDuplicate) {
+              if (isLate) {
                 hasFraud = true;
                 this.fraudCases.push({
                   user: stats.username,
@@ -965,7 +975,19 @@ export class AdminDashboardComponent implements OnInit {
                   kickoff: kickoffTime,
                   submittedAt: createdTime,
                   modifiedAt: modifiedTime,
-                  reason: isDuplicate ? 'Doublon détecté' : (createdTime && createdTime > kickoffTime ? 'Création après coup d\'envoi' : 'Modification après coup d\'envoi')
+                  reason: createdTime && createdTime > kickoffTime ? 'Création après coup d\'envoi' : 'Modification après coup d\'envoi'
+                });
+              }
+
+              if (isDuplicate) {
+                this.duplicateCases.push({
+                  user: stats.username,
+                  matchId: match.id,
+                  matchName: `${match.team_a} vs ${match.team_b}`,
+                  kickoff: kickoffTime,
+                  submittedAt: createdTime,
+                  modifiedAt: modifiedTime,
+                  reason: 'Doublon détecté'
                 });
               }
 

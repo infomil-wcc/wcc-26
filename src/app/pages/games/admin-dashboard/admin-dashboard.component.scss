@@ -178,7 +178,8 @@
 /* TABLES */
 .table-responsive {
   width: 100%;
-  overflow-x: auto;
+  overflow: auto;
+  max-height: calc(100vh - 220px);
 }
 
 .dashboard-table {
@@ -188,11 +189,15 @@
   font-size: 0.9rem;
 
   thead {
-    background: rgba(0,0,0,0.25);
     tr {
       border-bottom: 1px solid rgba(255,255,255,0.1);
     }
     th {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      background: #1a1a24; /* Solid background to prevent rows showing through */
+      box-shadow: 0 1px 0 rgba(255,255,255,0.1); /* Replaces border-bottom visually for sticky */
       padding: 8px 12px;
       font-weight: 700;
       color: rgba(255,255,255,0.5);
@@ -277,6 +282,24 @@
   }
 }
 
+.btn-icon {
+  padding: 8px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  color: #fff;
+  
+  &:hover { background: rgba(255, 255, 255, 0.1); }
+
+  &.success { color: #4caf50; border-color: rgba(76, 175, 80, 0.3); }
+  &.warning { color: #ff9800; border-color: rgba(255, 152, 0, 0.3); }
+  &.info { color: #3b82f6; border-color: rgba(59, 130, 246, 0.3); }
+  
+  &.success:hover { background: rgba(76, 175, 80, 0.15); border-color: #4caf50; box-shadow: 0 4px 12px rgba(76, 175, 80, 0.2); }
+  &.warning:hover { background: rgba(255, 152, 0, 0.15); border-color: #ff9800; box-shadow: 0 4px 12px rgba(255, 152, 0, 0.2); }
+  &.info:hover { background: rgba(59, 130, 246, 0.15); border-color: #3b82f6; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2); }
+}
+
 .btn-retry {
   background: rgba(255,255,255,0.1);
   color: #fff;
@@ -349,8 +372,8 @@
   background: #14141f;
   border: 1px solid rgba(255,255,255,0.1);
   border-radius: 20px;
-  width: 100%;
-  max-width: 1100px;
+  width: 95%;
+  max-width: 1400px;
   max-height: 85vh;
   display: flex;
   flex-direction: column;

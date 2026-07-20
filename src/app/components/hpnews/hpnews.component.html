@@ -21,9 +21,34 @@
                     <div class="winner-flag-container mb-3 shadow-6" style="width: 120px; height: 80px; border-radius: 8px; overflow: hidden; border: 3px solid #fbbf24;">
                       <img [src]="match.winningTeamFlag" alt="Winner Flag" class="w-full h-full object-cover" />
                     </div>
-                    <h1 class="text-white font-bold text-3xl md:text-5xl m-0 uppercase" style="text-shadow: 2px 2px 4px rgba(0,0,0,0.5);">
+                    <h1 class="text-white font-bold text-3xl md:text-5xl m-0 uppercase mb-3" style="text-shadow: 2px 2px 4px rgba(0,0,0,0.5);">
                       {{ match.winningTeam }}
                     </h1>
+                    
+                    <!-- PODIUM -->
+                    <div class="podium-container" style="transform: scale(0.65); transform-origin: top center; margin-bottom: -40px;">
+                      <!-- Silver -->
+                      <div class="podium-place place-2">
+                        <div class="podium-avatar silver-glow"><span class="material-symbols-outlined">person</span></div>
+                        <span class="podium-name text-white font-bold">{{ (topPlayers[1]?.key || topPlayers[1]?.user || topPlayers[1]?.trigramme) | uppercase }}</span>
+                        <span class="podium-pts text-white">{{ topPlayers[1]?.point }} pts</span>
+                        <div class="podium-block block-silver"><span class="podium-rank">2</span></div>
+                      </div>
+                      <!-- Gold -->
+                      <div class="podium-place place-1">
+                        <div class="podium-avatar gold-glow"><span class="material-symbols-outlined">person</span></div>
+                        <span class="podium-name text-white font-bold">{{ (topPlayers[0]?.key || topPlayers[0]?.user || topPlayers[0]?.trigramme) | uppercase }}</span>
+                        <span class="podium-pts text-white">{{ topPlayers[0]?.point }} pts</span>
+                        <div class="podium-block block-gold"><span class="podium-rank">1</span></div>
+                      </div>
+                      <!-- Bronze -->
+                      <div class="podium-place place-3">
+                        <div class="podium-avatar bronze-glow"><span class="material-symbols-outlined">person</span></div>
+                        <span class="podium-name text-white font-bold">{{ (topPlayers[2]?.key || topPlayers[2]?.user || topPlayers[2]?.trigramme) | uppercase }}</span>
+                        <span class="podium-pts text-white">{{ topPlayers[2]?.point }} pts</span>
+                        <div class="podium-block block-bronze"><span class="podium-rank">3</span></div>
+                      </div>
+                    </div>
                   </div>
                 } @else {
                   <!-- Standard Match Slide -->

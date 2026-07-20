@@ -4,18 +4,19 @@ import { Observable, combineLatest, timer } from 'rxjs';
 import { map, switchMap } from 'rxjs/operators';
 import { MatchesService } from '../../shared/services/content/matches.service';
 import { TeamsService } from '../../shared/services/content/teams.service';
+import { RankingsService } from '../../shared/services/content/rankings.service';
 import { GlobaltimeService } from '../../shared/services/core/globaltime.service';
 import { Matches } from '../../shared/contracts/matches.contract';
 import { MatchComponent } from '../../shared/components/match/match.component';
 import { LoaderComponent } from '../../shared/components/loader/loader.component';
-import { AsyncPipe, DatePipe, NgClass } from '@angular/common';
+import { AsyncPipe, DatePipe, NgClass, UpperCasePipe } from '@angular/common';
 
 @Component({
     selector: 'app-hpnews',
     templateUrl: './hpnews.component.html',
     styleUrl: './hpnews.component.scss',
     changeDetection: ChangeDetectionStrategy.Eager,
-    imports: [MatchComponent, LoaderComponent, AsyncPipe, DatePipe, NgClass]
+    imports: [MatchComponent, LoaderComponent, AsyncPipe, DatePipe, NgClass, UpperCasePipe]
 })
 export class HpnewsComponent {
   private newsService = inject(NewsService);
@@ -25,6 +26,9 @@ export class HpnewsComponent {
   private matchesService = inject(MatchesService);
   private globalTime = inject(GlobaltimeService);
   private teamsService = inject(TeamsService);
+  private rankingsService = inject(RankingsService);
+
+  protected topPlayers: any[] = [];
 
   $filteredMatches!: Observable<any[]>;
   $currentSlideIndex!: Observable<number>;
@@ -62,6 +66,17 @@ export class HpnewsComponent {
 
   initialiseMatchSlider() {
     this.$today = this.globalTime.getMuTime();
+
+    // Fetch the top 3 players for the podium
+    this.rankingsService.getPronosticsRankings().subscribe(rankings => {
+      if (rankings && rankings.length > 0) {
+        rankings.sort((a: any, b: any) => (a.rank || 1) - (b.rank || 1));
+        this.topPlayers = rankings.slice(0, 3);
+        while(this.topPlayers.length < 3) {
+          this.topPlayers.push({ trigramme: '---', point: 0 });
+        }
+      }
+    });
   
     // Get matches for current day + 2 days and flags for the winner slide
     this.$filteredMatches = combineLatest([
