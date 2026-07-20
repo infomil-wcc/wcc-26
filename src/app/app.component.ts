@@ -75,13 +75,14 @@ export class AppComponent implements OnInit {
     }
 
     // this.checkFinalWinner();
-    this.testWinnerPopup();
+    // this.testWinnerPopup();
 
     this.stateService.userState.subscribe({
       next:(res) => {
         this.currentUser = res;
         if (res.first_name) {
           this.checkKnockoutPhase2(res.first_name);
+          this.checkFinalWinner();
         } else {
           // Guest user: show popup only if the first R32 match has not kicked off yet
           this.getFirstR32KickoffTime().subscribe(kickoff => {

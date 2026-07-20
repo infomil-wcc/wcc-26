@@ -48,7 +48,10 @@
     
     <!-- Recalculation Trigger Button -->
     <div class="header-actions">
-
+      <button class="btn btn-recalc" [disabled]="isRecalculating" (click)="recalculateAllPlayers()" style="margin-right: 10px;">
+        <span class="material-symbols-outlined" [class.spin]="isRecalculating">sync</span>
+        Recalcul Global
+      </button>
       <button class="btn btn-report" *ngIf="recalcSummary && !isRecalculating" (click)="showRecalcProgress = !showRecalcProgress">
         <span class="material-symbols-outlined">{{ showRecalcProgress ? 'expand_less' : 'expand_more' }}</span>
         {{ showRecalcProgress ? 'Masquer le rapport' : 'Voir le rapport' }}

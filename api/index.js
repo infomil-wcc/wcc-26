@@ -408,6 +408,53 @@ router.patch('/api/items/pronostiques/*', handleMatchPredictionValidation);
 router.put('/api/items/pronostiques/*', handleMatchPredictionValidation);
 router.all('/api/items', proxyDirectus);
 router.all('/api/items/*', proxyDirectus);
+router.post('/api/auth/refresh', async (request, response) => {
+    try {
+        const directusUrl = process.env.DIRECTUS_URL || 'https://euro.omediainteractive.net/imleuro';
+        let body = request.body;
+        if (typeof body === 'string') {
+            try { body = JSON.parse(body); } catch(e) {}
+        }
+        
+        // Ensure we send 'token' to Directus
+        const payload = {
+            token: body?.refresh_token || body?.token,
+            mode: body?.mode || 'json'
+        };
+
+        if (!payload.token) {
+            return response.status(401).json({ error: { message: "No refresh token provided." } });
+        }
+
+        const targetUrl = `${directusUrl}/auth/refresh`;
+        const res = await fetchWithBypass(targetUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+
+        const text = await res.text();
+        let data;
+        try {
+            data = JSON.parse(text);
+        } catch {
+            data = text;
+        }
+
+        // Directus sometimes returns 500 or 400 for expired/malformed tokens.
+        // We translate any failure to 401 so the frontend properly logs out the user instead of crashing/hanging.
+        if (res.status >= 400 || (data && data.error)) {
+            console.error(`[auth/refresh] Directus error ${res.status}:`, data);
+            return response.status(401).json({ error: { message: "Session expired or invalid refresh token." } });
+        }
+
+        return response.status(res.status).json(data);
+    } catch (error) {
+        console.error("Error during refresh token proxy:", error);
+        return response.status(401).json({ error: { message: "Session expired or invalid refresh token." } });
+    }
+});
+
 router.all('/api/auth', proxyDirectus);
 router.all('/api/auth/*', proxyDirectus);
 router.get('/api/users', proxyDirectus);
