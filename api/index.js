@@ -469,6 +469,8 @@ router.all('/api/assets', proxyDirectus);
 router.all('/api/assets/*', proxyDirectus);
 router.all('/api/mail', proxyDirectus);
 router.all('/api/mail/*', proxyDirectus);
+router.all('/api/revisions', proxyDirectus);
+router.all('/api/revisions/*', proxyDirectus);
 
 // 3. Export du point d'entrée requis pour Vercel Serverless
 export default async function handler(request, response) {

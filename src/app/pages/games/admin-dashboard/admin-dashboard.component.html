@@ -299,6 +299,7 @@
                       <th>Date Envoi (Created)</th>
                       <th>Date Modif (Modified)</th>
                       <th>Infraction</th>
+                      <th>Actions</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -314,6 +315,11 @@
                           [style.color]="case.reason === 'Doublon détecté' ? '#856404' : ''"
                           [style.background-color]="case.reason === 'Doublon détecté' ? '#fff3cd' : ''">{{ case.reason
                           }}</span>
+                      </td>
+                      <td>
+                        <button class="btn btn-icon info" (click)="openRevisionsModal(case)" title="Voir Historique">
+                          <span class="material-symbols-outlined" style="font-size: 1rem;">history</span>
+                        </button>
                       </td>
                     </tr>
                   </tbody>
@@ -341,6 +347,7 @@
                       <th>Date Envoi (Created)</th>
                       <th>Date Modif (Modified)</th>
                       <th>Statut</th>
+                      <th>Actions</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -352,6 +359,11 @@
                       <td>{{ case.modifiedAt ? (case.modifiedAt | date: 'dd/MM/yyyy HH:mm:ss') : 'N/A' }}</td>
                       <td>
                         <span class="badge badge-warning">DOUBLON</span>
+                      </td>
+                      <td>
+                        <button class="btn btn-icon info" (click)="openRevisionsModal(case)" title="Voir Historique">
+                          <span class="material-symbols-outlined" style="font-size: 1rem;">history</span>
+                        </button>
                       </td>
                     </tr>
                   </tbody>
@@ -627,5 +639,64 @@
       </div>
     </div>
 
+  </div>
+</div>
+
+<!-- Revisions Modal Popup -->
+<div class="modal-takeover" *ngIf="selectedRevisionPrediction">
+  <div class="modal-card" style="max-width: 600px;">
+    <div class="modal-header">
+      <h2>Historique des modifications : {{ selectedRevisionPrediction.user | uppercase }}</h2>
+      <button class="btn-close" (click)="closeRevisionsModal()"><span class="material-symbols-outlined">close</span></button>
+    </div>
+    <div class="modal-body p-4">
+      <div class="mb-3" style="color: #e2e8f0;">
+        <strong>Match :</strong> {{ selectedRevisionPrediction.matchName }}<br/>
+        <strong>Coup d'envoi :</strong> {{ selectedRevisionPrediction.kickoff | date: 'dd/MM/yyyy HH:mm' }}
+      </div>
+      
+      <div *ngIf="isLoadingRevisions" class="loading-state">
+        <div class="spinner"></div>
+        <p>Chargement de l'historique depuis Directus...</p>
+      </div>
+
+      <div *ngIf="revisionsError" class="text-danger font-bold mb-3">
+        {{ revisionsError }}
+      </div>
+
+      <div *ngIf="!isLoadingRevisions && !revisionsError">
+        <div *ngIf="selectedRevisions.length === 0" class="text-muted">
+          Aucun historique de modification trouvé.
+        </div>
+        
+        <div *ngFor="let rev of selectedRevisions; let i = index" class="card mb-3">
+          <div class="card-header p-2 bg-dark text-white flex justify-content-between">
+            <span><strong>Modification #{{ selectedRevisions.length - i }}</strong> (Action: {{ rev.action || 'Update' }})</span>
+            <span>{{ (rev.timestamp || rev.data?.modified_on || rev.data?.created_on) | date: 'dd/MM/yyyy HH:mm:ss' }}</span>
+          </div>
+          <div class="card-body p-3">
+            <table class="dashboard-table" *ngIf="rev.changes && rev.changes.length > 0">
+              <thead>
+                <tr>
+                  <th style="color: #a1a1aa;">Champ modifié</th>
+                  <th style="color: #a1a1aa;">Ancienne Valeur</th>
+                  <th style="color: #a1a1aa;">Nouvelle Valeur</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let change of rev.changes">
+                  <td class="font-bold" style="color: #e2e8f0;">{{ change.key }}</td>
+                  <td style="color: #fca5a5; font-family: monospace;">{{ change.oldValue | json }}</td>
+                  <td style="color: #86efac; font-family: monospace;">{{ change.newValue | json }}</td>
+                </tr>
+              </tbody>
+            </table>
+            <div *ngIf="!rev.changes || rev.changes.length === 0" class="text-muted text-sm mt-2">
+              (Aucune donnée de champ détaillée pour cette révision)
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </div>

@@ -21,6 +21,7 @@ interface FraudReport {
   submittedAt: Date | null;
   modifiedAt: Date | null;
   reason: string;
+  predictionId: string | number;
 }
 
 interface PlayerStats {
@@ -82,6 +83,12 @@ export class AdminDashboardComponent implements OnInit {
 
   isGlobalAuditRun = false;
   isGlobalAuditing = false;
+
+  // Revisions Modal State
+  selectedRevisionPrediction: FraudReport | null = null;
+  selectedRevisions: any[] = [];
+  isLoadingRevisions = false;
+  revisionsError = '';
 
   private _searchTerm = '';
   get searchTerm(): string {
@@ -789,7 +796,8 @@ export class AdminDashboardComponent implements OnInit {
                         kickoff: kickoffTime,
                         submittedAt: createdTime,
                         modifiedAt: modifiedTime,
-                        reason: createdTime && createdTime > kickoffTime ? 'Création après coup d\'envoi' : 'Modification après coup d\'envoi'
+                        reason: createdTime && createdTime > kickoffTime ? 'Création après coup d\'envoi' : 'Modification après coup d\'envoi',
+                        predictionId: p.id
                       });
                     }
                   }
@@ -975,7 +983,8 @@ export class AdminDashboardComponent implements OnInit {
                   kickoff: kickoffTime,
                   submittedAt: createdTime,
                   modifiedAt: modifiedTime,
-                  reason: createdTime && createdTime > kickoffTime ? 'Création après coup d\'envoi' : 'Modification après coup d\'envoi'
+                  reason: createdTime && createdTime > kickoffTime ? 'Création après coup d\'envoi' : 'Modification après coup d\'envoi',
+                  predictionId: p.id
                 });
               }
 
@@ -987,7 +996,8 @@ export class AdminDashboardComponent implements OnInit {
                   kickoff: kickoffTime,
                   submittedAt: createdTime,
                   modifiedAt: modifiedTime,
-                  reason: 'Doublon détecté'
+                  reason: 'Doublon détecté',
+                  predictionId: p.id
                 });
               }
 
@@ -1039,5 +1049,57 @@ export class AdminDashboardComponent implements OnInit {
 
   closeDetails(): void {
     this.selectedPlayer = null;
+  }
+
+  // Revisions logic
+  openRevisionsModal(fraudCase: FraudReport): void {
+    this.selectedRevisionPrediction = fraudCase;
+    this.isLoadingRevisions = true;
+    this.revisionsError = '';
+    this.selectedRevisions = [];
+
+    const token = this.cookieService.get('currentToken');
+    if (!token) {
+      this.revisionsError = 'Non autorisé';
+      this.isLoadingRevisions = false;
+      return;
+    }
+
+    const httpOptions = { headers: { 'Authorization': `Bearer ${token}` } };
+    const query = `?filter[collection]=pronostiques&filter[item]=${fraudCase.predictionId}&sort=-id`;
+
+    this.predictionsApi.getRevisions(query, httpOptions).pipe(
+      timeout(10000),
+      catchError(err => {
+        console.error('Failed to load revisions:', err);
+        this.revisionsError = 'Erreur lors du chargement de l\'historique';
+        return of({ data: [] });
+      })
+    ).subscribe((res: any) => {
+      const revs = res?.data || res || [];
+      
+      // Enrechir avec les anciennes valeurs
+      for (let i = 0; i < revs.length; i++) {
+        const currentRev = revs[i];
+        if (currentRev.delta) {
+          const previousRev = revs[i + 1];
+          currentRev.changes = [];
+          for (const key of Object.keys(currentRev.delta)) {
+            const newValue = currentRev.delta[key];
+            const oldValue = previousRev && previousRev.data ? previousRev.data[key] : 'N/A';
+            currentRev.changes.push({ key, oldValue, newValue });
+          }
+        }
+      }
+      
+      this.selectedRevisions = revs;
+      this.isLoadingRevisions = false;
+      this.cdr.detectChanges();
+    });
+  }
+
+  closeRevisionsModal(): void {
+    this.selectedRevisionPrediction = null;
+    this.selectedRevisions = [];
   }
 }
