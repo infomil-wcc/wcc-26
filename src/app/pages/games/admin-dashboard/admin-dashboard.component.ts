@@ -802,7 +802,7 @@ export class AdminDashboardComponent implements OnInit {
                   let breakdown = { winner: 0, fulltime: 0, halftime: 0, scorer: 0, consolation: 0, total: 0 };
 
                   if (!isLate && !isDuplicate && match.fulltime_a !== null && match.fulltime_b !== null) {
-                    breakdown = this.calculatePoints(match, p, this.rules);
+                    breakdown = this.pointsCalculatorService.calculatePoints(match, p, this.rules);
                     pointsEarned = breakdown.total;
                     calculatedPoints += pointsEarned;
 
@@ -965,7 +965,7 @@ export class AdminDashboardComponent implements OnInit {
               }
 
               if (!isLate && !isDuplicate && match.fulltime_a !== null && match.fulltime_b !== null) {
-                const breakdown = this.calculatePoints(match, p, this.rules);
+                const breakdown = this.pointsCalculatorService.calculatePoints(match, p, this.rules);
                 calculatedPoints += breakdown.total;
               }
             }
@@ -993,103 +993,7 @@ export class AdminDashboardComponent implements OnInit {
     });
   }
 
-  calculatePoints(match: any, prediction: any, rules: any[]): any {
-    const targetPhase = match.phase === 'Third Place' ? 'Final' : match.phase;
-    const rule = rules.find(r => r.game_type === 'pronostics' && r.phase === targetPhase) || {
-      winner_draw_points: 0,
-      fulltime_exact_points: 0,
-      halftime_exact_points: 0,
-      scorer_points: 0,
-      consolation_points: 0
-    };
 
-    const breakdown = { winner: 0, fulltime: 0, halftime: 0, scorer: 0, consolation: 0, total: 0 };
-    let accurateFieldsCount = 0;
-
-    const getScore = (val: any) => (val === '-' || val === null || val === undefined || val === '') ? 0 : parseInt(val, 10);
-    // Matches backend normalizePlayerName exactly: NFD + remove accents + lowercase + remove punctuation + split words + sort + join
-    const normalizeName = (str: string): string => {
-      if (!str || typeof str !== 'string') return '';
-      return str
-        .normalize('NFD')
-        .replace(/[\u0300-\u036f]/g, '')  // remove accents
-        .toLowerCase()
-        .replace(/[^a-z0-9\s]/g, '')     // remove punctuation
-        .split(/\s+/)
-        .filter(Boolean)
-        .sort()
-        .join(' ')
-        .trim();
-    };
-
-    let inferredWinnerDraw = prediction.winner_draw;
-
-    if (match.phase !== 'Group Stage') {
-      if (!inferredWinnerDraw || inferredWinnerDraw.trim() === '') {
-        const hasScoreA = (prediction.fulltime_a !== null && prediction.fulltime_a !== undefined && prediction.fulltime_a !== '' && prediction.fulltime_a !== '-');
-        const hasScoreB = (prediction.fulltime_b !== null && prediction.fulltime_b !== undefined && prediction.fulltime_b !== '' && prediction.fulltime_b !== '-');
-        if (hasScoreA || hasScoreB) {
-          const pScoreA = getScore(prediction.fulltime_a);
-          const pScoreB = getScore(prediction.fulltime_b);
-          if (pScoreA > pScoreB) inferredWinnerDraw = match.team_a;
-          else if (pScoreA < pScoreB) inferredWinnerDraw = match.team_b;
-          else inferredWinnerDraw = 'Draw';
-        }
-      }
-    }
-
-    const isWinnerDrawCorrect = match.winner_draw === inferredWinnerDraw;
-    const isFulltimeExact = getScore(match.fulltime_a) === getScore(prediction.fulltime_a) &&
-      getScore(match.fulltime_b) === getScore(prediction.fulltime_b);
-    const isHalftimeExact = getScore(match.halftime_a) === getScore(prediction.halftime_a) &&
-      getScore(match.halftime_b) === getScore(prediction.halftime_b);
-
-    if (isWinnerDrawCorrect && Number(rule.winner_draw_points) > 0) {
-      breakdown.winner = Number(rule.winner_draw_points);
-      accurateFieldsCount++;
-    }
-    if (isFulltimeExact && Number(rule.fulltime_exact_points) > 0) {
-      breakdown.fulltime = Number(rule.fulltime_exact_points);
-      accurateFieldsCount++;
-    }
-    if (match.phase !== 'Round of 32' && isHalftimeExact && Number(rule.halftime_exact_points) > 0) {
-      breakdown.halftime = Number(rule.halftime_exact_points);
-      accurateFieldsCount++;
-    }
-
-    if (prediction.scorer && Number(rule.scorer_points) > 0 && match.scorers) {
-      let matchScorersList: string[] = [];
-      try {
-        const parsed = typeof match.scorers === 'string' ? JSON.parse(match.scorers) : match.scorers;
-        matchScorersList = (Array.isArray(parsed) ? parsed : [parsed]).map((s: any) => typeof s === 'string' ? s : (s.player?.name || s.scorer?.name || ''));
-      } catch {
-        matchScorersList = match.scorers.split(',').map((s: string) => s.trim());
-      }
-
-      const normalizedProno = normalizeName(prediction.scorer);
-      if (matchScorersList.some((s: string) => normalizeName(s) === normalizedProno)) {
-        breakdown.scorer = Number(rule.scorer_points);
-        accurateFieldsCount++;
-      }
-    }
-
-    if (match.phase !== 'Group Stage' && match.phase !== 'Round of 32') {
-      // Consolation: only when rule grants it AND no field was correct — matches backend
-      if (accurateFieldsCount === 0 && Number(rule.consolation_points) > 0) {
-        breakdown.consolation = Number(rule.consolation_points);
-      }
-      breakdown.total = breakdown.winner + breakdown.fulltime + breakdown.halftime + breakdown.scorer + breakdown.consolation;
-      // Guaranteed minimum 1 point for knockout phases — matches backend calc-knockout-stage.mjs
-      if (breakdown.total === 0) {
-        breakdown.consolation = 1;
-        breakdown.total = 1;
-      }
-    } else {
-      breakdown.total = breakdown.winner + breakdown.fulltime + breakdown.halftime + breakdown.scorer;
-    }
-
-    return breakdown;
-  }
 
   getFilteredPlayers(): PlayerStats[] {
     if (!this.searchTerm.trim()) {

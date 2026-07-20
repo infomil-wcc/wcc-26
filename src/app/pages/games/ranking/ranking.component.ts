@@ -10,6 +10,7 @@ import { RankingsService } from '../../../shared/services/content/rankings.servi
 import { StateService } from '../../../shared/services/core/state.service';
 import { RouterModule } from '@angular/router';
 import { ScoresheetComponent } from './scoresheet/scoresheet.component';
+import { PointsCalculatorService } from '../../../shared/services/games/points-calculator.service';
 
 @Component({
   selector: 'app-ranking',
@@ -28,6 +29,7 @@ export class RankingComponent implements OnInit, OnDestroy {
   private bracketService = inject(BracketService);
   private cdr = inject(ChangeDetectorRef);
   private teamsService = inject(TeamsService);
+  private pointsCalculatorService = inject(PointsCalculatorService);
   private today: Date = new Date();
 
   protected showLoader: boolean = true;

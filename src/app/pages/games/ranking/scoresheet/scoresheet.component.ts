@@ -10,7 +10,9 @@ import { PaginatorModule } from 'primeng/paginator';
 import { MatchesService } from '../../../../shared/services/content/matches.service';
 import { PredictionsApiService } from '../../../../shared/services/api/predictions-api.service';
 import { PronosticsRankingsApiService } from '../../../../shared/services/api/pronostics-rankings-api.service';
+import { RulesApiService } from '../../../../shared/services/api/rules-api.service';
 import { TeamsService } from '../../../../shared/services/content/teams.service';
+import { PointsCalculatorService } from '../../../../shared/services/games/points-calculator.service';
 import { Matches } from '../../../../shared/contracts/matches.contract';
 import { Pronostiques } from '../../../../shared/contracts/pronostiques.contract';
 import { Teams } from '../../../../shared/contracts/teams.contract';
@@ -39,7 +41,9 @@ export class ScoresheetComponent implements OnInit {
   private matchesService = inject(MatchesService);
   private predictionsApiService = inject(PredictionsApiService);
   private pronosticsRankingsApiService = inject(PronosticsRankingsApiService);
+  private rulesApiService = inject(RulesApiService);
   private teamsService = inject(TeamsService);
+  private pointsCalculatorService = inject(PointsCalculatorService);
   private cdr = inject(ChangeDetectorRef);
 
   @Input() userId: string = '';
@@ -274,25 +278,26 @@ export class ScoresheetComponent implements OnInit {
       matches: this.matchesService.getAllMatches(),
       predictions: this.predictionsApiService.getPredictions(`?filter[user]=${this.userId}&limit=-1`),
       rankings: this.pronosticsRankingsApiService.getRankings(`?filter[key]=${this.userId}`),
-      teams: this.teamsService.getAllTeams()
+      teams: this.teamsService.getAllTeams(),
+      rules: this.rulesApiService.getScoringRules()
     }).subscribe({
       next: (res) => {
         this.matches = res.matches;
         this.predictions = res.predictions?.data || [];
         this.teams = res.teams || [];
+        const rules = res.rules?.data || res.rules || [];
 
         const rankingRow = res.rankings?.data?.[0];
         const rankingPronos = rankingRow?.pronostiques || [];
-        const rankingBreakdownMap = new Map();
-        for (const rp of rankingPronos) {
-           if (!rankingBreakdownMap.has(String(rp.game_id))) {
-               rankingBreakdownMap.set(String(rp.game_id), rp.breakdown);
-           }
-        }
 
         // Apply breakdown to each prediction
         for (const p of this.predictions as any[]) {
-           p.breakdown = rankingBreakdownMap.get(String(p.game_id)) || { winner: 0, fulltime: 0, halftime: 0, scorer: 0, consolation: 0, total: 0, isFraud: false };
+           const match = this.matches.find(m => String(m.id) === String(p.game_id));
+           if (match) {
+               p.breakdown = this.pointsCalculatorService.calculatePoints(match, p, rules);
+           } else {
+               p.breakdown = { winner: 0, fulltime: 0, halftime: 0, scorer: 0, consolation: 0, total: 0, isFraud: false };
+           }
         }
 
         // Build map for fast lookup
