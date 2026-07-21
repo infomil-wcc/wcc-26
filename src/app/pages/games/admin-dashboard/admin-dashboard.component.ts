@@ -860,6 +860,41 @@ export class AdminDashboardComponent implements OnInit {
                 }
               });
 
+              // Add matches that have not been predicted
+              const predictedMatchIds = new Set(stats.predictionsDetail.map(d => String(d.matchId)));
+              this.matches.forEach(match => {
+                if (!predictedMatchIds.has(String(match.id))) {
+                  const kickoffTime = new Date(this.pointsCalculatorService.parseMauritianDate(match.date));
+                  stats.predictionsDetail.push({
+                    matchId: match.id,
+                    match: `${match.team_a} vs ${match.team_b}`,
+                    phase: match.phase || 'Groupe',
+                    kickoff: kickoffTime,
+                    submittedAt: null,
+                    modifiedAt: null,
+                    prediction: 'Non Prédit',
+                    halftime_prediction: '-',
+                    scorer_prediction: '-',
+                    actualScore: match.fulltime_a !== null ? `${match.fulltime_a} - ${match.fulltime_b}` : 'À venir',
+                    calculatedPoints: 0,
+                    isLate: false,
+                    isDuplicate: false,
+                    breakdown: { winner: 0, fulltime: 0, halftime: 0, scorer: 0, consolation: 0, total: 0, isFraud: false },
+                    winner_draw: null,
+                    team_a: match.team_a,
+                    team_b: match.team_b
+                  });
+                }
+              });
+
+              // Sort predictions detail by kickoff date descending
+              stats.predictionsDetail.sort((a, b) => {
+                if (!a.kickoff && !b.kickoff) return 0;
+                if (!a.kickoff) return 1;
+                if (!b.kickoff) return -1;
+                return b.kickoff.getTime() - a.kickoff.getTime();
+              });
+
               // Form guide: sort recent played matches and take last 5
               recentMatches.sort((a, b) => b.date.getTime() - a.date.getTime());
               stats.formGuide = recentMatches.slice(0, 5).reverse().map(m => {
