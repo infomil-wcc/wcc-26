@@ -444,17 +444,33 @@ export class ScoresheetComponent implements OnInit {
   }
 
   calculateScoresheet() {
-    // Sort predictions by created_on ascending to match backend duplicate logic
+    // Sort predictions descending by created_on (newest first)
     this.predictions.sort((a, b) => {
-      const dateA = a.created_on ? new Date(a.created_on).getTime() : 0;
-      const dateB = b.created_on ? new Date(b.created_on).getTime() : 0;
-      return dateA - dateB;
+      const dateA = a.created_on ? this.pointsCalculatorService.parseMauritianDate(this.pointsCalculatorService.convertDirectusToMauritianString(a.created_on)) : 0;
+      const dateB = b.created_on ? this.pointsCalculatorService.parseMauritianDate(this.pointsCalculatorService.convertDirectusToMauritianString(b.created_on)) : 0;
+      return dateB - dateA;
     });
 
     const predMap = new Map<string, Pronostiques>();
     for (const p of this.predictions) {
-      if (p.game_id && !predMap.has(String(p.game_id))) {
-        predMap.set(String(p.game_id), p);
+      if (!p.game_id) continue;
+      
+      const matchIdStr = String(p.game_id);
+      const match = this.matches.find(m => String(m.id) === matchIdStr);
+      if (!match) continue;
+
+      const isLate = this.pointsCalculatorService.isPredictionFraud(match, p);
+      
+      if (!predMap.has(matchIdStr)) {
+        predMap.set(matchIdStr, p);
+        (p as any)._tempLate = isLate;
+      } else {
+        const existing = predMap.get(matchIdStr) as any;
+        // If the newer prediction is late, but this older one is valid, use the valid one
+        if (existing._tempLate && !isLate) {
+          predMap.set(matchIdStr, p);
+          (p as any)._tempLate = isLate;
+        }
       }
     }
 
