@@ -4,14 +4,18 @@ import { FormsModule } from '@angular/forms';
 import { TabsModule, Tabs, TabList, Tab, TabPanels, TabPanel } from 'primeng/tabs';
 import { MatchesService } from '../../../shared/services/content/matches.service';
 import { PredictionsApiService } from '../../../shared/services/api/predictions-api.service';
+import { MatchesApiService } from '../../../shared/services/api/matches-api.service';
 import { RulesApiService } from '../../../shared/services/api/rules-api.service';
 import { AuthService } from '../../../shared/services/core/auth.service';
 import { CookieService } from '../../../shared/services/core/cookie.service';
 import { RankingsService } from '../../../shared/services/content/rankings.service';
 import { PronosticsRankingsApiService } from '../../../shared/services/api/pronostics-rankings-api.service';
 import { PointsCalculatorService } from '../../../shared/services/games/points-calculator.service';
+import { HttpClient } from '@angular/common/http';
+import { environment } from '../../../../environments/environment';
 import { forkJoin, of, timeout, interval, Subject } from 'rxjs';
 import { catchError, map, tap, takeUntil } from 'rxjs/operators';
+import { Matches } from '../../../shared/contracts/matches.contract';
 
 interface FraudReport {
   user: string;
@@ -58,11 +62,13 @@ export class AdminDashboardComponent implements OnInit {
   private authService = inject(AuthService);
   private cookieService = inject(CookieService);
   private rankingsService = inject(RankingsService);
+  private matchesApiService = inject(MatchesApiService);
   private pronosticsRankingsApi = inject(PronosticsRankingsApiService);
   private cdr = inject(ChangeDetectorRef);
   private pointsCalculatorService = inject(PointsCalculatorService);
+  private http = inject(HttpClient);
 
-  alertDialog: { title: string; message: string; isError?: boolean } | null = null;
+  alertDialog: { title: string; message: string; isError?: boolean; logs?: string[] } | null = null;
   confirmDialog: { title: string; message: string; onConfirm: () => void } | null = null;
 
   isLoading = true;
@@ -71,6 +77,7 @@ export class AdminDashboardComponent implements OnInit {
   matches: any[] = [];
   predictions: any[] = [];
   rules: any[] = [];
+  wccPlayers: any[] = [];
   users: any[] = [];
   rankings: any[] = [];
 
@@ -155,6 +162,7 @@ export class AdminDashboardComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadAdminData();
+    this.loadWccPlayers();
     this.checkBackgroundRecalc();
   }
 
@@ -180,6 +188,19 @@ export class AdminDashboardComponent implements OnInit {
     } catch (e) {
       // Ignore ViewDestroyedError
     }
+  }
+
+  loadWccPlayers() {
+    this.http.get<any>(`${environment.apiBaseUrl}/items/wcc_players?limit=-1`).subscribe({
+      next: (res) => {
+        this.wccPlayers = res.data || [];
+        this.playersByTeamCache = {}; // clear cache
+        if (this.matches && this.matches.length > 0) {
+          this.calculateMissingScorersList();
+        }
+      },
+      error: (err) => console.error('Failed to load wcc_players', err)
+    });
   }
 
   checkBackgroundRecalc() {
@@ -556,7 +577,7 @@ export class AdminDashboardComponent implements OnInit {
           return of({ data: [] });
         })
       ),
-      rankings: this.pronosticsRankingsApi.getRankings(`?limit=-1&_=${Date.now()}`, { headers: { 'Authorization': `Bearer ${token}` } }).pipe(
+      rankings: this.pronosticsRankingsApi.getRankings(`?limit=-1&fields=*,pronostiques.*&_=${Date.now()}`, { headers: { 'Authorization': `Bearer ${token}` } }).pipe(
         tap(() => console.log('[Admin] getRankings finished')),
         timeout(10000),
         map(r => r?.data || r || []),
@@ -646,6 +667,8 @@ export class AdminDashboardComponent implements OnInit {
 
           this.cdr.detectChanges();
 
+          this.calculateMissingScorersList();
+
           // 2. Fetch and calculate only the active page's users
           this.calculatePageData();
 
@@ -696,10 +719,10 @@ export class AdminDashboardComponent implements OnInit {
         }
       };
 
-      // Build filter string to fetch predictions ONLY for visible page users
       // Directus filter syntax: filter[user][_in]=username1,username2...
       const usernames = playersToFetch.map(p => p.username.toLowerCase().trim()).join(',');
-      const predictionsUrl = `?limit=-1&fields=id,user,game_id,fulltime_a,fulltime_b,halftime_a,halftime_b,winner_draw,scorer,created_on,modified_on&filter[user][in]=${usernames}`;
+      const queryStr = `?limit=-1&fields=id,user,game_id,fulltime_a,fulltime_b,halftime_a,halftime_b,winner_draw,scorer,created_on,modified_on,points&filter[user][in]=${usernames}`;
+      const predictionsUrl = encodeURI(queryStr).replace(/\[/g, '%5B').replace(/\]/g, '%5D');
 
       console.log('[Admin] Fetching predictions with URL:', predictionsUrl);
       this.predictionsApi.getPredictions(predictionsUrl, httpOptions).pipe(
@@ -831,6 +854,7 @@ export class AdminDashboardComponent implements OnInit {
 
                   // Build detail object
                   stats.predictionsDetail.push({
+                    predictionId: p.id,
                     matchId: match.id,
                     match: `${match.team_a} vs ${match.team_b}`,
                     phase: match.phase || 'Groupe',
@@ -842,6 +866,19 @@ export class AdminDashboardComponent implements OnInit {
                     scorer_prediction: p.scorer || '-',
                     actualScore: match.fulltime_a !== null ? `${match.fulltime_a} - ${match.fulltime_b}` : 'À venir',
                     calculatedPoints: (isLate || isDuplicate) ? 0 : pointsEarned,
+                    directusPoints: (() => {
+                      if (p.breakdown) {
+                        let bd = p.breakdown;
+                        if (typeof bd === 'string') {
+                          try { bd = JSON.parse(bd); } catch(e) {}
+                        }
+                        if (typeof bd === 'object' && bd !== null) {
+                          return bd.total !== undefined ? Number(bd.total) : 0;
+                        }
+                      }
+                      return p.points !== null && p.points !== undefined ? Number(p.points) : null;
+                    })(),
+                    hasDiscrepancy: false, // will calculate below
                     isLate: isLate,
                     isDuplicate: isDuplicate,
                     breakdown: breakdown,
@@ -849,6 +886,12 @@ export class AdminDashboardComponent implements OnInit {
                     team_a: match.team_a,
                     team_b: match.team_b
                   });
+                  
+                  // Calculate discrepancy correctly
+                  const lastIndex = stats.predictionsDetail.length - 1;
+                  const detail = stats.predictionsDetail[lastIndex];
+                  const dbPoints = detail.directusPoints !== null ? detail.directusPoints : 0;
+                  detail.hasDiscrepancy = dbPoints !== detail.calculatedPoints && !detail.isLate && !detail.isDuplicate;
 
                   if (match.fulltime_a !== null && match.fulltime_b !== null) {
                     recentMatches.push({
@@ -866,6 +909,7 @@ export class AdminDashboardComponent implements OnInit {
                 if (!predictedMatchIds.has(String(match.id))) {
                   const kickoffTime = new Date(this.pointsCalculatorService.parseMauritianDate(match.date));
                   stats.predictionsDetail.push({
+                    predictionId: null,
                     matchId: match.id,
                     match: `${match.team_a} vs ${match.team_b}`,
                     phase: match.phase || 'Groupe',
@@ -877,6 +921,8 @@ export class AdminDashboardComponent implements OnInit {
                     scorer_prediction: '-',
                     actualScore: match.fulltime_a !== null ? `${match.fulltime_a} - ${match.fulltime_b}` : 'À venir',
                     calculatedPoints: 0,
+                    directusPoints: null,
+                    hasDiscrepancy: false,
                     isLate: false,
                     isDuplicate: false,
                     breakdown: { winner: 0, fulltime: 0, halftime: 0, scorer: 0, consolation: 0, total: 0, isFraud: false },
@@ -950,7 +996,7 @@ export class AdminDashboardComponent implements OnInit {
     };
 
     // Load ALL predictions for full audit
-    this.predictionsApi.getPredictions('?limit=-1&fields=id,user,game_id,fulltime_a,fulltime_b,halftime_a,halftime_b,winner_draw,scorer,created_on,modified_on', httpOptions).pipe(
+    this.predictionsApi.getPredictions('?limit=-1&fields=id,user,game_id,fulltime_a,fulltime_b,halftime_a,halftime_b,winner_draw,scorer,created_on,modified_on,points', httpOptions).pipe(
       timeout(30000),
       catchError(() => of({ data: [] }))
     ).subscribe({
@@ -1080,10 +1126,74 @@ export class AdminDashboardComponent implements OnInit {
 
   selectPlayer(player: PlayerStats): void {
     this.selectedPlayer = player;
+    this.refreshSelectedPlayer();
   }
 
   closeDetails(): void {
     this.selectedPlayer = null;
+  }
+
+  isRefreshingPlayer = false;
+
+  refreshSelectedPlayer(): void {
+    if (!this.selectedPlayer) return;
+    this.isRefreshingPlayer = true;
+    
+    const token = this.cookieService.get('currentToken');
+    if (!token) {
+      this.isRefreshingPlayer = false;
+      return;
+    }
+
+    const username = this.selectedPlayer.username.toLowerCase().trim();
+    
+    // Fetch updated ranking and pronostiques for this specific user
+    this.pronosticsRankingsApi.getRankings(`?filter[key]=${username}&_=${Date.now()}`, { headers: { 'Authorization': `Bearer ${token}` } }).subscribe({
+      next: (res: any) => {
+        const ranking = (res?.data || res || [])[0];
+        if (ranking) {
+          // Update total points from ranking
+          this.selectedPlayer!.directusPoints = ranking.point || 0;
+          
+          const pronoList = ranking.pronostiques || [];
+          
+          // Update DB Points for each match directly from the ranking's JSON field
+          this.selectedPlayer!.predictionsDetail.forEach(detail => {
+            let prono = null;
+            if (detail.predictionId) {
+                prono = pronoList.find((p: any) => String(p.id) === String(detail.predictionId));
+            } else {
+                prono = pronoList.find((p: any) => String(p.game_id) === String(detail.matchId));
+            }
+            if (prono && prono.breakdown) {
+               let bd = prono.breakdown;
+               if (typeof bd === 'string') {
+                 try { bd = JSON.parse(bd); } catch(e) {}
+               }
+               if (typeof bd === 'object' && bd !== null) {
+                 detail.directusPoints = bd.total !== undefined ? Number(bd.total) : 0;
+                 // detail.breakdown = bd; // Optional if we want to store it
+               }
+            } else if (prono && prono.points !== undefined && prono.points !== null) {
+               detail.directusPoints = Number(prono.points);
+            }
+            
+            const dbPoints = detail.directusPoints !== null ? detail.directusPoints : 0;
+            detail.hasDiscrepancy = dbPoints !== detail.calculatedPoints && !detail.isLate && !detail.isDuplicate;
+          });
+          
+          this.selectedPlayer!.pointDiscrepancy = this.selectedPlayer!.predictionsDetail.some(d => d.hasDiscrepancy);
+        }
+        
+        this.isRefreshingPlayer = false;
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        console.error('[Admin] refreshSelectedPlayer error:', err);
+        this.isRefreshingPlayer = false;
+        this.cdr.detectChanges();
+      }
+    });
   }
 
   exportPlayerDetailsToCSV(player: PlayerStats): void {
@@ -1215,5 +1325,174 @@ export class AdminDashboardComponent implements OnInit {
   closeRevisionsModal(): void {
     this.selectedRevisionPrediction = null;
     this.selectedRevisions = [];
+  }
+
+  missingScorersList: any[] = [];
+  playersByTeamCache: { [teamName: string]: any[] } = {};
+
+  calculateMissingScorersList() {
+    const list: any[] = [];
+    for (const m of this.matches) {
+      if (!m.scorers) continue;
+
+      let parsed: any[] | null = null;
+
+      if (Array.isArray(m.scorers)) {
+        parsed = m.scorers;
+      } else if (typeof m.scorers === 'string' && m.scorers.toUpperCase().includes('NOT FOUND')) {
+        try {
+          parsed = JSON.parse(m.scorers);
+          if (!Array.isArray(parsed)) parsed = null;
+        } catch(e) {
+          // Not a JSON array, fallback to full string
+          list.push({
+             match: m,
+             scorerIndex: -1,
+             originalName: m.scorers,
+             time: '',
+             teamName: m.team_a,
+             newScorerName: ''
+          });
+        }
+      }
+
+      if (parsed) {
+        parsed.forEach((scorerObj: any, index: number) => {
+          if (scorerObj.player?.name?.toUpperCase().includes('NOT FOUND')) {
+            list.push({
+              match: m,
+              scorerIndex: index,
+              originalName: scorerObj.player.name,
+              time: scorerObj.time?.elapsed || '',
+              teamName: scorerObj.team?.name || m.team_a,
+              newScorerName: '',
+              isOwnGoal: false
+            });
+          }
+        });
+      }
+    }
+    this.missingScorersList = list;
+  }
+
+  getOtherTeamName(match: any, currentTeam: string) {
+    if (match.team_a === currentTeam) return match.team_b;
+    if (match.team_b === currentTeam) return match.team_a;
+    return currentTeam;
+  }
+
+  getPlayersForTeam(teamName: string) {
+    if (!teamName || !this.wccPlayers.length) return [];
+    const cacheKey = teamName.toLowerCase();
+    if (this.playersByTeamCache[cacheKey]) {
+      return this.playersByTeamCache[cacheKey];
+    }
+    
+    // Tries to match country/team fields loosely
+    const players = this.wccPlayers.filter(p => {
+      const pTeam = p.equipe || p.country || p.team || '';
+      return pTeam.toLowerCase() === teamName.toLowerCase();
+    }).sort((a, b) => this.getPlayerDisplayName(a).localeCompare(this.getPlayerDisplayName(b)));
+    
+    this.playersByTeamCache[cacheKey] = players;
+    return players;
+  }
+
+  getPlayerRawName(player: any) {
+    return player.player_name || player.nom || player.name || 'Unknown';
+  }
+
+  getPlayerDisplayName(player: any) {
+    const rawName = this.getPlayerRawName(player);
+    if (rawName === 'Unknown') return rawName;
+    
+    // Convert from "SURNAME Firstname" or "SURNAME" to "Firstname Surname" Title Case
+    const parts = rawName.trim().split(/\s+/);
+    if (parts.length > 1) {
+      // Assuming last part is Firstname and rest is Surname(s)
+      const firstName = parts.pop() || '';
+      const surname = parts.join(' ');
+      
+      const formatWord = (w: string) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase();
+      
+      const formattedFirst = formatWord(firstName);
+      const formattedSur = surname.split(' ').map(formatWord).join(' ');
+      
+      return `${formattedFirst} ${formattedSur}`;
+    } else {
+      // Just one word
+      return rawName.charAt(0).toUpperCase() + rawName.slice(1).toLowerCase();
+    }
+  }
+
+  saveScorer(match: Matches, index: number, newName: string, isOwnGoal: boolean = false) {
+    if (!newName) return;
+    
+    let newScorersData: any = newName;
+    if (index !== -1 && match.scorers) {
+      try {
+        const parsed = typeof match.scorers === 'string' ? JSON.parse(match.scorers) : match.scorers;
+        parsed[index].player.name = newName;
+        if (isOwnGoal) {
+          parsed[index].detail = "Own Goal";
+        }
+        // Send array directly, Directus handles JSON fields correctly when sent as JSON arrays
+        newScorersData = parsed;
+      } catch(e) {
+        newScorersData = newName;
+      }
+    }
+
+    this.matchesApiService.updateMatch(match.id, { scorers: newScorersData }).subscribe({
+      next: () => {
+        match.scorers = newScorersData;
+        this.calculateMissingScorersList();
+        this.alertDialog = { title: 'Succès', message: `Buteur mis à jour pour le match ${match.team_a} vs ${match.team_b}.` };
+        this.tryDetectChanges();
+      },
+      error: (err) => {
+        this.alertDialog = { title: 'Erreur', message: 'Impossible de mettre à jour : ' + (err.error?.error || err.message), isError: true };
+        this.tryDetectChanges();
+      }
+    });
+  }
+
+  isSanitizing = false;
+  sanitizeLogs: string[] = [];
+  showSanitizeModal = false;
+
+  sanitizeScorers() {
+    this.isSanitizing = true;
+    this.showSanitizeModal = true;
+    this.sanitizeLogs = [];
+    
+    const eventSource = new EventSource(`${environment.apiBaseUrl}/admin/migrate-scorers/stream?dryRun=false`);
+    
+    eventSource.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+      if (data.done) {
+        this.isSanitizing = false;
+        eventSource.close();
+        this.loadAdminData(); // Refresh matches list when done
+      } else if (data.log) {
+        this.sanitizeLogs.push(data.log);
+      } else if (data.error) {
+        this.sanitizeLogs.push('[ERROR] ' + data.error);
+        this.isSanitizing = false;
+        eventSource.close();
+      }
+      this.tryDetectChanges();
+    };
+
+    eventSource.onerror = (err) => {
+      this.sanitizeLogs.push('[ERROR] La connexion au serveur a été interrompue.');
+      this.isSanitizing = false;
+      eventSource.close();
+      this.tryDetectChanges();
+    };
+  }
+  
+  closeSanitizeModal() {
+    this.showSanitizeModal = false;
   }
 }

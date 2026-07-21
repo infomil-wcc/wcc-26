@@ -9,26 +9,47 @@ const DRY_RUN = true; // Change to false to execute PATCH updates
 export async function migrateScorerNames({
     directusUrl,
     adminToken,
-    dryRun = true,
-    minMatchId = null
+    dryRun = false,
+    minMatchId = null,
+    onProgress = null
 }) {
 
-    const headers = {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${adminToken}`
+    const logs = [];
+    const log = (msg) => {
+        logs.push(msg);
+        if (onProgress) onProgress(msg);
     };
 
-    console.log("Loading players...");
+    const originalLog = console.log;
+    const originalError = console.error;
+    console.log = (...args) => {
+        const msg = args.map(a => typeof a === 'object' ? JSON.stringify(a) : String(a)).join(' ');
+        log(msg);
+        originalLog(...args);
+    };
+    console.error = (...args) => {
+        const msg = args.map(a => typeof a === 'object' ? JSON.stringify(a) : String(a)).join(' ');
+        log('[ERROR] ' + msg);
+        originalError(...args);
+    };
+
+    try {
+        const headers = {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${adminToken}`
+        };
+
+    log(`🚀 Starting scorer names migration (Dry Run: ${dryRun})`);
 
     const dbPlayers = await loadDbPlayers(
         directusUrl,
         adminToken
     );
 
-    console.log(`Loaded ${dbPlayers.length} players.`);
+    log(`✅ Fetched ${dbPlayers.length} players`);
 
 
-    console.log("Loading matches...");
+    log("Loading matches...");
 
     const response = await fetch(
         `${directusUrl}/items/matches?limit=-1`,
@@ -46,7 +67,7 @@ export async function migrateScorerNames({
         ? matches.filter(match => match.id >= Number(minMatchId))
         : matches;
 
-    console.log(`Loaded ${matches.length} matches.`);
+    log(`✅ Fetched ${filteredMatches.length} valid matches`);
 
 
     let updated = 0;
@@ -158,10 +179,7 @@ export async function migrateScorerNames({
                 changedMatches.push(match.id);
 
 
-                console.log("\n==============================");
-                console.log(`DRY RUN - MATCH ${match.id}`);
-                console.log("==============================");
-
+                log(`[Match ${match.id}] (DRY RUN) Would update ${match.scorers?.length || 0} scorers`);
 
                 scorers.forEach((oldScorer, index) => {
 
@@ -208,41 +226,23 @@ export async function migrateScorerNames({
                 );
 
             } else {
-
-                console.error(
-                    `✗ Failed updating match ${match.id}`
-                );
-
+                log(`[Match ${match.id}] ❌ Failed updating: Status ${updateRes.status}`);
             }
 
         } else {
-
-            console.log(
-                `No changes needed for match ${match.id}`
-            );
-
+            log(`No changes needed for match ${match.id}`);
         }
 
     }
-    console.log("\n==============================");
-
-    if (dryRun) {
-
-        console.log(
-            "DRY RUN COMPLETE - No data was modified."
-        );
-
-    } else {
-
-        console.log(
-            `MIGRATION COMPLETE - ${updated} matches updated.`
-        );
-    }
+    log(`\n🎉 Migration completed!`);
+    log(`Total Matches Processed: ${filteredMatches.length}`);
+    log(`Matches Updated: ${updated}`);
 
     if (unmatched.length > 0) {
-
-        console.log("\nUNMATCHED PLAYERS:");
-        console.table(unmatched);
+        log(`[Matches] ⚠️ Some players still NOT FOUND: ${unmatched.length}`);
+        unmatched.forEach(u => {
+            log(`  - Match ${u.matchId}: ${u.player}`);
+        });
     }
 
     return {
@@ -255,8 +255,12 @@ export async function migrateScorerNames({
         unmatchedCount: unmatched.length,
         unmatched,
         dryRun,
-        debug
-
+        debug,
+        logs
     };
 
+    } finally {
+        console.log = originalLog;
+        console.error = originalError;
+    }
 }

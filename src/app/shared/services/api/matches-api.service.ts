@@ -12,4 +12,8 @@ export class MatchesApiService {
   getMatches(queryParams: string = ''): Observable<any> {
     return this.http.get<any>(`${environment.apiBaseUrl}/items/matches${queryParams}`);
   }
+
+  updateMatch(id: string, payload: any): Observable<any> {
+    return this.http.patch<any>(`${environment.apiBaseUrl}/admin/match/${id}`, payload);
+  }
 }

@@ -227,9 +227,72 @@
           <span class="material-symbols-outlined margin-right-xs" style="vertical-align: middle;">content_copy</span>
           Doublons Détectés
         </p-tab>
+        <p-tab value="buteurs">
+          <span class="material-symbols-outlined margin-right-xs" style="vertical-align: middle;">sports_soccer</span>
+          Buteurs (NOT FOUND)
+        </p-tab>
       </p-tablist>
 
       <p-tabpanels>
+        <p-tabpanel value="buteurs">
+          <div class="card">
+            <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+              <div>
+                <span class="material-symbols-outlined">sports_soccer</span>
+                <h2>CORRECTION DES BUTEURS NON TROUVÉS</h2>
+              </div>
+              <button class="btn btn-primary" (click)="sanitizeScorers()" [disabled]="isSanitizing">
+                <span class="material-symbols-outlined margin-right-xs" *ngIf="!isSanitizing">auto_fix_high</span>
+                <span class="spinner margin-right-xs" *ngIf="isSanitizing"></span>
+                {{ isSanitizing ? 'Sanitization en cours...' : 'Sanitize Buteurs (Auto-Match)' }}
+              </button>
+            </div>
+            <div class="card-body">
+              <div class="table-responsive">
+                <table class="dashboard-table">
+                  <thead>
+                    <tr>
+                      <th>Match ID</th>
+                      <th>Date</th>
+                      <th>Équipes</th>
+                      <th>Texte Actuel</th>
+                      <th>Correction (Nouveau Texte)</th>
+                      <th>Action</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr *ngFor="let item of missingScorersList">
+                      <td class="font-bold">#{{ item.match.id }} ({{ item.time }}')</td>
+                      <td>{{ item.match.date | date:'dd/MM/yyyy HH:mm' }}</td>
+                      <td>{{ item.match.team_a }} vs {{ item.match.team_b }}</td>
+                      <td class="text-danger font-semibold">{{ item.originalName }}</td>
+                      <td>
+                        <div style="display: flex; flex-direction: column; gap: 8px;">
+                          <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; color: #a0aec0; font-size: 0.9em;">
+                            <input type="checkbox" [(ngModel)]="item.isOwnGoal"> 
+                            Marqué contre son camp (CSC)
+                          </label>
+                          <select class="input-form" style="width: 100%; min-width: 200px; padding: 4px 8px; border-radius: 4px; border: 1px solid #4a5568; background: #2d3748; color: white;" [(ngModel)]="item.newScorerName">
+                            <option value="">-- Choisir un joueur ({{ item.isOwnGoal ? getOtherTeamName(item.match, item.teamName) : item.teamName }}) --</option>
+                            <option *ngFor="let p of getPlayersForTeam(item.isOwnGoal ? getOtherTeamName(item.match, item.teamName) : item.teamName)" [value]="getPlayerRawName(p)">
+                              {{ getPlayerDisplayName(p) }}
+                            </option>
+                          </select>
+                        </div>
+                      </td>
+                      <td>
+                        <button class="btn btn-primary btn-sm" (click)="saveScorer(item.match, item.scorerIndex, item.newScorerName, item.isOwnGoal)">Sauvegarder</button>
+                      </td>
+                    </tr>
+                    <tr *ngIf="missingScorersList.length === 0">
+                      <td colspan="5" class="text-center text-muted" style="padding: 20px;">Aucun buteur "NOT FOUND" détecté.</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </p-tabpanel>
         <p-tabpanel value="audit">
           <!-- Coherence Auditor Panel -->
           <div class="card coherence-card">
@@ -579,9 +642,14 @@
               <p><strong>Points Calculés Localement : </strong> {{ selectedPlayer.calculatedPoints }} pts</p>
               <p *ngIf="selectedPlayer.pointDiscrepancy" class="text-warning">⚠️ Écart de point détecté. Veuillez synchroniser la base Directus.</p>
             </div>
-            <button class="btn btn-secondary btn-sm" (click)="exportPlayerDetailsToCSV(selectedPlayer)">
-              <span class="material-symbols-outlined" style="vertical-align: middle; font-size: 18px;">download</span> Exporter CSV
-            </button>
+            <div class="flex gap-2">
+              <button class="btn btn-sm text-white" style="background-color: #10b981; border-color: #10b981;" (click)="refreshSelectedPlayer()" [disabled]="isRefreshingPlayer">
+                <span class="material-symbols-outlined" style="vertical-align: middle; font-size: 18px;" [class.spin]="isRefreshingPlayer">refresh</span> Actualiser
+              </button>
+              <button class="btn btn-secondary btn-sm" (click)="exportPlayerDetailsToCSV(selectedPlayer)">
+                <span class="material-symbols-outlined" style="vertical-align: middle; font-size: 18px;">download</span> Exporter CSV
+              </button>
+            </div>
           </div>
 
           <div class="table-responsive modal-table-container">
@@ -616,6 +684,12 @@
                   <td class="font-semibold">{{ d.actualScore }}</td>
                   <td class="font-bold">
                     {{ d.calculatedPoints }} pts
+                    <span *ngIf="d.hasDiscrepancy" 
+                         class="badge bg-warning text-dark ms-2" 
+                         style="font-size: 0.75rem; vertical-align: middle;" 
+                         title="Valeur en base de données">
+                      ⚠️ DB: {{ d.directusPoints !== null ? d.directusPoints : 0 }}
+                    </span>
                     <div class="breakdown-subtext"
                       *ngIf="d.calculatedPoints > 0 && d.breakdown && !d.isLate && !d.isDuplicate">
                       <span *ngIf="d.breakdown.winner > 0" class="badge-bk text-success" title="Vainqueur Correct">V:
@@ -701,6 +775,25 @@
           </div>
         </div>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal for Live Sanitize Logs -->
+<div class="modal-overlay" *ngIf="showSanitizeModal" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); display: flex; justify-content: center; align-items: center; z-index: 10000; padding: 20px;">
+  <div class="modal-content" style="background: #1a202c; border: 1px solid #4a5568; border-radius: 8px; width: 100%; max-width: 800px; max-height: 90vh; display: flex; flex-direction: column;">
+    <div style="padding: 16px 20px; border-bottom: 1px solid #4a5568; display: flex; justify-content: space-between; align-items: center;">
+      <h3 style="margin: 0; color: #fff; display: flex; align-items: center; gap: 8px;">
+        Sanitization en cours
+        <span class="spinner" *ngIf="isSanitizing" style="width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.2); border-top-color: #fff; border-radius: 50%; animation: spin 1s linear infinite;"></span>
+      </h3>
+      <button class="btn btn-secondary btn-sm" (click)="closeSanitizeModal()" [disabled]="isSanitizing">
+        Fermer
+      </button>
+    </div>
+    <div style="padding: 20px; overflow-y: auto; flex: 1; background: #000; font-family: monospace; color: #0f0; font-size: 13px; line-height: 1.5; min-height: 300px;">
+      <div *ngFor="let line of sanitizeLogs">{{ line }}</div>
+      <div *ngIf="sanitizeLogs.length === 0" style="color: #666;">En attente de connexion au flux...</div>
     </div>
   </div>
 </div>

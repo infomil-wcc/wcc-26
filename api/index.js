@@ -389,6 +389,40 @@ const proxyDirectus = async (request, response) => {
 };
 
 // ----------------------------------------------------------------------
+// TEMP ROUTE: MIGRATE SCORERS STREAMING
+// ----------------------------------------------------------------------
+router.get('/api/admin/migrate-scorers/stream', async (request, response) => {
+    response.writeHead(200, {
+        'Content-Type': 'text/event-stream',
+        'Cache-Control': 'no-cache',
+        'Connection': 'keep-alive'
+    });
+
+    const directusUrl = process.env.DIRECTUS_URL || 'https://euro.omediainteractive.net/imleuro';
+    const adminToken = process.env.DIRECTUS_ADMIN_TOKEN;
+
+    const dryRun = request.query.dryRun !== 'false';
+    const minMatchId = request.query.minMatchId ? Number(request.query.minMatchId) : null;
+
+    try {
+        await migrateScorerNames({
+            directusUrl,
+            adminToken,
+            dryRun,
+            minMatchId,
+            onProgress: (msg) => {
+                response.write(`data: ${JSON.stringify({ log: msg })}\n\n`);
+            }
+        });
+        response.write(`data: ${JSON.stringify({ done: true })}\n\n`);
+    } catch (error) {
+        response.write(`data: ${JSON.stringify({ log: `[ERROR] ${error.message}`, done: true })}\n\n`);
+    } finally {
+        response.end();
+    }
+});
+
+// ----------------------------------------------------------------------
 // TEMP ROUTE: MIGRATE SCORERS
 // ----------------------------------------------------------------------
 router.get('/api/admin/migrate-scorers', async (request, response) => {
@@ -401,7 +435,7 @@ router.get('/api/admin/migrate-scorers', async (request, response) => {
         // optional protection
         const secret = request.query.secret;
 
-        if (secret !== process.env.SCORER_MIGRATION_SECRET) {
+        if (process.env.SCORER_MIGRATION_SECRET && secret !== process.env.SCORER_MIGRATION_SECRET) {
             return response.status(403).json({
                 error: "Forbidden"
             });
@@ -434,6 +468,56 @@ router.get('/api/admin/migrate-scorers', async (request, response) => {
             success: false,
             error: error.message
         });
+    }
+});
+
+// ----------------------------------------------------------------------
+// ROUTE ADMIN: PATCH MATCH
+// ----------------------------------------------------------------------
+router.patch('/api/admin/match/:id', async (request, response) => {
+    const directusUrl = process.env.DIRECTUS_URL || 'https://euro.omediainteractive.net/imleuro';
+    const adminToken = process.env.DIRECTUS_ADMIN_TOKEN;
+
+    if (!adminToken) {
+        return response.status(500).json({ error: "Configuration error: DIRECTUS_ADMIN_TOKEN is missing." });
+    }
+
+    const matchId = request.params.id;
+    let body = request.body;
+    if (typeof body === 'string') {
+        try { body = JSON.parse(body); } catch (e) { }
+    }
+
+    const targetUrl = `${directusUrl}/items/matches/${matchId}`;
+
+    try {
+        const fetchOptions = {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${adminToken}`
+            },
+            body: JSON.stringify(body)
+        };
+
+        const res = await fetchWithBypass(targetUrl, fetchOptions);
+        const text = await res.text();
+
+        let data;
+        try {
+            data = JSON.parse(text);
+        } catch {
+            data = text;
+        }
+
+        if (res.status >= 400 || (data && data.error)) {
+            console.error(`Error updating match ${matchId} in Directus:`, JSON.stringify(data));
+        }
+
+        return response.status(res.status).json(data);
+    } catch (error) {
+        console.error(`Error patching match ${matchId}:`, error);
+        return response.status(500).json({ error: 'Failed to patch match in Directus.', details: error.message });
     }
 });
 

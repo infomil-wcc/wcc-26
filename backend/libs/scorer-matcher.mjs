@@ -12,11 +12,15 @@ export function replaceScorerNames(scorers, matches) {
         const result = matches[index];
 
         if (!result?.matchedPlayer) {
+            let originalName = scorer.player?.name || '';
+            while (originalName.toUpperCase().startsWith('NOT FOUND:')) {
+                originalName = originalName.substring(10).trim();
+            }
             return {
                 ...scorer,
                 player: {
                     ...scorer.player,
-                    name: `NOT FOUND: ${scorer.player?.name}`
+                    name: `NOT FOUND: ${originalName}`
                 }
             };
         }
@@ -160,16 +164,19 @@ function cleanName(name) {
 function extractName(input) {
     if (!input) return '';
 
-    if (typeof input === 'string') return input;
-
-    if (typeof input === 'object') {
-        return input.player?.name
-            || input.name
-            || input.scorer?.name
-            || '';
+    let val = '';
+    if (typeof input === 'string') val = input;
+    else if (typeof input === 'object') {
+        val = input.player?.name || input.name || input.scorer?.name || '';
+    } else {
+        val = String(input);
     }
-
-    return String(input);
+    
+    while (val.toUpperCase().startsWith('NOT FOUND:')) {
+        val = val.substring(10).trim();
+    }
+    
+    return val;
 }
 
 function splitName(name) {
@@ -217,7 +224,7 @@ function fuseMatch(apiName, dbPlayers) {
     const fuse = new Fuse(searchList, {
         keys: ['name'],
         includeScore: true,
-        threshold: 0.35
+        threshold: 0.6
     });
 
     const results = fuse.search(apiName);
