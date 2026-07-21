@@ -1065,13 +1065,22 @@ export class AdminDashboardComponent implements OnInit {
       'Buteur',
       'Score Réel',
       'Points Calculés',
+      'Pts: Vainqueur',
+      'Pts: Score Exact',
+      'Pts: Mi-temps',
+      'Pts: Buteur',
+      'Pts: Consolation',
       'En retard',
       'Doublon'
     ];
 
-    const escapeCsv = (val: any) => {
+    const escapeCsv = (val: any, preventDateParse = false) => {
       if (val === null || val === undefined) return '""';
       const str = String(val).replace(/"/g, '""').replace(/\n/g, ' ').replace(/\r/g, '');
+      // Use ="value" trick for Excel to prevent parsing e.g. "4 - 6" as a date
+      if (preventDateParse && /^\d+\s*-\s*\d+/.test(str)) {
+        return `="${str}"`;
+      }
       return `"${str}"`;
     };
 
@@ -1079,6 +1088,7 @@ export class AdminDashboardComponent implements OnInit {
       const kickoff = d.kickoff ? new Date(d.kickoff).toLocaleString('fr-FR') : '';
       const submitted = d.submittedAt ? new Date(d.submittedAt).toLocaleString('fr-FR') : '';
       const modified = d.modifiedAt ? new Date(d.modifiedAt).toLocaleString('fr-FR') : '';
+      const b = d.breakdown || { winner: 0, fulltime: 0, halftime: 0, scorer: 0, consolation: 0 };
       
       return [
         escapeCsv(d.match),
@@ -1086,11 +1096,16 @@ export class AdminDashboardComponent implements OnInit {
         escapeCsv(kickoff),
         escapeCsv(submitted),
         escapeCsv(modified),
-        escapeCsv(d.prediction),
-        escapeCsv(d.halftime_prediction),
+        escapeCsv(d.prediction, true),
+        escapeCsv(d.halftime_prediction, true),
         escapeCsv(d.scorer_prediction),
-        escapeCsv(d.actualScore),
+        escapeCsv(d.actualScore, true),
         escapeCsv(d.calculatedPoints),
+        escapeCsv(b.winner),
+        escapeCsv(b.fulltime),
+        escapeCsv(b.halftime),
+        escapeCsv(b.scorer),
+        escapeCsv(b.consolation),
         escapeCsv(d.isLate ? 'Oui' : 'Non'),
         escapeCsv(d.isDuplicate ? 'Oui' : 'Non')
       ].join(',');
