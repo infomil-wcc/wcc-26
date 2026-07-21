@@ -1137,6 +1137,12 @@ export class AdminDashboardComponent implements OnInit {
       // Enrechir avec les anciennes valeurs
       for (let i = 0; i < revs.length; i++) {
         const currentRev = revs[i];
+        
+        const rawTime = currentRev.timestamp || currentRev.data?.modified_on || currentRev.data?.created_on;
+        if (rawTime) {
+          currentRev._parsedTimestamp = new Date(this.pointsCalculatorService.parseMauritianDate(this.pointsCalculatorService.convertDirectusToMauritianString(rawTime)));
+        }
+
         if (currentRev.delta) {
           const previousRev = revs[i + 1];
           currentRev.changes = [];
