@@ -114,7 +114,11 @@
           <img src="assets/jeu-bracket.png" alt="Bracket" class="tab-logo" />
           <span class="tab-label">Jeu bracket</span>
         </button> -->
-
+        <button class="btn-tab flex align-items-center justify-content-center px-4 py-3 gap-3"
+          [ngClass]="{'active': activeTab === 'awards'}" (click)="switchTab('awards')">
+          <span class="material-symbols-outlined" style="font-size: 1.5rem">workspace_premium</span>
+          <span class="tab-label">Stars du tournoi</span>
+        </button>
       </div>
 
       <!-- Players Table -->
@@ -162,6 +166,138 @@
             </div>
           </div>
           }
+        </div>
+      </div>
+      }
+
+      <!-- Awards / Tournament Stars Section -->
+      @if (activeTab === 'awards') {
+      <div class="awards-container text-left text-white mt-3 flex flex-column gap-3">
+        <!-- Separate Card for Official Results -->
+        @if (tournamentStars) {
+        <div class="table-container official-winners-card border-round-xl" style="background: linear-gradient(135deg, #054a29 0%, #001e50 100%); border: 1px solid rgba(16, 185, 129, 0.3);">
+          <div class="text-xs font-bold uppercase tracking-wider text-white mb-3 border-bottom-1 border-white-alpha-20 pb-2 flex align-items-center gap-2">
+            <span class="material-symbols-outlined text-yellow-500" style="font-size: 1.2rem;">stars</span>
+            <span>Résultats Officiels - Stars du Tournoi</span>
+          </div>
+          <div class="flex flex-column sm:flex-row gap-3">
+            <div class="flex-1 flex align-items-center gap-3 bg-white-alpha-5 p-3 border-round">
+              <span class="material-symbols-outlined text-yellow-500 flex-shrink-0" style="font-size: 2.2rem;">workspace_premium</span>
+              <div class="flex flex-column gap-1 justify-content-center">
+                <div class="text-xs text-white-alpha-90 font-semibold line-height-1">Meilleur Joueur</div>
+                <div class="font-bold flex align-items-center gap-2 text-base text-white line-height-2">
+                  @if (tournamentStars.trueBestPlayer) {
+                    <img [src]="getPlayerFlag(tournamentStars.trueBestPlayer)" class="h-1rem w-auto border-round-sm shadow-1" alt="flag" />
+                    <span>{{ formatPlayerName(tournamentStars.trueBestPlayer.player_name) }}</span>
+                  } @else if (tournamentStars.golden_ball_winner) {
+                    @if (tournamentStars.golden_ball_country) {
+                      <img [src]="getPlayerFlag({country: tournamentStars.golden_ball_country})" class="h-1rem w-auto border-round-sm shadow-1" alt="flag" />
+                    }
+                    <span>{{ formatPlayerName(tournamentStars.golden_ball_winner) }}</span>
+                  } @else {
+                    <span>En attente</span>
+                  }
+                </div>
+                <!-- Spacer for equal height matching golden boot -->
+                <div class="text-xs opacity-0 line-height-1 mt-0.5">placeholder</div>
+              </div>
+            </div>
+            <div class="flex-1 flex align-items-center gap-3 bg-white-alpha-5 p-3 border-round">
+              <span class="material-symbols-outlined text-yellow-500 flex-shrink-0" style="font-size: 2.2rem;">sports_soccer</span>
+              <div class="flex flex-column gap-1 justify-content-center">
+                <div class="text-xs text-white-alpha-90 font-semibold line-height-1">Meilleur Buteur</div>
+                <div class="font-bold flex align-items-center gap-2 text-base text-white line-height-2">
+                  @if (tournamentStars.trueGoldenBoot) {
+                    <img [src]="getPlayerFlag(tournamentStars.trueGoldenBoot)" class="h-1rem w-auto border-round-sm shadow-1" alt="flag" />
+                    <span>{{ formatPlayerName(tournamentStars.trueGoldenBoot.player_name) }}</span>
+                  } @else if (tournamentStars.golden_boot) {
+                    @if (tournamentStars.golden_boot_country) {
+                      <img [src]="getPlayerFlag({country: tournamentStars.golden_boot_country})" class="h-1rem w-auto border-round-sm shadow-1" alt="flag" />
+                    }
+                    <span>{{ formatPlayerName(tournamentStars.golden_boot) }}</span>
+                  } @else {
+                    <span>En attente</span>
+                  }
+                </div>
+                @if (tournamentStars.goals) {
+                  <div class="text-sm text-center text-white line-height-1 mt-1 font-medium">
+                    <span class="font-bold text-yellow-500 text-base">{{ tournamentStars.goals }}</span> buts
+                  </div>
+                } @else {
+                  <div class="text-sm text-center opacity-0 line-height-1 mt-1">placeholder</div>
+                }
+              </div>
+            </div>
+          </div>
+          @if (tournamentStars.tournament_total_goals) {
+          <div class="mt-3 pt-2 text-center text-xs text-white border-top-1 border-white-alpha-10">
+            Total buts du tournoi : <span class="font-bold text-white text-sm">{{ tournamentStars.tournament_total_goals }}</span>
+          </div>
+          }
+        </div>
+        }
+
+        <!-- Separate Card for Player Pronostics -->
+        <div class="table-container border-round-xl">
+          <div class="table-header flex justify-content-between px-3 py-2 text-xs font-bold uppercase tracking-wider text-white-alpha-50 mb-2">
+            <div class="col-head-player"># Joueur</div>
+            <div class="col-head-predictions text-right">Pronostics Stars</div>
+          </div>
+          <div class="table-body flex flex-column gap-2">
+            @for (award of processedAwards; track award; let i = $index) {
+            <div class="table-row flex justify-content-between align-items-center px-3 py-2.5" [class.pinned-user-row]="i === 0">
+              <div class="flex align-items-center gap-3">
+                <span class="row-rank text-sm font-bold flex align-items-center gap-1" [ngClass]="{'text-yellow-400': i === 0, 'text-white-alpha-70': i !== 0}">
+                  {{ i + 1 }}
+                </span>
+                <div class="row-avatar flex align-items-center justify-content-center">
+                  <img [src]="getChampionFlag(award.user)" class="champion-flag" alt="" />
+                </div>
+                <div class="flex flex-column text-left">
+                  <span class="row-username text-base font-bold text-white flex align-items-center gap-1">
+                    {{ award.user | uppercase }}
+                  </span>
+                  @if (award.totalGoalsPredicted) {
+                    <span class="text-xs text-white-alpha-60">
+                      Buts tournoi: <strong class="text-white">{{ award.totalGoalsPredicted }}</strong>
+                      @if (tournamentStars?.tournament_total_goals) {
+                        <span [ngClass]="{'text-green-400': award.goalDelta === 0, 'text-yellow-400': award.goalDelta !== 0}">
+                          ({{ award.goalDelta > 0 ? '+' : '' }}{{ award.goalDelta }})
+                        </span>
+                      }
+                    </span>
+                  }
+                </div>
+              </div>
+              
+              <div class="flex flex-column align-items-end gap-1.5 text-xs">
+                <!-- Meilleur Joueur Pronostic -->
+                <div class="flex align-items-center gap-1.5" [ngClass]="{'text-green-400 font-bold': award.bestPlayerCorrect, 'text-white-alpha-80': !award.bestPlayerCorrect}">
+                  <span class="text-white-alpha-50">MJ:</span>
+                  <span>{{ formatPlayerName(award.bestPlayerName) || '-' }}</span>
+                  @if (award.bestPlayerCorrect) {
+                    <span class="material-symbols-outlined text-green-400" style="font-size: 0.9rem;">check_circle</span>
+                  }
+                </div>
+                <!-- Meilleur Buteur Pronostic + predicted goals for golden boot on another line -->
+                <div class="flex flex-column align-items-end gap-0.5" [ngClass]="{'text-green-400 font-bold': award.goldenBootCorrect, 'text-white-alpha-80': !award.goldenBootCorrect}">
+                  <div class="flex align-items-center gap-1.5">
+                    <span class="text-white-alpha-50">MB:</span>
+                    <span>{{ formatPlayerName(award.goldenBootName) || '-' }}</span>
+                    @if (award.goldenBootCorrect) {
+                      <span class="material-symbols-outlined text-green-400" style="font-size: 0.9rem;">check_circle</span>
+                    }
+                  </div>
+                  @if (award.gbGoals) {
+                    <div class="text-xs" [ngClass]="{'text-yellow-400 font-semibold': award.gbGoalsCorrect, 'text-white-alpha-50 font-normal': !award.gbGoalsCorrect}">
+                      {{ award.gbGoals }} buts
+                    </div>
+                  }
+                </div>
+              </div>
+            </div>
+            }
+          </div>
         </div>
       </div>
       }
