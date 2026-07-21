@@ -1051,6 +1051,62 @@ export class AdminDashboardComponent implements OnInit {
     this.selectedPlayer = null;
   }
 
+  exportPlayerDetailsToCSV(player: PlayerStats): void {
+    if (!player || !player.predictionsDetail || player.predictionsDetail.length === 0) return;
+
+    const headers = [
+      'Match',
+      'Phase',
+      'Coup d\'envoi',
+      'Envoi (Created)',
+      'Modif (Modified)',
+      'Prono (FM)',
+      'Prono (MT)',
+      'Buteur',
+      'Score Réel',
+      'Points Calculés',
+      'En retard',
+      'Doublon'
+    ];
+
+    const escapeCsv = (val: any) => {
+      if (val === null || val === undefined) return '""';
+      const str = String(val).replace(/"/g, '""').replace(/\n/g, ' ').replace(/\r/g, '');
+      return `"${str}"`;
+    };
+
+    const rows = player.predictionsDetail.map(d => {
+      const kickoff = d.kickoff ? new Date(d.kickoff).toLocaleString('fr-FR') : '';
+      const submitted = d.submittedAt ? new Date(d.submittedAt).toLocaleString('fr-FR') : '';
+      const modified = d.modifiedAt ? new Date(d.modifiedAt).toLocaleString('fr-FR') : '';
+      
+      return [
+        escapeCsv(d.match),
+        escapeCsv(d.phase),
+        escapeCsv(kickoff),
+        escapeCsv(submitted),
+        escapeCsv(modified),
+        escapeCsv(d.prediction),
+        escapeCsv(d.halftime_prediction),
+        escapeCsv(d.scorer_prediction),
+        escapeCsv(d.actualScore),
+        escapeCsv(d.calculatedPoints),
+        escapeCsv(d.isLate ? 'Oui' : 'Non'),
+        escapeCsv(d.isDuplicate ? 'Oui' : 'Non')
+      ].join(',');
+    });
+
+    const csvContent = [headers.join(','), ...rows].join('\n');
+    const blob = new Blob([new Uint8Array([0xef, 0xbb, 0xbf]), csvContent], { type: 'text/csv;charset=utf-8;' }); // BOM for Excel
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.setAttribute('href', url);
+    link.setAttribute('download', `pronostics_${player.username}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }
+
   // Revisions logic
   openRevisionsModal(fraudCase: FraudReport): void {
     this.selectedRevisionPrediction = fraudCase;

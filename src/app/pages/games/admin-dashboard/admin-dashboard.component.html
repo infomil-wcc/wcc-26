@@ -572,12 +572,16 @@
             </div>
           </div>
 
-          <div class="player-meta-info">
-            <p><strong>Email : </strong> {{ selectedPlayer.email }}</p>
-            <p><strong>Points Directus : </strong> {{ selectedPlayer.directusPoints }} pts</p>
-            <p><strong>Points Calculés Localement : </strong> {{ selectedPlayer.calculatedPoints }} pts</p>
-            <p *ngIf="selectedPlayer.pointDiscrepancy" class="text-warning">⚠️ Écart de point détecté. Veuillez
-              synchroniser la base Directus.</p>
+          <div class="player-meta-info" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;">
+            <div>
+              <p><strong>Email : </strong> {{ selectedPlayer.email }}</p>
+              <p><strong>Points Directus : </strong> {{ selectedPlayer.directusPoints }} pts</p>
+              <p><strong>Points Calculés Localement : </strong> {{ selectedPlayer.calculatedPoints }} pts</p>
+              <p *ngIf="selectedPlayer.pointDiscrepancy" class="text-warning">⚠️ Écart de point détecté. Veuillez synchroniser la base Directus.</p>
+            </div>
+            <button class="btn btn-secondary btn-sm" (click)="exportPlayerDetailsToCSV(selectedPlayer)">
+              <span class="material-symbols-outlined" style="vertical-align: middle; font-size: 18px;">download</span> Exporter CSV
+            </button>
           </div>
 
           <div class="table-responsive modal-table-container">

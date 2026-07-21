@@ -518,7 +518,9 @@ export class ScoresheetComponent implements OnInit {
       phase: dm.match.phase || '',
       _scoreNum: (dm.match.fulltime_a ?? 0) * 100 + (dm.match.fulltime_b ?? 0),
       _predictionNum: (dm.prediction.fulltime_a ?? -1) * 100 + (dm.prediction.fulltime_b ?? -1),
-      _points: dm.breakdown.isFraud ? 0 : dm.breakdown.total
+      _points: dm.breakdown.isFraud ? 0 : dm.breakdown.total,
+      _submittedAt: dm.prediction.created_on ? new Date(this.pointsCalculatorService.parseMauritianDate(this.pointsCalculatorService.convertDirectusToMauritianString(dm.prediction.created_on))) : null,
+      _modifiedAt: dm.prediction.modified_on ? new Date(this.pointsCalculatorService.parseMauritianDate(this.pointsCalculatorService.convertDirectusToMauritianString(dm.prediction.modified_on))) : null
     }));
     this.detailedMatches.sort((a, b) => new Date(b.match.date).getTime() - new Date(a.match.date).getTime());
   }

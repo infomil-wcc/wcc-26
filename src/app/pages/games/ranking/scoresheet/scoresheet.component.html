@@ -248,8 +248,8 @@
                     </div>
                     <div class="text-sm font-medium mt-1 flex flex-column gap-1" style="padding-left: 2.1rem;">
                       <div><span class="font-bold">Début du match :</span> {{ item.match.date | date: 'dd/MM/yyyy HH:mm' }}</div>
-                      <div *ngIf="item.prediction.created_on"><span class="font-bold">Création :</span> {{ item.prediction.created_on | date: 'dd/MM/yyyy HH:mm' }}</div>
-                      <div *ngIf="item.prediction.modified_on"><span class="font-bold">Modification :</span> {{ item.prediction.modified_on | date: 'dd/MM/yyyy HH:mm' }}</div>
+                      <div *ngIf="item._submittedAt"><span class="font-bold">Création :</span> {{ item._submittedAt | date: 'dd/MM/yyyy HH:mm' }}</div>
+                      <div *ngIf="item._modifiedAt"><span class="font-bold">Modification :</span> {{ item._modifiedAt | date: 'dd/MM/yyyy HH:mm' }}</div>
                     </div>
                   </div>
 
