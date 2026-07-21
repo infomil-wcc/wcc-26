@@ -1049,4 +1049,34 @@ export class MatchComponent implements OnInit, OnDestroy {
       return scoreB > scoreA ? '#48bb78' : '#f56565';
     }
   }
+
+  formatPlayerName(name: string): string {
+    if (!name || name === '-') return name;
+    
+    const parts = name.trim().split(/\s+/);
+    if (parts.length >= 2) {
+      // If the first word is completely uppercase and has letters
+      const firstWord = parts[0];
+      if (firstWord === firstWord.toUpperCase() && firstWord.match(/[A-Z\u00C0-\u00DC]/)) {
+        let i = 0;
+        const lastNames = [];
+        while (i < parts.length && parts[i] === parts[i].toUpperCase() && parts[i].match(/[A-Z\u00C0-\u00DC]/)) {
+          lastNames.push(parts[i]);
+          i++;
+        }
+        
+        if (i < parts.length && lastNames.length > 0) {
+          const firstNames = parts.slice(i);
+          const capitalize = (s: string) => s.charAt(0).toUpperCase() + s.slice(1).toLowerCase();
+          const formattedLastName = lastNames.map(capitalize).join(' ');
+          const formattedFirstName = firstNames.map(capitalize).join(' ');
+          
+          return `${formattedFirstName} ${formattedLastName}`;
+        }
+      }
+    }
+    
+    const capitalize = (s: string) => s.length > 0 ? s.charAt(0).toUpperCase() + s.slice(1).toLowerCase() : s;
+    return parts.map(capitalize).join(' ');
+  }
 }

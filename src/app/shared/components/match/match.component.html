@@ -293,6 +293,11 @@
               <span class="material-symbols-outlined" style="font-size: 0.95rem;">error</span>
               <span>Buteur requis</span>
             </div>
+            } @else {
+            <div class="flex align-items-center gap-2">
+              <span class="material-symbols-outlined text-indigo-500">sports_soccer</span>
+              <span class="text-indigo-900 font-bold">{{ formatPlayerName(scorer) }}</span>
+            </div>
             }
           </div>
         </div>
@@ -332,18 +337,16 @@
         </h4>
 
         @if (!closed && donePronostique.scorer && donePronostique.scorer !== '-' && !hidePointsBadge) {
-        <div
-          class="flex align-items-center justify-content-center gap-2 mt-0 mb-2 text-md font-bold text-center text-indigo-900">
-          <span class="material-symbols-outlined align-middle"
-            style="font-size: 1.25rem; color: #3f51b5; vertical-align: middle;">sports_soccer</span>
-          <span class="align-middle" style="vertical-align: middle;">Buteur : {{ donePronostique.scorer }}</span>
-          @if (!isSavedInApi) {
-          <button class="clear-scorer-btn flex align-items-center justify-content-center" (click)="clearScorer()"
-            [disabled]="disabled || isSubmitting"
-            style="background: none; border: none; padding: 0; cursor: pointer; color: #ef4444; margin-left: 2px; vertical-align: middle; display: inline-flex;">
-            <span class="material-symbols-outlined" style="font-size: 1.2rem;">cancel</span>
+        <div class="scorerContainer mt-1 mb-1">
+          <button class="btn btn-select-scorer w-full flex align-items-center justify-content-center gap-2 py-2"
+            (click)="openTacticalLineup()" [disabled]="!canSelectScorer">
+            <span class="material-symbols-outlined text-indigo-500" style="vertical-align: middle;">sports_soccer</span>
+            <span class="align-middle" style="vertical-align: middle;">Buteur : {{ formatPlayerName(donePronostique.scorer) }}</span>
           </button>
-          }
+          <button class="clear-scorer-btn flex align-items-center justify-content-center" (click)="clearScorer()"
+            title="Effacer le buteur">
+            <span class="material-symbols-outlined">close</span>
+          </button>
         </div>
         }
 
@@ -375,15 +378,17 @@
         }
 
         @if (donePronostique.scorer && donePronostique.scorer !== '-') {
-        <h5 class="mt-0 mb-2 text-md text-center flex align-items-center justify-content-center gap-2"
+        <div class="scorerContainer mt-2 pt-2 border-top-1 border-300"
           [ngClass]="(match.fulltime_a !== null && match.fulltime_b !== null) ? (isScorerCorrect() ? 'text-success' : 'text-danger') : ''">
-          @if (match.fulltime_a !== null && match.fulltime_b !== null) {
-          <span class="material-symbols-outlined align-middle" style="font-size: 1.1rem;"
-            [ngClass]="isScorerCorrect() ? 'icon-success' : 'icon-danger'">{{ isScorerCorrect() ? 'check_circle' :
-            'cancel' }}</span>
-          }
-          <strong class="align-middle">Buteur :</strong> <span class="align-middle">{{ donePronostique.scorer }}</span>
-        </h5>
+          <div class="flex align-items-center justify-content-center gap-2">
+            <span class="material-symbols-outlined"
+              [ngClass]="isScorerCorrect() ? 'icon-success' : 'icon-danger'">{{ isScorerCorrect() ? 'check_circle' :
+              'cancel' }}</span>
+            <div>
+              <strong class="align-middle">Buteur :</strong> <span class="align-middle">{{ formatPlayerName(donePronostique.scorer) }}</span>
+            </div>
+          </div>
+        </div>
         }
         }
 
@@ -447,7 +452,7 @@
         @for (scorer of teamAScorersGrouped; track scorer.name) {
         <div style="margin-bottom: 2px; display: flex; align-items: center; gap: 4px; justify-content: flex-start;">
           <span class="material-symbols-outlined" style="font-size: 0.8rem; color: #8a99ad;">sports_soccer</span>
-          <span style="font-weight: 700; color: #e2e8f0;">{{ scorer.name }}</span>
+          <span style="font-weight: 700; color: #e2e8f0;">{{ formatPlayerName(scorer.name) }}</span>
           <span style="color: #a0aec0;" [innerHTML]="scorer.times"></span>
         </div>
         }
@@ -462,7 +467,7 @@
         @if (isScorersJson) {
         @for (scorer of teamBScorersGrouped; track scorer.name) {
         <div style="margin-bottom: 2px; display: flex; align-items: center; gap: 4px; justify-content: flex-end;">
-          <span style="font-weight: 700; color: #e2e8f0;">{{ scorer.name }}</span>
+          <span style="font-weight: 700; color: #e2e8f0;">{{ formatPlayerName(scorer.name) }}</span>
           <span style="color: #a0aec0;" [innerHTML]="scorer.times"></span>
           <span class="material-symbols-outlined" style="font-size: 0.8rem; color: #8a99ad;">sports_soccer</span>
         </div>
