@@ -5,6 +5,7 @@ import { map, switchMap } from 'rxjs/operators';
 import { PronosticsRankingsApiService } from '../api/pronostics-rankings-api.service';
 import { BracketRankingsApiService } from '../api/bracket-rankings-api.service';
 import { AuthService } from '../core/auth.service';
+import { environment } from '../../../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
@@ -71,7 +72,31 @@ export class RankingsService {
     );
   }
 
-  recalculateRankings(): Observable<any> {
-    return this.http.get('/api/match-results?points=all');
+
+  recalculateRankings(offset: number = 0, batchSize: number | null = null, user: string | null = null, forceUpdate: boolean = false): Observable<any> {
+    let url = `${environment.apiUrl}/match-results?`;
+    if (user) {
+      url += `points=${user}&matches=all`;
+    } else {
+      url += `points=all&matches=all`;
+    }
+    url += `&offset=${offset}`;
+    if (batchSize !== null) {
+      url += `&batchSize=${batchSize}`;
+    }
+    if (forceUpdate) {
+      url += `&force=true`;
+    }
+    return this.http.get(url);
+  }
+
+  forcePoints(username: string, points: number): Observable<any> {
+    const url = `${environment.apiUrl}/force-points`;
+    return this.http.post(url, { username, points });
+  }
+
+  recalculateRanksOnly(): Observable<any> {
+    const url = `${environment.apiUrl}/recalc-ranks-only`;
+    return this.http.post(url, {});
   }
 }

@@ -10,6 +10,7 @@ import { RankingsService } from '../../../shared/services/content/rankings.servi
 import { StateService } from '../../../shared/services/core/state.service';
 import { RouterModule } from '@angular/router';
 import { ScoresheetComponent } from './scoresheet/scoresheet.component';
+import { PointsCalculatorService } from '../../../shared/services/games/points-calculator.service';
 
 @Component({
   selector: 'app-ranking',
@@ -28,6 +29,7 @@ export class RankingComponent implements OnInit, OnDestroy {
   private bracketService = inject(BracketService);
   private cdr = inject(ChangeDetectorRef);
   private teamsService = inject(TeamsService);
+  private pointsCalculatorService = inject(PointsCalculatorService);
   private today: Date = new Date();
 
   protected showLoader: boolean = true;
@@ -45,7 +47,7 @@ export class RankingComponent implements OnInit, OnDestroy {
   private bracketSub!: Subscription;
   private flagsSub!: Subscription;
   private userSub!: Subscription;
-  ngOnInit():void {
+  ngOnInit(): void {
     this.userSub = this.stateService.userState.subscribe({
       next: (user) => {
         this.currentUserTrigramme = user.last_name || '';
@@ -58,8 +60,8 @@ export class RankingComponent implements OnInit, OnDestroy {
     this.$bracketRanks = this.rankingsService.getBracketRankings();
 
     this.ranksSub = this.$ranks.subscribe({
-      next: (response)=>{
-        if(!response || response.length < 1){
+      next: (response) => {
+        if (!response || response.length < 1) {
           this.updateRanks();
           setTimeout(() => {
             location.reload();
@@ -84,7 +86,7 @@ export class RankingComponent implements OnInit, OnDestroy {
       next: (res) => {
         if (res && res.length > 0) {
           this.bracketRankingsList = res || [];
-          
+
         }
         this.cdr.detectChanges();
       }
@@ -106,14 +108,14 @@ export class RankingComponent implements OnInit, OnDestroy {
       next: (data) => {
         if (data) {
           data.forEach((b: any) => {
-              const predictions = b.predictions_json || {};
-              const winner = b.winner_wc || predictions.winner_wc;
-              if (b.user && winner) {
-                const uKey = b.user.toLowerCase().trim();
-                const country = winner.trim();
-                this.userChampions[uKey] = country;
-              }
-            });
+            const predictions = b.predictions_json || {};
+            const winner = b.winner_wc || predictions.winner_wc;
+            if (b.user && winner) {
+              const uKey = b.user.toLowerCase().trim();
+              const country = winner.trim();
+              this.userChampions[uKey] = country;
+            }
+          });
         }
         this.cdr.detectChanges();
       }
@@ -158,7 +160,7 @@ export class RankingComponent implements OnInit, OnDestroy {
     ];
   }
 
-  
+
   get activeListDeduplicated(): any[] {
     const list = this.activeList;
     if (!list || list.length === 0) return [];
@@ -229,6 +231,8 @@ export class RankingComponent implements OnInit, OnDestroy {
   }
 
   updateRanks(): void {
+    console.log('Automated recalculations are disabled from RankingComponent. Trigger them from Admin Dashboard.');
+    return;
     this.rankingsService.recalculateRankings().subscribe({
       next: () => {
         console.log('Rankings recalculated on backend.');

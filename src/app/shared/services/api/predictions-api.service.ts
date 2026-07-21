@@ -20,4 +20,8 @@ export class PredictionsApiService {
   updatePrediction(id: any, prediction: any, options?: any): Observable<any> {
     return this.http.patch<any>(`${environment.apiBaseUrl}/items/pronostiques/${id}`, prediction, options);
   }
+
+  getRevisions(queryParams: string = '', options?: any): Observable<any> {
+    return this.http.get<any>(`${environment.apiBaseUrl}/revisions${queryParams}`, options);
+  }
 }

@@ -1,4 +1,4 @@
-import { fetchWithBypass } from './utils.mjs';
+import { fetchWithBypass, parseMauritianDate, convertDirectusToMauritianString } from './utils.mjs';
 import { calcResultForRanking } from './match-calculations.mjs';
 import { calcBracketPoints } from './calc-bracket-stage.mjs';
 
@@ -6,22 +6,29 @@ import { calcBracketPoints } from './calc-bracket-stage.mjs';
  * USER LEADERBOARD RANKING CALCULATIONS
  * Validates timestamps to eliminate post-kickoff submissions or modifications.
  */
-export async function recalculateRankings(directusUrl, adminToken, specificUser = null, loggedInUser = null, isExplicitOverride = false, deps = {}) {
+export async function recalculateRankings(directusUrl, adminToken, specificUser = null, loggedInUser = null, isExplicitOverride = false, deps = {}, batchOffset = 0, batchSize = null, forceUpdate = false) {
   const fetch = deps.fetch || fetchWithBypass;
   const apiLogs = [];
   try {
-    const headers = { 'Authorization': `Bearer ${adminToken}` };
-    const pronoFilter = specificUser ? `&filter[user][eq]=${specificUser}` : "";
+    const headers = { 
+      'Authorization': `Bearer ${adminToken}`,
+      'Cache-Control': 'no-cache, no-store, must-revalidate',
+      'Pragma': 'no-cache',
+      'Expires': '0'
+    };
+    const fetchOptions = { headers, cache: 'no-store' };
+    const cb = `_cb=${Date.now()}`;
+    const pronoFilter = specificUser ? `&filter[user][_eq]=${specificUser}` : "";
 
     const [matchesRes, predictionsRes, rankingsRes, rulesRes, bracketResultsRes, bracketsRes, knockoutBracketsRes, bracketRankingsRes] = await Promise.all([
-      fetch(`${directusUrl}/items/matches?limit=-1`, { headers }),
-      fetch(`${directusUrl}/items/pronostiques?limit=-1${pronoFilter}`, { headers }),
-      fetch(`${directusUrl}/items/pronostics_rankings?limit=-1`, { headers }),
-      fetch(`${directusUrl}/items/game_scoring_rules?limit=-1`, { headers }),
-      fetch(`${directusUrl}/items/bracket_result?limit=-1`, { headers }),
-      fetch(`${directusUrl}/items/bracket?limit=-1`, { headers }),
-      fetch(`${directusUrl}/items/bracket_knockout?limit=-1`, { headers }),
-      fetch(`${directusUrl}/items/bracket_rankings?limit=-1`, { headers })
+      fetch(`${directusUrl}/items/matches?limit=-1&${cb}`, fetchOptions),
+      fetch(`${directusUrl}/items/pronostiques?limit=-1${pronoFilter}&${cb}`, fetchOptions),
+      fetch(`${directusUrl}/items/pronostics_rankings?limit=-1&${cb}`, fetchOptions),
+      fetch(`${directusUrl}/items/game_scoring_rules?limit=-1&${cb}`, fetchOptions),
+      fetch(`${directusUrl}/items/bracket_result?limit=-1&${cb}`, fetchOptions),
+      fetch(`${directusUrl}/items/bracket?limit=-1&${cb}`, fetchOptions),
+      fetch(`${directusUrl}/items/bracket_knockout?limit=-1&${cb}`, fetchOptions),
+      fetch(`${directusUrl}/items/bracket_rankings?limit=-1&${cb}`, fetchOptions)
     ]);
 
     const matchesData = matchesRes.ok ? await matchesRes.json() : {};
@@ -54,38 +61,40 @@ export async function recalculateRankings(directusUrl, adminToken, specificUser 
       try { const d = await bracketRankingsRes.json(); existingBracketRankings = d.data || []; } catch (e) { }
     }
 
-    // Sync match point fields with the rules matrix
-    for (const game of matches) {
-      const targetPhase = game.phase === 'Third Place' ? 'Final' : game.phase;
-      const rule = ruleMatrix.find(r => r.game_type === 'pronostics' && r.phase === targetPhase);
-      if (rule) {
-        const expectedWinnerPoint = Number(rule.winner_draw_points) || 0;
-        const expectedFulltimePoint = Number(rule.fulltime_exact_points) || 0;
-        const expectedHalftimePoint = Number(rule.halftime_exact_points) || 0;
-        const expectedScorerPoint = Number(rule.scorer_points) || 0;
+    // Sync match point fields with rules matrix — only on the FIRST batch to avoid redundant PATCH calls
+    if (batchOffset === 0) {
+      for (const game of matches) {
+        const targetPhase = game.phase === 'Third Place' ? 'Final' : game.phase;
+        const rule = ruleMatrix.find(r => r.game_type === 'pronostics' && r.phase === targetPhase);
+        if (rule) {
+          const expectedWinnerPoint = Number(rule.winner_draw_points) || 0;
+          const expectedFulltimePoint = Number(rule.fulltime_exact_points) || 0;
+          const expectedHalftimePoint = Number(rule.halftime_exact_points) || 0;
+          const expectedScorerPoint = Number(rule.scorer_points) || 0;
 
-        if (
-          game.winner_point !== expectedWinnerPoint ||
-          game.fulltime_point !== expectedFulltimePoint ||
-          game.halftime_point !== expectedHalftimePoint ||
-          game.scorer_point !== expectedScorerPoint
-        ) {
-          await fetch(`${directusUrl}/items/matches/${game.id}`, {
-            method: 'PATCH',
-            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${adminToken}` },
-            body: JSON.stringify({
-              winner_point: expectedWinnerPoint,
-              fulltime_point: expectedFulltimePoint,
-              halftime_point: expectedHalftimePoint,
-              scorer_point: expectedScorerPoint
-            })
-          });
+          if (
+            game.winner_point !== expectedWinnerPoint ||
+            game.fulltime_point !== expectedFulltimePoint ||
+            game.halftime_point !== expectedHalftimePoint ||
+            game.scorer_point !== expectedScorerPoint
+          ) {
+            await fetch(`${directusUrl}/items/matches/${game.id}`, {
+              method: 'PATCH',
+              headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${adminToken}` },
+              body: JSON.stringify({
+                winner_point: expectedWinnerPoint,
+                fulltime_point: expectedFulltimePoint,
+                halftime_point: expectedHalftimePoint,
+                scorer_point: expectedScorerPoint
+              })
+            });
 
-          game.winner_point = expectedWinnerPoint;
-          game.fulltime_point = expectedFulltimePoint;
-          game.halftime_point = expectedHalftimePoint;
-          game.scorer_point = expectedScorerPoint;
-          apiLogs.push(`Synced points in Directus for Match ID: ${game.id} (${game.phase})`);
+            game.winner_point = expectedWinnerPoint;
+            game.fulltime_point = expectedFulltimePoint;
+            game.halftime_point = expectedHalftimePoint;
+            game.scorer_point = expectedScorerPoint;
+            apiLogs.push(`Synced points in Directus for Match ID: ${game.id} (${game.phase})`);
+          }
         }
       }
     }
@@ -115,32 +124,35 @@ export async function recalculateRankings(directusUrl, adminToken, specificUser 
         breakdown: { winner: 0, fulltime: 0, halftime: 0, scorer: 0, consolation: 0, total: 0, isFraud: false }
       }));
 
-      // Sort by created_on ascending to ensure we take the first occurrence of multiple records
+      // Sort by created_on DESCENDING to ensure we take the newest valid occurrence of multiple records
       userPredictions[username].sort((a, b) => {
-        const dateA = a.created_on ? new Date(a.created_on).getTime() : 0;
-        const dateB = b.created_on ? new Date(b.created_on).getTime() : 0;
-        return dateA - dateB;
+        const dateA = a.created_on ? parseMauritianDate(convertDirectusToMauritianString(a.created_on)) : 0;
+        const dateB = b.created_on ? parseMauritianDate(convertDirectusToMauritianString(b.created_on)) : 0;
+        return dateB - dateA;
       });
 
       const processedGames = new Set();
 
       for (const prono of userPredictions[username]) {
         const gameIdStr = String(prono.game_id);
-        const isDuplicate = processedGames.has(gameIdStr);
-        if (!isDuplicate) {
-          processedGames.add(gameIdStr);
-        }
 
         const game = playedMatches.find(m => String(m.id) === gameIdStr);
         if (game) {
           // 🚨 TIMESTAMP FRAUD CHECK
-          const predictionCreated = prono.created_on ? new Date(prono.created_on) : null;
-          const predictionModified = prono.modified_on ? new Date(prono.modified_on) : null;
-          const matchKickoff = new Date(game.date);
+          const predictionCreated = prono.created_on ? parseMauritianDate(convertDirectusToMauritianString(prono.created_on)) : null;
+          const predictionModified = prono.modified_on ? parseMauritianDate(convertDirectusToMauritianString(prono.modified_on)) : null;
+          const matchKickoff = parseMauritianDate(game.date);
 
           let isInvalidated = false;
           if (predictionCreated && predictionCreated > matchKickoff) isInvalidated = true;
           if (predictionModified && predictionModified > matchKickoff) isInvalidated = true;
+
+          let isDuplicate = false;
+          if (processedGames.has(gameIdStr)) {
+            isDuplicate = true;
+          } else if (!isInvalidated && prono.fulltime_a !== null && prono.fulltime_a !== "") {
+            processedGames.add(gameIdStr);
+          }
 
           let pts = { winner: 0, fulltime: 0, halftime: 0, scorer: 0, consolation: 0, total: 0, isFraud: false };
           if (isDuplicate) {
@@ -157,7 +169,7 @@ export async function recalculateRankings(directusUrl, adminToken, specificUser 
           }
           const userPronoIndex = userPronos.findIndex(p => p.id === prono.id);
           if (userPronoIndex > -1) {
-             userPronos[userPronoIndex].breakdown = pts;
+            userPronos[userPronoIndex].breakdown = pts;
           }
         }
       }
@@ -169,36 +181,61 @@ export async function recalculateRankings(directusUrl, adminToken, specificUser 
       });
     }
 
-    if (specificUser) {
-      const dynamicRankings = [...existingRankings];
-      const calculatedUser = rankingObj.find(u => u.key === specificUser);
-
-      if (calculatedUser) {
-        const matchingIndex = dynamicRankings.findIndex(r => r.key === specificUser);
-        if (matchingIndex !== -1) dynamicRankings[matchingIndex].point = calculatedUser.point;
-        else dynamicRankings.push({ key: specificUser, point: calculatedUser.point });
+    // ── Merge in other existing rankings for full ranking recalculation ──
+    for (const ext of existingRankings) {
+      const alreadyAdded = rankingObj.some(u => u.key.toLowerCase() === ext.key.toLowerCase());
+      if (!alreadyAdded) {
+        rankingObj.push({
+          key: ext.key,
+          point: Number(ext.point) || 0,
+          pronostiques: ext.pronostiques || [],
+          rank: Number(ext.rank) || 999
+        });
       }
-
-      dynamicRankings.sort((a, b) => b.point - a.point);
-      let runningRank = 1;
-      dynamicRankings.forEach((obj, idx) => {
-        if (idx > 0 && obj.point !== dynamicRankings[idx - 1].point) runningRank = idx + 1;
-        if (obj.key === specificUser && calculatedUser) calculatedUser.rank = runningRank;
-      });
-    } else {
-      rankingObj.sort((a, b) => b.point - a.point || a.key.localeCompare(b.key));
-      let rank = 1;
-      rankingObj.forEach((obj, index) => {
-        if (index > 0 && obj.point !== rankingObj[index - 1].point) rank = index + 1;
-        obj.rank = rank;
-      });
     }
 
-    for (const player of rankingObj) {
-      const isTargetedUser = specificUser !== null ? (player.key === specificUser) : true;
-      const shouldSaveToDb = isExplicitOverride ? isTargetedUser : (!loggedInUser || player.key === loggedInUser);
+    // Sort and calculate ranks for ALL users in rankingObj
+    rankingObj.sort((a, b) => b.point - a.point || a.key.localeCompare(b.key));
+    let rank = 1;
+    rankingObj.forEach((obj, index) => {
+      if (index > 0 && obj.point !== rankingObj[index - 1].point) rank = index + 1;
+      obj.rank = rank;
+    });
+
+    // ── Batch write logic ──
+    const totalUsers = rankingObj.length;
+    let batchSlice = [];
+    let nextOffset = batchOffset;
+    let isDone = true;
+
+    if (specificUser !== null) {
+      batchSlice = rankingObj;
+      isDone = true;
+    } else {
+      const effectiveBatchSize = batchSize !== null ? batchSize : totalUsers;
+      batchSlice = rankingObj.slice(batchOffset, batchOffset + effectiveBatchSize);
+      nextOffset = batchOffset + effectiveBatchSize;
+      isDone = nextOffset >= totalUsers;
+    }
+
+    for (const player of batchSlice) {
+      const isTargetedUser = specificUser !== null ? (player.key.toLowerCase() === specificUser.toLowerCase()) : true;
+      const existingRow = existingRankings.find(item => item.key.toLowerCase() === player.key.toLowerCase());
+
+      let rankChanged = false;
+      if (existingRow && Number(existingRow.rank) !== Number(player.rank)) {
+        rankChanged = true;
+      }
+
+      const shouldSaveToDb = isExplicitOverride
+        ? (isTargetedUser || rankChanged)
+        : (!loggedInUser || player.key === loggedInUser);
 
       if (!shouldSaveToDb) continue;
+
+      if (isTargetedUser) {
+        apiLogs.push(`[DEBUG] Recalculating ${player.key} | Calculated Points: ${player.point} | DB Points: ${existingRow ? existingRow.point : 'N/A'} | ForceUpdate: ${forceUpdate}`);
+      }
 
       const rankingRow = {
         key: player.key,
@@ -208,17 +245,21 @@ export async function recalculateRankings(directusUrl, adminToken, specificUser 
         pronostiques: player.pronostiques
       };
 
-      const existingRow = existingRankings.find(item => item.key === player.key);
-
       if (existingRow) {
-        if (Number(existingRow.point) === Number(rankingRow.point) && Number(existingRow.rank) === Number(rankingRow.rank) && JSON.stringify(existingRow.pronostiques) === JSON.stringify(rankingRow.pronostiques)) {
+        if (!forceUpdate && Number(existingRow.point) === Number(rankingRow.point) && Number(existingRow.rank) === Number(rankingRow.rank) && JSON.stringify(existingRow.pronostiques) === JSON.stringify(rankingRow.pronostiques)) {
           continue;
         }
-        await fetch(`${directusUrl}/items/pronostics_rankings/${existingRow.id}`, {
+        const patchRes = await fetch(`${directusUrl}/items/pronostics_rankings/${existingRow.id}`, {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${adminToken}` },
           body: JSON.stringify(rankingRow)
         });
+        if (!patchRes.ok) {
+          const errText = await patchRes.text();
+          apiLogs.push(`❌ Directus PATCH failed for ${player.key}: Status ${patchRes.status} - ${errText}`);
+        } else {
+          apiLogs.push(`✅ PATCH success for ${player.key}. Old points: ${existingRow.point}, New points: ${player.point}`);
+        }
       } else {
         await fetch(`${directusUrl}/items/pronostics_rankings`, {
           method: 'POST',
@@ -229,7 +270,8 @@ export async function recalculateRankings(directusUrl, adminToken, specificUser 
       apiLogs.push(`Saved row in Directus for user: ${player.key}`);
     }
 
-    if (isExplicitOverride && specificUser === null) {
+    // ── Cleanup stale records — only on the last batch ───────────────────────
+    if (isDone && isExplicitOverride && specificUser === null) {
       for (const existingItem of existingRankings) {
         const stillActive = rankingObj.some(player => player.key === existingItem.key);
         if (!stillActive) {
@@ -330,7 +372,7 @@ export async function recalculateRankings(directusUrl, adminToken, specificUser 
       }
     }
 
-    return apiLogs;
+    return { logs: apiLogs, totalUsers, processedCount: batchSlice.length, processedUsers: batchSlice.map(p => p.key), nextOffset: Math.min(nextOffset, totalUsers), isDone };
   } catch (err) {
     console.error("Error during ranking recalculation:", err);
     throw err;

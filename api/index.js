@@ -1,9 +1,10 @@
 import { Router } from 'itty-router';
-import { handleCors, applyFiltersAndSelect, fetchWithBypass } from '../backend/libs/utils.mjs';
+import { handleCors, applyFiltersAndSelect, fetchWithBypass, parseMauritianDate, getCurrentMauritianDateStr } from '../backend/libs/utils.mjs';
 import { generateGameRules } from '../backend/libs/gameRulesHelper.mjs';
 import { getMatchLineups } from '../backend/libs/lineupsHelper.mjs';
 import { getRegisteredUserCount, registerNewUser } from '../backend/libs/usersHelper.mjs';
 import { getTeamsOrSquads } from '../backend/libs/teamsSquadsHelper.mjs';
+import { forcePoints, recalculateRanksOnly } from '../backend/libs/adminHelper.mjs';
 import { migrateScorerNames } from '../backend/libs/scorers-migration.mjs';
 
 // 1. Initialisation du routeur centralisé pour l'API Infomil
@@ -247,7 +248,7 @@ const handleMatchPredictionValidation = async (request, response) => {
             'https://wcc-26.vercel.app'
         ];
         const origin = request.headers.origin || request.headers.Origin;
-        
+
         // If it's a cross-origin request (has an origin header) and it's not in our explicit whitelist, reject it.
         if (origin && !allowedOrigins.includes(origin)) {
             return response.status(403).json({ error: "Forbidden: Cross-origin access to this endpoint is strictly disallowed." });
@@ -283,8 +284,8 @@ const handleMatchPredictionValidation = async (request, response) => {
             return response.status(500).json({ error: "Match baseline timing configuration is missing on the server." });
         }
 
-        const matchTime = new Date(matchTimeStr);
-        const currentTime = new Date(); // Use internal system server time synchronized with your Time API
+        const matchTime = parseMauritianDate(matchTimeStr);
+        const currentTime = Date.now(); // Universal epoch ms
 
         // 2. Core validation logic: If current time is past the match kick-off, lock predictions
         if (currentTime >= matchTime) {
@@ -298,8 +299,12 @@ const handleMatchPredictionValidation = async (request, response) => {
         if (request.method === 'PATCH' || request.method === 'PUT') {
             delete body.game_id;
             delete body.user;
-            request.body = body; // Update the request body so proxyDirectus uses the stripped payload
+            body.modified_on = getCurrentMauritianDateStr();
+        } else if (request.method === 'POST') {
+            body.created_on = getCurrentMauritianDateStr();
+            body.modified_on = getCurrentMauritianDateStr();
         }
+        request.body = body; // Update the request body so proxyDirectus uses the stripped payload
 
         // 4. If validation passes, hand over execution context to the standard Directus proxy handler
         return proxyDirectus(request, response);
@@ -404,7 +409,7 @@ router.get('/api/admin/migrate-scorers', async (request, response) => {
 
         const dryRun = request.query.dryRun !== 'false';
 
-         const minMatchId = request.query.minMatchId
+        const minMatchId = request.query.minMatchId
             ? Number(request.query.minMatchId)
             : null;
 
@@ -434,11 +439,76 @@ router.get('/api/admin/migrate-scorers', async (request, response) => {
 
 
 // Intercept both creations (POST) and updates (PATCH/PUT) for the collection
+router.post('/api/force-points', async (request, response) => {
+    try {
+        const result = await forcePoints(request.body?.username, request.body?.points);
+        return response.status(result.status).json(result.data);
+    } catch (e) {
+        return response.status(500).json({ error: e.message });
+    }
+});
+
+router.post('/api/recalc-ranks-only', async (request, response) => {
+    try {
+        const result = await recalculateRanksOnly();
+        return response.status(result.status).json(result.data);
+    } catch (e) {
+        return response.status(500).json({ error: e.message });
+    }
+});
+
 router.post('/api/items/pronostiques', handleMatchPredictionValidation);
 router.patch('/api/items/pronostiques/*', handleMatchPredictionValidation);
 router.put('/api/items/pronostiques/*', handleMatchPredictionValidation);
 router.all('/api/items', proxyDirectus);
 router.all('/api/items/*', proxyDirectus);
+router.post('/api/auth/refresh', async (request, response) => {
+    try {
+        const directusUrl = process.env.DIRECTUS_URL || 'https://euro.omediainteractive.net/imleuro';
+        let body = request.body;
+        if (typeof body === 'string') {
+            try { body = JSON.parse(body); } catch (e) { }
+        }
+
+        // Ensure we send 'token' to Directus
+        const payload = {
+            token: body?.refresh_token || body?.token,
+            mode: body?.mode || 'json'
+        };
+
+        if (!payload.token) {
+            return response.status(401).json({ error: { message: "No refresh token provided." } });
+        }
+
+        const targetUrl = `${directusUrl}/auth/refresh`;
+        const res = await fetchWithBypass(targetUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+
+        const text = await res.text();
+        let data;
+        try {
+            data = JSON.parse(text);
+        } catch {
+            data = text;
+        }
+
+        // Directus sometimes returns 500 or 400 for expired/malformed tokens.
+        // We translate any failure to 401 so the frontend properly logs out the user instead of crashing/hanging.
+        if (res.status >= 400 || (data && data.error)) {
+            console.error(`[auth/refresh] Directus error ${res.status}:`, data);
+            return response.status(401).json({ error: { message: "Session expired or invalid refresh token." } });
+        }
+
+        return response.status(res.status).json(data);
+    } catch (error) {
+        console.error("Error during refresh token proxy:", error);
+        return response.status(401).json({ error: { message: "Session expired or invalid refresh token." } });
+    }
+});
+
 router.all('/api/auth', proxyDirectus);
 router.all('/api/auth/*', proxyDirectus);
 router.get('/api/users', proxyDirectus);
@@ -449,6 +519,8 @@ router.all('/api/assets', proxyDirectus);
 router.all('/api/assets/*', proxyDirectus);
 router.all('/api/mail', proxyDirectus);
 router.all('/api/mail/*', proxyDirectus);
+router.all('/api/revisions', proxyDirectus);
+router.all('/api/revisions/*', proxyDirectus);
 
 // 3. Export du point d'entrée requis pour Vercel Serverless
 export default async function handler(request, response) {

@@ -29,7 +29,7 @@ export function getNormalizedPhase(apiType) {
 
 export function getDbMatchUtcTime(dbDateStr) {
     if (!dbDateStr) return 0;
-    const isoStr = dbDateStr.trim().replace(' ', 'T') + '+04:00';
+    const isoStr = dbDateStr.trim().replace(' ', 'T');
     return new Date(isoStr).getTime();
 }
 

@@ -12,10 +12,17 @@ function isMatchFinished(match) {
 
 export async function autoAdvanceKnockoutStages(directusUrl, adminToken, deps = {}) {
   const fetch = deps.fetch || fetchWithBypass;
-  const headers = { 'Authorization': `Bearer ${adminToken}` };
+  const headers = { 
+    'Authorization': `Bearer ${adminToken}`,
+    'Cache-Control': 'no-cache, no-store, must-revalidate',
+    'Pragma': 'no-cache',
+    'Expires': '0'
+  };
+  const cb = `_cb=${Date.now()}`;
+  const fetchOptions = { headers, cache: 'no-store' };
   const updates = [];
 
-  const matchesRes = await fetch(`${directusUrl}/items/matches?limit=-1`, { headers });
+  const matchesRes = await fetch(`${directusUrl}/items/matches?limit=-1&${cb}`, fetchOptions);
   if (!matchesRes.ok) return updates;
   const matchesData = await matchesRes.json();
   const allMatches = matchesData.data || [];

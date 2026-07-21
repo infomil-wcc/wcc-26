@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { Matches } from '../../contracts/matches.contract';
-import { Observable, forkJoin, map, of } from 'rxjs';
+import { Observable, forkJoin, map, of, tap } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { MatchesApiService } from '../api/matches-api.service';
 
@@ -10,9 +10,19 @@ import { MatchesApiService } from '../api/matches-api.service';
 export class MatchesService {
   private matchesApiService = inject(MatchesApiService);
 
-  getAllMatches(): Observable<Matches[]> {
-    return this.matchesApiService.getMatches().pipe(
+  private cachedMatches: Matches[] | null = null;
+
+  getAllMatches(queryParams: string = ''): Observable<Matches[]> {
+    if (this.cachedMatches && queryParams === '') {
+      return of(this.cachedMatches);
+    }
+    return this.matchesApiService.getMatches(queryParams).pipe(
       map(response => response?.data || []),
+      tap((matches: Matches[]) => {
+        if (queryParams === '') {
+          this.cachedMatches = matches;
+        }
+      }),
       catchError(() => of([]))
     );
   }

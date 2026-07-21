@@ -96,8 +96,7 @@
     <div class="pronostiques">
       <div class="grid justify-content-center align-items-center min-h mb-1">
         <div class="col-4">
-          <div
-            class="team-option-btn teamA flex flex-column align-items-center justify-content-center relative"
+          <div class="team-option-btn teamA flex flex-column align-items-center justify-content-center relative"
             [ngClass]="{'active': matchOutcome === match.team_a, 'disabled': !canEditPrediction}"
             (click)="selectWinner(match.team_a)">
             <span class="flex flagContainer"
@@ -135,8 +134,7 @@
             <span class="played-date">Joué le :<br><strong>{{ invalidatedDate | date: 'dd/MM HH:mm' }}</strong></span>
           </div>
           } @else if (!closed) {
-          <div
-            class="team-option-btn draw flex flex-column align-items-center justify-content-center relative w-full"
+          <div class="team-option-btn draw flex flex-column align-items-center justify-content-center relative w-full"
             [ngClass]="{'active': matchOutcome === 'Draw', 'disabled': !canEditPrediction}"
             (click)="selectWinner('Draw')">
             @if (matchOutcome === 'Draw') {
@@ -159,18 +157,19 @@
           } @else {
           @if (isSavedInApi && match.fulltime_a !== null && match.fulltime_b !== null && matchPoints !== null &&
           !hidePointsBadge) {
-            @if (isConsolationPointAwarded) {
-            <div class="points-overlay points-consolation" title="Point de consolation">
-              <span class="points-value">+1</span>
-              <span class="points-unit">pt</span>
-            </div>
-            } @else {
-            <div class="points-overlay" [ngClass]="{'points-zero': matchPoints === 0}">
-              <span class="points-value">{{ matchPoints > 0 ? '+' + matchPoints : matchPoints }}</span>
-              <span class="points-unit">pts</span>
-            </div>
-            }
-          } @else if (donePronostique && match.fulltime && (match.phase !== 'Group Stage' && match.phase !== 'Round of 32')) {
+          @if (isConsolationPointAwarded) {
+          <div class="points-overlay points-consolation" title="Point de consolation">
+            <span class="points-value">+1</span>
+            <span class="points-unit">pt</span>
+          </div>
+          } @else {
+          <div class="points-overlay" [ngClass]="{'points-zero': matchPoints === 0}">
+            <span class="points-value">{{ matchPoints > 0 ? '+' + matchPoints : matchPoints }}</span>
+            <span class="points-unit">pts</span>
+          </div>
+          }
+          } @else if (donePronostique && match.fulltime && (match.phase !== 'Group Stage' && match.phase !== 'Round of
+          32')) {
           <div class="flex align-items-center gap-2 font-bold text-xl predicted-scores">
             <span class="score-box">{{ donePronostique.fulltime_a }}</span>
             <span class="score-box">{{ donePronostique.fulltime_b }}</span>
@@ -179,8 +178,7 @@
           }
         </div>
         <div class="col-4">
-          <div
-            class="team-option-btn teamB flex flex-column align-items-center justify-content-center relative"
+          <div class="team-option-btn teamB flex flex-column align-items-center justify-content-center relative"
             [ngClass]="{'active': matchOutcome === match.team_b, 'disabled': !canEditPrediction}"
             (click)="selectWinner(match.team_b)">
             <span class="flex flagContainer"
@@ -208,7 +206,7 @@
       </div>
       @if (!closed && !hidePointsBadge) {
       <div class="pronostiqueWrapper">
-        @if (match.fulltime || match.halftime) {
+        @if ((match.fulltime || match.halftime) && match.phase !== 'Group Stage') {
         <div class="scores-compact-grid mt-1 mb-1">
           <div class="grid-header-row" [class.has-both]="match.fulltime && match.halftime">
             <div class="team-col"></div>
@@ -277,7 +275,7 @@
           </div>
         </div>
         }
-        @if (match.scorer) {
+        @if (match.scorer && match.phase !== 'Group Stage') {
         <div class="scorerContainer mt-1 mb-1">
           <div class="flex flex-column align-items-center gap-1" [ngClass]="{'disabled': this.userTrigramme ===''}">
             <button class="btn btn-select-scorer w-full flex align-items-center justify-content-center gap-2 py-2"
@@ -292,6 +290,11 @@
               style="color: #ef4444;">
               <span class="material-symbols-outlined" style="font-size: 0.95rem;">error</span>
               <span>Buteur requis</span>
+            </div>
+            } @else {
+            <div class="flex align-items-center gap-2">
+              <span class="material-symbols-outlined text-indigo-500">sports_soccer</span>
+              <span class="text-indigo-900 font-bold">{{ formatPlayerName(scorer) }}</span>
             </div>
             }
           </div>
@@ -332,18 +335,17 @@
         </h4>
 
         @if (!closed && donePronostique.scorer && donePronostique.scorer !== '-' && !hidePointsBadge) {
-        <div
-          class="flex align-items-center justify-content-center gap-2 mt-0 mb-2 text-md font-bold text-center text-indigo-900">
-          <span class="material-symbols-outlined align-middle"
-            style="font-size: 1.25rem; color: #3f51b5; vertical-align: middle;">sports_soccer</span>
-          <span class="align-middle" style="vertical-align: middle;">Buteur : {{ donePronostique.scorer }}</span>
-          @if (!isSavedInApi) {
-          <button class="clear-scorer-btn flex align-items-center justify-content-center" (click)="clearScorer()"
-            [disabled]="disabled || isSubmitting"
-            style="background: none; border: none; padding: 0; cursor: pointer; color: #ef4444; margin-left: 2px; vertical-align: middle; display: inline-flex;">
-            <span class="material-symbols-outlined" style="font-size: 1.2rem;">cancel</span>
+        <div class="scorerContainer mt-1 mb-1">
+          <button class="btn btn-select-scorer w-full flex align-items-center justify-content-center gap-2 py-2"
+            (click)="openTacticalLineup()" [disabled]="!canSelectScorer">
+            <span class="material-symbols-outlined text-indigo-500" style="vertical-align: middle;">sports_soccer</span>
+            <span class="align-middle" style="vertical-align: middle;">Buteur : {{
+              formatPlayerName(donePronostique.scorer) }}</span>
           </button>
-          }
+          <button class="clear-scorer-btn flex align-items-center justify-content-center" (click)="clearScorer()"
+            title="Effacer le buteur">
+            <span class="material-symbols-outlined">close</span>
+          </button>
         </div>
         }
 
@@ -375,15 +377,18 @@
         }
 
         @if (donePronostique.scorer && donePronostique.scorer !== '-') {
-        <h5 class="mt-0 mb-2 text-md text-center flex align-items-center justify-content-center gap-2"
+        <div class="scorerContainer mt-2 pt-2 border-top-1 border-300"
           [ngClass]="(match.fulltime_a !== null && match.fulltime_b !== null) ? (isScorerCorrect() ? 'text-success' : 'text-danger') : ''">
-          @if (match.fulltime_a !== null && match.fulltime_b !== null) {
-          <span class="material-symbols-outlined align-middle" style="font-size: 1.1rem;"
-            [ngClass]="isScorerCorrect() ? 'icon-success' : 'icon-danger'">{{ isScorerCorrect() ? 'check_circle' :
-            'cancel' }}</span>
-          }
-          <strong class="align-middle">Buteur :</strong> <span class="align-middle">{{ donePronostique.scorer }}</span>
-        </h5>
+          <div class="flex align-items-center justify-content-center gap-2">
+            <span class="material-symbols-outlined" [ngClass]="isScorerCorrect() ? 'icon-success' : 'icon-danger'">{{
+              isScorerCorrect() ? 'check_circle' :
+              'cancel' }}</span>
+            <div>
+              <strong class="align-middle">Buteur :</strong> <span class="align-middle">{{
+                formatPlayerName(donePronostique.scorer) }}</span>
+            </div>
+          </div>
+        </div>
         }
         }
 
@@ -447,7 +452,7 @@
         @for (scorer of teamAScorersGrouped; track scorer.name) {
         <div style="margin-bottom: 2px; display: flex; align-items: center; gap: 4px; justify-content: flex-start;">
           <span class="material-symbols-outlined" style="font-size: 0.8rem; color: #8a99ad;">sports_soccer</span>
-          <span style="font-weight: 700; color: #e2e8f0;">{{ scorer.name | titlecase }}</span>
+          <span style="font-weight: 700; color: #e2e8f0;">{{ formatPlayerName(scorer.name) | titlecase }}</span>
           <span style="color: #a0aec0;" [innerHTML]="scorer.times"></span>
         </div>
         }
@@ -462,7 +467,7 @@
         @if (isScorersJson) {
         @for (scorer of teamBScorersGrouped; track scorer.name) {
         <div style="margin-bottom: 2px; display: flex; align-items: center; gap: 4px; justify-content: flex-end;">
-          <span style="font-weight: 700; color: #e2e8f0;">{{ scorer.name | titlecase }}</span>
+          <span style="font-weight: 700; color: #e2e8f0;">{{ formatPlayerName(scorer.name) | titlecase }}</span>
           <span style="color: #a0aec0;" [innerHTML]="scorer.times"></span>
           <span class="material-symbols-outlined" style="font-size: 0.8rem; color: #8a99ad;">sports_soccer</span>
         </div>

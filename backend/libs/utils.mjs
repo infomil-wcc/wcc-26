@@ -5,6 +5,54 @@ import http from 'http';
 import zlib from 'zlib';
 
 /**
+ * Normalizes date strings to explicit Mauritian Timezone (+04:00) 
+ * if no timezone descriptor is present.
+ */
+export function parseMauritianDate(dateStr) {
+  if (!dateStr) return 0;
+  let normalized = String(dateStr).trim();
+
+  // Cross-browser/environment standard replacement
+  normalized = normalized.replace(' ', 'T');
+  return new Date(normalized).getTime();
+}
+
+export function convertDirectusToMauritianString(dateStr) {
+  if (!dateStr) return '';
+  let normalized = String(dateStr).trim();
+  if (!normalized.endsWith('Z') && !/[+-]\d{2}:?\d{2}$/.test(normalized)) {
+    normalized += 'Z';
+  }
+  const d = new Date(normalized);
+  d.setUTCHours(d.getUTCHours() + 4);
+  const pad = (n) => String(n).padStart(2, '0');
+  return `${d.getUTCFullYear()}-${pad(d.getUTCMonth() + 1)}-${pad(d.getUTCDate())}T${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())}:${pad(d.getUTCSeconds())}`;
+}
+
+/**
+ * Returns the current server time strictly formatted as an ISO string with the Mauritian timezone offset (+04:00).
+ * Example: '2026-06-15T18:00:00+04:00'
+ */
+export function getCurrentMauritianDateStr() {
+  const now = new Date();
+  
+  // Calculate Mauritian time (+4 hours from UTC)
+  const utcMs = now.getTime() + (now.getTimezoneOffset() * 60000);
+  const muMs = utcMs + (4 * 3600000);
+  const muDate = new Date(muMs);
+
+  const pad = (n) => String(n).padStart(2, '0');
+  const YYYY = muDate.getFullYear();
+  const MM = pad(muDate.getMonth() + 1);
+  const DD = pad(muDate.getDate());
+  const hh = pad(muDate.getHours());
+  const mm = pad(muDate.getMinutes());
+  const ss = pad(muDate.getSeconds());
+
+  return `${YYYY}-${MM}-${DD}T${hh}:${mm}:${ss}+04:00`;
+}
+
+/**
  * Handles CORS preflight requests.
  * @param {object} request - The request object.
  * @param {object} response - The response object.
@@ -93,8 +141,6 @@ export function fetchWithBypass(url, options = {}) {
   const client = isHttps ? https : http;
   const method = options.method || 'GET';
 
-  console.log(`[fetchWithBypass] START: ${method} ${url}`);
-
   return new Promise((resolve, reject) => {
     const headers = { ...(options.headers || {}) };
     let body = options.body;
@@ -131,7 +177,6 @@ export function fetchWithBypass(url, options = {}) {
       stream.on('end', () => {
         const buffer = Buffer.concat(chunks);
         const data = buffer.toString('utf8');
-        console.log(`[fetchWithBypass] SUCCESS: ${method} ${url} - Status: ${res.statusCode}`);
         resolve({
           ok: res.statusCode >= 200 && res.statusCode < 300,
           status: res.statusCode,
@@ -146,7 +191,6 @@ export function fetchWithBypass(url, options = {}) {
     });
 
     req.setTimeout(15000, () => {
-      console.warn(`[fetchWithBypass] TIMEOUT: ${method} ${url} after 15000ms`);
       req.destroy(new Error('Timeout'));
     });
 

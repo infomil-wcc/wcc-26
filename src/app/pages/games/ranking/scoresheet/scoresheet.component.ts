@@ -10,7 +10,9 @@ import { PaginatorModule } from 'primeng/paginator';
 import { MatchesService } from '../../../../shared/services/content/matches.service';
 import { PredictionsApiService } from '../../../../shared/services/api/predictions-api.service';
 import { PronosticsRankingsApiService } from '../../../../shared/services/api/pronostics-rankings-api.service';
+import { RulesApiService } from '../../../../shared/services/api/rules-api.service';
 import { TeamsService } from '../../../../shared/services/content/teams.service';
+import { PointsCalculatorService } from '../../../../shared/services/games/points-calculator.service';
 import { Matches } from '../../../../shared/contracts/matches.contract';
 import { Pronostiques } from '../../../../shared/contracts/pronostiques.contract';
 import { Teams } from '../../../../shared/contracts/teams.contract';
@@ -39,7 +41,9 @@ export class ScoresheetComponent implements OnInit {
   private matchesService = inject(MatchesService);
   private predictionsApiService = inject(PredictionsApiService);
   private pronosticsRankingsApiService = inject(PronosticsRankingsApiService);
+  private rulesApiService = inject(RulesApiService);
   private teamsService = inject(TeamsService);
+  private pointsCalculatorService = inject(PointsCalculatorService);
   private cdr = inject(ChangeDetectorRef);
 
   @Input() userId: string = '';
@@ -274,25 +278,26 @@ export class ScoresheetComponent implements OnInit {
       matches: this.matchesService.getAllMatches(),
       predictions: this.predictionsApiService.getPredictions(`?filter[user]=${this.userId}&limit=-1`),
       rankings: this.pronosticsRankingsApiService.getRankings(`?filter[key]=${this.userId}`),
-      teams: this.teamsService.getAllTeams()
+      teams: this.teamsService.getAllTeams(),
+      rules: this.rulesApiService.getScoringRules()
     }).subscribe({
       next: (res) => {
         this.matches = res.matches;
         this.predictions = res.predictions?.data || [];
         this.teams = res.teams || [];
+        const rules = res.rules?.data || res.rules || [];
 
         const rankingRow = res.rankings?.data?.[0];
         const rankingPronos = rankingRow?.pronostiques || [];
-        const rankingBreakdownMap = new Map();
-        for (const rp of rankingPronos) {
-           if (!rankingBreakdownMap.has(String(rp.game_id))) {
-               rankingBreakdownMap.set(String(rp.game_id), rp.breakdown);
-           }
-        }
 
         // Apply breakdown to each prediction
         for (const p of this.predictions as any[]) {
-           p.breakdown = rankingBreakdownMap.get(String(p.game_id)) || { winner: 0, fulltime: 0, halftime: 0, scorer: 0, consolation: 0, total: 0, isFraud: false };
+           const match = this.matches.find(m => String(m.id) === String(p.game_id));
+           if (match) {
+               p.breakdown = this.pointsCalculatorService.calculatePoints(match, p, rules);
+           } else {
+               p.breakdown = { winner: 0, fulltime: 0, halftime: 0, scorer: 0, consolation: 0, total: 0, isFraud: false };
+           }
         }
 
         // Build map for fast lookup
@@ -439,17 +444,33 @@ export class ScoresheetComponent implements OnInit {
   }
 
   calculateScoresheet() {
-    // Sort predictions by created_on ascending to match backend duplicate logic
+    // Sort predictions descending by created_on (newest first)
     this.predictions.sort((a, b) => {
-      const dateA = a.created_on ? new Date(a.created_on).getTime() : 0;
-      const dateB = b.created_on ? new Date(b.created_on).getTime() : 0;
-      return dateA - dateB;
+      const dateA = a.created_on ? this.pointsCalculatorService.parseMauritianDate(this.pointsCalculatorService.convertDirectusToMauritianString(a.created_on)) : 0;
+      const dateB = b.created_on ? this.pointsCalculatorService.parseMauritianDate(this.pointsCalculatorService.convertDirectusToMauritianString(b.created_on)) : 0;
+      return dateB - dateA;
     });
 
     const predMap = new Map<string, Pronostiques>();
     for (const p of this.predictions) {
-      if (p.game_id && !predMap.has(String(p.game_id))) {
-        predMap.set(String(p.game_id), p);
+      if (!p.game_id) continue;
+      
+      const matchIdStr = String(p.game_id);
+      const match = this.matches.find(m => String(m.id) === matchIdStr);
+      if (!match) continue;
+
+      const isLate = this.pointsCalculatorService.isPredictionFraud(match, p);
+      
+      if (!predMap.has(matchIdStr)) {
+        predMap.set(matchIdStr, p);
+        (p as any)._tempLate = isLate;
+      } else {
+        const existing = predMap.get(matchIdStr) as any;
+        // If the newer prediction is late, but this older one is valid, use the valid one
+        if (existing._tempLate && !isLate) {
+          predMap.set(matchIdStr, p);
+          (p as any)._tempLate = isLate;
+        }
       }
     }
 
@@ -497,7 +518,9 @@ export class ScoresheetComponent implements OnInit {
       phase: dm.match.phase || '',
       _scoreNum: (dm.match.fulltime_a ?? 0) * 100 + (dm.match.fulltime_b ?? 0),
       _predictionNum: (dm.prediction.fulltime_a ?? -1) * 100 + (dm.prediction.fulltime_b ?? -1),
-      _points: dm.breakdown.isFraud ? 0 : dm.breakdown.total
+      _points: dm.breakdown.isFraud ? 0 : dm.breakdown.total,
+      _submittedAt: dm.prediction.created_on ? new Date(this.pointsCalculatorService.parseMauritianDate(this.pointsCalculatorService.convertDirectusToMauritianString(dm.prediction.created_on))) : null,
+      _modifiedAt: dm.prediction.modified_on ? new Date(this.pointsCalculatorService.parseMauritianDate(this.pointsCalculatorService.convertDirectusToMauritianString(dm.prediction.modified_on))) : null
     }));
     this.detailedMatches.sort((a, b) => new Date(b.match.date).getTime() - new Date(a.match.date).getTime());
   }
