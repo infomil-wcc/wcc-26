@@ -1055,6 +1055,7 @@ export class AdminDashboardComponent implements OnInit {
     if (!player || !player.predictionsDetail || player.predictionsDetail.length === 0) return;
 
     const headers = [
+      'ID Match',
       'Match',
       'Phase',
       'Coup d\'envoi',
@@ -1091,6 +1092,7 @@ export class AdminDashboardComponent implements OnInit {
       const b = d.breakdown || { winner: 0, fulltime: 0, halftime: 0, scorer: 0, consolation: 0 };
       
       return [
+        escapeCsv(d.matchId),
         escapeCsv(d.match),
         escapeCsv(d.phase),
         escapeCsv(kickoff),
