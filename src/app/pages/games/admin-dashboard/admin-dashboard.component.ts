@@ -13,7 +13,7 @@ import { PronosticsRankingsApiService } from '../../../shared/services/api/prono
 import { PointsCalculatorService } from '../../../shared/services/games/points-calculator.service';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../../environments/environment';
-import { forkJoin, of, timeout, interval, Subject } from 'rxjs';
+import { Observable, forkJoin, of, timeout, interval, Subject } from 'rxjs';
 import { catchError, map, tap, takeUntil } from 'rxjs/operators';
 import { Matches } from '../../../shared/contracts/matches.contract';
 
@@ -26,6 +26,33 @@ interface FraudReport {
   modifiedAt: Date | null;
   reason: string;
   predictionId: string | number;
+}
+
+interface HalftimeAnomalyReport extends FraudReport {
+  fulltime_a: any;
+  fulltime_b: any;
+  halftime_a: any;
+  halftime_b: any;
+  winner_draw: any;
+  matchHalftimeFlag: boolean;
+  pointsAwarded: number;
+  halftimePointsAwarded: number;
+  directusFulltimePoints: number;
+  recalculatedFulltimePoints: number;
+  recalculatedHalftimePoints: number;
+  recalculatedTotalPoints: number;
+  hasDiscrepancy: boolean;
+  discrepancyText?: string;
+}
+
+interface UserAnomalyGroup {
+  username: string;
+  totalAnomalies: number;
+  totalPointsAwarded: number;
+  totalFulltimePointsAwarded: number;
+  totalHalftimePointsAwarded: number;
+  cases: HalftimeAnomalyReport[];
+  isExpanded?: boolean;
 }
 
 interface PlayerStats {
@@ -62,6 +89,7 @@ export class AdminDashboardComponent implements OnInit {
   private authService = inject(AuthService);
   private cookieService = inject(CookieService);
   private rankingsService = inject(RankingsService);
+  private predictionsApiService = inject(PredictionsApiService);
   private matchesApiService = inject(MatchesApiService);
   private pronosticsRankingsApi = inject(PronosticsRankingsApiService);
   private cdr = inject(ChangeDetectorRef);
@@ -84,7 +112,19 @@ export class AdminDashboardComponent implements OnInit {
   playersReport: PlayerStats[] = [];
   fraudCases: FraudReport[] = [];
   duplicateCases: FraudReport[] = [];
+  incompleteScoreCases: HalftimeAnomalyReport[] = [];
+  groupedScoreAnomalies: UserAnomalyGroup[] = [];
   totalDiscrepancies = 0;
+
+  isNullOrEmptyOrDash(val: any): boolean {
+    if (val === null || val === undefined) return true;
+    const s = String(val).trim();
+    return s === '' || s === '-' || s === 'null' || s === 'undefined';
+  }
+
+  toggleUserAnomalyGroup(group: UserAnomalyGroup): void {
+    group.isExpanded = !group.isExpanded;
+  }
 
   selectedPlayer: PlayerStats | null = null;
 
@@ -530,6 +570,135 @@ export class AdminDashboardComponent implements OnInit {
     };
   }
 
+  fixPredictionEcart(c: HalftimeAnomalyReport): void {
+    this.confirmDialog = {
+      title: 'Correction dans pronostics_rankings',
+      message: `Voulez-vous corriger les points de #${c.matchId} pour ${c.user} uniquement dans la collection pronostics_rankings (passer à ${c.recalculatedTotalPoints} pts) ?`,
+      onConfirm: () => {
+        this.confirmDialog = null;
+        this.isRecalculating = true;
+        const token = this.cookieService.get('currentToken');
+        const headers = { 'Authorization': `Bearer ${token}` };
+
+        const userKey = c.user.toLowerCase().trim();
+        const rankingRow = this.rankings.find((r: any) => (r.key || r.user || '').toLowerCase().trim() === userKey);
+
+        if (!rankingRow) {
+          this.isRecalculating = false;
+          this.errorMessage = `Enregistrement pronostics_rankings introuvable pour le joueur ${c.user}`;
+          return;
+        }
+
+        const pronostiquesList = rankingRow.pronostiques || [];
+        const targetItem = pronostiquesList.find((pr: any) => String(pr.id) === String(c.predictionId) || String(pr.game_id) === String(c.matchId));
+
+        if (targetItem) {
+          targetItem.fulltime_a = this.isNullOrEmptyOrDash(c.fulltime_a) ? 0 : Number(c.fulltime_a);
+          targetItem.fulltime_b = this.isNullOrEmptyOrDash(c.fulltime_b) ? 0 : Number(c.fulltime_b);
+          targetItem.halftime_a = this.isNullOrEmptyOrDash(c.halftime_a) ? 0 : Number(c.halftime_a);
+          targetItem.halftime_b = this.isNullOrEmptyOrDash(c.halftime_b) ? 0 : Number(c.halftime_b);
+          targetItem.breakdown = {
+            winner: Math.max(0, c.recalculatedTotalPoints - c.recalculatedFulltimePoints - c.recalculatedHalftimePoints),
+            fulltime: c.recalculatedFulltimePoints,
+            halftime: c.recalculatedHalftimePoints,
+            scorer: targetItem.breakdown?.scorer || 0,
+            consolation: 0,
+            total: c.recalculatedTotalPoints
+          };
+          targetItem.points = c.recalculatedTotalPoints;
+        }
+
+        const totalPoints = pronostiquesList.reduce((sum: number, p: any) => sum + (p.breakdown?.total !== undefined ? Number(p.breakdown.total) : Number(p.points || 0)), 0);
+
+        this.pronosticsRankingsApi.updateRanking(rankingRow.id, {
+          pronostiques: pronostiquesList,
+          point: totalPoints
+        }, { headers }).subscribe({
+          next: () => {
+            this.isRecalculating = false;
+            this.recalcSuccessMessage = `Mise à jour réussie dans pronostics_rankings pour #${c.matchId} (${c.user}) !`;
+            this.loadAdminData(true);
+          },
+          error: (err) => {
+            this.isRecalculating = false;
+            this.errorMessage = `Erreur de mise à jour dans pronostics_rankings: ${err.error?.error || err.message}`;
+          }
+        });
+      }
+    };
+  }
+
+  fixAllDiscrepancies(): void {
+    if (this.incompleteScoreCases.length === 0) return;
+    this.confirmDialog = {
+      title: 'Correction globale dans pronostics_rankings',
+      message: `Voulez-vous corriger TOUS les ${this.incompleteScoreCases.length} écarts uniquement dans la collection pronostics_rankings ?`,
+      onConfirm: () => {
+        this.confirmDialog = null;
+        this.isRecalculating = true;
+        const token = this.cookieService.get('currentToken');
+        const headers = { 'Authorization': `Bearer ${token}` };
+
+        const casesByUser = new Map<string, HalftimeAnomalyReport[]>();
+        this.incompleteScoreCases.forEach(c => {
+          const key = c.user.toLowerCase().trim();
+          if (!casesByUser.has(key)) casesByUser.set(key, []);
+          casesByUser.get(key)!.push(c);
+        });
+
+        const updateObservables: Observable<any>[] = [];
+
+        casesByUser.forEach((userCases, key) => {
+          const rankingRow = this.rankings.find((r: any) => (r.key || r.user || '').toLowerCase().trim() === key);
+          if (rankingRow) {
+            const pronostiquesList = rankingRow.pronostiques || [];
+            userCases.forEach(c => {
+              const targetItem = pronostiquesList.find((pr: any) => String(pr.id) === String(c.predictionId) || String(pr.game_id) === String(c.matchId));
+              if (targetItem) {
+                targetItem.fulltime_a = this.isNullOrEmptyOrDash(c.fulltime_a) ? 0 : Number(c.fulltime_a);
+                targetItem.fulltime_b = this.isNullOrEmptyOrDash(c.fulltime_b) ? 0 : Number(c.fulltime_b);
+                targetItem.halftime_a = this.isNullOrEmptyOrDash(c.halftime_a) ? 0 : Number(c.halftime_a);
+                targetItem.halftime_b = this.isNullOrEmptyOrDash(c.halftime_b) ? 0 : Number(c.halftime_b);
+                targetItem.breakdown = {
+                  winner: Math.max(0, c.recalculatedTotalPoints - c.recalculatedFulltimePoints - c.recalculatedHalftimePoints),
+                  fulltime: c.recalculatedFulltimePoints,
+                  halftime: c.recalculatedHalftimePoints,
+                  scorer: targetItem.breakdown?.scorer || 0,
+                  consolation: 0,
+                  total: c.recalculatedTotalPoints
+                };
+                targetItem.points = c.recalculatedTotalPoints;
+              }
+            });
+            const totalPoints = pronostiquesList.reduce((sum: number, p: any) => sum + (p.breakdown?.total !== undefined ? Number(p.breakdown.total) : Number(p.points || 0)), 0);
+
+            updateObservables.push(this.pronosticsRankingsApi.updateRanking(rankingRow.id, {
+              pronostiques: pronostiquesList,
+              point: totalPoints
+            }, { headers }));
+          }
+        });
+
+        if (updateObservables.length === 0) {
+          this.isRecalculating = false;
+          return;
+        }
+
+        forkJoin(updateObservables).subscribe({
+          next: () => {
+            this.isRecalculating = false;
+            this.recalcSuccessMessage = `Tous les écarts (${this.incompleteScoreCases.length}) ont été corrigés avec succès dans pronostics_rankings !`;
+            this.loadAdminData(true);
+          },
+          error: (err) => {
+            this.isRecalculating = false;
+            this.errorMessage = `Erreur lors de la mise à jour dans pronostics_rankings: ${err.error?.error || err.message}`;
+          }
+        });
+      }
+    };
+  }
+
   private recalculateRanksOnlyAction(): void {
     this.isRecalculating = true;
     this.rankingsService.recalculateRanksOnly().subscribe({
@@ -556,6 +725,8 @@ export class AdminDashboardComponent implements OnInit {
     this.isGlobalAuditRun = false;
     this.fraudCases = [];
     this.duplicateCases = [];
+    this.incompleteScoreCases = [];
+    this.groupedScoreAnomalies = [];
     this.totalDiscrepancies = 0;
     const token = this.cookieService.get('currentToken');
     console.log('[Admin] token from cookies:', token ? 'exists (starts with ' + token.substring(0, 10) + '...)' : 'missing');
@@ -1003,6 +1174,9 @@ export class AdminDashboardComponent implements OnInit {
       next: (res: any) => {
         this.predictions = res?.data || res || [];
         this.fraudCases = [];
+        this.duplicateCases = [];
+        this.incompleteScoreCases = [];
+        this.groupedScoreAnomalies = [];
         this.totalDiscrepancies = 0;
 
         // Group predictions by user for O(1) checks
@@ -1020,6 +1194,10 @@ export class AdminDashboardComponent implements OnInit {
         this.playersReport.forEach(stats => {
           const userKey = stats.username.toLowerCase().trim();
           const userPredictions = predictionsByUser.get(userKey) || [];
+
+          // Query matching ranking record from pronostics_rankings collection
+          const rankingRow = this.rankings.find((r: any) => (r.key || r.user || '').toLowerCase().trim() === userKey);
+          const pronostiquesFromRankings: any[] = rankingRow?.pronostiques || [];
 
           let calculatedPoints = 0;
           let hasFraud = false;
@@ -1082,6 +1260,118 @@ export class AdminDashboardComponent implements OnInit {
                 });
               }
 
+              // Query matching prediction stored inside pronostics_rankings collection
+              let rankingProno = null;
+              if (p.id) {
+                rankingProno = pronostiquesFromRankings.find((pr: any) => String(pr.id) === String(p.id));
+              }
+              if (!rankingProno && p.game_id) {
+                rankingProno = pronostiquesFromRankings.find((pr: any) => String(pr.game_id) === String(p.game_id));
+              }
+
+              let directusTotal = 0;
+              let directusFt = 0;
+              let directusHt = 0;
+
+              const targetBd = rankingProno?.breakdown || p.breakdown;
+              if (targetBd) {
+                let bd = targetBd;
+                if (typeof bd === 'string') {
+                  try { bd = JSON.parse(bd); } catch(e) {}
+                }
+                if (typeof bd === 'object' && bd !== null) {
+                  directusTotal = bd.total !== undefined ? Number(bd.total) : 0;
+                  directusFt = bd.fulltime !== undefined ? Number(bd.fulltime) : 0;
+                  directusHt = bd.halftime !== undefined ? Number(bd.halftime) : 0;
+                }
+              } else if (rankingProno?.points !== undefined && rankingProno?.points !== null) {
+                directusTotal = Number(rankingProno.points);
+              } else if (p.points !== undefined && p.points !== null) {
+                directusTotal = Number(p.points);
+              }
+
+              // Special audit for halftime flag, knockout phase (match ID >= 73), and 0-converted game-rules calculation
+              const matchHalftimeFlag = Boolean(match.halftime);
+              const isKnockoutPhase = Number(match.id) >= 73;
+              const isFtAInvalid = this.isNullOrEmptyOrDash(p.fulltime_a);
+              const isFtBInvalid = this.isNullOrEmptyOrDash(p.fulltime_b);
+              const isHtAInvalid = this.isNullOrEmptyOrDash(p.halftime_a);
+              const isHtBInvalid = this.isNullOrEmptyOrDash(p.halftime_b);
+              const isWdInvalid = this.isNullOrEmptyOrDash(p.winner_draw);
+              const hasScoreNull = isFtAInvalid || isFtBInvalid || isHtAInvalid || isHtBInvalid || isWdInvalid;
+
+              // Convert null/empty/- fields to 0 for game-rules recalculation
+              const convertedProno = {
+                ...p,
+                fulltime_a: isFtAInvalid ? 0 : p.fulltime_a,
+                fulltime_b: isFtBInvalid ? 0 : p.fulltime_b,
+                halftime_a: isHtAInvalid ? 0 : p.halftime_a,
+                halftime_b: isHtBInvalid ? 0 : p.halftime_b,
+                winner_draw: p.winner_draw
+              };
+
+              let recalcBreakdown = { winner: 0, fulltime: 0, halftime: 0, scorer: 0, consolation: 0, total: 0, isFraud: false };
+              if (!isLate && !isDuplicate && match.fulltime_a !== null && match.fulltime_b !== null) {
+                recalcBreakdown = this.pointsCalculatorService.calculatePoints(match, convertedProno, this.rules);
+              }
+
+              // Discrepancy is ONLY calculated for knockout phase (match ID >= 73)
+              const hasDiscrepancy = isKnockoutPhase && ((directusTotal !== recalcBreakdown.total) || (directusFt !== recalcBreakdown.fulltime) || (directusHt !== recalcBreakdown.halftime));
+
+              let isAnomaly = false;
+              const reasons: string[] = [];
+
+              // Condition 1: halftime flag is true on match, but prediction halftime score is missing/null/empty/dash
+              if (matchHalftimeFlag && (isHtAInvalid || isHtBInvalid)) {
+                isAnomaly = true;
+                reasons.push('Score MT manquant (Match avec halftime = true)');
+              }
+
+              // Condition 2: Knockout phase (match ID >= 73) with incomplete fulltime or winner_draw
+              if (isKnockoutPhase) {
+                if (isFtAInvalid || isFtBInvalid) {
+                  isAnomaly = true;
+                  reasons.push('Score TR manquant (Phase finale ≥ #73)');
+                }
+                if (isWdInvalid) {
+                  isAnomaly = true;
+                  reasons.push('Vainqueur qualifié manquant (Phase finale ≥ #73)');
+                }
+              }
+
+              // Condition 3: Discrepancy between Directus points and 0-converted game-rules calculation (only for KO phase >= #73)
+              if (hasDiscrepancy) {
+                isAnomaly = true;
+                reasons.push(`Écart de points (pronostics_rankings: TR ${directusFt}/MT ${directusHt}/Total ${directusTotal} pts vs Recalculé avec '0': TR ${recalcBreakdown.fulltime}/MT ${recalcBreakdown.halftime}/Total ${recalcBreakdown.total} pts)`);
+              }
+
+              if (hasDiscrepancy) {
+                this.incompleteScoreCases.push({
+                  user: stats.username,
+                  matchId: match.id,
+                  matchName: `${match.team_a} vs ${match.team_b}`,
+                  kickoff: kickoffTime,
+                  submittedAt: createdTime,
+                  modifiedAt: modifiedTime,
+                  reason: reasons.join(' | ') || 'Score incomplet/null/-',
+                  predictionId: p.id,
+                  fulltime_a: p.fulltime_a,
+                  fulltime_b: p.fulltime_b,
+                  halftime_a: p.halftime_a,
+                  halftime_b: p.halftime_b,
+                  winner_draw: p.winner_draw,
+                  matchHalftimeFlag: matchHalftimeFlag,
+                  pointsAwarded: directusTotal,
+                  halftimePointsAwarded: directusHt,
+                  directusFulltimePoints: directusFt,
+                  recalculatedFulltimePoints: recalcBreakdown.fulltime,
+                  recalculatedHalftimePoints: recalcBreakdown.halftime,
+                  recalculatedTotalPoints: recalcBreakdown.total,
+                  hasDiscrepancy: hasDiscrepancy,
+                  discrepancyText: hasDiscrepancy ? `Directus (${directusTotal} pts: TR ${directusFt}, MT ${directusHt}) ≠ Recalculé (${recalcBreakdown.total} pts: TR ${recalcBreakdown.fulltime}, MT ${recalcBreakdown.halftime})` : ''
+                });
+              }
+
               if (!isLate && !isDuplicate && match.fulltime_a !== null && match.fulltime_b !== null) {
                 const breakdown = this.pointsCalculatorService.calculatePoints(match, p, this.rules);
                 calculatedPoints += breakdown.total;
@@ -1097,6 +1387,30 @@ export class AdminDashboardComponent implements OnInit {
           }
           stats.isCalculating = false;
         });
+
+        // Group anomalies by user
+        const map = new Map<string, UserAnomalyGroup>();
+        this.incompleteScoreCases.forEach(item => {
+          const key = item.user.toLowerCase().trim();
+          if (!map.has(key)) {
+            map.set(key, {
+              username: item.user,
+              totalAnomalies: 0,
+              totalPointsAwarded: 0,
+              totalFulltimePointsAwarded: 0,
+              totalHalftimePointsAwarded: 0,
+              cases: [],
+              isExpanded: false
+            });
+          }
+          const group = map.get(key)!;
+          group.totalAnomalies++;
+          group.totalPointsAwarded += (item.pointsAwarded || 0);
+          group.totalFulltimePointsAwarded += (item.directusFulltimePoints || 0);
+          group.totalHalftimePointsAwarded += (item.halftimePointsAwarded || 0);
+          group.cases.push(item);
+        });
+        this.groupedScoreAnomalies = Array.from(map.values()).sort((a, b) => b.totalAnomalies - a.totalAnomalies);
 
         // Trigger visible page detailed calculations just to build remaining analytics
         this.calculatePageData();

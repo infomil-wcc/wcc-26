@@ -211,6 +211,13 @@
           <p class="value">{{ fraudCases.length }}</p>
         </div>
       </div>
+      <div class="stat-card warning-card" [class.highlight]="incompleteScoreCases.length > 0">
+        <div class="stat-icon mismatch-icon"><span class="material-symbols-outlined">warning_amber</span></div>
+        <div class="stat-info">
+          <h3>Scores Incomplets (≥ #73)</h3>
+          <p class="value">{{ incompleteScoreCases.length }}</p>
+        </div>
+      </div>
     </div>
 
     <p-tabs [(value)]="activeTab">
@@ -226,6 +233,12 @@
         <p-tab value="doublons">
           <span class="material-symbols-outlined margin-right-xs" style="vertical-align: middle;">content_copy</span>
           Doublons Détectés
+        </p-tab>
+        <p-tab value="incompleteScores">
+          <span class="material-symbols-outlined margin-right-xs" style="vertical-align: middle;" [class.spin]="isGlobalAuditing">
+            {{ isGlobalAuditing ? 'sync' : 'warning_amber' }}
+          </span>
+          Audit Scores Incomplets (≥ #73)
         </p-tab>
         <p-tab value="buteurs">
           <span class="material-symbols-outlined margin-right-xs" style="vertical-align: middle;">sports_soccer</span>
@@ -436,6 +449,163 @@
           </div>
           <div *ngIf="duplicateCases.length === 0" class="padding-all text-center color-gray" style="padding: 40px;">
             Aucun doublon détecté.
+          </div>
+        </p-tabpanel>
+
+        <!-- INCOMPLETE SCORES TAB (MATCH ID >= 73 & HALFTIME FLAG AUDIT) -->
+        <p-tabpanel value="incompleteScores">
+          <!-- Loading state when audit query is running -->
+          <div *ngIf="isGlobalAuditing" class="loading-state" style="padding: 50px 20px; text-align: center;">
+            <div class="spinner margin-bottom-sm" style="margin: 0 auto 12px auto;"></div>
+            <p class="font-semibold text-white" style="font-size: 1.05rem;">Audit et vérification des scores en cours...</p>
+            <p class="text-xs text-white-alpha-70">Interrogation des données Directus et calcul des règles de points</p>
+          </div>
+
+          <div *ngIf="!isGlobalAuditing">
+            <div class="card fraud-alert-panel" *ngIf="groupedScoreAnomalies.length > 0">
+              <div class="card-header flex-between">
+                <div>
+                  <span class="material-symbols-outlined text-warning">warning_amber</span>
+                  <h2 style="color: #ffb74d;">AUDIT SCORES & MI-TEMPS (HALFTIME FLAG & PHASE FINALE ≥ #73)</h2>
+                </div>
+                <div class="flex align-items-center gap-3">
+                  <span class="text-xs font-semibold text-white-alpha-70">
+                    {{ incompleteScoreCases.length }} écart(s) sur {{ groupedScoreAnomalies.length }} joueur(s)
+                  </span>
+                  <button class="btn btn-warning btn-sm flex align-items-center gap-1" (click)="fixAllDiscrepancies()" [disabled]="isRecalculating">
+                    <span class="material-symbols-outlined" style="font-size: 1.1rem;">auto_fix_high</span>
+                    Corriger les {{ incompleteScoreCases.length }} écarts dans Directus
+                  </button>
+                </div>
+              </div>
+              <div class="card-body">
+
+                <!-- Grouped by User Table -->
+                <div class="table-responsive margin-bottom-md">
+                  <table class="dashboard-table">
+                    <thead>
+                      <tr>
+                        <th>Joueur</th>
+                        <th>Nb Anomalies</th>
+                        <th>Points Fulltime Attribués (TR)</th>
+                        <th>Points Totaux Attribués (Directus)</th>
+                        <th>Points Mi-Temps Attribués</th>
+                        <th>Détails Matches</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <ng-container *ngFor="let group of groupedScoreAnomalies">
+                        <tr [class.bg-white-alpha-5]="group.isExpanded">
+                          <td class="font-bold text-warning flex align-items-center gap-2">
+                            <button class="btn btn-icon info" (click)="toggleUserAnomalyGroup(group)" style="padding: 2px 6px;">
+                              <span class="material-symbols-outlined" style="font-size: 1.1rem;">
+                                {{ group.isExpanded ? 'expand_less' : 'expand_more' }}
+                              </span>
+                            </button>
+                            <span>{{ group.username | uppercase }}</span>
+                          </td>
+                          <td>
+                            <span class="badge badge-warning font-bold">{{ group.totalAnomalies }} match(es)</span>
+                          </td>
+                          <td class="font-bold text-warning">
+                            {{ group.totalFulltimePointsAwarded }} pts (TR)
+                          </td>
+                          <td class="font-bold text-success">
+                            {{ group.totalPointsAwarded }} pts
+                          </td>
+                          <td class="font-semibold text-info">
+                            {{ group.totalHalftimePointsAwarded }} pts (MT)
+                          </td>
+                          <td>
+                            <button class="btn btn-report btn-sm" (click)="toggleUserAnomalyGroup(group)">
+                              {{ group.isExpanded ? 'Masquer' : 'Voir les ' + group.totalAnomalies + ' match(es)' }}
+                            </button>
+                          </td>
+                        </tr>
+
+                        <!-- Nested rows for expanded user -->
+                        <tr *ngIf="group.isExpanded">
+                          <td colspan="6" style="padding: 0 12px 16px 36px; background: rgba(0,0,0,0.15);">
+                            <div class="table-responsive mt-2">
+                              <table class="dashboard-table" style="font-size: 0.85rem; background: transparent;">
+                                <thead>
+                                  <tr style="background: rgba(255,255,255,0.05);">
+                                    <th>Match ID</th>
+                                    <th>Match</th>
+                                    <th>Flag Directus (halftime)</th>
+                                    <th>Fulltime (TR)</th>
+                                    <th>Halftime (MT)</th>
+                                    <th>Vainqueur</th>
+                                    <th>Pts MT (pronostics_rankings)</th>
+                                    <th>Pts MT (Calculé avec '0')</th>
+                                    <th>Pts TR (pronostics_rankings)</th>
+                                    <th>Pts TR (Calculé avec '0')</th>
+                                    <th>Pts Total (pronostics_rankings)</th>
+                                    <th>Pts Total (Calculé avec '0')</th>
+                                    <th>Statut Écart</th>
+                                    <th>Action</th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  <tr *ngFor="let c of group.cases" [class.bg-danger-subtle]="c.hasDiscrepancy">
+                                    <td class="font-bold">#{{ c.matchId }}</td>
+                                    <td>{{ c.matchName }}</td>
+                                    <td>
+                                      <span class="badge" [ngClass]="c.matchHalftimeFlag ? 'badge-success' : 'badge-dark'">
+                                        halftime = {{ c.matchHalftimeFlag ? 'true' : 'false' }}
+                                      </span>
+                                    </td>
+                                    <td>
+                                      <span [class.text-danger]="isNullOrEmptyOrDash(c.fulltime_a) || isNullOrEmptyOrDash(c.fulltime_b)" class="font-semibold">
+                                        {{ c.fulltime_a ?? 'null' }} - {{ c.fulltime_b ?? 'null' }}
+                                      </span>
+                                    </td>
+                                    <td>
+                                      <span [class.text-warning]="isNullOrEmptyOrDash(c.halftime_a) || isNullOrEmptyOrDash(c.halftime_b)">
+                                        {{ c.halftime_a ?? 'null' }} - {{ c.halftime_b ?? 'null' }}
+                                      </span>
+                                    </td>
+                                    <td>
+                                      <span [class.text-danger]="isNullOrEmptyOrDash(c.winner_draw)">
+                                        {{ c.winner_draw || 'Non renseigné' }}
+                                      </span>
+                                    </td>
+                                    <td class="font-semibold text-info">{{ c.halftimePointsAwarded }} pts</td>
+                                    <td class="font-semibold text-cyan-400">{{ c.recalculatedHalftimePoints }} pts</td>
+                                    <td class="font-semibold text-warning">{{ c.directusFulltimePoints }} pts</td>
+                                    <td class="font-semibold font-bold text-orange-400">{{ c.recalculatedFulltimePoints }} pts</td>
+                                    <td class="font-bold text-success">{{ c.pointsAwarded }} pts</td>
+                                    <td class="font-bold text-info">{{ c.recalculatedTotalPoints }} pts</td>
+                                    <td>
+                                      <span class="badge badge-danger font-bold" [title]="c.discrepancyText">
+                                        ÉCART ({{ c.pointsAwarded }} ≠ {{ c.recalculatedTotalPoints }})
+                                      </span>
+                                    </td>
+                                    <td class="flex align-items-center gap-1">
+                                      <button class="btn btn-sm btn-success flex align-items-center gap-1" (click)="fixPredictionEcart(c)" [disabled]="isRecalculating" title="Fixer et corriger les points dans Directus">
+                                        <span class="material-symbols-outlined" style="font-size: 0.95rem;">build</span>
+                                        Corriger
+                                      </button>
+                                      <button class="btn btn-icon info" (click)="openRevisionsModal(c)" title="Voir Historique">
+                                        <span class="material-symbols-outlined" style="font-size: 1rem;">history</span>
+                                      </button>
+                                    </td>
+                                  </tr>
+                                </tbody>
+                              </table>
+                            </div>
+                          </td>
+                        </tr>
+                      </ng-container>
+                    </tbody>
+                  </table>
+                </div>
+
+              </div>
+            </div>
+            <div *ngIf="groupedScoreAnomalies.length === 0" class="padding-all text-center color-gray" style="padding: 40px;">
+              Aucune anomalie de Mi-Temps ou de score null/vide/- détectée.
+            </div>
           </div>
         </p-tabpanel>
 
